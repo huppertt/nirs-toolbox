@@ -1,77 +1,40 @@
 classdef Image
-    %IMAGE Summary of this class goes here
-    %   Detailed explanation goes here
+    %IMAGE This class holds segmented image volumes for forward and inverse
+    % models.
     
     properties
-        dim;
-        origin;
-        refPts;
-        volume;
+        vol;        % image volume
+        dim;        % spatial dimensions in mm
+        origin;     % idx of (0,0,0)
+        description; 
     end
     
     methods
-        function obj = Image( newVolume, varargin )
-            obj.volume = newVolume;
-            obj.origin = ones( ndims(obj.volume),1 ); %default origin [1 1 1]
-            obj.dim = ones( ndims(obj.volume),1 );   %default dimensions [1 1 1] mm
-            
-            if nargin > 1
-                obj.origin = varargin{2};
+        %% Constructor
+        function obj = Image( vol, dim, origin )
+            if nargin > 0, 
+                obj.vol = vol;
+                obj.dim = ones(1,ndims(vol));
+                obj.origin = ones(1,ndims(vol));
             end
-            if nargin > 2
-                obj.dim = varargin{3};
-            end
-            if nargin > 3
-                obj.refPts = varargin{4};
-            end
-            if nargin > 4
-                error('Too many input arguments for Image constructor.')
-            end
+            if nargin > 1, obj.dim = dim; end 
+            if nargin > 2, obj.origin = origin; end 
         end
         
-%         function obj = set.dim( obj, newDim )
-%             if (length(newDim) == 3 ||length(newDim) == 4)
-%                 if iscolumn(newDim)
-%                     obj.dim = newDim;
-%                 elseif isrow(newDim)
-%                     obj.dim = newDim';
-%                 end
-%             else
-%                 error('Image dimensions must be 3x1 or 4x1.')
-%             end
-%         end
-        
-        function obj = set.volume( obj, newVolume )
-            if isnumeric( newVolume ) || islogical( newVolume )
-                obj.volume = newVolume;
-            else
-                error( 'Volume must be numeric or logical.' )
-            end
+        function obj = set.vol( obj, vol )
+            assert( isnumeric(vol) || islogical(vol) )
+            obj.vol = vol;
         end
         
-        function dispImage( obj )
-            view_nii( make_nii( obj.volume ) );
+        function obj = set.description( obj, description )
+            assert( ischar( description ) || isempty( description ) )
+          	obj.description = description;
         end
-
-%         function out = subsref(obj,s)
-%             if strcmp(s(1).type,'()')
-%                 out = obj.volume(s(1).subs{:});
-%             else
-%                 try
-%                     out = builtin('subsref',obj,s);
-%                 catch
-%                     builtin('subsref',obj,s);
-%                 end
-%             end
-%         end
-%                 
-%         function obj = subsasgn(obj,s,b)
-%             if strcmp(s.type,'()')
-%                 obj.volume(s.subs{:}) = b;
-%             else
-%                 obj = builtin('subsasgn',obj,s,b);
-%             end
-%         end 
+        
+        function out = size( obj )
+            out = size(obj.vol);
+        end
+        
     end
     
 end

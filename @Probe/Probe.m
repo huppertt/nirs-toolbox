@@ -1,15 +1,18 @@
 classdef Probe
-    %PROBE Summary of this class goes here
-    %   Detailed explanation goes here
+    %PROBE This object hold nirs probe geometries and reformat source and
+    %detector indices for forward models.
     
     properties
-        srcPos; % nSrc x 3
-        srcDir; % nSrc x 3
-        detPos; % nDet x 3
-        detDir; % nDet x 3
-        lambda; % nWavelengths x 1
-        link;   % nChannel x [iSrc, iDet, iLambda]
-        refPts; % possible set of reference points for alignment w/ image or atlas
+        srcPos;         % nSrc x 3
+        srcDir;         % nSrc x 3
+        
+        detPos;         % nDet x 3
+        detDir;         % nDet x 3
+        
+        lambda;         % nWavelengths x 1
+        
+        link;           % nChannel x [iSrc, iDet, iLambda]
+        
         description;
     end
     
@@ -19,114 +22,61 @@ classdef Probe
     
     methods
         %% Constructor
-        function obj = Probe( varargin )
-            if nargin > 0
-                obj.srcPos = varargin{1};
-            end
-            
-            if nargin > 1
-                obj.detPos = varargin{2};
-            end
-            
-            if nargin > 2
-                obj.link = varargin{3};
-            end
-            
-            if nargin > 3
-                obj.lambda = varargin{4};
-            end
-       
-            if nargin > 4
-                obj.refPts = varargin{5};
-            end
-            
-            if nargin > 5
-                obj.description = varargin{6};
-            end
-            
-            if nargin > 6
-                obj.srcDir = varargin{7};
-            end
-            
-            if nargin > 7
-                obj.detDir = varargin{8};
-            end
-            
-            if nargin > 8
-                error('Too many input arguments.')
-            end
+        function obj = Probe( srcPos, detPos, link, lambda )
+            if nargin > 0, obj.srcPos = srcPos; end
+            if nargin > 1, obj.detPos = detPos; end
+            if nargin > 2, obj.link = link; end
+            if nargin > 3, obj.lambda = lambda; end
         end
 
         %% Set/Get
-        function obj = set.srcPos( obj,newSrcPos )
-            if ismatrix(newSrcPos) && size(newSrcPos,2) == 3 || isempty(newSrcPos)
-                obj.srcPos = newSrcPos;
-            else
-                error( 'srcPos should be a n x 3 array.' )
-            end
+        % positions
+        function obj = set.srcPos( obj,srcPos )
+            assert( ismatrix(srcPos) )
+            obj.srcPos = srcPos;
         end
         
-        function obj = set.srcDir( obj,newSrcDir )
-            if ismatrix(newSrcDir) && size(newSrcDir,2) == 3 || isempty(newSrcDir)
-                obj.srcDir = newSrcDir;
-            else
-                error( 'srcDir should be a n x 3 array.' )
-            end
+        function obj = set.detPos( obj,detPos )
+            assert( ismatrix(detPos) )
+            obj.detPos = detPos;
         end
         
-        function obj = set.detPos( obj,newDetPos )
-            if ismatrix(newDetPos) && size(newDetPos,2) == 3 || isempty(newDetPos)
-                obj.detPos = newDetPos;
-            else
-                error( 'detPos should be a n x 3 array.' )
-            end
+        % optional vectors descibing the direction of a pencil beam
+        function obj = set.srcDir( obj,srcDir )
+            assert( ismatrix(srcDir) )
+            obj.srcDir = srcDir;
         end
         
-        function obj = set.detDir( obj,newDetDir )
-            if ismatrix(newDetDir) && size(newDetDir,2) == 3 || isempty(newDetDir)
-                obj.detDir = newDetDir;
-            else
-                error( 'detDir should be a n x 3 array.' )
-            end
+        function obj = set.detDir( obj,detDir )
+            assert( ismatrix(detDir) )
+            obj.detDir = detDir;
         end
         
-        function obj = set.link( obj, newLink )
-            if ismatrix(newLink) && (size(newLink,2) == 3 || size(newLink,2) == 2 || isempty(newLink))
-                obj.link = newLink;
-            else
-                error('Link should be a matrix with 3 columns [iSrc iDet Lambda].')
-            end
+        % link [iSrc iDet iLambda]
+        function obj = set.link( obj,link )
+            assert( ismatrix(link) && size(link,2) == 3 )
+            obj.link = link;
         end
         
-        function obj = set.lambda( obj, newLambda )
-            if isvector( newLambda )
-                if iscolumn( newLambda )
-                    obj.lambda = newLambda;
-                else
-                    obj.lambda = newLambda';
-                end
-            end
+        % wavelengths
+        function obj = set.lambda( obj, lambda )
+            assert( isvector(lambda) )
+            obj.lambda = lambda;
         end
         
-        function obj = set.description( obj, newDescription )
-            if ischar( newDescription ) || isempty(newDescription)
-                obj.description = newDescription;
-            else
-                error( 'Description should be a string.' )
-            end
-        end 
-        
-        function obj = set.refPts( obj,newRefPts )
-            if ismatrix(newRefPts) && size(newRefPts,2) == 3 || isempty(newRefPts)
-                obj.refPts = newRefPts;
-            else
-                error( 'refPts should be a n x 3 array.' )
-            end
+        function obj = set.description( obj, description )
+            assert( ischar( description ) || isempty( description ) )
+          	obj.description = description;
         end
-        
+            
         %% Methods
         function d = get.distances( obj )
-            d = sqrt( sum( (obj.srcPos(obj.link(:,1),:) - obj.detPos(obj.link(:,2),:))'.^2 ))';
+            isrc = obj.link(:,1);
+            idet = obj.link(:,2);
+            
+            vec = obj.srcPos(isrc,:) - obj.detPos(idet,:);
+            
+            d = sqrt( sum( vec.^2,2 ) );
         end
         
         function out = isUniqueSrcs( obj )
@@ -164,14 +114,12 @@ classdef Probe
             out = out && (max(obj.link(:,2)) == size(obj.detPos,1));
             
             out = out && (max(obj.link(:,3)) == length(obj.lambda));
-%             out = out && all( size(obj.srcPos) == size(obj.srcDir) );
         end
         
         function out = isValidDets( obj )
             out = obj.isUniqueDets;
             out = out && (max(obj.link(:,1)) == size(obj.srcPos,1));
             out = out && (max(obj.link(:,2)) == size(obj.detPos,1));
-%             out = out && all( size(obj.detPos) == size(obj.detDir) );
         end
         
         function out = isValid( obj )
@@ -204,8 +152,12 @@ classdef Probe
             obj.srcPos = obj.srcPos( uSrc(:,1),: );
             obj.detPos = obj.detPos( uDet(:,1),: );
             
-            obj.srcDir = obj.srcDir( uSrc(:,1),: );
-            obj.detDir = obj.detDir( uDet(:,1),: );
+            if ~isempty(obj.srcDir)
+                obj.srcDir = obj.srcDir( uSrc(:,1),: );
+            end
+            if ~isempty(obj.detDir)
+                obj.detDir = obj.detDir( uDet(:,1),: );
+            end
         end
             
     end

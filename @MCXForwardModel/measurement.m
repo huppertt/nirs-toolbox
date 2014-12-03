@@ -2,64 +2,65 @@ function meas = measurement( obj )
 %MEASUREMENT Summary of this function goes here
 %   Detailed explanation goes here
 
-    origProbe = obj.probe;
-    obj.probe = obj.probe.makeUniqueProbe();
+    % TODO change fft to properly due a dtft
+    % for now, choose proper timeStep
+    fbin = obj.Fm*1e6 * obj.timeStep * obj.nTimeGates;
+    assert( fbin - fix(fbin) < 1e-9 )
+    fbin = fix(fbin);
     
-    if size( obj.probe.detPos,1 ) < size( obj.probe.srcPos,1 )
-        obj.probe = obj.probe.swapSD();
+    % get a probe in proper format
+    probe = obj.probe.makeUniqueProbe();
+    
+    % either simulate all dets once or all sources once
+    % swap if their are less dets than srcs
+    if size( probe.detPos,1 ) < size( probe.srcPos,1 )
+        probe = probe.swapSD();
     end
     
-    if ~obj.probe.isValidSrcs()
-        error( 'Probe is not valid.' )
-    end
+    % copy fwdModel object with proper probe
+    thisObj = obj;
+    thisObj.probe = probe;
     
-    Fs = 1/obj.timeStep;
+    % check that probe is valid
+    assert( probe.isValidSrcs() )
     
-    data = complex( zeros(1,size(obj.probe.link,1),'single') );
-    for iSrc = 1:size(obj.probe.srcPos,1)
-        cfg = obj.getConfig( iSrc,'source' );
+    % preallocation
+    data = complex( zeros(1,size(probe.link,1),'single') );
+    
+    % for each source compute flux
+    for iSrc = 1:size(probe.srcPos,1)
+        cfg = thisObj.getConfig( iSrc,'source' );
         
         tic,
         [~,flux,~] = evalc('mcxlab(cfg)'); % stupid way to suppress mcxlab output
+        for iRep = 2:obj.nRepetitions
+            [~,tmp,~] = evalc('mcxlab(cfg)');
+            flux.data = (iRep-1)/iRep * flux.data + tmp.data/iRep;
+        end
         t = toc;
-        
-        disp(['Completed forward model for source ' num2str(iSrc) ' of ' num2str(size(obj.probe.srcPos,1)) ' in ' num2str(t) ' seconds.'])
+        disp(['Completed forward model for source ' num2str(iSrc) ' of ' num2str(size(probe.srcPos,1)) ' in ' num2str(t) ' seconds.'])
 
-        flux.data = flux.data/obj.nPhotons;%/obj.nRepetitions;
+        flux.data = flux.data/thisObj.nPhotons/obj.image.dim(1)^3;
         flux.data = fft( flux.data,[],4 );
         
-        fluence = flux.data(:,:,:,fix(obj.modFreq/(Fs/obj.nTimeGates))+1);
+        fluence = flux.data(:,:,:,fbin+1);
         
-        lst = find( obj.probe.link(:,1) == iSrc );
-        pos = obj.probe.detPos( obj.probe.link(lst,2),:);
+        lst = find( probe.link(:,1) == iSrc );
         
-%         data(lst) = fluence( sub2ind( size(fluence),...
-%             fix( pos(:,1) ),...
-%             fix( pos(:,2) ),...
-%             fix( pos(:,3) ) ));
+        pos = probe.detPos( probe.link(lst,2),:);
+        pos = pos / thisObj.image.dim(1) + repmat(thisObj.image.origin,[size(pos,1) 1]);
 
-%         for iPos = 1:size(pos,1)
-%             x = pos(iPos,1) / obj.image.dim(1);
-%             y = pos(iPos,2) / obj.image.dim(1);
-%             z = pos(iPos,3) / obj.image.dim(1);
-%             
-%             [X, Y, Z] = meshgrid( ...
-%                 max(floor(x-1),1):min(ceil(x+1),size(fluence,1)),...
-%                 max(floor(y-1),1):min(ceil(y+1),size(fluence,2)),...
-%                 max(floor(z-1),1):min(ceil(z+1),size(fluence,3)) );
-%            	
-%             V = fluence( sub2ind( size(fluence), X, Y, Z ) );
-%             if length(V) == 1
-%                 data(lst(iPos)) = V;
-%             else
-%                 data(lst(iPos)) = interp3( X, Y, Z, V, x, y, z );
-%             end
-%         end
-        data(lst) = obj.getMeasFromFluence(pos,fluence);
-
+%         thisR = nirs2.utilities.quad_interp(pos,real(log(fluence)),3);
+%         thisI = nirs2.utilities.quad_interp(pos,imag(log(fluence)),3);
+%         pos = fix(pos);
+%         data(lst) = fluence( sub2ind(size(fluence),pos(:,1),pos(:,2),pos(:,3)) );
+        data(lst) = exp(...
+            nirs2.utilities.quad_interp(pos,log(fluence),3)...
+            );
+        
     end
     
-    meas = nirs.Data( 0,data,origProbe,obj.modFreq,'MCX Forward Model Simulation');
+    meas = nirs2.Data( data, obj.probe, 0, 110, 'MCX' );
     
 end
 

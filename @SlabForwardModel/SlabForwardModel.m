@@ -1,67 +1,31 @@
-classdef SlabForwardModel < nirs.ForwardModel
+classdef SlabForwardModel 
     %SLABFORWARDMODEL Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         probe;
-        optProp;
-        modFreq = 110e6;
-    end
-    
-    properties( Constant )
-        nLayers = 1;
+        prop;
+        Fm = 110;
     end
     
     methods
         %% Constructor
-        function obj = SlabForwardModel( varargin )
-           if nargin > 0
-               obj.probe = varargin{1};
-           end
-           
-           if nargin > 1
-               obj.optProp = varargin{2};
-           end
-           
-           if nargin > 2
-               obj.modFreq = varargin{3};
-           end
-           
-           if nargin > 3
-               error('Too many input arguments.')
-           end
-        end
-        
-        %% Set/Get
-        function obj = set.probe( obj, newProbe )
-            if isa( newProbe,'nirs.Probe' )
-                obj.probe = newProbe;
-            else
-                error('Probe should be of Probe class.')
-            end
-        end
-        
-        function obj = set.optProp( obj, newProp )
-            if isa( newProp,'nirs.OpticalProperties' )
-                obj.optProp = newProp;
-            else
-                error('Optical properties should be of OpticalProperties class.')
-            end
+        function obj = SlabForwardModel( probe, prop, Fm )
+           if nargin > 0, obj.probe = probe; end
+           if nargin > 1, obj.prop = prop; end
+           if nargin > 2, obj.Fm = Fm; end
         end
         
         %% Methods
         function meas = measurement( obj )
             d = obj.probe.distances;
-            w = obj.modFreq*2*pi;
+            w = obj.Fm*2*pi * 1e6;
 
             for iLink = 1:size( obj.probe.link,1 )
                 iLambda = obj.probe.link(iLink,3);
-                k = obj.optProp.kappa( iLambda );
-                v = obj.optProp.c( iLambda );
-                mua = obj.optProp.mua( iLambda );
-                
-%                 logAC(1,iLink) = -log(d(iLink)^2) - d(iLink) * sqrt(mua/k) * (1 + (w/v/mua)^2)^.25 * cos( .5*atan(w/v/mua) );
-%                 phi(1,iLink) = - d(iLink) * sqrt(mua/k) * (1 + (w/v/mua)^2)^.25 * sin( .5*atan(w/v/mua) );
+                k = obj.prop.kappa( iLambda );
+                v = obj.prop.v( iLambda );
+                mua = obj.prop.mua( iLambda );
 
                 Vp = sqrt(sqrt(1+(w/mua/v)^2) + 1);
                 Vm = sqrt(sqrt(1+(w/mua/v)^2) - 1);
@@ -73,7 +37,11 @@ classdef SlabForwardModel < nirs.ForwardModel
                 phi(1,iLink) = -d(iLink) * sqrt(mua/2/k) * Vm + atan(d(iLink)*sqrt(mua/2/k)*Vm/(1+d(iLink)*sqrt(mua/2/k)*Vp));
             end
             
-            meas = nirs.Data( 0,exp(logAC + 1i*phi),obj.probe,obj.modFreq,'Analytical slab forward model.');
+            meas = nirs2.Data( exp(logAC + 1i*phi),...
+                obj.probe,...
+                0, ...
+                obj.Fm, ...
+                'Analytical slab forward model.');
         end
         
         function [J,meas] = jacobian( obj )
