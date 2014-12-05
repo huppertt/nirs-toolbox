@@ -1,4 +1,4 @@
-function prop = Bone( lambda )
+function prop = bone( lambda )
   
     mua = [650.0000    0.0398
         651.0000    0.0394
@@ -608,7 +608,7 @@ function prop = Bone( lambda )
     mus = interp1(mus(:,1),mus(:,2),lambda);
     ri = 1.45;
 
-    prop = nirs2.OpticalProperties(mua,mus,lambda,ri);
+    prop = nirs.OpticalProperties(mua,mus,lambda,ri);
 
 end
 

@@ -20,7 +20,7 @@ function [J,meas] = jacobian( obj )
         J.kappa(:,i) = sum( fullJ.kappa(:,lst),2 ) ./ d.';
     end
     
-    meas = nirs2.Data( d,obj.probe,0,obj.Fm );
+    meas = nirs.Data( d,obj.probe,0,obj.Fm );
     
 end
 

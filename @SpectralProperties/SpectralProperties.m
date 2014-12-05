@@ -156,7 +156,7 @@ classdef SpectralProperties
         function obj = set.mua( obj, mua )
             assert( isvector(mua) && length(mua) == length(obj.lambda) )
             
-            ext = nirs2.utilities.getSpectra( obj.lambda );
+            ext = nirs.utilities.getSpectra( obj.lambda );
             hb = pinv( ext(:,1:2) )  ...
                 *  (mua(:) - ext(:,3)*obj.water + ext(:,4)*obj.lipid + ext(:,5)*obj.cytC);
             

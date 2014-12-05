@@ -3,7 +3,7 @@ function [J, meas] = spectralJacobian( obj )
     
     [J,meas] = obj.jacobian();
     
-    ext = nirs2.utilities.getSpectra( obj.prop{1}.lambda );
+    ext = nirs.utilities.getSpectra( obj.prop{1}.lambda );
     
     iLambda = obj.probe.link(:,3);
     

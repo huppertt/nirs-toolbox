@@ -1,4 +1,4 @@
-function prop = Skin( lambda )
+function prop = skin( lambda )
     
 %     c = nirs.getSpectra( lambda );
     
@@ -721,6 +721,6 @@ function prop = Skin( lambda )
         mus = interp1(mus(:,1),mus(:,2),lambda);
         ri = 1.45;
         
-        prop = nirs2.OpticalProperties(mua,mus,lambda,ri);
+        prop = nirs.OpticalProperties(mua,mus,lambda,ri);
 end
 

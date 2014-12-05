@@ -10,7 +10,7 @@ function meas = measurement( obj )
         d(lst) = data.complex';
     end
 
-    meas = nirs2.Data( d,obj.probe,0,obj.Fm );
+    meas = nirs.Data( d,obj.probe,0,obj.Fm );
     
 end
 
