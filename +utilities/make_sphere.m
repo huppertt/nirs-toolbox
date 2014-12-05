@@ -24,7 +24,7 @@ function img = make_sphere( radii, dim  )
         vol( r <= R(i) ) = i;
     end 
 
-    img = nirs2.Image(vol,dim*[1 1 1],c);
+    img = nirs.Image(vol,dim*[1 1 1],c);
 
 end
 

@@ -9,10 +9,10 @@ function prop = slabSolver( data, ri )
     data.data = double( data.data );
     
     if length( data.probe.lambda ) == 1
-        prop = nirs2.OpticalProperties();
+        prop = nirs.OpticalProperties();
         prop.ri = ri;
     else
-        prop = nirs2.SpectralProperties( 0.7, 60, data.probe.lambda );
+        prop = nirs.SpectralProperties( 0.7, 60, data.probe.lambda );
         prop.ri = ri;
     end
 

@@ -5,7 +5,7 @@ function [J, meas] = spectralJacobian( obj )
     
     [J,meas] = obj.jacobian();
     
-    ext = nirs2.utilities.getSpectra( obj.prop{1}.lambda );
+    ext = nirs.utilities.getSpectra( obj.prop{1}.lambda );
     
     iLambda = obj.probe.link(:,3);
     
@@ -43,7 +43,7 @@ function [J, meas] = spectralJacobian( obj )
 %     J.mus = J.kappa;
 %     J.a = J.kappa;
 %     J.b = J.kappa;
-% save('/home/barker/PhD_Data/+nirs2/demo/debug.mat')
+% save('/home/barker/PhD_Data/+nirs/demo/debug.mat')
 %     for i = 1:length( obj.prop )
 %         prop = obj.prop{i};
 %         

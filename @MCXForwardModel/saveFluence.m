@@ -48,10 +48,10 @@ function saveFluence( obj )
         pos = obj.probe.detPos( obj.probe.link(lst,2),: );
         pos = pos / obj.image.dim(1) + repmat(obj.image.origin,[size(pos,1) 1]);
 
-%         thisR = nirs2.utilities.quad_interp(pos,real(log(fluence)),3);
-%         thisI = nirs2.utilities.quad_interp(pos,imag(log(fluence)),3);
+%         thisR = nirs.utilities.quad_interp(pos,real(log(fluence)),3);
+%         thisI = nirs.utilities.quad_interp(pos,imag(log(fluence)),3);
         data1(lst) = exp(...
-            nirs2.utilities.quad_interp(pos,log(fluence),3)...
+            nirs.utilities.quad_interp(pos,log(fluence),3)...
             );
 
     end
@@ -85,16 +85,16 @@ function saveFluence( obj )
         pos = obj.probe.srcPos( obj.probe.link(lst,1),: );
         pos = pos / obj.image.dim(1) + repmat(obj.image.origin,[size(pos,1) 1]);
 
-%         thisR = nirs2.utilities.quad_interp(pos,real(log(fluence)),3);
-%         thisI = nirs2.utilities.quad_interp(pos,imag(log(fluence)),3);
+%         thisR = nirs.utilities.quad_interp(pos,real(log(fluence)),3);
+%         thisI = nirs.utilities.quad_interp(pos,imag(log(fluence)),3);
         data2(lst) = exp(...
-            nirs2.utilities.quad_interp(pos,log(fluence),3)...
+            nirs.utilities.quad_interp(pos,log(fluence),3)...
             );
     end
     
     data = data1/2 + data2/2;
     
-    meas = nirs2.Data( data,origProbe,0,obj.Fm,'MCX Forward Model Simulation');
+    meas = nirs.Data( data,origProbe,0,obj.Fm,'MCX Forward Model Simulation');
     
 	save( [obj.directory filesep 'measurement.mat'], 'meas' );
 

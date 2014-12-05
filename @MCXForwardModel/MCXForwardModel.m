@@ -11,7 +11,7 @@ classdef MCXForwardModel
         probe;
         prop;
         
-        directory = [nirs2.utilities.defaultTmp() filesep 'tmp'...
+        directory = [nirs.utilities.defaultTmp() filesep 'tmp'...
             filesep num2str(randi(2^32-1))];
 
         Fm = 110;

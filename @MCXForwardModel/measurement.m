@@ -50,17 +50,17 @@ function meas = measurement( obj )
         pos = probe.detPos( probe.link(lst,2),:);
         pos = pos / thisObj.image.dim(1) + repmat(thisObj.image.origin,[size(pos,1) 1]);
 
-%         thisR = nirs2.utilities.quad_interp(pos,real(log(fluence)),3);
-%         thisI = nirs2.utilities.quad_interp(pos,imag(log(fluence)),3);
+%         thisR = nirs.utilities.quad_interp(pos,real(log(fluence)),3);
+%         thisI = nirs.utilities.quad_interp(pos,imag(log(fluence)),3);
 %         pos = fix(pos);
 %         data(lst) = fluence( sub2ind(size(fluence),pos(:,1),pos(:,2),pos(:,3)) );
         data(lst) = exp(...
-            nirs2.utilities.quad_interp(pos,log(fluence),3)...
+            nirs.utilities.quad_interp(pos,log(fluence),3)...
             );
         
     end
     
-    meas = nirs2.Data( data, obj.probe, 0, 110, 'MCX' );
+    meas = nirs.Data( data, obj.probe, 0, 110, 'MCX' );
     
 end
 

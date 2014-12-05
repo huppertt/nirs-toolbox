@@ -120,7 +120,7 @@ classdef SpectralProperties
         end
         
         function mua = get.mua( obj )
-            ext = nirs2.utilities.getSpectra( obj.lambda );
+            ext = nirs.utilities.getSpectra( obj.lambda );
 
             mua = ext(:,1)*obj.hbo*1e-6 + ext(:,2)*obj.hbr*1e-6 + ...
                     ext(:,3)*obj.water + ext(:,4)*obj.lipid + ext(:,5)*obj.cytC;
