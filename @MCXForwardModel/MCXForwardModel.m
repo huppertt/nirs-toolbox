@@ -17,8 +17,8 @@ classdef MCXForwardModel
         Fm = 110;
         
         nPhotons = 1e7;
-        nTimeGates = 32;
-        timeStep = 1/110e6/32;
+        nTimeGates = 64;
+        timeStep = 1/100e6/512;
         nRepetitions = 1;
     end
     
@@ -57,6 +57,7 @@ classdef MCXForwardModel
         %% Methods
         saveFluence( obj );
         meas = measurement( obj );
+        meas = timeResolvedMeas( obj );
         [J,meas] = jacobian( obj );
         cfg = getConfig( obj, idx, idxType );
         

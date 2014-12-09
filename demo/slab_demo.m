@@ -3,10 +3,10 @@ clear
 cd /home/barker
 startup;
 
-cd /home/barker/PhD_Data/+nirs2/demo/
+cd /home/barker/MATLAB/+nirs/demo/
 
 %%
-img = nirs2.Image( uint8(zeros(200,200,150)),0.5*[1 1 1],[100 100 5] );
+img = nirs.Image( uint8(zeros(200,200,150)),0.5*[1 1 1],[100 100 5] );
 img.vol(:,:,5:end) = 1;
 
 %%
@@ -29,22 +29,22 @@ lambda = [690 830];
 [X,Y,Z] = meshgrid( 1:size(srcPos,1), 1:size(detPos,1), 1:length(lambda) );
 link = [X(:) Y(:) Z(:)];
 
-probe = nirs2.Probe( srcPos, detPos, link, lambda );
+probe = nirs.Probe( srcPos, detPos, link, lambda );
 probe.srcDir = srcDir;
 probe.detDir = detDir;
 
 %%
 so2 = 0.7; hbt = 60;
-prop = nirs2.tissues.brain( so2, hbt, lambda );
+prop = nirs.tissues.brain( so2, hbt, lambda );
 
 %%
 Fm = 110; % modulation frequency
-fwdModel = nirs2.MCXForwardModel( img, prop, probe, Fm );
+fwdModel = nirs.MCXForwardModel( img, prop, probe, Fm );
 
 meas = fwdModel.measurement();
 
 %%
 
-fitProp = nirs2.solvers.slabSolver( meas );
+fitProp = nirs.solvers.slabSolver( meas );
 
 save( 'slab_demo.mat' )
