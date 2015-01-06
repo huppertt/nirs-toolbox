@@ -44,14 +44,16 @@ function meas = timeResolvedMeas( obj )
 %         flux.data = fft( flux.data,[],4 );
 %         
 %         fluence = flux.data(:,:,:,fbin+1);
-% save('/home/barker/debug.mat')
+% if obj.gpuId == 1
+% save('/home/barker/neonates/machine_learning/debug.mat')
+% end
         lst = find( probe.link(:,1) == iSrc );
         
         pos = probe.detPos( probe.link(lst,2),:);
         pos = pos / thisObj.image.dim(1) + repmat(thisObj.image.origin,[size(pos,1) 1]);
         
         for i = 1:size(flux.data,4)
-            tmp = nirs.utilities.linear_interp(pos,flux.data(:,:,:,i),obj.image.vol,1);
+            tmp = nirs.utilities.median_interp(pos,flux.data(:,:,:,i),obj.image.vol,1);
             tmp( isnan(tmp) ) = 0;
             data(i,lst) = tmp/thisObj.nPhotons/obj.image.dim(1)^3;
         end

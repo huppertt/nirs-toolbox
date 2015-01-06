@@ -14,11 +14,11 @@ classdef MCXForwardModel
         directory = [nirs.utilities.defaultTmp() filesep 'tmp'...
             filesep num2str(randi(2^32-1))];
 
-        Fm = 110;
+        Fm = 100;
         
         nPhotons = 1e7;
-        nTimeGates = 64;
-        timeStep = 1/100e6/512;
+        nTimeGates = 40;
+        timeStep = 1/100e6/300;
         nRepetitions = 1;
     end
     
