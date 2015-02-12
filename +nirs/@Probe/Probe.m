@@ -59,8 +59,8 @@ classdef Probe
         
         %% Methods
         function d = get.distances( obj )
-            isrc = obj.link.Src;
-            idet = obj.link.Det;
+            isrc = obj.link.source;
+            idet = obj.link.detector;
             
             vec = obj.srcPos(isrc,:) - obj.detPos(idet,:);
             
