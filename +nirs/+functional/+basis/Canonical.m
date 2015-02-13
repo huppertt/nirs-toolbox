@@ -3,12 +3,12 @@ classdef Canonical
     %   Detailed explanation goes here
     
     properties
-        peakTime = 6;
-        uShootTime = 16;
-        peakDisp = 1;
-        uShootDisp = 1;
-        ratio = 1/6; 
-        duration = 32;
+        peakTime    = 6;
+        uShootTime  = 16;
+        peakDisp    = 1;
+        uShootDisp  = 1;
+        ratio       = 1/6; 
+        duration    = 32;
     end
     
     methods

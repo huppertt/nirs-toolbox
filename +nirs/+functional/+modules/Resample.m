@@ -1,4 +1,4 @@
-classdef Resample < nirs.jobs.AbstractJob
+classdef Resample < nirs.functional.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -42,15 +42,15 @@ classdef Resample < nirs.jobs.AbstractJob
                 data(i).data = d;
                 data(i).time = new_t;
                 
-                % resample stims
-                stimulus = data(i).stimulus;
-               	keys = stimulus.keys;
-                
-                for j = 1:length(keys)
-                    %stimulus( keys(j) ) = filtfilt( sos,g,stimulus(keys(j)) );
-                    stimulus( keys(j) ) = interp1(t, stimulus(keys(j)), new_t); 
-                end
-                data(i).stimulus = stimulus;
+%                 % resample stims
+%                 stimulus = data(i).stimulus;
+%                	keys = stimulus.keys;
+%                 
+%                 for j = 1:length(keys)
+%                     %stimulus( keys(j) ) = filtfilt( sos,g,stimulus(keys(j)) );
+%                     stimulus( keys{j} ) = interp1(t, stimulus(keys{j}), new_t); 
+%                 end
+%                 data(i).stimulus = stimulus;
                 
             end
         end

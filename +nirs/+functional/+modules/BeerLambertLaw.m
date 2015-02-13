@@ -1,4 +1,4 @@
-classdef BeerLambertLaw < nirs.jobs.AbstractJob
+classdef BeerLambertLaw < nirs.functional.AbstractJob
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -32,7 +32,7 @@ classdef BeerLambertLaw < nirs.jobs.AbstractJob
                     lst = idx == j;
                     lambda = p.link.type(lst);
                     
-                    ext = nirs.modeling.utilities.getSpectra( lambda );
+                    ext = nirs.getSpectra( lambda );
                     
                     clist = [1 2]; % hbo and hbr; need to fix this
                     

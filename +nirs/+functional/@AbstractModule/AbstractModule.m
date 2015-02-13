@@ -1,4 +1,4 @@
-classdef AbstractJob
+classdef AbstractModule
     %UNTITLED4 Summary of this class goes here
     %   Detailed explanation goes here
     

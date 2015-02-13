@@ -1,10 +1,10 @@
-classdef AR_IRLS < nirs.jobs.AbstractJob
+classdef AR_IRLS < nirs.functional.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
   
     properties
-        hpfCutoff = 1/125;
-        stimTypes = containers.Map;
+        hpf_Fc = 1/125;
+        basis = {};
         constant = true;
     end
     
@@ -21,19 +21,27 @@ classdef AR_IRLS < nirs.jobs.AbstractJob
             for i = 1:length(data)
                 
                 d = data(i).data;
+                t = data(i).time;
                 Fs = data(i).Fs;
                 
                 % generate design matrix
                 stim = data(i).stimulus;
-                keys = stim.keys;
                 
                 X = []; names = {}
-                for j = 1:length(keys)
-                    names = {}
+                for j = 1:length(stim)
                     
-                    converter = stimTypes( keys(j) );
+                    basis = obj.basis{j};
+                    x = basis.convert( stim{j}.getStimVector( t ) );
                     
+                    if size(x,2) > 1
+                        for k = 1:size(x,2)
+                            names{end+1} = [stim{j}.name '_' sprintf('%02i',k)];
+                        end
+                    else
+                        names{end+1} = stim{j}.name;
+                    end
                     
+                    X = [X x];
                 end
                 
                 

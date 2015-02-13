@@ -12,7 +12,7 @@ function data = loadCWData( filenames )
         d = load( filenames{iFile}, '-mat' );
         
         % put into data class
-        tData = nirs.FunctionalData();
+        tData = nirs.functional.FunctionalData();
         
         nTime = length(d.t);
         

@@ -1,4 +1,4 @@
-classdef OpticalDensity < nirs.jobs.AbstractJob
+classdef OpticalDensity < nirs.functional.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
