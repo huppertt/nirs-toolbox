@@ -17,7 +17,7 @@ classdef AR_IRLS < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function stats = execute( obj, data )
             for i = 1:length(data)
                 
                 d = data(i).data;
@@ -25,31 +25,45 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 Fs = data(i).Fs;
                 
                 % generate design matrix
-                stim = data(i).stimulus;
+                stims = data(i).stimulus;
+                [X, names] = nirs.functional. ...
+                    generateDesignMatrix( stims, t, obj.basis );
                 
-                X = []; names = {}
-                for j = 1:length(stim)
-                    
-                    basis = obj.basis{j};
-                    x = basis.convert( stim{j}.getStimVector( t ) );
-                    
-                    if size(x,2) > 1
-                        for k = 1:size(x,2)
-                            names{end+1} = [stim{j}.name '_' sprintf('%02i',k)];
-                        end
-                    else
-                        names{end+1} = stim{j}.name;
-                    end
-                    
-                    X = [X x];
+                % generate baseline/trend regressors
+                C = nirs.functional.dctmtx( t, obj.hpf_Fc );
+                
+                if obj.constant == false;
+                    C = C(:,2:end);
                 end
                 
+                for j = 1:size(C,2)
+                    names{end+1} = ['dct_' num2str(j)];
+                end
                 
+                % check rank
+                if isinf( cond(X) )
+                    error( 'Design matrix is rank deficient.' )
+                end
+                
+                % check condition
+                maxCond = 30; 
+                if cond([X C]) > maxCond
+                    warning('Lowering HPF cutoff to improve condition of design matrix.')
+                end
+                
+                while cond([X C]) > maxCond && ~isempty(C)
+                    C(:,end) = [];
+                    names = names(1:end-1);
+                end
+                                
                 % call ar_irls
-                
+                S(i) = nirs.external.ar_irls.ar_irls( d, [X C], 4*Fs );
+                S(i).X = X;
+                S(i).C = C;
+                S(i).names = names';
                 
                 % output stats
-                
+                stats = S;
                 
             end
         end
