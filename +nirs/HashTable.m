@@ -54,15 +54,19 @@ classdef HashTable
                     s = s.subs{1};
                 end
                 
+                if ~iscell(b)
+                    b = {b};
+                end
+                
                 assert( length(s)==length(b) )
             
                 for i = 1:length( s )
                     lst = strcmp(obj.keys, s{i});
                     if any(lst)
-                        obj.values{lst} = b;
+                        obj.values{lst} = b{i};
                     else
                         obj.keys{end+1} = s{i};
-                        obj.values{end+1} = b;
+                        obj.values{end+1} = b{i};
                     end
                 end
                 

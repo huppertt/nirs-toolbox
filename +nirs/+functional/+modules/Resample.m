@@ -31,13 +31,22 @@ classdef Resample < nirs.functional.AbstractModule
                 % anti-aliasing filter
                 ord = floor( length(new_t) / 10 );
                 Fc = obj.Fs/data(i).Fs;
-                [zz,pp,kk] = butter(ord,Fc,'low');  % Butterworth filter
-                [sos,g] = zp2sos(zz,pp,kk);          % Convert to SOS form
+%                 [zz,pp,kk] = butter(ord,Fc,'low');  % Butterworth filter
+%                 [sos,g] = zp2sos(zz,pp,kk);        	% Convert to SOS form
+%                 d = filtfilt(sos,g,d);
+
+                b = fir1(ord,Fc);
                 
-                d = filtfilt(sos,g,d);
+                for j = 1:2 % backward then forward
+                    d = flipud( d );
+                    d1 = d(1,:);
+                    d = bsxfun(@minus,d,d1);
+                    d = filter(b,1,d);
+                    d = bsxfun(@plus,d,d1);
+                end
                 
                 % interpolation
-                d = interp1(t,d,new_t);
+                d = interp1(t,d,new_t,'pchip');
 
                 data(i).data = d;
                 data(i).time = new_t;

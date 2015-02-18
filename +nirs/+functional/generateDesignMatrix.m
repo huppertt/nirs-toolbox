@@ -1,18 +1,23 @@
-function [X, names ] = generateDesignMatrix( stims, t, bases )
+function [X, names ] = generateDesignMatrix( stimulus, t, basis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-    X = []; names = {};
-    for j = 1:length(stims)
 
-        basis = bases{j};
-        x = basis.convert( stims{j}.getStimVector( t ), t );
+    keys = stimulus.keys;
+    stims = stimulus.values;
+
+    X = []; names = {};
+    for iKey = 1:length(keys)
+        
+        stimVector = stims{iKey}.getStimVector( t );
+        basisObj = basis( keys{iKey} );
+        x = basisObj.convert( stimVector, t );
 
         if size(x,2) > 1
             for k = 1:size(x,2)
-                names{end+1} = [stims{j}.name '_' sprintf('%02i',k)];
+                names{end+1} = [keys{iKey} '_' sprintf('%02i',k)];
             end
         else
-            names{end+1} = stims{j}.name;
+            names{end+1} = keys{iKey};
         end
 
         X = [X x];

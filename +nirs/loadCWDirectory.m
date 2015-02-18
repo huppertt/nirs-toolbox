@@ -24,9 +24,13 @@ function data = loadCWDirectory( rootFolder, useFoldersAsNames )
             demo = fsplit(length(rsplit)+1:end-1);
             
             if length(demo) == 2 % group and subj
+                data(iFile).demographics('group') = demo{1};
+                data(iFile).demographics('subject') = demo{2};
                 
             elseif length(demo) == 3 % group subj session
-                
+                data(iFile).demographics('group') = demo{1};
+                data(iFile).demographics('subject') = demo{2};
+                data(iFile).demographics('session') = demo{3};
             end
             
         end

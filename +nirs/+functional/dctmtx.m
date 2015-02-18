@@ -3,7 +3,7 @@ function C = dctmtx( t, fmax )
 %   Detailed explanation goes here
 
     N = size(t,1);
-    Fs = (t(2)-t(1));
+    Fs = 1/(t(2)-t(1));
 
     dct_t = (0:N-1)' / Fs;
     f = Fs/2/N * (0:N-1)'; % dct frq

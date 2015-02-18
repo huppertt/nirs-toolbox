@@ -22,7 +22,7 @@ function data = loadCWData( filenames )
         elseif size(d.d,2) == nTime
             tData.data = d.d.';
         else
-            error('Data length and time vector don''t match in size')
+            error('Data length and time vector don''t match in size.')
         end
         
         % time vector
@@ -40,15 +40,29 @@ function data = loadCWData( filenames )
         
         tData.probe = nirs.Probe( d.SD.SrcPos*10, d.SD.DetPos*10, link );
         
-        % stimulus info
-        if isfield(d,'stimulus') 
-            tData.stimulus = d.stimulus;
+        if isfield(d,'StimDesign')
+            for iStim = 1:length(d.StimDesign)
+                name = d.StimDesign(iStim).name;
+                
+                stim = nirs.functional.StimulusEvents();
+                stim.name = name;
+                stim.onset = d.StimDesign(iStim).onset;
+                stim.dur = d.StimDesign(iStim).dur;
+                stim.amp = d.StimDesign(iStim).amp;
+                
+                tData.stimulus(name) = stim;
+            end
         end
         
-        % demographics for group level
-        if isfield(d,'demographics')
-            tData.demographics = d.demographics;
-        end
+%         % stimulus info
+%         if isfield(d,'stimulus') 
+%             tData.stimulus = d.stimulus;
+%         end
+%         
+%         % demographics for group level
+%         if isfield(d,'demographics')
+%             tData.demographics = d.demographics;
+%         end
         
         % append to list of data
         data(iFile) = tData;

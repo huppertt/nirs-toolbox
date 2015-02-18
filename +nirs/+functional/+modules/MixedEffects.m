@@ -3,7 +3,9 @@ classdef MixedEffects < nirs.functional.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        formula = 'beta ~ groupID';
+        formula = 'beta ~ cond + (1|subject)';
+        dummyVarCoding = 'effects';
+        subtractMeanFromContinuous = true;
     end
     
     methods
@@ -16,16 +18,88 @@ classdef MixedEffects < nirs.functional.AbstractModule
         end
         
         function groupStats = execute( obj, subjStats )
-            % assemble table
+            S = subjStats;
+            
+            % get demographic names
+            demNames = {};
             for i = 1:length(subjStats)
-                
-                %% TODO
-                
+                demNames = [demNames; S(i).demographics.keys'];
             end
             
-            % call lme package
+            demNames = unique( demNames );
             
+            nChan = size(S(1).beta,2);
+            
+            % assemble table
+            for i = 1:length(S)
+                for iChan = 1:size( S(i).beta,2 )
+                    
+                    nCond = length( S(i).stimulus.values );
+                    
+                    newRows.beta = S(i).beta(1:nCond,iChan);
+                    newRows.se = sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)));
+                    newRows.cond = S(i).names(1:nCond);
+                    for iDem = 1:length(demNames)
+                        newRows.(demNames{iDem}) = ...
+                            repmat( {S(i).demographics( demNames{iDem} )}, [nCond 1] );
+                    end
+                    
+                    if i == 1
+                        tbl{iChan} = struct2table( newRows );
+                    else
+                        tbl{iChan} = [tbl{iChan}; struct2table(newRows)];
+                    end
+                    
+                end
+            end
+
+            % call lme package
+            for iChan = 1:length(tbl)
+                   if obj.subtractMeanFromContinuous 
+                   % need to makes contiuous predictors mean zero
+                   varNames = tbl{iChan}.Properties.VariableNames;
+                   for iVar = 3:length(varNames)
+                      if all(isnumeric( tbl{iChan}.(varNames{iVar}) ))
+                          % subtract mean
+                          tbl{iChan}.(varNames{iVar}) = ...
+                              tbl{iChan}.(varNames{iVar}) - mean( tbl{iChan}.(varNames{iVar}) );
+                      end
+                   end
+               end
+                
+               lme{iChan} = fitlme(tbl{iChan},obj.formula, ...
+                   'Weights',1./tbl{iChan}.se, ...
+                   'DummyVarCoding',obj.dummyVarCoding);
+               
+%                nCoef = length( lme.Coefficients );
+%                c = zeros(nCoef);
+%                c(1,:) = 1;
+%                for iCoef = 2:nCoef
+%                    c(iCoef,iCoef) = 1;
+%                end
+               
+%                beta(:,iChan) = c' * lme.Coefficients.Estimate;
+%                covb(:,:,iChan) = c * lme.CoefficientCovariance * c';
+%                dfe(iChan,1) = lme.DFE;
+%                tstat(:,iChan) = beta(:,iChan) ./ sqrt( diag( covb(:,:,iChan) ) );
+
+                beta(:,:,iChan) = lme{iChan}.Coefficients.Estimate;
+                covb(:,:,iChan) = lme{iChan}.CoefficientCovariance;
+                dfe(iChan,1) = lme{iChan}.DFE;
+                tstat(:,iChan) = lme{iChan}.Coefficients.tStat;
+                names{iChan} = lme{iChan}.CoefficientNames';
+            end
+
             % return stats
+            groupStats.beta = beta;
+            groupStats.covb = covb;
+            groupStats.dfe = dfe;
+            groupStats.tstat = tstat;
+            groupStats.probe = S(1).probe;
+            groupStats.names = names;
+            groupStats.dummyVarCoding = obj.dummyVarCoding;
+            groupStats.formula = obj.formula;
+            groupStats.lme = lme;
             
         end
         

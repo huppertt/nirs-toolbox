@@ -44,9 +44,10 @@ classdef BeerLambertLaw < nirs.functional.AbstractModule
                     
                     % mbll model
                     EL = bsxfun( @times, E, L *obj.PPF );
+                    iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)
-                    d(:,lst) = (d(:,lst) / EL) * 1e6;
+                    d(:,lst) = (d(:,lst)*iEL') * 1e6;
                     
                     % new channel type
                     type(lst,1) = obj.chromophores;
