@@ -12,6 +12,8 @@ classdef AR_IRLS < nirs.functional.AbstractModule
 
         function obj = AR_IRLS( prevJob )
            obj.name = 'GLM via AR(P)-IRLS';
+           obj.basis('default') = nirs.functional.basis.Canonical();
+           
            if nargin > 0
                obj.prevJob = prevJob;
            end

@@ -9,7 +9,12 @@ function [X, names ] = generateDesignMatrix( stimulus, t, basis )
     for iKey = 1:length(keys)
         
         stimVector = stims{iKey}.getStimVector( t );
-        basisObj = basis( keys{iKey} );
+        if basis.iskey( keys{iKey} );
+            basisObj = basis( keys{iKey} );
+        else
+            basisObj = basis( 'default' );
+        end
+        
         x = basisObj.convert( stimVector, t );
 
         if size(x,2) > 1
