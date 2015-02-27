@@ -10,7 +10,7 @@ function data = loadCWDirectory( rootFolder, useFoldersAsNames )
         useFoldersAsNames = true;
     end
     
-    files = nirs.external.rdir([rootFolder filesep '**' filesep '*.nirs']);
+    files = rdir([rootFolder filesep '**' filesep '*.nirs']);
     
     for iFile = 1:length( files )
         

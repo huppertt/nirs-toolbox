@@ -29,16 +29,7 @@ function data = loadCWData( filenames )
         tData.time = d.t(:);
         
         % probe
-        src = d.ml(:,1);
-        det = d.ml(:,2);
-        wl  = d.ml(:,4);
-        
-        wl( wl==1 ) = 690; % ASSUMED
-        wl( wl==2 ) = 830; % ASSUMED
-        
-        link = table(src,det,wl,'VariableNames',{'source','detector','type'});
-        
-        tData.probe = nirs.Probe( d.SD.SrcPos*10, d.SD.DetPos*10, link );
+        tData.probe = nirs.sd2probe( d.SD );
         
         if isfield(d,'StimDesign')
             for iStim = 1:length(d.StimDesign)

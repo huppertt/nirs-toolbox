@@ -1,0 +1,166 @@
+---INSTALLATION---
+
+1. Unzip Nirfast onto your computer.
+2. Open Matlab, and go to File -> Set Path -> Add With Subfolders.
+3. Select the Nirfast folder, then Save and Close.
+4. Type 'nirfast' (no quotes) in the Matlab prompt to start Nirfast.
+
+
+---LICENSE---
+
+Copyright (c) 2003-2013, Dartmouth College NIRFAST Group
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of the Dartmouth College nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+---TRIANGLE---
+
+Jonathan Richard Shewchuk, Triangle: Engineering a 2D Quality Mesh Generator and Delaunay Triangulator, in ``Applied Computational Geometry: Towards Geometric Engineering'' (Ming C. Lin and Dinesh Manocha, editors), volume 1148 of Lecture Notes in Computer Science, pages 203-222, Springer-Verlag, Berlin, May 1996.
+
+http://www.cs.cmu.edu/~quake/triangle.html
+
+
+---TETGEN---
+
+TetGen License
+--------------
+
+The software (TetGen) is licensed under the terms of the  MIT  license
+with the following exceptions:
+
+Distribution of  modified  versions  of this code is permissible UNDER
+THE CONDITION THAT  THIS CODE AND ANY MODIFICATIONS  MADE TO IT IN THE
+SAME SOURCE FILES  tetgen.h AND tetgen.cxx  REMAIN UNDER  COPYRIGHT OF
+THE  ORIGINAL AUTHOR,  BOTH  SOURCE AND OBJECT  CODE  ARE MADE  FREELY
+AVAILABLE  WITHOUT   CHARGE,   AND  CLEAR   NOTICE  IS  GIVEN  OF  THE 
+MODIFICATIONS.
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
+
+The full  license text is reproduced below.
+
+This means that TetGen is no free software, but for private, research,
+and  educational purposes it  can be  used at  absolutely no  cost and
+without further arrangements.
+
+
+For details, see http://tetgen.berlios.de
+
+==============================================================================
+
+TetGen
+A Quality Tetrahedral Mesh Generator and 3D Delaunay Triangulator
+Version 1.4 (Released on January 14, 2006).
+
+Copyright 2002, 2004, 2005, 2006 
+Hang Si
+Rathausstr. 9, 10178 Berlin, Germany
+si@wias-berlin.de
+
+Permission is hereby granted, free  of charge, to any person obtaining
+a  copy  of this  software  and  associated  documentation files  (the
+"Software"), to  deal in  the Software without  restriction, including
+without limitation  the rights to  use, copy, modify,  merge, publish,
+distribute,  sublicense and/or  sell copies  of the  Software,  and to
+permit persons to whom the Software  is furnished to do so, subject to
+the following conditions:
+
+Distribution of  modified  versions  of this code is permissible UNDER
+THE CONDITION THAT  THIS CODE AND ANY MODIFICATIONS  MADE TO IT IN THE
+SAME SOURCE FILES  tetgen.h AND tetgen.cxx  REMAIN UNDER  COPYRIGHT OF
+THE  ORIGINAL AUTHOR,  BOTH  SOURCE AND OBJECT  CODE  ARE MADE  FREELY
+AVAILABLE  WITHOUT   CHARGE,   AND  CLEAR   NOTICE  IS  GIVEN  OF  THE 
+MODIFICATIONS.
+
+Distribution of this code for  any  commercial purpose  is permissible
+ONLY BY DIRECT ARRANGEMENT WITH THE COPYRIGHT OWNER.
+
+The  above  copyright  notice  and  this permission  notice  shall  be
+included in all copies or substantial portions of the Software.
+
+THE  SOFTWARE IS  PROVIDED  "AS  IS", WITHOUT  WARRANTY  OF ANY  KIND,
+EXPRESS OR  IMPLIED, INCLUDING  BUT NOT LIMITED  TO THE  WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS  BE LIABLE FOR ANY
+CLAIM, DAMAGES OR  OTHER LIABILITY, WHETHER IN AN  ACTION OF CONTRACT,
+TORT  OR OTHERWISE, ARISING  FROM, OUT  OF OR  IN CONNECTION  WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+==============================================================================
+We use some packages from:
+
+CGAL, Computational Geometry Algorithms Library, http://www.cgal.org
+
+Which are either licensed under GPL or LGPL. This prevents using some parts
+of Nirfast's mesh generation tools for commercial applications. In particular
+'image2mesh_gui' should NOT be used for commercial applications.
+
+LGPL: http://www.gnu.org/copyleft/lesser.html
+GPL: http://www.gnu.org/copyleft/gpl.html
+
+==============================================================================
+
+
+--- excoef.txt ---
+
+Hemoglobin values from Scott Prahl found at http://omlc.ogi.edu/spectra/hemoglobin/summary.html.  Values were multiplied by 2.303 to convert from base e to base 10 and divided by 10,000 to convert from cm-1/M to mm-1/mM.
+
+Water values from Hale and Query found at http://omlc.ogi.edu/spectra/water/data/hale73.dat.  Values were divided by 10 to convert from cm-1 to mm-1
+
+Lipid values from Veen et al found at http://omlc.ogi.edu/spectra/fat/fat.txt.  Values were divided by 1000 to convert from m-1 to mm-1
+
+
+--- mouse atlas ---
+
+The mouse atlas was generated using information from the following:
+George Alexandrakis, Fernando R Rannou, and Arion F Chatziioannou. "Tomographic bioluminescence imaging by use of a combined optical-PET (OPET) system: a computer simulation feasibility study." In Physics In Medicine And Biology. 50 (2005) 4225-4241.
+
+
+==============================================================================
+
+--- Stellar ---
+/*  Jonathan Richard Shewchuk                                                */
+/*  965 Sutter Street #815                                                   */
+/*  San Francisco, California  94109-6082                                    */
+/*  jrs@cs.berkeley.edu                                                      */
+/*  ======================= BSD license begins here. ======================= */
+/*                                                                           */
+/*  Redistribution and use in source and binary forms, with or without       */
+/*  modification, are permitted provided that the following conditions are   */
+/*  met:                                                                     */
+/*                                                                           */
+/*  - Redistributions of source code must retain the above copyright notice, */
+/*    this list of conditions and the following disclaimer.                  */
+/*                                                                           */
+/*  - Redistributions in binary form must reproduce the above copyright      */
+/*    notice, this list of conditions and the following disclaimer in the    */
+/*    documentation and/or other materials provided with the distribution.   */
+/*                                                                           */
+/*  - Neither the name of Jonathan Shewchuk nor the name of the University   */
+/*    of California nor the names of its contributors may be used to endorse */
+/*    or promote products derived from this software without specific prior  */
+/*    written permission.                                                    */
+/*                                                                           */
+/*  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS  */
+/*  IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED    */
+/*  TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A          */
+/*  PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT      */
+/*  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,    */
+/*  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED */
+/*  TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR   */
+/*  PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF   */
+/*  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING     */
+/*  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS       */
+/*  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.             */
+/*                                                                           */
+/*  ======================== BSD license ends here. ======================== */
+
