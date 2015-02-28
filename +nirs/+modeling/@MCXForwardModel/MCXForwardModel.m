@@ -30,6 +30,7 @@ classdef MCXForwardModel
     methods
         %% Constructor
         function obj = MCXForwardModel( image, prop, probe, Fm )
+            error('This class needs updated in this package.')
             if nargin > 0, obj.image = image; end
             if nargin > 1, obj.prop = prop; end
             if nargin > 2, obj.probe = probe; end

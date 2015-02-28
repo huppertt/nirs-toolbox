@@ -42,7 +42,7 @@ classdef NirfastBEM
         %% Methods
         meas = measurement( obj );
         mesh = getNirfastMeshes( obj )
-        [J,meas] = jacobian( obj );
+        [J,meas] = jacobian( obj, type );
         [J,meas] = layeredJacobian( obj );
         
         

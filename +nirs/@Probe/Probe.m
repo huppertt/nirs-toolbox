@@ -153,14 +153,52 @@ classdef Probe
             end
         end
         
-        function draw( obj )
-            if nargin == 1
-                figure, hold on, 
-                plot( obj.detPos(:,1), obj.detPos(:,2), 'bo','MarkerSize',10,'LineWidth',2 )
-                plot( obj.srcPos(:,1), obj.srcPos(:,2), 'rx','MarkerSize',14,'LineWidth',2 )
-                axis normal
-                legend( 'Detectors', 'Sources' )
+        function draw( obj, values, cmap )
+%             if nargin == 1
+%             figure, hold on, 
+%             plot( obj.detPos(:,1), obj.detPos(:,2), 'bo','MarkerSize',10,'LineWidth',2 )
+%             plot( obj.srcPos(:,1), obj.srcPos(:,2), 'rx','MarkerSize',14,'LineWidth',2 )
+%             axis normal
+%             legend( 'Detectors', 'Sources' )
+%             end
+            
+            if nargin < 2
+                cmap = [0.8 0.8 0.8];
+            elseif nargin < 3
+                cmap = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             end
+
+            if nargin == 1
+                values = zeros(size(obj.link.source,1),1);
+                z = 0;
+                cmap = [0.8 0.8 0.8];
+            else
+                zmax = max( abs(values) );
+                z = linspace(-zmax, zmax, size(cmap,1));
+                
+            end
+
+            link = unique( [obj.link.source obj.link.detector],'rows' );
+            
+            s = obj.srcPos;
+            d = obj.detPos;
+            
+            gca, hold on
+            for iChan = 1:size(link,1)
+                
+                iSrc = link(iChan,1);
+                iDet = link(iChan,2);
+                
+                x = [s(iSrc,1) d(iDet,1)]';
+                y = [s(iSrc,2) d(iDet,2)]';
+                
+                h(iChan) = line(x,y,'LineWidth',10)
+                text(x(1),y(1),['S' num2str(iSrc)], 'FontSize', 20)
+                text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 20)
+                
+            end
+            
+            
         end
     
     end
