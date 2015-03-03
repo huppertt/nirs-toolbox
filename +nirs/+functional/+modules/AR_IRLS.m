@@ -48,19 +48,19 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 end
                 
                 % check condition
-                maxCond = 30; 
-                if cond([X C]) > maxCond
-                    warning('Lowering HPF cutoff to reduce collinearity in design matrix.')
-                end
+%                 maxCond = 30; 
+%                 if cond([X C]) > maxCond
+%                     warning('Lowering HPF cutoff to reduce collinearity in design matrix.')
+%                 end
                 
-                while cond([X C]) > maxCond && ~isempty(C)
-                    C(:,end) = [];
-                    names = names(1:end-1);
-                end
+%                 while cond([X C]) > maxCond && ~isempty(C)
+%                     C(:,end) = [];
+%                     names = names(1:end-1);
+%                 end
                                 
                 % call ar_irls
                 warning('off','stats:statrobustfit:IterationLimit')
-                thisS = nirs.external.ar_irls.ar_irls( d, [X C], 4*Fs );
+                thisS = ar_irls( d, [X C], 4*Fs );
                 thisS.X = X;
                 thisS.C = C;
                 thisS.names = names';
@@ -73,6 +73,7 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 % output stats
                 stats = S;
                 
+                disp(['Finished ' num2str(i) ' of ' num2str(length(data))])
             end
         end
         

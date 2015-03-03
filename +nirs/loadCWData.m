@@ -33,7 +33,7 @@ function data = loadCWData( filenames )
         
         if isfield(d,'StimDesign')
             for iStim = 1:length(d.StimDesign)
-                name = d.StimDesign(iStim).name;
+                name = d.StimDesign(iStim).cond;
                 
                 stim = nirs.functional.StimulusEvents();
                 stim.name = name;
@@ -50,10 +50,14 @@ function data = loadCWData( filenames )
 %             tData.stimulus = d.stimulus;
 %         end
 %         
-%         % demographics for group level
-%         if isfield(d,'demographics')
-%             tData.demographics = d.demographics;
-%         end
+        % demographics for group level
+        if isfield(d,'demographics')
+            for i = 1:length(d.demographics)
+                name = d.demographics(i).name;
+                value = d.demographics(i).value;
+                tData.demographics(name) = value;
+            end
+        end
         
         % append to list of data
         data(iFile) = tData;

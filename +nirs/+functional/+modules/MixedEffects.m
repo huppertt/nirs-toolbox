@@ -33,6 +33,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
             % assemble table
             for i = 1:length(S)
                 for iChan = 1:size( S(i).beta,2 )
+                    clear newRows;
                     
                     nCond = length( S(i).stimulus.values );
                     
@@ -40,8 +41,13 @@ classdef MixedEffects < nirs.functional.AbstractModule
                     newRows.se = sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)));
                     newRows.cond = S(i).names(1:nCond);
                     for iDem = 1:length(demNames)
-                        newRows.(demNames{iDem}) = ...
-                            repmat( {S(i).demographics( demNames{iDem} )}, [nCond 1] );
+                        if isnumeric(S(i).demographics( demNames{iDem} )) && ~isempty(S(i).demographics( demNames{iDem} ))
+                            newRows.(demNames{iDem}) = ...
+                                repmat( S(i).demographics( demNames{iDem} ), [nCond 1] );
+                        else
+                            newRows.(demNames{iDem}) = ...
+                                repmat( {S(i).demographics( demNames{iDem} )}, [nCond 1] );
+                        end
                     end
                     
                     if i == 1
@@ -55,7 +61,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
 
             % call lme package
             for iChan = 1:length(tbl)
-                   if obj.subtractMeanFromContinuous 
+               if obj.subtractMeanFromContinuous 
                    % need to makes contiuous predictors mean zero
                    varNames = tbl{iChan}.Properties.VariableNames;
                    for iVar = 3:length(varNames)
