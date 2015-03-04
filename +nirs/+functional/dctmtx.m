@@ -5,14 +5,13 @@ function C = dctmtx( t, fmax )
     N = size(t,1);
     Fs = 1/(t(2)-t(1));
 
-    dct_t = (0:N-1)' / Fs;
     f = Fs/2/N * (0:N-1)'; % dct frq
-    f = f( f < fmax );
 
-    C = zeros(N,length(f));
-    for i = 1:length(f);
-        C(:,i) = cos(2*pi*f(i)*dct_t);
-    end
+    n = sum(f<fmax);
+    [x,y] = ndgrid(0:N-1, 0:n-1);
+
+    C = sqrt(2 / n) * cos(pi * (2*x + 1) .* y / (2 * n));
+    C(:,1) = C(:,1) / sqrt(2);
 
 end
 

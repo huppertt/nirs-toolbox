@@ -3,9 +3,9 @@ classdef MixedEffects < nirs.functional.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        formula = 'beta ~ cond + (1|subject)';
-        dummyVarCoding = 'effects';
-        subtractMeanFromContinuous = true;
+        formula = 'beta ~ cond*group + (1|subject)';
+        dummyVarCoding = 'reference';
+        iscentered = true;
     end
     
     methods
@@ -17,95 +17,57 @@ classdef MixedEffects < nirs.functional.AbstractModule
            end
         end
         
-        function groupStats = execute( obj, subjStats )
+        function G = execute( obj, subjStats )
             S = subjStats;
             
-            % get demographic names
-            demNames = {};
-            for i = 1:length(subjStats)
-                demNames = [demNames; S(i).demographics.keys'];
-            end
-            
-            demNames = unique( demNames );
-            
-            nChan = size(S(1).beta,2);
-            
-            % assemble table
+            demo = nirs.functional.createDemographicsTable( S );
+                        
+            %% assemble table
+            tbl = table();
             for i = 1:length(S)
-                for iChan = 1:size( S(i).beta,2 )
-                    clear newRows;
-                    
-                    nCond = length( S(i).stimulus.values );
-                    
-                    newRows.beta = S(i).beta(1:nCond,iChan);
-                    newRows.se = sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)));
-                    newRows.cond = S(i).names(1:nCond);
-                    for iDem = 1:length(demNames)
-                        if isnumeric(S(i).demographics( demNames{iDem} )) && ~isempty(S(i).demographics( demNames{iDem} ))
-                            newRows.(demNames{iDem}) = ...
-                                repmat( S(i).demographics( demNames{iDem} ), [nCond 1] );
-                        else
-                            newRows.(demNames{iDem}) = ...
-                                repmat( {S(i).demographics( demNames{iDem} )}, [nCond 1] );
-                        end
-                    end
-                    
-                    if i == 1
-                        tbl{iChan} = struct2table( newRows );
-                    else
-                        tbl{iChan} = [tbl{iChan}; struct2table(newRows)];
-                    end
-                    
-                end
+                nCond = length(S(i).stimulus.keys);
+                tbl = [tbl; [table(S(i).stimulus.keys,'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
             end
 
-            % call lme package
-            for iChan = 1:length(tbl)
-               if obj.subtractMeanFromContinuous 
+            %% loop through channels and fite mfx model
+            for iChan = 1:size(S(i).probe.link.source,1)
+               if obj.iscentered
                    % need to makes contiuous predictors mean zero
-                   varNames = tbl{iChan}.Properties.VariableNames;
-                   for iVar = 3:length(varNames)
-                      if all(isnumeric( tbl{iChan}.(varNames{iVar}) ))
+                   varNames = tbl.Properties.VariableNames;
+                   for iVar = 1:length(varNames)
+                      if all(isnumeric( tbl.(varNames{iVar}) ))
                           % subtract mean
-                          tbl{iChan}.(varNames{iVar}) = ...
-                              tbl{iChan}.(varNames{iVar}) - mean( tbl{iChan}.(varNames{iVar}) );
+                          tbl.(varNames{iVar}) = ...
+                              tbl.(varNames{iVar}) - mean( tbl.(varNames{iVar}) );
                       end
                    end
                end
-                
-               lme{iChan} = fitlme(tbl{iChan},obj.formula, ...
-                   'Weights',1./tbl{iChan}.se, ...
+               
+               % get hemodynamic response and std err
+               beta = []; se = [];
+               for i = 1:length(S)
+                   nCond = length(S(i).stimulus.keys);
+                   beta(i,1) = S(i).beta(1:nCond,iChan);
+                   se(i,1) = sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)));
+               end
+               
+               % call lme package
+               lme{iChan} = fitlme([table(beta) tbl],obj.formula, ...
+                   'Weights',1./se, ...
                    'DummyVarCoding',obj.dummyVarCoding);
-               
-%                nCoef = length( lme.Coefficients );
-%                c = zeros(nCoef);
-%                c(1,:) = 1;
-%                for iCoef = 2:nCoef
-%                    c(iCoef,iCoef) = 1;
-%                end
-               
-%                beta(:,iChan) = c' * lme.Coefficients.Estimate;
-%                covb(:,:,iChan) = c * lme.CoefficientCovariance * c';
-%                dfe(iChan,1) = lme.DFE;
-%                tstat(:,iChan) = beta(:,iChan) ./ sqrt( diag( covb(:,:,iChan) ) );
 
-                beta(:,:,iChan) = lme{iChan}.Coefficients.Estimate;
-                covb(:,:,iChan) = lme{iChan}.CoefficientCovariance;
-                dfe(iChan,1) = lme{iChan}.DFE;
-                tstat(:,iChan) = lme{iChan}.Coefficients.tStat;
-                names{iChan} = lme{iChan}.CoefficientNames';
+                G.beta  (:,:,iChan)     = lme{iChan}.Coefficients.Estimate;
+                G.covb  (:,:,iChan)     = lme{iChan}.CoefficientCovariance;
+                G.dfe   (iChan,1)       = lme{iChan}.DFE;
+                G.tstat	(:,iChan)       = lme{iChan}.Coefficients.tStat;
+                G.names {iChan}         = lme{iChan}.CoefficientNames';
             end
 
-            % return stats
-            groupStats.beta = beta;
-            groupStats.covb = covb;
-            groupStats.dfe = dfe;
-            groupStats.tstat = tstat;
-            groupStats.probe = S(1).probe;
-            groupStats.names = names;
-            groupStats.dummyVarCoding = obj.dummyVarCoding;
-            groupStats.formula = obj.formula;
-            groupStats.lme = lme;
+            %% return stats
+            G.probe = S(1).probe;
+            G.dummyVarCoding = obj.dummyVarCoding;
+            G.formula = obj.formula;
+            G.lme = lme;
             
         end
         

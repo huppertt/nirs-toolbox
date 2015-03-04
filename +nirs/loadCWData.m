@@ -33,7 +33,11 @@ function data = loadCWData( filenames )
         
         if isfield(d,'StimDesign')
             for iStim = 1:length(d.StimDesign)
-                name = d.StimDesign(iStim).cond;
+                if isfield(d.StimDesign,'cond')
+                    name = d.StimDesign(iStim).cond;
+                else
+                    name = d.StimDesign(iStim).name;
+                end
                 
                 stim = nirs.functional.StimulusEvents();
                 stim.name = name;
