@@ -165,7 +165,7 @@ classdef Probe
             if nargin < 2
                 cmap = [0.8 0.8 0.8];
             elseif nargin < 3
-                cmap = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+                [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             end
 
             if nargin == 1
@@ -173,7 +173,7 @@ classdef Probe
                 z = 0;
                 cmap = [0.8 0.8 0.8];
             else
-                zmax = max( abs(values) );
+                zmax = ceil( max( abs(values) ) );
                 z = linspace(-zmax, zmax, size(cmap,1));
                 
             end
@@ -192,13 +192,22 @@ classdef Probe
                 x = [s(iSrc,1) d(iDet,1)]';
                 y = [s(iSrc,2) d(iDet,2)]';
                 
-                h(iChan) = line(x,y,'LineWidth',10)
-                text(x(1),y(1),['S' num2str(iSrc)], 'FontSize', 20)
-                text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 20)
                 
+                [~, iCol] = min(abs(values(iChan)-z));
+                h = line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
+                text(x(1),y(1),['S' num2str(iSrc)], 'FontSize', 14)
+                text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 14)
             end
             
+            colormap(cmap); 
+            c = colorbar; 
+            caxis([-zmax zmax])
             
+            axis equal
+           	axis off
+            
+            axis(1.2*[xlim ylim])
+                
         end
     
     end

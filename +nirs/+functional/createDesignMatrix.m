@@ -1,4 +1,4 @@
-function [X, names ] = generateDesignMatrix( stimulus, t, basis )
+function [X, names ] = createDesignMatrix( stimulus, t, basis )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 

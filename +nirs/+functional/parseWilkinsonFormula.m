@@ -1,4 +1,4 @@
-function [y, X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered )
+function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     if nargin < 2
@@ -96,8 +96,8 @@ function [y, X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered )
         end
     end
     
-    %% Dependent Variable
-    y = tbl.(lhs);
+%     %% Dependent Variable
+%     y = tbl.(lhs);
 
 end
 

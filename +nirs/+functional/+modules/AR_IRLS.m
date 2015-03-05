@@ -29,10 +29,10 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 % generate design matrix
                 stims = data(i).stimulus;
                 [X, names] = nirs.functional. ...
-                    generateDesignMatrix( stims, t, obj.basis );
+                    createDesignMatrix( stims, t, obj.basis );
                 
                 % generate baseline/trend regressors
-                C = nirs.functional.dctmtx( t, obj.hpf_Fc );
+                C = nirs.functional.dctmtx( t, obj.hpf_Fc )';
                 
                 if obj.constant == false;
                     C = C(:,2:end);
@@ -43,7 +43,7 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 end
                 
                 % check rank
-                if isinf( cond(X) )
+                if rank(X) < size(X,2)
                     error( 'Design matrix is rank deficient.' )
                 end
                 
@@ -60,7 +60,7 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                                 
                 % call ar_irls
                 warning('off','stats:statrobustfit:IterationLimit')
-                thisS = ar_irls( d, [X C], 4*Fs );
+                thisS = ar_irls( d, [X C], round(4*Fs) );
                 thisS.X = X;
                 thisS.C = C;
                 thisS.names = names';
@@ -73,8 +73,9 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 % output stats
                 stats = S;
                 
-                disp(['Finished ' num2str(i) ' of ' num2str(length(data))])
+                fprintf( 'Finished %i of %i.\n', i, length(data) )
             end
+            fprintf( '\n' )
         end
         
         function options = getOptions( obj )

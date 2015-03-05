@@ -3,8 +3,8 @@ classdef TrimBaseline < nirs.functional.AbstractModule
     %   Detailed explanation goes here
     
     properties
-        preBaseline  = 30;
-        postBaseline = 30;
+        preBaseline  = 40;
+        postBaseline = 40;
     end
     
     methods

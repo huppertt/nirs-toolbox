@@ -15,6 +15,17 @@ classdef HashTable
     end
     
     methods
+        
+        function obj = HashTable( keys, values )
+            if nargin == 2
+                assert( iscellstr(keys) )
+                obj.keys = keys;
+                obj.values = values;
+            elseif nargin == 1
+                error('Constructor takes zero or two arguments.')
+            end
+        end
+            
         function count = get.count( obj )
             count = length( obj.keys );
         end

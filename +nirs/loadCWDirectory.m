@@ -14,7 +14,7 @@ function data = loadCWDirectory( rootFolder, useFoldersAsNames )
     
     for iFile = 1:length( files )
         
-        data(iFile) = nirs.loadCWData( files(iFile).name );
+        data(iFile,1) = nirs.loadCWData( files(iFile).name );
         
         if useFoldersAsNames == true            
             

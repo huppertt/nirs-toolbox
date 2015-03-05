@@ -29,11 +29,8 @@ classdef Resample < nirs.functional.AbstractModule
                 new_t = t(1) + (0:N-1)' / obj.Fs;
                 
                 % anti-aliasing filter
-                ord = floor( length(new_t) / 10 );
+                ord = floor( length(t) / 10 );
                 Fc = obj.Fs/data(i).Fs;
-%                 [zz,pp,kk] = butter(ord,Fc,'low');  % Butterworth filter
-%                 [sos,g] = zp2sos(zz,pp,kk);        	% Convert to SOS form
-%                 d = filtfilt(sos,g,d);
 
                 b = fir1(ord,Fc);
                 
@@ -50,16 +47,6 @@ classdef Resample < nirs.functional.AbstractModule
 
                 data(i).data = d;
                 data(i).time = new_t;
-                
-%                 % resample stims
-%                 stimulus = data(i).stimulus;
-%                	keys = stimulus.keys;
-%                 
-%                 for j = 1:length(keys)
-%                     %stimulus( keys(j) ) = filtfilt( sos,g,stimulus(keys(j)) );
-%                     stimulus( keys{j} ) = interp1(t, stimulus(keys{j}), new_t); 
-%                 end
-%                 data(i).stimulus = stimulus;
                 
             end
         end

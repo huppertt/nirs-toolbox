@@ -26,7 +26,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
             tbl = table();
             for i = 1:length(S)
                 nCond = length(S(i).stimulus.keys);
-                tbl = [tbl; [table(S(i).stimulus.keys,'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
+                tbl = [tbl; [table(S(i).stimulus.keys(:),'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
             end
 
             %% loop through channels and fite mfx model
@@ -47,27 +47,32 @@ classdef MixedEffects < nirs.functional.AbstractModule
                beta = []; se = [];
                for i = 1:length(S)
                    nCond = length(S(i).stimulus.keys);
-                   beta(i,1) = S(i).beta(1:nCond,iChan);
-                   se(i,1) = sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)));
+                   beta = [beta; S(i).beta(1:nCond,iChan)];
+                   se = [se; sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)))];
                end
                
                % call lme package
                lme{iChan} = fitlme([table(beta) tbl],obj.formula, ...
                    'Weights',1./se, ...
-                   'DummyVarCoding',obj.dummyVarCoding);
+                   'DummyVarCoding',obj.dummyVarCoding, ...
+                   'FitMethod','REML');
+               
+%                [y, X, Z, names] = nirs.functional.parseWilkinsonFormula('beta ~ cond',[table(beta) tbl]);
+%                [bhat, sts] = robustfit(X,y,[],[],'off');
 
                 G.beta  (:,:,iChan)     = lme{iChan}.Coefficients.Estimate;
                 G.covb  (:,:,iChan)     = lme{iChan}.CoefficientCovariance;
                 G.dfe   (iChan,1)       = lme{iChan}.DFE;
                 G.tstat	(:,iChan)       = lme{iChan}.Coefficients.tStat;
-                G.names {iChan}         = lme{iChan}.CoefficientNames';
+               
             end
 
-            %% return stats
-            G.probe = S(1).probe;
+            %% return stats 
+            G.names     = lme{iChan}.CoefficientNames';
+            G.probe     = S(1).probe;
+            G.formula   = obj.formula;
+            G.lme       = lme;
             G.dummyVarCoding = obj.dummyVarCoding;
-            G.formula = obj.formula;
-            G.lme = lme;
             
         end
         

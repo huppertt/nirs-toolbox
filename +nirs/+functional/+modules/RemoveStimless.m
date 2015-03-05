@@ -1,10 +1,10 @@
-classdef RemoveNoStim < nirs.functional.AbstractModule
+classdef RemoveStimless < nirs.functional.AbstractModule
     %UNTITLED6 Summary of this class goes here
     %   Detailed explanation goes here
     
     
     methods
-        function obj = RemoveNoStim( prevJob )
+        function obj = RemoveStimless( prevJob )
            obj.name = 'Remove Files w/o Stim';
            if nargin > 0
                obj.prevJob = prevJob;

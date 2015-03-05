@@ -7,11 +7,18 @@ function C = dctmtx( t, fmax )
 
     f = Fs/2/N * (0:N-1)'; % dct frq
 
-    n = sum(f<fmax);
-    [x,y] = ndgrid(0:N-1, 0:n-1);
+    n = sum(f <= fmax);
+    
+    [j,i] = ndgrid(0:n-1, 0:N-1);
 
-    C = sqrt(2 / n) * cos(pi * (2*x + 1) .* y / (2 * n));
-    C(:,1) = C(:,1) / sqrt(2);
+    % DCT-II
+    C = cos( pi/N * (i + 1/2) .* j );
+    
+    % normalization
+    C = C*sqrt(2/N)';
+    
+    % orthogonalization
+    C(1,:) = C(1,:) / sqrt(2);
 
 end
 
