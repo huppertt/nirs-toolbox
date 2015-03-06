@@ -113,5 +113,6 @@ function [X, names] = parseCategorical( T, tbl )
         end
 
         X = dummyvar( categorical(names) );
+        names = unique(names);
 end
 

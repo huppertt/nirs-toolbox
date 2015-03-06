@@ -87,7 +87,7 @@ function stats = ar_irls( d,X,Pmax,tune )
     stats.tstat = zeros(nCond,nChan);   % tstats
     stats.pval = zeros(nCond,nChan);    % two-sided t-test
     stats.ppos = zeros(nCond,nChan);    % one-sided t-test (positive only)
-    stats.pneg = zeros(nCond,nChan);    % one-sided t-test (positive only)
+    stats.pneg = zeros(nCond,nChan);    % one-sided t-test (negative only)
     stats.P = zeros(nChan,1);           % the final AR model order
     stats.w = zeros(nTime,nChan);       % save the weights
     stats.dfe = nTime - nCond;          % degrees of freedom
@@ -138,7 +138,7 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
         stats.P(i) = length(a)-1;
-        stats.covb{i} = pinv(Xf'*Xf)*S.mad_s^2;
+        stats.covb(:,:,i) = pinv(Xf'*Xf)*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
         

@@ -30,6 +30,12 @@ function data = loadCWData( filenames )
         
         % probe
         tData.probe = nirs.sd2probe( d.SD );
+        [tData.probe.link, idx] = ...
+            sortrows(tData.probe.link,{'type','source','detector'});
+        
+        try % sometimes data files are empty?
+            tData.data = tData.data(:,idx);
+        end
         
         if isfield(d,'StimDesign')
             for iStim = 1:length(d.StimDesign)
