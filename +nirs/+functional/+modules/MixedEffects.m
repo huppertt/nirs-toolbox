@@ -3,7 +3,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        formula = 'beta ~ cond*group + (1|subject)';
+        formula = 'beta ~ group*cond + (1|subject)';
         dummyVarCoding = 'reference';
         iscentered = true;
     end
@@ -44,34 +44,45 @@ classdef MixedEffects < nirs.functional.AbstractModule
                end
                
                % get hemodynamic response and std err
-               beta = []; se = [];
+               beta = []; se = []; L = sparse([]);
                for i = 1:length(S)
                    nCond = length(S(i).stimulus.keys);
                    beta = [beta; S(i).beta(1:nCond,iChan)];
-                   se = [se; sqrt(diag(S(i).covb{iChan}(1:nCond,1:nCond)))];
+                   L = blkdiag(L,inv(chol( S(i).covb(1:nCond,1:nCond,iChan) )));
+%                    se = [se; sqrt(diag(S(i).covb(1:nCond,1:nCond,iChan)))];
                end
                
                % call lme package
-               lme{iChan} = fitlme([table(beta) tbl],obj.formula, ...
-                   'Weights',1./se, ...
-                   'DummyVarCoding',obj.dummyVarCoding, ...
-                   'FitMethod','REML');
+               [X, Z, names] = nirs.functional.parseWilkinsonFormula(obj.formula, tbl);
+               tmp = nirs.functional.fitMixedModel(L*X,L*Z,L*beta);
+               
+%                lme{iChan} = fitlme([table(beta) tbl],obj.formula, ...
+%                    'Weights',1./se, ...
+%                    'DummyVarCoding',obj.dummyVarCoding, ...
+%                    'FitMethod','REML');
                
 %                [y, X, Z, names] = nirs.functional.parseWilkinsonFormula('beta ~ cond',[table(beta) tbl]);
 %                [bhat, sts] = robustfit(X,y,[],[],'off');
 
-                G.beta  (:,:,iChan)     = lme{iChan}.Coefficients.Estimate;
-                G.covb  (:,:,iChan)     = lme{iChan}.CoefficientCovariance;
-                G.dfe   (iChan,1)       = lme{iChan}.DFE;
-                G.tstat	(:,iChan)       = lme{iChan}.Coefficients.tStat;
+%                 G.beta  (:,:,iChan)     = lme{iChan}.Coefficients.Estimate;
+%                 G.covb  (:,:,iChan)     = lme{iChan}.CoefficientCovariance;
+%                 G.dfe   (iChan,1)       = lme{iChan}.DFE;
+%                 G.tstat	(:,iChan)       = lme{iChan}.Coefficients.tStat;
+
+                G.beta(:,iChan)    	= tmp.b;
+                G.covb(:,:,iChan) 	= tmp.covb;
+                G.dfe(iChan,1)      = tmp.df;
+                G.tstat(:,iChan)    = tmp.t;
+                
                
             end
 
             %% return stats 
-            G.names     = lme{iChan}.CoefficientNames';
+%             G.names     = lme{iChan}.CoefficientNames';
+            G.names     = names;
             G.probe     = S(1).probe;
             G.formula   = obj.formula;
-            G.lme       = lme;
+%             G.lme       = lme;
             G.dummyVarCoding = obj.dummyVarCoding;
             
         end

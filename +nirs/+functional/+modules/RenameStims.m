@@ -8,7 +8,7 @@ classdef RenameStims < nirs.functional.AbstractModule
     
     methods
         function obj = RenameStims( prevJob )
-           obj.name = 'Merge Stim Conditions';
+           obj.name = 'Rename Stim Conditions';
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -25,12 +25,24 @@ classdef RenameStims < nirs.functional.AbstractModule
             for i = 1:length(data)
                 lst = idx == i;
                 
-                keys = names(lst);
-                values = data(i).stimulus.values;
-                
-                data(i).stimulus = nirs.HashTable(keys, values);
+                if any(lst)
+                    keys = names(lst);
+                    values = data(i).stimulus.values;
+
+                    ukeys = unique(keys,'stable');
+                    for j = 1:length(ukeys)
+                       lst = strcmp(ukeys{j},keys);
+                       uvalues{j} = nirs.functional.mergeStims( values(lst), ukeys{j} );
+                    end
+
+                    data(i).stimulus = nirs.HashTable(ukeys, uvalues);
+                end
             end
+            
+            
         end
+        
+
         
         function options = getOptions( obj )
             options = [];

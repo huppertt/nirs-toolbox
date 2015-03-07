@@ -69,8 +69,8 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                 xiw = U(key)*S(key)*pinv(W*V(key));
                                
                 % only fit coefs that have "enough" sensitivity
-                lst = sum(xiw,1)';
-                lst = abs(lst) > 1e-2*max(abs(lst));
+                lst = sqrt(sum(xiw.^2,1))';
+                lst = abs(lst) > 1e-3*max(abs(lst));
                 
                 % we do the union across all forward models
                 mask = mask | lst;
@@ -141,6 +141,8 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
            	vw = 1; vw0 = 1e16; % prior variance on wavelet coefs
             vz = 1; vz0 = 1e16; % prior variance on rfx
             
+            X = full(X); ZZ = full(ZZ);
+            
             iter = 0;
             while abs( (vw0-vw)/vw0 ) > 1e-2 && iter < 10
                 
@@ -164,7 +166,8 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                 
                 disp(iter);
             end
-
+            clear Q H
+            
             %% CONVERT BACK TO IMAGE SPACE
             ix = sparse( size(mask,1)*size(x,2),size(y,1) );
 %             ix( repmat(mask,[size(x,2) 1]),: ) = iX;
@@ -204,6 +207,17 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
 
             %% PUT STATS
+            lst = abs(bhat) < 0.01*max(abs(bhat));
+            bhat(lst) = 0;
+            
+            G.iX        	= ix; clear ix;
+            G.se            = sqrt( sum(G.iX.^2,2) );
+            G.se( lst )     = Inf;
+            G.tstat         = bhat./G.se;
+            G.bhat          = bhat;
+            G.dfe           = ceil(dfw);
+            G.names         = names;
+            
             
         end
         

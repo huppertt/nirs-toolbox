@@ -2,12 +2,12 @@ function tbl = createDemographicsTable( data )
 %CREATEDEMOGRAPHICSTABLE Summary of this function goes here
 %   Detailed explanation goes here
     
-    names = {};
-    for i = 1:length(data)
-        names = [names; data(i).demographics.keys'];
-    end
-
-    names = unique( names );
+%     names = {};
+%     for i = 1:length(data)
+%         names = [names; data(i).demographics.keys'];
+%     end
+% 
+%     names = unique( names,'stable' );
         
     for i = 1:length(data)
         demo = data(i).demographics;

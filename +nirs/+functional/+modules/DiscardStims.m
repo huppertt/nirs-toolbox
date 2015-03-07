@@ -8,7 +8,7 @@ classdef DiscardStims < nirs.functional.AbstractModule
     end
     
     methods
-        function obj = RenameStims( prevJob )
+        function obj = DiscardStims( prevJob )
            obj.name = 'Discard Stim Conditions';
            if nargin > 0
                obj.prevJob = prevJob;

@@ -38,6 +38,17 @@ function data = loadCWData( filenames )
         end
         
         if isfield(d,'StimDesign')
+            names = {};
+            for iStim = 1:length(d.StimDesign)
+                names{end+1} = d.StimDesign(iStim).cond;
+            end
+            names = unique(names,'stable');
+            
+            stims = nirs.HashTable();
+            for iStim = 1:length(names)
+                stims(names{iStim}) = nirs.functional.StimulusEvents();
+            end
+            
             for iStim = 1:length(d.StimDesign)
                 if isfield(d.StimDesign,'cond')
                     name = d.StimDesign(iStim).cond;
@@ -45,14 +56,22 @@ function data = loadCWData( filenames )
                     name = d.StimDesign(iStim).name;
                 end
                 
-                stim = nirs.functional.StimulusEvents();
-                stim.name = name;
-                stim.onset = d.StimDesign(iStim).onset;
-                stim.dur = d.StimDesign(iStim).dur;
-                stim.amp = d.StimDesign(iStim).amp;
+                thisStim = stims(name);
+                thisStim.name = name;
+                thisStim.onset = [thisStim.onset(:); d.StimDesign(iStim).onset(:)];
+                thisStim.dur = [thisStim.dur(:); d.StimDesign(iStim).dur(:)];
+                thisStim.amp = [thisStim.amp(:); d.StimDesign(iStim).amp(:)];
                 
-                tData.stimulus(name) = stim;
+%                 stim = nirs.functional.StimulusEvents();
+%                 stim.name = name;
+%                 stim.onset = d.StimDesign(iStim).onset;
+%                 stim.dur = d.StimDesign(iStim).dur;
+%                 stim.amp = d.StimDesign(iStim).amp;
+                
+                stims(name) = thisStim;
             end
+            
+            tData.stimulus = stims;
         end
         
 %         % stimulus info

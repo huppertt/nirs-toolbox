@@ -170,8 +170,8 @@ classdef Probe
 
             if nargin == 1
                 values = zeros(size(obj.link.source,1),1);
-                z = 0;
-                cmap = [0.8 0.8 0.8];
+                z = 0; zmax = 0;
+                cmap = [0 0 1];
             else
                 zmax = ceil( max( abs(values) ) );
                 z = linspace(-zmax, zmax, size(cmap,1));
@@ -199,14 +199,30 @@ classdef Probe
                 text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 14)
             end
             
-            colormap(cmap); 
-            c = colorbar; 
-            caxis([-zmax zmax])
-            
-            axis equal
+
+            % axis equal
+            axis tight
            	axis off
             
-            axis(1.2*[xlim ylim])
+            colormap(cmap);
+            if zmax ~= 0
+                c = colorbar; 
+                caxis([-zmax zmax]);
+            end
+            
+            pi = get(gca,'Position');
+            po = get(gca,'OuterPosition');
+            
+            po(3:4) = 1.2*pi(3:4);
+            set(gca,'OuterPosition',po);
+            
+            xl = xlim;
+            yl = ylim;
+
+            xl = 1.2*diff(xl)/2*[-1 1]+mean(xl);
+            yl = 1.2*diff(yl)/2*[-1 1]+mean(yl);
+
+            axis([xl yl])
                 
         end
     

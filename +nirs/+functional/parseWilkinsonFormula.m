@@ -112,7 +112,9 @@ function [X, names] = parseCategorical( T, tbl )
             names{j,1} = strjoin(n(j,:),':');
         end
 
-        X = dummyvar( categorical(names) );
-        names = unique(names);
+        [names,~,I] = unique(names,'stable'); 
+        
+        % if you input strings to dummyvar it will sort them
+        X = dummyvar( I );
 end
 
