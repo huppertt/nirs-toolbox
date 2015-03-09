@@ -70,7 +70,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                                
                 % only fit coefs that have "enough" sensitivity
                 lst = sqrt(sum(xiw.^2,1))';
-                lst = abs(lst) > 1e-3*max(abs(lst));
+                lst = abs(lst) > 1e-2*max(abs(lst));
                 
                 % we do the union across all forward models
                 mask = mask | lst;
@@ -150,7 +150,9 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
                 Q = vz*ZZ + eye(size(X,1));
                 
-                iX = vw*X'*pinv(X*X'*vw + Q);
+                iR = inv( chol(X*X'*vw + Q) );
+                
+                iX = vw*X'*(iR*iR');
                 
                 what = iX*y;
 

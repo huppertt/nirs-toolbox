@@ -40,7 +40,11 @@ function data = loadCWData( filenames )
         if isfield(d,'StimDesign')
             names = {};
             for iStim = 1:length(d.StimDesign)
-                names{end+1} = d.StimDesign(iStim).cond;
+                if isfield(d.StimDesign,'cond')
+                    names{end+1} = d.StimDesign(iStim).cond;
+                else
+                    names{end+1} = d.StimDesign(iStim).name;
+                end
             end
             names = unique(names,'stable');
             
