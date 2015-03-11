@@ -101,8 +101,11 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                     error(['No forward model for subject: ' sname '.'])
                 end
                 
-                X = [X; kron(XiW(key),x(i,:))];
-                Z = [Z; kron(XiW(key),z(i,:))];
+                X = [X; kron(x(i,:), XiW(key))];
+                
+                if ~isempty(z)
+                    Z = [Z; kron(z(i,:), XiW(key))];
+                end
 
             end
                         
@@ -133,10 +136,16 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
             end
             
             %% WHITEN DATA
-            y = L*y; X = L*X; Z = L*Z;
+            y = L*y; X = L*X; 
+            if ~isempty( z )
+                Z = L*Z;
+                ZZ = Z*Z'; clear Z
+            else
+                ZZ = 0;
+            end
             
             %% FITTING
-            ZZ = Z*Z'; clear Z
+            
             
            	vw = 1; vw0 = 1e16; % prior variance on wavelet coefs
             vz = 1; vz0 = 1e16; % prior variance on rfx

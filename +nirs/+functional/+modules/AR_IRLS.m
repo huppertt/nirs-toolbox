@@ -3,9 +3,10 @@ classdef AR_IRLS < nirs.functional.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        hpf_Fc = 1/125;
-        basis = nirs.HashTable;
-        constant = true;
+        hpf_Fc      = 1/125;
+        basis       = nirs.HashTable;
+        constant    = true;
+        verbose     = false;
     end
     
     methods
@@ -48,15 +49,10 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 end
                 
                 % check condition
-%                 maxCond = 30; 
-%                 if cond([X C]) > maxCond
-%                     warning('Lowering HPF cutoff to reduce collinearity in design matrix.')
-%                 end
-                
-%                 while cond([X C]) > maxCond && ~isempty(C)
-%                     C(:,end) = [];
-%                     names = names(1:end-1);
-%                 end
+                maxCond = 30; 
+                if cond([X C]) > maxCond
+                    warning('Consider lowering HPF cutoff to reduce collinearity.')
+                end
                                 
                 % call ar_irls
                 warning('off','stats:statrobustfit:IterationLimit')
@@ -73,9 +69,10 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 % output stats
                 stats = S;
                 
-                fprintf( 'Finished %i of %i.\n', i, length(data) )
+                if obj.verbose
+                    fprintf( 'Finished %4i of %4i.\n', i, length(data) )
+                end
             end
-            fprintf( '\n' )
         end
         
         function options = getOptions( obj )

@@ -1,7 +1,7 @@
 function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-    if nargin < 2
+    if nargin < 3
         iscentered = false;
     end
 

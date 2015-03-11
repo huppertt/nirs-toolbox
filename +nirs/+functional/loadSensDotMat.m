@@ -26,7 +26,7 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     
     %% jacobian
     A = double( tmp.sensitivity.Adot );
-    A = A(idx,:) * 1e-6;
+    A = -A(idx,:) / max(abs(A(:))) * 1e-3; % scaling?
     
     ext = nirs.getSpectra( link.type );
     

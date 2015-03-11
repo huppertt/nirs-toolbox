@@ -1,16 +1,16 @@
-classdef BeerLambertLaw < nirs.functional.AbstractModule
+classdef ReverseBeerLambert < nirs.functional.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
         PPF = 5 / 50; % arbitrary scaling factor
-        chromophores = {'hbo','hbr'};
+        lambda = [690 830]';
     end
     
     methods
 
-        function obj = BeerLambertLaw( prevJob )
-           obj.name = 'Beer-Lambert Law';
+        function obj = ReverseBeerLambert( prevJob )
+           obj.name = 'Convert Hb to OD';
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -30,9 +30,8 @@ classdef BeerLambertLaw < nirs.functional.AbstractModule
                 
                 for j = 1:max(idx)
                     lst = idx == j;
-                    lambda = p.link.type(lst);
                     
-                    ext = nirs.getSpectra( lambda );
+                    ext = nirs.getSpectra( obj.lambda );
                     
                     clist = [1 2]; % hbo and hbr; need to fix this
                     
@@ -44,13 +43,12 @@ classdef BeerLambertLaw < nirs.functional.AbstractModule
                     
                     % mbll model
                     EL = bsxfun( @times, E, L *obj.PPF );
-                    iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)
-                    d(:,lst) = (d(:,lst)*iEL') * 1e6;
+                    d(:,lst) = (d(:,lst)*EL') * 1e-6;
                     
                     % new channel type
-                    type(lst,1) = obj.chromophores;
+                    type(lst,1) = obj.lambda;
                 end
                 
                 p.link.type = type;

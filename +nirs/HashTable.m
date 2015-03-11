@@ -18,7 +18,7 @@ classdef HashTable
         
         function obj = HashTable( keys, values )
             if nargin == 2
-                assert( iscellstr(keys) )
+                assert( iscellstr(keys) && length(keys)==length(values) )
                 obj.keys = keys;
                 obj.values = values;
             elseif nargin == 1
