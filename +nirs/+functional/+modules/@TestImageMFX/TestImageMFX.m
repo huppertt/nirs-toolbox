@@ -43,7 +43,7 @@ classdef TestImageMFX
             lst = find(mask);
             
             % regression formula
-            obj.pipeline.formula = 'beta ~ group + cont';
+            obj.pipeline.formula = 'beta ~ group + cont + (1|subject)';
             
             % preallocate
             obj.tstat = zeros(obj.niter*nNode*2,3);
@@ -79,7 +79,7 @@ classdef TestImageMFX
                 
                 for i = 11:20
                     c = normrnd(1,0.25);
-                    S(i).beta = ( [J.hbo J.hbr]*1.5*c*b )' + normrnd(0,s,1,size(J.hbo,1));
+                    S(i).beta = ( [J.hbo J.hbr]*2*c*b )' + normrnd(0,s,1,size(J.hbo,1));
                     S(i).demographics = nirs.HashTable({'subject','group','cont'},{num2str(i),'2',c});
                     S(i).stimulus = nirs.HashTable({'test'},{[]});
                     S(i).covb = s^2*ones(1,1,size(J.hbo,1));
@@ -95,7 +95,8 @@ classdef TestImageMFX
                 n = length(G.names);
                 obj.truth(idx)     = b > 0;
                 obj.tstat(idx,:)   = reshape( G.tstat, [length(G.tstat)/n n] );
-                obj.p(idx,:)       = tcdf(-obj.tstat(idx,:), G.dfe);
+                %obj.p(idx,:)       = tcdf(-obj.tstat(idx,:), G.dfe);
+                obj.p(idx,:)      = reshape( G.p, [length(G.p)/n n] )
                 
                 txt0 = txt;
                 txt = sprintf('Finished %6i of %6i.\n',iter, obj.niter);
@@ -119,6 +120,7 @@ classdef TestImageMFX
             mask = mask > 0.01 * max(mask);
             
             lst = mask;
+            lst = ones(size(mask)) > 0;
             for i = 1:size(obj.p,2)
 
                 [tp, fp, th] = roc( obj.truth(lst), obj.p(lst,i) );

@@ -167,7 +167,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
                 H = X*iX;
 
-                dfw = trace(H'*H);
+                dfw = trace(H'*H); %trace(H'*H)^2 / trace(H'*H*H'*H); %;
 
                 vw = (what'*what)/dfw;
 
@@ -218,17 +218,49 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
 
             %% PUT STATS
-            lst = abs(bhat) < 0.01*max(abs(bhat));
-            bhat(lst) = 0;
+%             lst = abs(bhat) < 0.01*max(abs(bhat));
+%             bhat(lst) = 0;
             
-            G.iX        	= ix; clear ix;
-            G.se            = sqrt( sum(G.iX.^2,2) );
-            G.se( lst )     = Inf;
-            G.tstat         = bhat./G.se;
-            G.bhat          = bhat;
-            G.dfe           = ceil(dfw);
-            G.names         = names;
+%             G.iX        	= ix; clear ix;
+%             G.se            = sqrt( sum(G.iX.^2,2) );
+%             G.se( lst )     = Inf;
+%             G.tstat         = bhat./G.se;
+%             G.bhat          = bhat;
+%             G.dfe           = ceil(dfw);
+%             G.names         = names;
+%             G.p     = 2*tcdf(-abs(G.tstat),G.dfe);
             
+            idx = (1:length(y))';
+            idx = reshape( idx, [length(idx)/length(subj_stats) length(subj_stats)] );
+            
+            tic
+            nperms = 200;
+            bperm = zeros(size(bhat,1),nperms);
+            for i = 1:nperms
+                %pidx = idx( :,randperm(size(idx,2)) );
+                %pidx = idx( :,randi(size(idx,2),size(idx,2),1) );
+                tmp1 = randi(size(idx,1),size(idx));
+                tmp2 = randi(size(idx,2),size(idx));
+                pidx = sub2ind( size(idx), tmp1(:), tmp2(:) );
+                bperm(:,i) = ix*y( pidx(:) );
+            end
+            toc
+            
+            p = zeros(size(bhat));
+            for i = 1:nperms
+               p = p + (abs(bhat) <= abs(bperm(:,i)));
+            end
+            p = p / nperms;
+            
+            
+            G.bhat  = bhat;
+            G.mu    = mean(bperm,2);
+            G.se    = std(bperm,[],2);
+            G.tstat = (G.bhat-0*G.mu)./G.se;
+            G.dfe   = ceil(dfw);
+%             G.p     = 2*tcdf(-abs(G.tstat),G.dfe);
+           	G.names	= names;
+            G.p = p;
             
         end
         

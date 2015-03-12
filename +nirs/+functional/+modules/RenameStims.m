@@ -30,6 +30,7 @@ classdef RenameStims < nirs.functional.AbstractModule
                     values = data(i).stimulus.values;
 
                     ukeys = unique(keys,'stable');
+                    uvalues = {};
                     for j = 1:length(ukeys)
                        lst = strcmp(ukeys{j},keys);
                        uvalues{j} = nirs.functional.mergeStims( values(lst), ukeys{j} );
