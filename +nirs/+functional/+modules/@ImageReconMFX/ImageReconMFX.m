@@ -5,6 +5,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
     properties
         formula = 'beta ~ cond*group + (1|subject)';
         jacobian = nirs.HashTable(); % key is subject name or "default"
+        dummyCoding = 'full';
         transMtx;
         mesh;
     end
@@ -33,7 +34,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
             
             % parse table
             [x, z, names] = nirs.functional. ...
-                parseWilkinsonFormula( obj.formula, tbl );
+                parseWilkinsonFormula( obj.formula, tbl, 'true', obj.dummyCoding );
             
             x = sparse(x);
             z = sparse(z);
@@ -41,7 +42,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
             %% Wavelet ( or other tranform )
             % the images are [left:hbo right:hbo left:hbr right:hbr]
             % there will be four diagonal blocks in W (there are already two)
-            W = obj.transMtx;
+            W = obj.transMtx; % W = W(1:2562,:);
             W = blkdiag(W,W);
             
             %% SVDS; PER FWD MODEL
@@ -61,11 +62,13 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
             clear J
             
             %% MASK; ACROSS FWD MODELS            
-            mask = zeros( size(v,1), 1) > 0;
+            maskw = zeros( size(v,1), 1) > 0;
+            maskb = zeros( size(v,1), 1) > 0;
             for i = 1:length( obj.jacobian.keys )
                 key = obj.jacobian.keys{i};
                 
                 % reparameterize model to fit wavelet coefs
+                X   = U(key)*S(key)*V(key)';
                 xiw = U(key)*S(key)*pinv(W*V(key));
                                
                 % only fit coefs that have "enough" sensitivity
@@ -73,7 +76,14 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                 lst = abs(lst) > 1e-2*max(abs(lst));
                 
                 % we do the union across all forward models
-                mask = mask | lst;
+                maskw = maskw | lst;
+                
+                % only fit coefs that have "enough" sensitivity
+                lst = sqrt(sum(X.^2,1))';
+                lst = abs(lst) > 1e-2*max(abs(lst));
+                
+                % we do the union across all forward models
+                maskb = maskb | lst;
             end
             
             %% CALCULATE WAVELET MODEL
@@ -84,7 +94,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                 % reparameterize model to fit wavelet coefs
                 xiw = U(key)*S(key)*pinv(W*V(key));
                                
-                XiW(key) = xiw(:,mask);
+                XiW(key) = xiw(:,maskw);
             end
             clear xiw;
             
@@ -145,12 +155,10 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
             end
             
             %% FITTING
+           	vw = 100;   vw0 = 1e16; % prior variance on wavelet coefs
+            vz = 0;     vz0 = 1e16; % prior variance on rfx
             
-            
-           	vw = 1; vw0 = 1e16; % prior variance on wavelet coefs
-            vz = 1; vz0 = 1e16; % prior variance on rfx
-            
-            X = full(X); ZZ = full(ZZ);
+            X = full(X); %ZZ = full(ZZ);
             
             iter = 0;
             while abs( (vw0-vw)/vw0 ) > 1e-2 && iter < 10
@@ -159,7 +167,10 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
                 Q = vz*ZZ + eye(size(X,1));
                 
-                iR = inv( chol(X*X'*vw + Q) );
+                iR = full(X*X'*vw + Q);
+                iR = chol(iR);
+                iR = inv(iR);
+                %inv( chol(X*X'*vw + Q) );
                 
                 iX = vw*X'*(iR*iR');
                 
@@ -167,9 +178,9 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
                 H = X*iX;
 
-                dfw = trace(H'*H); %trace(H'*H)^2 / trace(H'*H*H'*H); %;
+                dfw = trace(H'*H)^2 / trace(H'*H*H'*H); %trace(H'*H); %;
 
-                vw = (what'*what)/dfw;
+                vw = (what'*what + sum(sum(iX.^2,2)))/dfw;
 
                 vz = ((y-X*what)'*(y-X*what) + trace(ZZ))/size(y,1);
 
@@ -180,13 +191,15 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
             clear Q H
             
             %% CONVERT BACK TO IMAGE SPACE
-            ix = sparse( size(mask,1)*size(x,2),size(y,1) );
+%             ix = sparse( size(maskw,1)*size(x,2),size(y,1) );
+            ix = zeros( size(maskw,1)*size(x,2),size(y,1) );
+
 %             ix( repmat(mask,[size(x,2) 1]),: ) = iX;
             
             bhat = zeros(size(ix,1),1);
 %             bhat( repmat(mask,[size(x,2) 1]) ) = what;
             
-            nb = size(bhat,1); nw = size(W,1); ni = nb/nw;
+            nb = size(bhat,1); nw = size(W,1); % ni = nb/nw;
             for i = 1:size(x,2)
                 sname = demo.subject(1);
                 
@@ -198,10 +211,10 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                     error(['No forward model for subject: ' sname '.'])
                 end
                 
-                iW = V(key)*S(key)'*U(key)'*XiW(key);
+                iW = V(key)*diag(diag(1./S(key)))*U(key)'*XiW(key);
                 
                 idx1 = ((i-1)*nw+1):i*nw;
-                idx2 = ((i-1)*sum(mask)+1):i*sum(mask);
+                idx2 = ((i-1)*sum(maskw)+1):i*sum(maskw);
                 bhat( idx1 ) = iW*what( idx2 );
                 
                 ix(idx1,:) = iW*iX(idx2,:);
@@ -218,49 +231,54 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
 
             %% PUT STATS
-%             lst = abs(bhat) < 0.01*max(abs(bhat));
-%             bhat(lst) = 0;
+            lst = abs(bhat) < 0.01*max(abs(bhat))  | repmat(~maskb,[length(bhat)/length(maskb) 1]);
+            bhat(lst) = 0;
             
-%             G.iX        	= ix; clear ix;
-%             G.se            = sqrt( sum(G.iX.^2,2) );
-%             G.se( lst )     = Inf;
-%             G.tstat         = bhat./G.se;
-%             G.bhat          = bhat;
-%             G.dfe           = ceil(dfw);
-%             G.names         = names;
-%             G.p     = 2*tcdf(-abs(G.tstat),G.dfe);
+            G.iX        	= ix; clear ix;
+            G.se            = sqrt( sum(G.iX.^2,2) );
+            G.se( lst )     = Inf;
+            G.tstat         = bhat./G.se;
+            G.bhat          = bhat;
+            G.dfe           = ceil(dfw);
+            G.names         = names;
+            G.p             = 2*tcdf(-abs(G.tstat),G.dfe);
+            G.ppos        	= tcdf(-G.tstat,G.dfe);
+            G.pneg        	= tcdf(G.tstat,G.dfe);
             
-            idx = (1:length(y))';
-            idx = reshape( idx, [length(idx)/length(subj_stats) length(subj_stats)] );
-            
-            tic
-            nperms = 200;
-            bperm = zeros(size(bhat,1),nperms);
-            for i = 1:nperms
-                %pidx = idx( :,randperm(size(idx,2)) );
-                %pidx = idx( :,randi(size(idx,2),size(idx,2),1) );
-                tmp1 = randi(size(idx,1),size(idx));
-                tmp2 = randi(size(idx,2),size(idx));
-                pidx = sub2ind( size(idx), tmp1(:), tmp2(:) );
-                bperm(:,i) = ix*y( pidx(:) );
-            end
-            toc
-            
-            p = zeros(size(bhat));
-            for i = 1:nperms
-               p = p + (abs(bhat) <= abs(bperm(:,i)));
-            end
-            p = p / nperms;
-            
-            
-            G.bhat  = bhat;
-            G.mu    = mean(bperm,2);
-            G.se    = std(bperm,[],2);
-            G.tstat = (G.bhat-0*G.mu)./G.se;
-            G.dfe   = ceil(dfw);
-%             G.p     = 2*tcdf(-abs(G.tstat),G.dfe);
-           	G.names	= names;
-            G.p = p;
+%             idx = (1:length(y))';
+%             idx = reshape( idx, [length(idx)/length(subj_stats) length(subj_stats)] );
+%             
+%             tic
+%             nperms = 200;
+%             bperm = zeros(size(bhat,1),nperms);
+%             for i = 1:nperms
+%                 %pidx = idx( :,randperm(size(idx,2)) );
+%                 %pidx = idx( :,randi(size(idx,2),size(idx,2),1) );
+%                 tmp1 = randi(size(idx,1),size(idx));
+%                 tmp2 = randi(size(idx,2),size(idx));
+%                 pidx = sub2ind( size(idx), tmp1(:), tmp2(:) );
+%                 bperm(:,i) = ix*y( pidx(:) );
+%             end
+%             toc
+%             
+%             p = zeros(size(bhat));
+%             for i = 1:nperms
+%                p = p + (abs(bhat) <= abs(bperm(:,i)));
+%             end
+%             p = p / nperms;
+%             
+%             
+%             G.bhat  = bhat;
+%             G.bperm = bperm;
+%             G.mu    = mean(bperm,2);
+%             G.se    = std(bperm,[],2);
+%             G.tstat = (G.bhat-0*G.mu)./G.se;
+%             G.dfe   = ceil(dfw);
+% %             G.p     = 2*tcdf(-abs(G.tstat),G.dfe);
+%             G.p     = tcdf(-G.tstat,G.dfe);
+%            	G.names	= names;
+% %             G.p = p;
+%             G.p( repmat(~maskb,[length(G.p)/length(maskb) 1]) ) = 1;
             
         end
         

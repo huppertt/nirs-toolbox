@@ -1,8 +1,12 @@
-function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered )
+function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered, dummycoding )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     if nargin < 3
         iscentered = false;
+    end
+    
+    if nargin < 4
+        dummycoding = 'reference';
     end
 
     X = []; Z = []; names = {};
@@ -77,9 +81,14 @@ function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered )
             
             if iscat
                 [x,n] = parseCategorical( T, tbl );
+                
+                if strcmp(dummycoding,'reference')
+                    x = x(:,2:end);
+                    n = n(2:end);
+                end
 
-                X = [X x(:,2:end)];
-                names = [names; n(2:end)];
+                X = [X x];
+                names = [names; n];
             else
                 x = ones(size(tbl,1),1);
                 for j = 1:length(T)

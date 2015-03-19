@@ -11,9 +11,9 @@ classdef TestImageMFX
         
         pipeline
         
-        niter   	= 3;
+        niter   	= 10;
         
-        snr        	= 10;
+        snr        	= 1;
         
     end
     
@@ -69,7 +69,7 @@ classdef TestImageMFX
                 
                 % subject-level stats
                 s = max( abs( [J.hbo J.hbr]*b ) ) / obj.snr;
-                for i = 1:10
+                for i = 1:5
                     c = normrnd(1,0.25);
                     S(i).beta = ( [J.hbo J.hbr]*1*c*b )' + normrnd(0,s,1,size(J.hbo,1));
                     S(i).demographics = nirs.HashTable({'subject','group','cont'},{num2str(i),'1',c});
@@ -77,7 +77,7 @@ classdef TestImageMFX
                     S(i).covb = s^2*ones(1,1,size(J.hbo,1));
                 end
                 
-                for i = 11:20
+                for i = 6:10
                     c = normrnd(1,0.25);
                     S(i).beta = ( [J.hbo J.hbr]*2*c*b )' + normrnd(0,s,1,size(J.hbo,1));
                     S(i).demographics = nirs.HashTable({'subject','group','cont'},{num2str(i),'2',c});
@@ -119,8 +119,8 @@ classdef TestImageMFX
             mask = sum( abs(J.hbo),1 )';
             mask = mask > 0.01 * max(mask);
             
-            lst = mask;
-            lst = ones(size(mask)) > 0;
+            lst = repmat(mask,[length(obj.truth)/length(mask) 1]);
+%             lst = ones(size(mask)) > 0;
             for i = 1:size(obj.p,2)
 
                 [tp, fp, th] = roc( obj.truth(lst), obj.p(lst,i) );

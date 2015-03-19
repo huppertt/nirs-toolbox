@@ -26,15 +26,15 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     
     %% jacobian
     A = double( tmp.sensitivity.Adot );
-    A = -A(idx,:) / max(abs(A(:))) * 1e-3; % scaling?
+    A = A(idx,:)*1e-7; %/ max(abs(A(:))) * 1; % scaling?
     
     ext = nirs.getSpectra( link.type );
     
     J.hbo = bsxfun(@times, ext(:,1), A);
     J.hbr = bsxfun(@times, ext(:,2), A);
 
-    J.hbo( abs(J.hbo(:)) < 1e-12*max(abs(J.hbo(:))) ) = 0;
-    J.hbr( abs(J.hbr(:)) < 1e-12*max(abs(J.hbr(:))) ) = 0;
+    J.hbo( abs(J.hbo(:)) < 1e-16*max(abs(J.hbo(:))) ) = 0;
+    J.hbr( abs(J.hbr(:)) < 1e-16*max(abs(J.hbr(:))) ) = 0;
 
     J.hbo = sparse(J.hbo);
     J.hbr = sparse(J.hbr);
