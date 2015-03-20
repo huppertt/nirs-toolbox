@@ -3,10 +3,12 @@ classdef AR_IRLS < nirs.functional.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        hpf_Fc      = 1/125;
+        
         basis       = nirs.HashTable;
         constant    = true;
         verbose     = false;
+        % hpf_Fc      = 1/125;
+        trend_func  = @(t) nirs.functional.dctmtx(t, 1/125);
     end
     
     methods
@@ -33,15 +35,20 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                     createDesignMatrix( stims, t, obj.basis );
                 
                 % generate baseline/trend regressors
-                C = nirs.functional.dctmtx( t, obj.hpf_Fc )';
+%                 if strcmpi('trend','dct')
+%                     C = nirs.functional.dctmtx( t, obj.trend_param )';
+%                 elseif stcmpi('trend','poly')
+%                     C = nirs.functional.legendre( t, obj.trend_param )';
+%                 end
+                C = obj.trend_func( t );
                 
                 if obj.constant == false;
                     C = C(:,2:end);
                 end
                 
-                for j = 1:size(C,2)
-                    names{end+1} = ['dct_' num2str(j)];
-                end
+%                 for j = 1:size(C,2)
+%                     names{end+1} = ['dct_' num2str(j)];
+%                 end
                 
                 % check rank
                 if rank(X) < size(X,2)

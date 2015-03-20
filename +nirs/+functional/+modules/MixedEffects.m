@@ -3,8 +3,8 @@ classdef MixedEffects < nirs.functional.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        formula = 'beta ~ group*cond + (1|subject)';
-        dummyVarCoding = 'reference';
+        formula = 'beta ~ -1 + group*cond + (1|subject)';
+        dummyCoding = 'full';
         iscentered = true;
     end
     
@@ -53,7 +53,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
                end
                
                % call lme package
-               [X, Z, names] = nirs.functional.parseWilkinsonFormula(obj.formula, tbl);
+               [X, Z, names] = nirs.functional.parseWilkinsonFormula(obj.formula, tbl, true, obj.dummyCoding);
                tmp = nirs.functional.fitMixedModel(L*X,L*Z,L*beta);
                
 %                lme{iChan} = fitlme([table(beta) tbl],obj.formula, ...
@@ -83,7 +83,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
             G.probe     = S(1).probe;
             G.formula   = obj.formula;
 %             G.lme       = lme;
-            G.dummyVarCoding = obj.dummyVarCoding;
+            G.dummyCoding = obj.dummyCoding;
             
         end
         

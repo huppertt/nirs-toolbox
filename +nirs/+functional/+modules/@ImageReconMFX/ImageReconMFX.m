@@ -129,7 +129,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                 
                 l = sparse([]);
                 for j = 1:size(covb,3)
-                   l = blkdiag( l, chol(pinv(covb(:,:,j)),'lower') ); 
+                   l = blkdiag( l, inv(chol(covb(:,:,j),'lower')) ); 
                 end
                 
                 % permute matrix
@@ -180,7 +180,7 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
 
                 dfw = trace(H'*H)^2 / trace(H'*H*H'*H); %trace(H'*H); %;
 
-                vw = (what'*what + sum(sum(iX.^2,2)))/dfw;
+                vw = (what'*what + sum(sum(iX.^2,2)))/dfw/2;
 
                 vz = ((y-X*what)'*(y-X*what) + trace(ZZ))/size(y,1);
 
