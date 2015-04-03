@@ -140,7 +140,6 @@ classdef ImageReconMFX < nirs.functional.AbstractModule
                 l = l(idx,idx);
 
                 % append
-                b = b';
                 y = [y; b(:)];
                 L = blkdiag(L,l);
             end

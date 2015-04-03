@@ -153,7 +153,7 @@ classdef Probe
             end
         end
         
-        function draw( obj, values, cmap )
+        function draw( obj, values, cmap, vmax, thresh )
 %             if nargin == 1
 %             figure, hold on, 
 %             plot( obj.detPos(:,1), obj.detPos(:,2), 'bo','MarkerSize',10,'LineWidth',2 )
@@ -162,21 +162,30 @@ classdef Probe
 %             legend( 'Detectors', 'Sources' )
 %             end
             
-            if nargin < 2
-                cmap = [0.8 0.8 0.8];
-            elseif nargin < 3
+            if nargin == 1
+                cmap = [0.5 0.5 1];
+            elseif nargin < 3 || isempty(cmap)
                 [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+            end
+            
+            if nargin < 5
+                thresh = 0;
             end
 
             if nargin == 1
                 values = zeros(size(obj.link.source,1),1);
                 z = 0; zmax = 0;
-                cmap = [0 0 1];
-            else
+            elseif nargin < 4
                 zmax = ceil( max( abs(values) ) );
                 z = linspace(-zmax, zmax, size(cmap,1));
-                
+            else
+             	zmax = vmax;
+                z = linspace(-zmax, zmax, size(cmap,1));
             end
+            
+            lst = abs(z) < thresh;
+            [~,i] = min(abs(z));
+            cmap(lst,:) = repmat( cmap(i,:), [sum(lst) 1] );
 
             link = unique( [obj.link.source obj.link.detector],'rows' );
             
