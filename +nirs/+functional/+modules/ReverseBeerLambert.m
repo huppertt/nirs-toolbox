@@ -1,6 +1,6 @@
 classdef ReverseBeerLambert < nirs.functional.AbstractModule
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
+% This converts from concentration to optical density.  This is not really
+% useful for anything except simulation.
     
     properties
         PPF = 5 / 50; % arbitrary scaling factor

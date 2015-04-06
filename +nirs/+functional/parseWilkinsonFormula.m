@@ -2,7 +2,7 @@ function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered, dummyc
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     if nargin < 3
-        iscentered = false;
+        iscentered = true;
     end
     
     if nargin < 4
@@ -70,6 +70,42 @@ function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered, dummyc
         else 
             T = strtrim( strsplit( rhs{i},'*' )  );
             
+%             x = []; n = {};
+%             
+%             % parse each piece
+%             for j = 1:length( T )
+%                 
+%                 isnum = isnumeric( tbl.(T{j}) );
+%                 iscat = iscellstr( tbl.(T{j}) );
+%                 
+%                 assert( isnum || iscat )
+%                 
+%                 if iscat
+%                     [a, b] = parseCategorical( T{j}, tbl );
+%                     if strcmp(dummycoding,'reference')
+%                         x = [x a(:,2:end)];
+%                         n = [n b(2:end)];
+%                     elseif strcmp(dummycoding, 'full' )
+%                         x = [x a];
+%                         n = [n; b];
+%                     end
+%                 else
+%                     if iscentered
+%                         x = [x (tbl.(T{j}) - mean(tbl.(T{j})))];
+%                     else
+%                         x = [x tbl.(T{j})];
+%                     end
+%                 	n = [n; T{j}];
+%                 end
+%             end
+%             
+%             % pair-wise multiplication
+%             for j = 1
+%                 
+%             end
+%             
+%             %%% WRITE PAIRWISE MULTIPLY AND CALL RECURSIVELY
+            
             isnum = true;
             iscat = true;
             for j = 1:length(T)
@@ -111,6 +147,10 @@ function [X, Z, names] = parseWilkinsonFormula( formula, tbl, iscentered, dummyc
 end
 
 function [X, names] = parseCategorical( T, tbl )
+        if ischar(T)
+            T = {T};
+        end
+
         n = {};
         for j = 1:length(T)
             n = [n tbl.(T{j})];

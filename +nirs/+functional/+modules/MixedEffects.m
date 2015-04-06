@@ -46,7 +46,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
                % get hemodynamic response and std err
                beta = []; se = []; L = sparse([]);
                for i = 1:length(S)
-                   nCond = length(S(i).stimulus.keys);
+                   nCond = length(S(i).names); %length(S(i).stimulus.keys);
                    beta = [beta; S(i).beta(1:nCond,iChan)];
                    L = blkdiag(L,inv(chol( S(i).covb(1:nCond,1:nCond,iChan) )));
 %                    se = [se; sqrt(diag(S(i).covb(1:nCond,1:nCond,iChan)))];

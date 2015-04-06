@@ -2,8 +2,8 @@ classdef FunctionalData < nirs.Data
     %DATA Object to hold nirs data
     
     properties
-        stimulus = nirs.HashTable();        % struct containing stim vectors (vectors, names, types)
-        demographics = nirs.HashTable(); 	% table containing demographics (names, values)
+        stimulus        = nirs.HashTable();	% struct containing stim vectors (vectors, names, types)
+        demographics    = nirs.HashTable();	% table containing demographics (names, values)
     end
 
     methods
@@ -43,35 +43,43 @@ classdef FunctionalData < nirs.Data
             for i = 1:length( obj.stimulus.keys )
                 s = [s obj.stimulus.values{i}.getStimVector( t )];
             end
-            
-            
+
             % plots
             gca, hold on
             
+            % data min/max/size
             dmax = max( d(:) );
             dmin = min( d(:) );
             dsize = (dmax-dmin);
             
-            if ~isempty(s) % plot stims
+            % plot stim blocks if available
+            if ~isempty(s) 
+                % min/max of axes
                 pmin = dmin - 0.3*dsize;
                 pmax = dmax + 0.2*dsize;
 
+                % adjust amplitude so stims are visible
                 s = 0.15*dsize*s + dmin - 0.25*dsize;
                 
+                % plot
                 plot( t, s, 'LineWidth', 3 )
+                
+                % legend
                 l = legend(k{:});
                 set(l,'Interpreter', 'none')
             else
+                % min/max of axes
                	pmin = dmin - 0.1*dsize;
                 pmax = dmax + 0.1*dsize;
             end
             
-            plot( t, d ) % plot data
+            % plot data
+            plot( t, d ) 
             
+            % axes limits
             xlim( [min(t) max(t)] )
             ylim( [pmin pmax] )
 
-            
         end
         
     end

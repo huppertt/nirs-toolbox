@@ -13,7 +13,7 @@ function data = loadCWData( filenames )
         
         % put into data class
         tData = nirs.functional.FunctionalData();
-        
+if isfield(d,'t')
         nTime = length(d.t);
         
         % data
@@ -91,7 +91,7 @@ function data = loadCWData( filenames )
                 tData.demographics(name) = value;
             end
         end
-        
+end
         % append to list of data
         data(iFile) = tData;
     end

@@ -1,62 +1,43 @@
 function S = fitMixedModel( X, Z, y, C )
-%UNTITLED6 Summary of this function goes here
-%   Detailed explanation goes here
+% This performs maximum likelihood estimation of a mixed effects model
+% specified by X and Z.  C is the covariance of y.
 
-    nu = size(Z,2);
-    nb = size(X,2);
-    ny = size(y,1);
+    nu = size(Z,2); % num rfx
+    nb = size(X,2); % num ffx
+    ny = size(y,1); % num data pts
     
     if nargin < 4
         C = eye(ny);
     end
 
     %% initialize
-    q = 1; s = 1;
+    q = 1; % variance of random effects
+    s = 1; % variance of errors
     
-    % iterate
+    %% iterate
     q0 = 1e16; s0 = 1e16;
     while norm([q s] - [q0 s0]) > 1e-6
         q0 = q; s0 = s;
         
+        % covariance of y
         V = q*(Z*Z') + s*C;
         
+        % invert V
         L = inv( chol(V) );
         iV = L*L';
         
+        % fixed effects
         b = pinv(X'*iV*X)*X'*iV*y;
+        
+        % random effects
         u = q*Z'*iV*(y-X*b);
         
+        % update s and q
         s = (y-X*b)'*(y-X*b) / (ny-nb);
         q = u'*u / nu;
     end
     
-%     tic
-%     q = 1; s = 1;
-% 
-%     nu = size(Z,2);
-%     nb = size(X,2);
-% 
-%     q0 = 1e16; s0 = 1e16;
-%     while norm([q s] - [q0 s0]) > 1e-6 && all([s q] > 1e-12)
-% 
-%         q0 = q; s0 = s;
-% 
-%         lhs = [     [X'*X/s X'*Z/s];
-%                     [Z'*X/s eye(nu)/q+Z'*Z/s]  ];
-% 
-%         rhs = [1/s*X'*y; 1/s*Z'*y];
-% 
-%         m = lhs \ rhs;
-% 
-%         b = m(1:nb);
-%         u = m(nb+1:end);
-% 
-%         s = (y-X*b)'*(y-X*b) / (length(y)-rank(X));
-%         q = u'*u / length(u);
-% 
-%     end
-%     toc
-    
+    %% output
     S.b = b;
     S.u = u;
     

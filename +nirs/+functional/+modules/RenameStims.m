@@ -1,9 +1,9 @@
 classdef RenameStims < nirs.functional.AbstractModule
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
     
     properties
         list = {};
+        % list = {  old_name1, new_name1; 
+        %           old_name2, new_name2    };
     end
     
     methods
@@ -15,7 +15,7 @@ classdef RenameStims < nirs.functional.AbstractModule
         end
         
         function data = execute( obj, data )
-
+            
             [names, idx] = nirs.functional.getStimNames( data );
             for i = 1:length(obj.list)
                 lst = strcmp(names, obj.list{i,1});
@@ -42,9 +42,7 @@ classdef RenameStims < nirs.functional.AbstractModule
             
             
         end
-        
 
-        
         function options = getOptions( obj )
             options = [];
         end

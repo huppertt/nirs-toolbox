@@ -3,7 +3,7 @@ classdef AbstractModule
     %   Detailed explanation goes here
     
     properties
-        name = '';
+        name    = '';
         prevJob = [];
     end
     
@@ -15,8 +15,11 @@ classdef AbstractModule
     
     methods
         function out = run( obj, input )
+            % if no prev job execute and return result
             if isempty( obj.prevJob )
                 out = obj.execute( input );
+                
+            % else execute prev job first
             else
                 out = obj.execute( obj.prevJob.run( input ) );
             end

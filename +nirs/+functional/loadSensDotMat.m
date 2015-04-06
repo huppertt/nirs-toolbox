@@ -1,7 +1,5 @@
 function [J, mesh, probe] = loadSensDotMat( filename )
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
-    
+
     tmp = load(filename, 'sensitivity','probe');
     
     %% mesh
@@ -38,11 +36,6 @@ function [J, mesh, probe] = loadSensDotMat( filename )
 
     J.hbo = sparse(J.hbo);
     J.hbr = sparse(J.hbr);
-
-%     %% output
-%     fwdModel.J = J;
-%     fwdModel.mesh = mesh;
-%     fwdModel.probe = probe;
 
 end
 

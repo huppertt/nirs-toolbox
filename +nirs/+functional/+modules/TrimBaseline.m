@@ -1,10 +1,9 @@
 classdef TrimBaseline < nirs.functional.AbstractModule
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
+% Trim pre/post baseline
     
     properties
-        preBaseline  = 40;
-        postBaseline = 40;
+        preBaseline  = 30;
+        postBaseline = 30;
     end
     
     methods
@@ -21,18 +20,22 @@ classdef TrimBaseline < nirs.functional.AbstractModule
                 d = data(i).data;
                 t = data(i).time;
                 
-                % check stims
+                % get stims 
                 stims = data(i).stimulus.values;
+                
+                % get stim vectors from stims
                 s = zeros(size(t,1),length(stims));
                 for j = 1:length(stims)
                     s(:,j) = stims{j}.getStimVector( t );
                 end
                 
                 s = abs( sum(s,2) );
-                                
+                
+                % find first/last stim period and calculate time inverval
                 t_min = t( find(s>0,1,'first') ) - obj.preBaseline;
                 t_max = t( find(s>0,1,'last' ) ) + obj.postBaseline;
                 
+                % extract data from the time inverval t_min to t_max
                 lst = t >= t_min & t <= t_max;
                 t = t(lst);
                 d = d(lst,:);

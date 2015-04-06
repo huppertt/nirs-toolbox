@@ -56,9 +56,9 @@ classdef AR_IRLS < nirs.functional.AbstractModule
                 end
                 
                 % check condition
-                maxCond = 30; 
+                maxCond = 100; 
                 if cond([X C]) > maxCond
-                    warning('Consider lowering HPF cutoff to reduce collinearity.')
+                    warning(['high collinearity: cond(X) = ' num2str(cond([X C]))])
                 end
                                 
                 % call ar_irls

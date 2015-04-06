@@ -5,8 +5,10 @@ function C = dctmtx( t, fmax )
     N = size(t,1);
     Fs = 1/(t(2)-t(1));
 
-    f = Fs/2/N * (0:N-1)'; % dct frq
+    % dct frequencies
+    f = Fs/2/N * (0:N-1)'; 
 
+    % select only dct terms less than fmax
     n = sum(f <= fmax);
     
     [j,i] = ndgrid(0:n-1, 0:N-1);
@@ -19,6 +21,8 @@ function C = dctmtx( t, fmax )
     
     % orthogonalization
     C(1,:) = C(1,:) / sqrt(2);
+    
+    C = C';
 
 end
 

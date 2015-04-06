@@ -32,7 +32,7 @@ function data = loadCWDirectory( rootFolder, folderHierarchy )
 %                 data(iFile).demographics('subject') = demo{2};
 %                 data(iFile).demographics('session') = demo{3};
 %             end
-            for iDemo = 1:length(demo)
+            for iDemo = 1:length(folderHierarchy)
                 data(iFile).demographics(folderHierarchy{iDemo}) = demo{iDemo};
             end
             

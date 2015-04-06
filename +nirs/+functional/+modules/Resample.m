@@ -1,7 +1,5 @@
 classdef Resample < nirs.functional.AbstractModule
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
-    
+  
     properties
         Fs = 4;
     end
