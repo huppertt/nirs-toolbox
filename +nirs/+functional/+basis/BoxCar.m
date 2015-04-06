@@ -1,6 +1,5 @@
 classdef BoxCar
-    %UNTITLED7 Summary of this class goes here
-    %   Detailed explanation goes here
+% Boxcar (1 or 0) basis with optional lag time.
     
     properties
         lagTime = 0;

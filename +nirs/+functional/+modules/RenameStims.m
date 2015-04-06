@@ -16,12 +16,14 @@ classdef RenameStims < nirs.functional.AbstractModule
         
         function data = execute( obj, data )
             
+            % get all stim names across all files
             [names, idx] = nirs.functional.getStimNames( data );
             for i = 1:length(obj.list)
                 lst = strcmp(names, obj.list{i,1});
                 names(lst) = repmat( (obj.list(i,2)), [sum(lst) 1] );
             end
             
+            % for each file rename stims
             for i = 1:length(data)
                 lst = idx == i;
                 

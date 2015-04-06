@@ -66,54 +66,8 @@ classdef Probe
             
             d = sqrt( sum( vec.^2,2 ) );
         end
-        
-%         function out = isUniqueSrcs( obj )
-%             % check that sources have unique wavelengths
-%             [~,~,idx1] = unique(obj.link(:,[1 3]),'rows');
-%             [~,~,idx2] = unique(obj.link(:,1));
-%             
-%             if all( idx1 == idx2 )
-%                 out = 1;
-%             else
-%                 out = 0;
-%             end
-%             
-%         end
-%         
-%         function out = isUniqueDets( obj )
-%             % check that detectors have unique wavelengths
-%             [~,~,idx1] = unique(obj.link(:,[2 3]),'rows');
-%             [~,~,idx2] = unique(obj.link(:,2));
-%             
-%             if all( idx1 == idx2 )
-%                 out = 1;
-%             else
-%                 out = 0;
-%             end
-%         end
-%         
-%         function out = isUnique( obj )
-%             out = obj.isUniqueSrcs && obj.isUniqueDets;
-%         end
-%         
-%         function out = isValidSrcs( obj )
-%             out = obj.isUniqueSrcs;
-%             out = out && (max(obj.link(:,1)) == size(obj.srcPos,1));
-%             out = out && (max(obj.link(:,2)) == size(obj.detPos,1));
-%             
-%             out = out && (max(obj.link(:,3)) == length(obj.lambda));
-%         end
-%         
-%         function out = isValidDets( obj )
-%             out = obj.isUniqueDets;
-%             out = out && (max(obj.link(:,1)) == size(obj.srcPos,1));
-%             out = out && (max(obj.link(:,2)) == size(obj.detPos,1));
-%         end
-%         
-%         function out = isValid( obj )
-%             out = obj.isValidSrcs && obj.isValidDets;
-%         end
-        
+
+        % swap sources with detectors
         function obj = swapSD( obj )
             detPos = obj.srcPos;
             srcPos = obj.detPos;
@@ -131,8 +85,9 @@ classdef Probe
             obj.link = link; 
         end
         
+        % generates an equivalent probe with unique SD idx's
         function obj = makeUniqueProbe( obj )
-            % generates an equivalent probe with unique SD idx's
+            
             [uSrc,~,iSrc] = unique( ...
                 [obj.link.source obj.link.type], ...
                 'rows' );
@@ -153,25 +108,22 @@ classdef Probe
             end
         end
         
+        % draw probe with optional channel values
         function draw( obj, values, cmap, vmax, thresh )
-%             if nargin == 1
-%             figure, hold on, 
-%             plot( obj.detPos(:,1), obj.detPos(:,2), 'bo','MarkerSize',10,'LineWidth',2 )
-%             plot( obj.srcPos(:,1), obj.srcPos(:,2), 'rx','MarkerSize',14,'LineWidth',2 )
-%             axis normal
-%             legend( 'Detectors', 'Sources' )
-%             end
-            
+
+            % specify colormap
             if nargin == 1
                 cmap = [0.5 0.5 1];
             elseif nargin < 3 || isempty(cmap)
                 [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             end
             
+            % no thresholding if not specified
             if nargin < 5
                 thresh = 0;
             end
 
+            % calculate the mapping from values to colormap
             if nargin == 1
                 values = zeros(size(obj.link.source,1),1);
                 z = 0; zmax = 0;
@@ -183,10 +135,12 @@ classdef Probe
                 z = linspace(-zmax, zmax, size(cmap,1));
             end
             
+            % threshold colormap
             lst = abs(z) < thresh;
             [~,i] = min(abs(z));
             cmap(lst,:) = repmat( cmap(i,:), [sum(lst) 1] );
 
+            % loop through channels and draw lines
             link = unique( [obj.link.source obj.link.detector],'rows' );
             
             s = obj.srcPos;
@@ -208,17 +162,17 @@ classdef Probe
                 text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 14)
             end
             
-
-            % axis equal
             axis tight
            	axis off
             
+            % colormap/bar
             colormap(cmap);
             if zmax ~= 0
                 c = colorbar; 
                 caxis([-zmax zmax]);
             end
             
+            % adjust axes
             pi = get(gca,'Position');
             po = get(gca,'OuterPosition');
             
