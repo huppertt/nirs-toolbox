@@ -1,0 +1,107 @@
+calibrate_data  -> calibrate_fd_data
+*_interp
+make_sphere
+
+
+%% probe registration/fwd models
+
+
++nirs/
+    createDemographicsTable
+    getStimNames
+
+    Probe
+    Image
+    Data
+    Mesh
+
+    FunctionalData
+    ChannelStats                    %TODO%
+    ImageStats                      %TODO%
+    FIRStats                        %TODO%
+
+    +media
+        OpticalProp                 %TOFIX%
+        SpectralProp                %TOFIX%
+        getspectra                  %TOFIX%
+        +tissues
+            brain
+            bone
+            skin
+            water
+
+    +design
+        StimulusEvents
+            -> mergeStims        	???
+        createDesignMatrix
+        createTrendMatrix         	%TODO%
+        +basis/
+            Canonical
+            BoxCar
+            Gamma                	%TODO%
+            FIR                     %TODO%
+        +trend/
+            dct
+            legendre
+        
+    +modules/
+        AbstractModule
+        RemoveStimless
+        RenameStims
+        DiscardStims
+        KeepStims                   %TODO%
+        Resample
+        OpticalDensity
+        BeerLambertLaw
+        TrimBaseline
+        InverseBeerLambert          %TODO%
+        ChannelMixedEffects         %TODO%
+        ImageMixedEffects           %TODO%
+
+    +forward/
+        NirfastFEM                  %TOFIX%
+        MCXLab                      %TOFIX%
+        SlabModel                   %TOFIX%
+
+    +inverse/
+        SlabInverse                 %TOFIX%
+        NirfastInverse              %TOFIX%
+        
+    +testing/
+        +roc
+            SubjectLevel            %TOFIX%
+            GroupChannel            %TOFIX%
+            GroupImage              %TOFIX%
+
+    +io
+        loadCW6Data
+        loadCW6Directory
+        loadSensitivityDotMat
+
+    +util
+        probe2sd
+        sd2probe
+
+    +math
+        ar_fit
+        ar_irls
+        parseFormula                %TODO%
+        fitMixedEffects
+
+    +visualization                  %% MAJOR TODO %%
+        ??viewTimeData
+        ??viewChannelStats
+        ??viewImageStats
+
+demo/                               %TODO%
+    
+    
+    
+external/
+    cbrewer/
+    mcx/
+    nirfast/
+    rdir/
+    HashTable                       %TOFIX%
+    
+    
