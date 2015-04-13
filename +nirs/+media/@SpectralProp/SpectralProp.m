@@ -1,6 +1,6 @@
-classdef SpectralProperties
+classdef SpectralProp
     
-    %SPECTRALPROPERTIES This class holds optical properties with additional 
+    %SPECTRALPROP This class holds optical properties with additional 
     %set/get method for spectral properties.  Absorption can
     %be parameterized in terms of mua; hbo and hbr; or so2 and hbt.
     %Scattering can be parameterized in terms of mus or a, b such that 

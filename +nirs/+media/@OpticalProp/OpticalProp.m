@@ -1,5 +1,6 @@
-classdef OpticalProperties
-    %OPTICALPROPERTIES This class holds optical properties.
+classdef OpticalProp
+    %OPTICALPROP This class holds optical properties in terms of absorption
+    % and scattering.
     
     properties
         lambda;      	% wavelengths (nm)

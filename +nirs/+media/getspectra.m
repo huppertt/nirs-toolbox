@@ -1,4 +1,4 @@
-function out = getSpectra( lambda )
+function out = getspectra( lambda )
 
     % http://omlc.ogi.edu/spectra/hemoglobin/
     % scott prahl
