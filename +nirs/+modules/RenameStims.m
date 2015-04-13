@@ -1,7 +1,7 @@
-classdef RenameStims < nirs.functional.AbstractModule
+classdef RenameStims < nirs.modules.AbstractModule
     
     properties
-        list = {};
+        listOfChanges = {};
         % list = {  old_name1, new_name1; 
         %           old_name2, new_name2    };
     end
@@ -14,10 +14,10 @@ classdef RenameStims < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
             
             % get all stim names across all files
-            [names, idx] = nirs.functional.getStimNames( data );
+            [names, idx] = nirs.getStimNames( data );
             for i = 1:length(obj.list)
                 lst = strcmp(names, obj.list{i,1});
                 names(lst) = repmat( (obj.list(i,2)), [sum(lst) 1] );
@@ -35,21 +35,12 @@ classdef RenameStims < nirs.functional.AbstractModule
                     uvalues = {};
                     for j = 1:length(ukeys)
                        lst = strcmp(ukeys{j},keys);
-                       uvalues{j} = nirs.functional.mergeStims( values(lst), ukeys{j} );
+                       uvalues{j} = nirs.design.mergeStims( values(lst), ukeys{j} );
                     end
 
                     data(i).stimulus = nirs.HashTable(ukeys, uvalues);
                 end
             end
-            
-            
-        end
-
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
         end
     end
     

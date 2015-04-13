@@ -1,8 +1,5 @@
-classdef RemoveStimless < nirs.functional.AbstractModule
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    
+classdef RemoveStimless < nirs.modules.AbstractModule
+
     methods
         function obj = RemoveStimless( prevJob )
            obj.name = 'Remove Files w/o Stim';
@@ -11,7 +8,7 @@ classdef RemoveStimless < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
             for i = 1:length(data)
                 if isempty(data(i).stimulus.keys)
                     lst(i) = false;
@@ -22,13 +19,6 @@ classdef RemoveStimless < nirs.functional.AbstractModule
             
             data = data(lst);
             
-        end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
         end
     end
     

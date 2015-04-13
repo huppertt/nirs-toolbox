@@ -1,4 +1,4 @@
-classdef ReverseBeerLambert < nirs.functional.AbstractModule
+classdef ReverseBeerLambert < nirs.modules.AbstractModule
 % This converts from concentration to optical density.  This is not really
 % useful for anything except simulation.
     
@@ -16,7 +16,7 @@ classdef ReverseBeerLambert < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
             for i = 1:length(data)
                 d = data(i).data;
                 p = data(i).probe;
@@ -59,14 +59,6 @@ classdef ReverseBeerLambert < nirs.functional.AbstractModule
                 
             end
         end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
-        end
-        
     end
     
 end

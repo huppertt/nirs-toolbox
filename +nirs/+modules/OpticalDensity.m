@@ -1,7 +1,4 @@
-classdef OpticalDensity < nirs.functional.AbstractModule
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
-    
+classdef OpticalDensity < nirs.modules.AbstractModule
     methods
 
         function obj = OpticalDensity( prevJob )
@@ -11,7 +8,7 @@ classdef OpticalDensity < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
             for i = 1:length(data)
                 d = data(i).data;
                 
@@ -23,14 +20,6 @@ classdef OpticalDensity < nirs.functional.AbstractModule
                 
             end
         end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
-        end
-        
     end
     
 end

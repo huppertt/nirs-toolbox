@@ -1,4 +1,4 @@
-classdef TrimBaseline < nirs.functional.AbstractModule
+classdef TrimBaseline < nirs.modules.AbstractModule
 % Trim pre/post baseline
     
     properties
@@ -14,7 +14,7 @@ classdef TrimBaseline < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
             for i = 1:length(data)
                 
                 d = data(i).data;
@@ -44,13 +44,6 @@ classdef TrimBaseline < nirs.functional.AbstractModule
                 data(i).time = t;
                 
             end
-        end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
         end
     end
     

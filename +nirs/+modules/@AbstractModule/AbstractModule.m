@@ -8,25 +8,61 @@ classdef AbstractModule
     end
     
     methods( Abstract )
-       output   = execute       ( obj, input );
-       options  = getOptions    ( obj );
-       obj      = putOptions    ( obj, options );
+       output   = runThis( obj, input );
     end
     
     methods
         function out = run( obj, input )
             % if no prev job execute and return result
             if isempty( obj.prevJob )
-                out = obj.execute( input );
+                out = obj.runThis( input );
                 
             % else execute prev job first
             else
-                out = obj.execute( obj.prevJob.run( input ) );
+                out = obj.runThis( obj.prevJob.run( input ) );
             end
-            
         end
         
+        % option interface
+        function out = options( obj, opts )
+            if nargin == 1
+                out = obj.getoptions();
+            else
+                out = obj.putoptions( opts );
+            end
+        end
     end
+        
+        
+    methods( Access = private )
+        function out = getoptions( obj )
+            % we can inspect properties attributes with this
+            mc = metaclass( obj );
+            
+            out = {};
+            for i = 1:length( mc.PropertyList )
+                p = mc.PropertyList(i);
+                if strcmp(p.SetAccess, 'public') ...        % must be public
+                        && ~p.Dependent  ...                % must not be dependent
+                        && ~strcmp( p.Name, 'name' ) ...    % must not be "name"
+                        && ~strcmp( p.Name, 'prevJob' )     % must not be "prevJob"
+                    
+                    out = [out; {p.Name}];
+                end
+            end
+            
+         
+        end
+        
+        function obj = putoptions( obj, opts )
+            assert( isa( opts, 'HashTable' ) )
+            
+            for i = 1:length(opts.keys)
+                obj.(opts.keys{i}) = opts.values{i};
+            end
+        end
+    end
+        
     
 end
 

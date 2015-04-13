@@ -1,9 +1,9 @@
-classdef FunctionalData < nirs.Data
+classdef FunData < nirs.Data
     %DATA Object to hold nirs data
     
     properties
-        stimulus        = nirs.HashTable();	% struct containing stim vectors (vectors, names, types)
-        demographics    = nirs.HashTable();	% table containing demographics (names, values)
+        stimulus        = HashTable();	% struct containing stim vectors (vectors, names, types)
+        demographics    = HashTable();	% table containing demographics (names, values)
     end
 
     methods
@@ -19,12 +19,12 @@ classdef FunctionalData < nirs.Data
         
         %% Set/Get
         function obj = set.stimulus( obj, stim )
-           assert( isa(stim,'nirs.HashTable') )
+           assert( isa(stim,'HashTable') )
            obj.stimulus = stim;
         end
         
         function obj = set.demographics( obj, demo )
-           assert( isa(demo,'nirs.HashTable') )
+           assert( isa(demo,'HashTable') )
            obj.demographics = demo;
         end
         

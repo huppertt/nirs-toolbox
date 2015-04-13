@@ -1,4 +1,4 @@
-classdef Resample < nirs.functional.AbstractModule
+classdef Resample < nirs.modules.AbstractModule
   
     properties
         Fs = 4;
@@ -14,7 +14,7 @@ classdef Resample < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
             for i = 1:length(data)
                 
                 assert( obj.Fs < data(i).Fs )
@@ -48,14 +48,6 @@ classdef Resample < nirs.functional.AbstractModule
                 
             end
         end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
-        end
-        
     end
     
 end

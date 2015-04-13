@@ -109,7 +109,7 @@ classdef Probe
         end
         
         % draw probe with optional channel values
-        function draw( obj, values, cmap, vmax, thresh )
+        function draw( obj, values, vmax, thresh, cmap )
 
             % specify colormap
             if nargin == 1

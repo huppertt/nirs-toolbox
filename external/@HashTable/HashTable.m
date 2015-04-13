@@ -6,7 +6,7 @@ classdef HashTable
     % replacement.
     
     properties (SetAccess = private)
-        keys = {};
+        keys   = {};
         values = {};
     end
     

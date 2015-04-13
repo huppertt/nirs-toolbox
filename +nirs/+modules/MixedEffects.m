@@ -1,4 +1,4 @@
-classdef MixedEffects < nirs.functional.AbstractModule
+classdef MixedEffects < nirs.modules.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
   
@@ -17,7 +17,7 @@ classdef MixedEffects < nirs.functional.AbstractModule
            end
         end
         
-        function G = execute( obj, subjStats )
+        function G = runThis( obj, subjStats )
             S = subjStats;
             
             demo = nirs.functional.createDemographicsTable( S );
@@ -86,14 +86,6 @@ classdef MixedEffects < nirs.functional.AbstractModule
             G.dummyCoding = obj.dummyCoding;
             
         end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
-        end
-        
     end
     
 end

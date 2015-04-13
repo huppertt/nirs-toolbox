@@ -1,4 +1,4 @@
-function h = plotmesh( nodes, faces, values, cmax, thresh )
+function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     
@@ -15,20 +15,22 @@ function h = plotmesh( nodes, faces, values, cmax, thresh )
         end
 
         if nargin < 4
-            cmax = ceil( max(abs(values)) );
+            vmax = ceil( max(abs(values)) );
         end
 
-        try
+        if nargin < 6
+            try
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',5001) )');
-        catch
-            cmap = parula(5001);
+            catch
+                cmap = parula(5001);
+            end
         end
 
         n = size(cmap,1);
         
         cmap((n-1)/2+1,:) = 0.9;
 
-        z = linspace(-cmax, cmax, n);
+        z = linspace(-vmax, vmax, n);
         lst = abs(z) < thresh;
 
         cmap(lst,:) = repmat( cmap((n-1)/2+1, :), [sum(lst) 1] );
@@ -40,7 +42,7 @@ function h = plotmesh( nodes, faces, values, cmax, thresh )
             'edgecolor','none'); 
         camlight; lighting gouraud
         colormap(cmap), colorbar
-        caxis([-cmax cmax])
+        caxis([-vmax vmax])
         
     end
 

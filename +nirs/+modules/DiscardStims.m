@@ -1,10 +1,10 @@
-classdef DiscardStims < nirs.functional.AbstractModule
+classdef DiscardStims < nirs.modules.AbstractModule
     %UNTITLED6 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        list = {};
-        flag = 'discard';
+        listOfNames     = {};
+        keepOrDiscard   = 'discard';
     end
     
     methods
@@ -15,7 +15,7 @@ classdef DiscardStims < nirs.functional.AbstractModule
            end
         end
         
-        function data = execute( obj, data )
+        function data = runThis( obj, data )
 
             % get all stim names and data file indices
             [names, idx] = nirs.functional.getStimNames( data );
@@ -41,13 +41,6 @@ classdef DiscardStims < nirs.functional.AbstractModule
                 
                 data(i).stimulus = nirs.HashTable(keys, values);
             end
-        end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
         end
     end
     

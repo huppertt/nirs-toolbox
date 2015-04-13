@@ -1,4 +1,4 @@
-classdef ImageReconMFX < nirs.functional.AbstractModule
+classdef ImageReconMFX < nirs.modules.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
   
