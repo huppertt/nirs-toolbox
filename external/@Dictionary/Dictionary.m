@@ -48,13 +48,21 @@ classdef Dictionary
             
             obj.keys    = {};
             obj.values  = {};
-            obj.indices = zeros(obj.TABLE_SIZE, 1, 'uint32');
             
             if nargin == 2
-                obj.update(keys, vals);
+                assert( iscellstr(keys) ....
+                    && iscell(vals) ....
+                    && length(keys) == length(vals) ....
+                    )
+                
+                obj.TABLE_SIZE  = 2 * length(keys);
+                obj.keys        = keys;
+                obj.values      = vals;
             elseif nargin == 1
                 error('Constructor takes zero or two arguments.')
             end
+            
+            obj = obj.rehash();
         end
         
         % update with list of keys and vals
@@ -123,13 +131,9 @@ classdef Dictionary
    
             % resize table
             obj.TABLE_SIZE   = N;
-            obj.indices      = zeros(N, 1, 'uint32');
             
             % rehash indices
-            for k = 1:length(obj.keys)
-               i = obj.getindex(obj.keys{k});
-               obj.indices(i) = k;
-            end
+            obj = obj.rehash();
         end
     end
     
@@ -187,6 +191,15 @@ classdef Dictionary
             end
             
             keyexists = obj.indices(i) > 0;
+        end
+        
+        % rehash indices
+        function obj = rehash( obj )
+            obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
+            for k = 1:length(obj.keys)
+                   i = obj.getindex(obj.keys{k});
+                   obj.indices(i) = k;
+            end
         end
     end
     
