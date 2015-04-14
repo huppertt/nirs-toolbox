@@ -38,7 +38,7 @@ classdef Dictionary
     
     properties ( Access = private )
         indices;
-        TABLE_SIZE = uint64(256);
+        TABLE_SIZE = uint32(1024);
     end
     
     methods
@@ -79,16 +79,23 @@ classdef Dictionary
         end
         
         % delete items
-        function obj = delete( obj, key )
-           [i, keyexists] = obj.getindex(key);
-           if keyexists
-               idx = obj.indices(i);
-               obj.keys(idx) = [];
-               obj.values(idx) = [];
-               
-               lst = obj.indices > idx;
-               obj.indices(lst) = obj.indices(lst) - 1;
-           end
+        function obj = delete( obj, keys )
+            if ischar(keys)
+                keys = {keys};
+            end
+            
+            for k = 1:length(keys)
+               [i, keyexists] = obj.getindex(keys{k});
+               if keyexists
+                   idx = obj.indices(i);
+                   obj.keys(idx) = [];
+                   obj.values(idx) = [];
+
+                   lst = obj.indices > idx;
+                   obj.indices(lst) = obj.indices(lst) - 1;
+               end
+            end
+            
         end
         
         % check if keys exists
@@ -127,7 +134,7 @@ classdef Dictionary
         end
         
         function obj = resize( obj, N )
-            assert( N < 2^32-1 )
+            assert( N < uint32(2^32-1) )
    
             % resize table
             obj.TABLE_SIZE   = N;
@@ -139,18 +146,16 @@ classdef Dictionary
     
     methods ( Access = private )
         function h = hash( obj, s )
-            % great job at mathworks for making 
-            % integers a pain in the 4$$
-            x = 1664525*cast(s, 'uint64')' + uint64(1013904223);
-            h = sum(x,'native');
-
-            h = mod(h, obj.TABLE_SIZE) + 1;
+            % this is faster than anything that can be 
+            % implemented in pure matlab code
+            h = typecast(java.lang.String(s).hashCode(),'uint32');
+            h = mod(h(2), obj.TABLE_SIZE) + 1;
         end
         
         % insert new items
         function obj = put( obj, newKey, newValue )
-            if (obj.count + 1) > idivide(obj.TABLE_SIZE, uint64(2))
-               obj = obj.resize( 3 * obj.TABLE_SIZE ); 
+            if (obj.count + 1) > idivide(obj.TABLE_SIZE, uint32(2))
+               obj = obj.resize( 2 * obj.TABLE_SIZE ); 
             end
 
             [i, keyexists] = obj.getindex( newKey );
