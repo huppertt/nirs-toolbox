@@ -38,7 +38,7 @@ classdef Dictionary
     
     properties ( Access = private )
         indices;
-        TABLE_SIZE = 64;
+        TABLE_SIZE = uint64(256);
     end
     
     methods
@@ -141,17 +141,16 @@ classdef Dictionary
         function h = hash( obj, s )
             % great job at mathworks for making 
             % integers a pain in the 4$$
-            x = 31459*cast(s, 'uint64')';
-            h = bitshift(x,17) + x;
-            h = sum(h,'native');
+            x = 1664525*cast(s, 'uint64')' + uint64(1013904223);
+            h = sum(x,'native');
 
             h = mod(h, obj.TABLE_SIZE) + 1;
         end
         
         % insert new items
         function obj = put( obj, newKey, newValue )
-            if obj.count + 1 > floor(2/3 * obj.TABLE_SIZE)
-               obj = obj.resize( 2 * obj.TABLE_SIZE ); 
+            if (obj.count + 1) > idivide(obj.TABLE_SIZE, uint64(2))
+               obj = obj.resize( 3 * obj.TABLE_SIZE ); 
             end
 
             [i, keyexists] = obj.getindex( newKey );
