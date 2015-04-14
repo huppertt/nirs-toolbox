@@ -38,7 +38,7 @@ classdef Dictionary
     
     properties ( Access = private )
         indices;
-        TABLE_SIZE = 128;
+        TABLE_SIZE = 64;
     end
     
     methods
@@ -72,8 +72,8 @@ classdef Dictionary
         
         % delete items
         function obj = delete( obj, key )
-           [i, isnew] = obj.getindex(key);
-           if ~isnew
+           [i, keyexists] = obj.getindex(key);
+           if keyexists
                idx = obj.indices(i);
                obj.keys(idx) = [];
                obj.values(idx) = [];
@@ -85,8 +85,8 @@ classdef Dictionary
         
         % check if keys exists
         function out = iskey( obj, key )
-            [~,isnew] = obj.getindex(key);
-            out = ~isnew;
+            [~,keyexists] = obj.getindex(key);
+            out = keyexists;
         end
         
         % check if empty
@@ -150,9 +150,9 @@ classdef Dictionary
                obj = obj.resize( 2 * obj.TABLE_SIZE ); 
             end
 
-            [i, isnew] = obj.getindex( newKey );
+            [i, keyexists] = obj.getindex( newKey );
             
-            if ~isnew % key already exists
+            if keyexists % key already exists
                 idx = obj.indices(i);
                 obj.values{idx} = newValue;
             else
@@ -167,9 +167,9 @@ classdef Dictionary
         
         % get items
         function out = get( obj, key )
-            [i, isnew] = obj.getindex(key);
+            [i, keyexists] = obj.getindex(key);
             
-            if ~isnew
+            if keyexists
                 idx = obj.indices(i);
                 out = obj.values{idx};
             else
@@ -178,14 +178,15 @@ classdef Dictionary
         end
         
         % find index
-        function [i, isnew] = getindex( obj, key )
+        function [i, keyexists] = getindex( obj, key )
+            
             i = obj.hash( key );
-            while obj.indices(i) ...                            % entry full
-                && strcmp(obj.values{obj.indices(i)}, key)      % key doesn't match
-                i = i + 1;
+            while obj.indices(i) > 0 ...                    % entry full
+                && ~strcmp(obj.keys{obj.indices(i)}, key)  	% key doesn't match
+             	i = mod(i, obj.TABLE_SIZE) + 1;
             end
             
-            isnew = ~obj.indices(i);
+            keyexists = obj.indices(i) > 0;
         end
     end
     
