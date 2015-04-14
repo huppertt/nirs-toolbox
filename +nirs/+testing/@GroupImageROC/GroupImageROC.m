@@ -72,16 +72,16 @@ classdef TestImageMFX
                 for i = 1:5
                     c = normrnd(1,0.25);
                     S(i).beta = ( [J.hbo J.hbr]*1*c*b )' + normrnd(0,s,1,size(J.hbo,1));
-                    S(i).demographics = nirs.HashTable({'subject','group','cont'},{num2str(i),'1',c});
-                    S(i).stimulus = nirs.HashTable({'test'},{[]});
+                    S(i).demographics = Dictionary({'subject','group','cont'},{num2str(i),'1',c});
+                    S(i).stimulus = Dictionary({'test'},{[]});
                     S(i).covb = s^2*ones(1,1,size(J.hbo,1));
                 end
                 
                 for i = 6:10
                     c = normrnd(1,0.25);
                     S(i).beta = ( [J.hbo J.hbr]*2*c*b )' + normrnd(0,s,1,size(J.hbo,1));
-                    S(i).demographics = nirs.HashTable({'subject','group','cont'},{num2str(i),'2',c});
-                    S(i).stimulus = nirs.HashTable({'test'},{[]});
+                    S(i).demographics = Dictionary({'subject','group','cont'},{num2str(i),'2',c});
+                    S(i).stimulus = Dictionary({'test'},{[]});
                     S(i).covb = s^2*ones(1,1,size(J.hbo,1));
                 end
                 

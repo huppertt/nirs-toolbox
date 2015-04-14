@@ -50,12 +50,12 @@ classdef Dictionary
             obj.values  = {};
             
             if nargin == 2
-                assert( iscellstr(keys) ....
-                    && iscell(vals) ....
-                    && length(keys) == length(vals) ....
-                    )
+                assert( length(keys)==length(vals) ...
+                    && iscell(vals) ...
+                    && iscell(keys) ...
+                    && Dictionary.areUniqueKeys(keys) )  
                 
-                obj.TABLE_SIZE  = 2 * length(keys);
+                obj.TABLE_SIZE  = uint32(4 * length(keys));
                 obj.keys        = keys;
                 obj.values      = vals;
             elseif nargin == 1
@@ -67,7 +67,11 @@ classdef Dictionary
         
         % update with list of keys and vals
         function obj = update(obj, keys, vals)
-            assert( iscellstr(keys) && length(keys)==length(vals) )                
+            assert( length(keys)==length(vals) ...
+                    && iscell(vals) ...
+                    && iscell(keys) ...
+                    && Dictionary.areUniqueKeys(keys) )
+                
             for i = 1:length(keys)
                 obj.put(keys{i},vals{i});
             end
@@ -112,7 +116,7 @@ classdef Dictionary
         % assignment, i.e. dict('hello') = 1234
         function obj = subsasgn(obj,s,b)
             if strcmp(s.type,'()')
-                assert( ischar(s.subs{1}) )
+                % assert( ischar(s.subs{1}) )
                 newKey      = s.subs{1};
                 newValue    = b;
 
@@ -125,7 +129,7 @@ classdef Dictionary
         % retrieval; i.e. dict('hello') returns 1234
         function out = subsref(obj,s)
             if length(s) == 1 && strcmp(s.type,'()')
-                assert( ischar(s.subs{1}) )
+                % assert( ischar(s.subs{1}) )
                 key = s.subs{1};
                 out = obj.get( key );
             else
@@ -144,14 +148,24 @@ classdef Dictionary
         end
     end
     
-    methods ( Access = private )
-        function h = hash( obj, s )
+    methods ( Static )
+        function [h, b] = hash( key )
             % this is faster than anything that can be 
             % implemented in pure matlab code
-            h = typecast(java.lang.String(s).hashCode(),'uint32');
-            h = mod(h(2), obj.TABLE_SIZE) + 1;
+            b = getByteStreamFromArray(key);
+            h = typecast(java.lang.String(b).hashCode(),'uint32');
+            h = h(2);
         end
         
+        function out = areUniqueKeys( keys )
+            for i = 1:length( keys )
+               b{i} = cast(getByteStreamFromArray(keys{i}),'char');
+            end
+            out = (length(b) == length(unique(b)));
+        end
+    end
+    
+    methods ( Access = private )
         % insert new items
         function obj = put( obj, newKey, newValue )
             if (obj.count + 1) > idivide(obj.TABLE_SIZE, uint32(2))
@@ -187,10 +201,15 @@ classdef Dictionary
         
         % find index
         function [i, keyexists] = getindex( obj, key )
+            [i, b] = obj.hash( key );
+            i = mod(i, obj.TABLE_SIZE) + 1;
             
-            i = obj.hash( key );
-            while obj.indices(i) > 0 ...                    % entry full
-                && ~strcmp(obj.keys{obj.indices(i)}, key)  	% key doesn't match
+            % while full and keys don't match
+            while obj.indices(i) > 0 && ...
+                ~isequal(b, getByteStreamFromArray(obj.keys{obj.indices(i)}))
+            
+                % increment index; 
+                % wrap to beginning if necessary
              	i = mod(i, obj.TABLE_SIZE) + 1;
             end
             

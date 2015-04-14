@@ -47,7 +47,7 @@ function data = loadCW6Data( filenames )
                 end
                 names = unique(names,'stable');
 
-                stims = HashTable();
+                stims = Dictionary();
                 for iStim = 1:length(names)
                     stims(names{iStim}) = nirs.design.StimulusEvents();
                 end

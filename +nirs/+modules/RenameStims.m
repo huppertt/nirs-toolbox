@@ -38,7 +38,7 @@ classdef RenameStims < nirs.modules.AbstractModule
                        uvalues{j} = nirs.design.mergeStims( values(lst), ukeys{j} );
                     end
 
-                    data(i).stimulus = nirs.HashTable(ukeys, uvalues);
+                    data(i).stimulus = nirs.Dictionary(ukeys, uvalues);
                 end
             end
         end

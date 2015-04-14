@@ -4,7 +4,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
   
     properties
         formula = 'beta ~ cond*group + (1|subject)';
-        jacobian = nirs.HashTable(); % key is subject name or "default"
+        jacobian = nirs.Dictionary(); % key is subject name or "default"
         dummyCoding = 'full';
         transMtx;
         mesh;
@@ -46,9 +46,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             W = blkdiag(W,W);
             
             %% SVDS; PER FWD MODEL
-            S = nirs.HashTable();
-            U = nirs.HashTable();
-            V = nirs.HashTable();
+            S = nirs.Dictionary();
+            U = nirs.Dictionary();
+            V = nirs.Dictionary();
             for i = 1:length( obj.jacobian.keys )
                 J = obj.jacobian.values{i};
                 
@@ -87,7 +87,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             %% CALCULATE WAVELET MODEL
-            XiW = nirs.HashTable();
+            XiW = nirs.Dictionary();
             for i = 1:length( obj.jacobian.keys )
                 key = obj.jacobian.keys{i};
                 

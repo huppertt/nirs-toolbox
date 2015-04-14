@@ -55,7 +55,7 @@ classdef AbstractModule
         end
         
         function obj = putoptions( obj, opts )
-            assert( isa( opts, 'HashTable' ) )
+            assert( isa( opts, 'Dictionary' ) )
             
             for i = 1:length(opts.keys)
                 obj.(opts.keys{i}) = opts.values{i};

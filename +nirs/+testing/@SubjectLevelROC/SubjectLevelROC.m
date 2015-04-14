@@ -68,10 +68,10 @@ classdef TestChannelWise
                 stim.dur = dur;
                 stim.onset = onset;
                 
-                stim = nirs.HashTable({'roc'},{stim});
+                stim = Dictionary({'roc'},{stim});
                 
                 % add to data
-                basis = nirs.HashTable({'default'}, {nirs.functional.basis.Canonical()});
+                basis = Dictionary({'default'}, {nirs.functional.basis.Canonical()});
                 X = nirs.functional.createDesignMatrix( stim, t, basis );
                 
                 d(:,iChan) = bsxfun(@plus,d(:,iChan),X*obj.beta);

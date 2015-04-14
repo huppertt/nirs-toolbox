@@ -39,7 +39,7 @@ classdef DiscardStims < nirs.modules.AbstractModule
                 keys    = keys( lst(i==idx) );
                 values  = values( lst(i==idx) );
                 
-                data(i).stimulus = nirs.HashTable(keys, values);
+                data(i).stimulus = nirs.Dictionary(keys, values);
             end
         end
     end
