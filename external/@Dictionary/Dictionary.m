@@ -27,7 +27,7 @@
 
 classdef Dictionary
     
-    properties (SetAccess = private)
+    properties( SetAccess = private )
         keys
         values
     end
@@ -38,30 +38,30 @@ classdef Dictionary
     
     properties ( Access = private )
         indices;
-        TABLE_SIZE = uint32(1024);
+        MAX_SIZE = 2^32;
     end
     
     methods
         
         % constructor
         function obj = Dictionary( keys, vals )
-            
-            obj.keys    = {};
-            obj.values  = {};
-            
+            % insert initial key/value pairs set is unique
             if nargin == 2
                 assert( length(keys)==length(vals) ...
                     && iscell(vals) ...
                     && iscell(keys) ...
                     && Dictionary.areUniqueKeys(keys) )  
                 
-                obj.TABLE_SIZE  = uint32(4 * length(keys));
                 obj.keys        = keys;
                 obj.values      = vals;
             elseif nargin == 1
                 error('Constructor takes zero or two arguments.')
+            else
+                obj.keys    = {};
+                obj.values  = {};
             end
             
+            % hash the keys and store index to key/value
             obj = obj.rehash();
         end
         
@@ -136,19 +136,9 @@ classdef Dictionary
                 out = builtin('subsref',obj,s);
             end
         end
-        
-        function obj = resize( obj, N )
-            assert( N < uint32(2^32-1) )
-   
-            % resize table
-            obj.TABLE_SIZE   = N;
-            
-            % rehash indices
-            obj = obj.rehash();
-        end
     end
     
-    methods ( Static )
+    methods( Static )
         function [h, b] = hash( key )
             % this is faster than anything that can be 
             % implemented in pure matlab code
@@ -168,10 +158,6 @@ classdef Dictionary
     methods ( Access = private )
         % insert new items
         function obj = put( obj, newKey, newValue )
-            if (obj.count + 1) > idivide(obj.TABLE_SIZE, uint32(2))
-               obj = obj.resize( 2 * obj.TABLE_SIZE ); 
-            end
-
             [i, keyexists] = obj.getindex( newKey );
             
             if keyexists % key already exists
@@ -202,7 +188,7 @@ classdef Dictionary
         % find index
         function [i, keyexists] = getindex( obj, key )
             [i, b] = obj.hash( key );
-            i = mod(i, obj.TABLE_SIZE) + 1;
+            i = uint64(i) + 1;
             
             % while full and keys don't match
             while obj.indices(i) > 0 && ...
@@ -210,7 +196,11 @@ classdef Dictionary
             
                 % increment index; 
                 % wrap to beginning if necessary
-             	i = mod(i, obj.TABLE_SIZE) + 1;
+                if i == uint64(2^32)
+                    i = 1;
+                else
+                    i = i + 1;
+                end
             end
             
             keyexists = obj.indices(i) > 0;
@@ -218,7 +208,8 @@ classdef Dictionary
         
         % rehash indices
         function obj = rehash( obj )
-            obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
+            nz = max( 1024, 2*obj.count );
+            obj.indices = sparse([], [], [], obj.MAX_SIZE, 1, nz);
             for k = 1:length(obj.keys)
                    i = obj.getindex(obj.keys{k});
                    obj.indices(i) = k;
