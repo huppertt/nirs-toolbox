@@ -12,7 +12,7 @@ function out = mergeStims( stims, name )
     end
     
     % create output
-    out = nirs.functional.StimulusEvents();
+    out = nirs.design.StimulusEvents();
     
     out.name    = name;
     out.onset   = onset;

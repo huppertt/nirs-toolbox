@@ -45,7 +45,8 @@ classdef AbstractModule
                 if strcmp(p.SetAccess, 'public') ...        % must be public
                         && ~p.Dependent  ...                % must not be dependent
                         && ~strcmp( p.Name, 'name' ) ...    % must not be "name"
-                        && ~strcmp( p.Name, 'prevJob' )     % must not be "prevJob"
+                        && ~strcmp( p.Name, 'prevJob' ) ...     % must not be "prevJob"
+                        && ~p.Hidden
                     
                     out = [out; {p.Name}];
                 end

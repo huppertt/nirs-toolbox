@@ -32,7 +32,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     lst = idx == j;
                     lambda = p.link.type(lst);
                     
-                    ext = nirs.getSpectra( lambda );
+                    ext = nirs.media.getspectra( lambda );
                     
                     clist = [1 2]; % hbo and hbr; need to fix this
                     

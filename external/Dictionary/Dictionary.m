@@ -1,30 +1,3 @@
-% Copyright (c) 2015, Jeffrey W Barker (jwb52@pitt.edu)
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions
-% are met:
-% 
-% 1. Redistributions of source code must retain the above copyright
-% notice, this list of conditions and the following disclaimer.
-% 
-% 2. Redistributions in binary form must reproduce the above copyright
-% notice, this list of conditions and the following disclaimer in the
-% documentation and/or other materials provided with the distribution.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-% "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-% LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-% A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-% HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-% INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
-% BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS
-% OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
-% AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-% LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY
-% WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-% POSSIBILITY OF SUCH DAMAGE.
-
 classdef Dictionary
     
     properties (SetAccess = private)
@@ -38,20 +11,28 @@ classdef Dictionary
     
     properties ( Access = private )
         indices;
-        TABLE_SIZE = uint32(1024);
+        TABLE_SIZE = uint64(1024);
     end
     
     methods
         
         % constructor
         function obj = Dictionary( keys, vals )
+            % check java classpath
+            dictLoc = fileparts(which('Dictionary'));
+            clsPth  = javaclasspath('-dynamic');
+            if ~any( strcmp(dictLoc, clsPth) )
+                javaaddpath( dictLoc );
+            end
+            
+            % if key/value pairs provide add to dict
             if nargin == 2
                 assert( length(keys)==length(vals) ...
                     && iscell(vals) ...
                     && iscell(keys) ...
                     && Dictionary.areUniqueKeys(keys) )  
                 
-                obj.TABLE_SIZE  = uint32(4 * length(keys));
+                obj.TABLE_SIZE  = uint64(4 * length(keys));
                 obj.keys        = keys;
                 obj.values      = vals;
             elseif nargin == 1
@@ -134,7 +115,7 @@ classdef Dictionary
         end
         
         function obj = resize( obj, N )
-            assert( N < uint32(2^32-1) )
+            assert( N < uint64(2^32) )
    
             % resize table
             obj.TABLE_SIZE   = N;
@@ -146,14 +127,16 @@ classdef Dictionary
     
     methods ( Static )
         function [h, b] = hash( key )
-            % this is faster than anything that can be 
-            % implemented in pure matlab code
             b = getByteStreamFromArray(key);
-            h = typecast(java.lang.String(b).hashCode(),'uint32');
-            h = h(2);
+            h = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
+            
+            % this can be used instead, but it is slower
+            % h = typecast(java.lang.String(b).hashCode(),'uint32');
+            % h = uint64(h(2));
         end
         
         function out = areUniqueKeys( keys )
+            b = {};
             for i = 1:length( keys )
                b{i} = cast(getByteStreamFromArray(keys{i}),'char');
             end
@@ -164,7 +147,7 @@ classdef Dictionary
     methods ( Access = private )
         % insert new items
         function obj = put( obj, newKey, newValue )
-            if (obj.count + 1) > obj.TABLE_SIZE / uint32(2)
+            if (obj.count + 1) > obj.TABLE_SIZE / uint64(2)
                obj = obj.resize( 3 * obj.TABLE_SIZE ); 
             end
 
@@ -197,23 +180,23 @@ classdef Dictionary
         
         % find index
         function [i, keyexists] = getindex( obj, key )
-            [i, b] = obj.hash( key );            
+            b = getByteStreamFromArray(key);
+            i = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
+            
             i = mod(i, obj.TABLE_SIZE) + 1;
             
             % while full and keys don't match
-            while obj.indices(i) > 0 && ...
-                ~isequal(b, getByteStreamFromArray(obj.keys{obj.indices(i)}))
-            
-                % increment index; 
-                % wrap to beginning if necessary
-                if i == obj.TABLE_SIZE
-                    i = 1;
-                else
-                    i = i + 1;
-                end
+            while obj.indices(i) && ~isequal(b, getByteStreamFromArray(obj.keys{obj.indices(i)}))
+                    % increment index; 
+                    % wrap to beginning if necessary
+                    if i == obj.TABLE_SIZE
+                        i = 1;
+                    else
+                        i = i + 1;
+                    end
             end
             
-            keyexists = obj.indices(i) > 0;
+             keyexists = logical( obj.indices(i) );
         end
         
         % rehash indices

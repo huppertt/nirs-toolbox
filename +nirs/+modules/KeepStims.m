@@ -1,6 +1,6 @@
 classdef KeepStims < nirs.modules.AbstractModule
     properties
-        list = {};
+        listOfStims = {};
     end
     
     properties( Access = private )
@@ -11,10 +11,12 @@ classdef KeepStims < nirs.modules.AbstractModule
         function obj = KeepStims( prevJob )
            obj.name     = 'Keep Just These Stims';
            obj.discard  = nirs.modules.DiscardStims( prevJob );
-           obj.flag     = 'keep';
+           
+           obj.discard.keepOrDiscard  = 'keep';
         end
         
         function data = runThis( obj, data )
+            obj.discard.listOfStims = obj.listOfStims;
             data = obj.discard.run( data );
         end
     end
