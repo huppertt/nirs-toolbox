@@ -47,6 +47,8 @@ function stats = ar_irls( d,X,Pmax,tune )
 % (up to the Nyquist bandwidth).  The code should work fine on 10-30 Hz
 % data.
  
+    warning('off','stats:statrobustfit:IterationLimit')
+    
     if nargin < 4
         tune = 4.685;
     end

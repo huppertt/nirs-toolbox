@@ -2,10 +2,12 @@ classdef Data
     %DATA Object to hold nirs data
     
     properties
+        description;
         data;               % channel time series in columns
         probe;              % object describing geometry
         time;               % vector of time points
-        Fm = 0;             % modulation frequency in MHz: 0 for CW; 110 for ISS        
+        Fm = 0;             % modulation frequency in MHz: 0 for CW; 110 for ISS
+        
     end
     
     properties( Dependent = true )

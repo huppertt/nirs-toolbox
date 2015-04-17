@@ -3,7 +3,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        basis       = HashTable();
+        basis       = Dictionary();
         verbose     = false;
         isconstant  = true;
         trend_func  = @(t) nirs.design.trend.dctmtx(t, 1/125);
@@ -12,16 +12,16 @@ classdef AbstractGLM < nirs.modules.AbstractModule
     methods( Access = protected )
         
         % generate design matrix
-        function [X, names] = createX( data )
+        function [X, names] = createX( obj, data )
             t       = data.time;
             stims   = data.stimulus;
             
-            [X, names] = nirs.functional. ...
+            [X, names] = nirs.design. ...
                 createDesignMatrix( stims, t, obj.basis );
         end
         
         % generate baseline/trend regressors
-        function C = getTrendMatrix( t )
+        function C = getTrendMatrix( obj, t )
             if ~isempty(obj.trend_func)
                 C = obj.trend_func( t );
             else
@@ -33,6 +33,15 @@ classdef AbstractGLM < nirs.modules.AbstractModule
             end
         end
         
+        % print progress
+        function printProgress(obj, n, N)
+            if obj.verbose
+                fprintf( 'Finished %4i of %4i.\n', n, N )
+            end
+        end  
+    end
+    
+    methods( Access = protected, Static )
         % check rank and throw error
         function checkRank( X )
             if rank(X) < size(X,2)
@@ -41,19 +50,12 @@ classdef AbstractGLM < nirs.modules.AbstractModule
         end
                 
         % check condition and issue warnings
-        function checkCondtion( X )
+        function checkCondition( X )
             maxCond = 100; 
-            if cond([X C]) > maxCond
-                warning(['high collinearity: cond(X) = ' num2str(cond([X C]))])
+            if cond(X) > maxCond
+                warning(['High collinearity: cond(X) = ' num2str(cond(X)) '.'])
             end
         end
-        
-        % print progress
-        function printProgress(n, N)
-            if obj.verbose
-                fprintf( 'Finished %4i of %4i.\n', n, N )
-            end
-        end        
     end
     
 end

@@ -31,8 +31,7 @@ classdef Dictionary
                     && iscell(vals) ...
                     && iscell(keys) ...
                     && Dictionary.areUniqueKeys(keys) )  
-                
-                obj.TABLE_SIZE  = uint64(4 * length(keys));
+
                 obj.keys        = keys;
                 obj.values      = vals;
             elseif nargin == 1
@@ -41,26 +40,26 @@ classdef Dictionary
             
             obj = obj.rehash();
         end
-        
-        % update with list of keys and vals
-        function obj = update(obj, keys, vals)
-            assert( length(keys)==length(vals) ...
-                    && iscell(vals) ...
-                    && iscell(keys) ...
-                    && Dictionary.areUniqueKeys(keys) )
-                
-            for i = 1:length(keys)
-                obj.put(keys{i},vals{i});
-            end
-        end
+           
+%         % update with list of keys and vals
+%         function obj = update(obj, keys, vals)
+%             assert( length(keys)==length(vals) ...
+%                     && iscell(vals) ...
+%                     && iscell(keys) ...
+%                     && Dictionary.areUniqueKeys(keys) )
+%                 
+%             for i = 1:length(keys)
+%                 obj.put(keys{i},vals{i});
+%             end
+%         end
         
         % number of items in dictionary
         function count = get.count( obj )
             count = length(obj.keys);
         end
         
-        % delete items
-        function obj = delete( obj, keys )
+        % remove items
+        function obj = remove( obj, keys )
             if ischar(keys)
                 keys = {keys};
             end
@@ -69,14 +68,72 @@ classdef Dictionary
                [i, keyexists] = obj.getindex(keys{k});
                if keyexists
                    idx = obj.indices(i);
-                   obj.keys(idx) = [];
-                   obj.values(idx) = [];
+                   
+                   obj.keys(idx)    = [];
+                   obj.values(idx)  = [];
+                   obj.indices(i)   = 0;
 
                    lst = obj.indices > idx;
                    obj.indices(lst) = obj.indices(lst) - 1;
                end
             end
             
+        end
+        
+        % put new items
+        function obj = put( obj, newKeys, newVals )
+            
+            if ~iscell(newKeys)
+                newKeys = {newKeys};
+                newVals = {newVals};
+            end
+            
+            for k = 1:length( newKeys )
+                [i, keyexists] = obj.getindex( newKeys{k} );
+
+                if keyexists % key already exists
+                    idx = obj.indices(i);
+                    obj.values{idx} = newVals{k};
+                else
+                    % resize table if necessary
+                    if (obj.count + 1) > obj.TABLE_SIZE / uint64(2)
+                       obj = obj.resize( 3 * obj.TABLE_SIZE ); 
+                    end
+                    
+                    % add index
+                    obj.indices(i) = obj.count + 1;
+
+                    % append keys and values
+                    obj.keys    {end+1} = newKeys{k};
+                    obj.values  {end+1} = newVals{k};
+                end
+            end
+            
+        end
+        
+        % get items
+        function out = get( obj, keys )
+            if ~iscell(keys)
+                keys = {keys};
+            end
+            
+            for k = 1:length( keys )
+                [i, keyexists] = obj.getindex(keys{k});
+
+                if keyexists
+                    idx = obj.indices(i);
+                    out{k} = obj.values{idx};
+                else
+                    out{k} = [];
+                end
+            end
+            
+            n = length(out);
+            if n == 1
+                out = out{1};
+            elseif n == 0
+                out = [];
+            end
         end
         
         % check if keys exists
@@ -145,39 +202,6 @@ classdef Dictionary
     end
     
     methods ( Access = private )
-        % insert new items
-        function obj = put( obj, newKey, newValue )
-            if (obj.count + 1) > obj.TABLE_SIZE / uint64(2)
-               obj = obj.resize( 3 * obj.TABLE_SIZE ); 
-            end
-
-            [i, keyexists] = obj.getindex( newKey );
-            
-            if keyexists % key already exists
-                idx = obj.indices(i);
-                obj.values{idx} = newValue;
-            else
-                % add index
-                obj.indices(i) = obj.count + 1;
-                
-                % append keys and values
-                obj.keys    {end+1} = newKey;
-                obj.values  {end+1} = newValue;
-            end
-        end
-        
-        % get items
-        function out = get( obj, key )
-            [i, keyexists] = obj.getindex(key);
-            
-            if keyexists
-                idx = obj.indices(i);
-                out = obj.values{idx};
-            else
-                out = [];
-            end
-        end
-        
         % find index
         function [i, keyexists] = getindex( obj, key )
             b = getByteStreamFromArray(key);
@@ -201,6 +225,7 @@ classdef Dictionary
         
         % rehash indices
         function obj = rehash( obj )
+            obj.TABLE_SIZE  = max(1024, uint64(4 * length(obj.keys)));
             obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
             for k = 1:length(obj.keys)
                    i = obj.getindex(obj.keys{k});

@@ -17,15 +17,14 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 
-                [X, names] = createX( data );
+                [X, names] = obj.createX( data(i) );
                 
-                C = getTrendMatrix( t );
+                C = obj.getTrendMatrix( t );
                 
-                checkRank( [X C] )
+                obj.checkRank( [X C] )
                 
-                checkCondition( [X C] )
+                obj.checkCondition( [X C] )
                 
-                warning('off','stats:statrobustfit:IterationLimit')
                 thisS = nirs.math.ar_irls( d, [X C], round(4*Fs) );
                 thisS.X = X;
                 thisS.C = C;
@@ -36,7 +35,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 
                 S(i) = thisS;
                 
-                printProgress( i, length(data) )
+                obj.printProgress( i, length(data) )
             end
             
             % output stats

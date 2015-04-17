@@ -13,6 +13,7 @@ function data = loadCW6Data( filenames )
         
         % put into data class
         tData = nirs.FunData();
+        tData.description = filenames{iFile};
         
         try        
             nTime = length(d.t);
