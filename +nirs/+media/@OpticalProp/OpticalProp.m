@@ -18,7 +18,7 @@ classdef OpticalProp
     
     methods
         %% Constructor
-        function obj = OpticalProperties( mua, mus, lambda, ri )
+        function obj = OpticalProp( mua, mus, lambda, ri )
             if nargin == 0
                 obj.lambda = [690 830];
                 obj.mua = [0.0113173914928 0.0133132051072];	

@@ -1,4 +1,4 @@
-classdef ReverseBeerLambert < nirs.modules.AbstractModule
+classdef InverseBeerLambert < nirs.modules.AbstractModule
 % This converts from concentration to optical density.  This is not really
 % useful for anything except simulation.
     
@@ -9,7 +9,7 @@ classdef ReverseBeerLambert < nirs.modules.AbstractModule
     
     methods
 
-        function obj = ReverseBeerLambert( prevJob )
+        function obj = InverseBeerLambert( prevJob )
            obj.name = 'Convert Hb to OD';
            if nargin > 0
                obj.prevJob = prevJob;

@@ -18,7 +18,7 @@ classdef Canonical
             a2 = obj.uShootTime;
             b1 = obj.peakDisp;
             b2 = obj.uShootDisp;
-            c = obj.ratio;
+            c  = obj.ratio;
             
             % sampling freq
             Fs = 1/(t(2)-t(1));

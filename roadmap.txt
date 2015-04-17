@@ -15,24 +15,28 @@ make_sphere
     Data
     Mesh
 
-    FunctionalData
+    FunData
     ChannelStats                    %TODO%
     ImageStats                      %TODO%
     FIRStats                        %TODO%
 
     +media
-        OpticalProp                 %TOFIX%
-        SpectralProp                %TOFIX%
-        getspectra                  %TOFIX%
+        OpticalProp
+        SpectralProp
+        getspectra
         +tissues
             brain
             bone
             skin
             water
 
+    %% WANT TO INCORPORATE SEPARATE DESIGNS FOR
+    %% CHANNEL TYPES (ie hbo vs hbr)
     +design
-        StimulusEvents
-            -> mergeStims        	???
+        mergeStims 
+        StimulusEvents              %TOFIX%
+            --> remove mergeStims
+            --> change to + operator
         createDesignMatrix
         createTrendMatrix         	%TODO%
         +basis/
@@ -45,22 +49,31 @@ make_sphere
             legendre
         
     +modules/
+        pipelineToList
+        listToPipeline
         AbstractModule
         RemoveStimless
         RenameStims
         DiscardStims
-        KeepStims                   %TODO%
+        KeepStims
         Resample
         OpticalDensity
         BeerLambertLaw
         TrimBaseline
-        InverseBeerLambert          %TODO%
+        InverseBeerLambert
         ChannelMixedEffects         %TODO%
         ImageMixedEffects           %TODO%
 
+        %% WE WANT TO INCORPORATE NEAREST-NEIGHBOR
+        %% COVARIANCE INTO CHANNEL MIXED EFFECTS
+
+    +pipelines
+        +DefaultChannelPipeline     %TODO%
+        +DefaultImagePipeline       %TODO%
+
     +forward/
-        NirfastFEM                  %TOFIX%
         MCXLab                      %TOFIX%
+        NirfastFEM                  %TOFIX%
         SlabModel                   %TOFIX%
 
     +inverse/
@@ -76,7 +89,7 @@ make_sphere
     +io
         loadCW6Data
         loadCW6Directory
-        loadSensitivityDotMat
+        loadSensDotMat
 
     +util
         probe2sd
@@ -102,6 +115,6 @@ external/
     mcx/
     nirfast/
     rdir/
-    HashTable                       %TOFIX%
+    Dictionary                       %TOFIX%
     
     

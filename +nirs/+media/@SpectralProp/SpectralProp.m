@@ -35,7 +35,7 @@ classdef SpectralProp
     
     methods
         %% Constructor
-        function obj = SpectralProperties( so2, hbt, lambda, mus, ri )
+        function obj = SpectralProp( so2, hbt, lambda, mus, ri )
             obj.lambda = [690 830];
             obj.so2 = 0.7;
             obj.hbt = 60;
