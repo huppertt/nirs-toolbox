@@ -38,38 +38,7 @@ function data = loadCW6Data( filenames )
             tData.data = tData.data(:,idx);
 
             if isfield(d,'StimDesign')
-                names = {};
-                for iStim = 1:length(d.StimDesign)
-                    if isfield(d.StimDesign,'cond')
-                        names{end+1} = d.StimDesign(iStim).cond;
-                    else
-                        names{end+1} = d.StimDesign(iStim).name;
-                    end
-                end
-                names = unique(names,'stable');
-
-                stims = Dictionary();
-                for iStim = 1:length(names)
-                    stims(names{iStim}) = nirs.design.StimulusEvents();
-                end
-
-                for iStim = 1:length(d.StimDesign)
-                    if isfield(d.StimDesign,'cond')
-                        name = d.StimDesign(iStim).cond;
-                    else
-                        name = d.StimDesign(iStim).name;
-                    end
-
-                    thisStim = stims(name);
-                    thisStim.name = name;
-                    thisStim.onset = [thisStim.onset(:); d.StimDesign(iStim).onset(:)];
-                    thisStim.dur = [thisStim.dur(:); d.StimDesign(iStim).dur(:)];
-                    thisStim.amp = [thisStim.amp(:); d.StimDesign(iStim).amp(:)];
-
-                    stims(name) = thisStim;
-                end
-
-                tData.stimulus = stims;
+                tData.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign );
             end
 
             % demographics for group level

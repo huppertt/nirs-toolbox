@@ -8,13 +8,14 @@ classdef FunData < nirs.Data
 
     methods
         %% Constructor
-        function obj = FunctionalData( data, time, probe, Fm, stimulus, demographics )%, description )
+        function obj = FunData( data, time, probe, Fm, stimulus, demographics, description )
             if nargin > 0, obj.data         = data;         end
             if nargin > 1, obj.time         = time;         end
             if nargin > 2, obj.probe        = probe;        end
             if nargin > 3, obj.Fm           = Fm;           end
             if nargin > 4, obj.stimulus     = stimulus;     end
             if nargin > 5, obj.demographics = demographics; end
+            if nargin > 6, obj.description  = description;  end
         end
         
         %% Set/Get

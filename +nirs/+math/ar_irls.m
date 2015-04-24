@@ -113,7 +113,9 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
         stats.P(i) = length(a)-1;
-        stats.covb(:,:,i) = pinv(Xf'*Xf)*S.mad_s^2;
+        
+        L = inv(chol(Xf'*Xf));
+        stats.covb(:,:,i) = (L*L')*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
         
@@ -123,7 +125,7 @@ end
 %%
 function out = myFilter( f, y )
     % here we are just making the first value zero before filtering to
-    % avoid nasty ringing at the beginning
+    % avoid weird effects introduced by zero padding
     y1 = y(1,:);
     
     y = bsxfun(@minus,y,y1);

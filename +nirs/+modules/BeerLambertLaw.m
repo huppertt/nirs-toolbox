@@ -30,6 +30,9 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 for j = 1:max(idx)
                     lst = idx == j;
+                    
+                    assert( length(lst) > 1 )
+                    
                     lambda = p.link.type(lst);
                     
                     ext = nirs.media.getspectra( lambda );

@@ -20,13 +20,13 @@ classdef MixedEffects < nirs.modules.AbstractModule
         function G = runThis( obj, subjStats )
             S = subjStats;
             
-            demo = nirs.functional.createDemographicsTable( S );
+            demo = nirs.createDemographicsTable( S );
                         
             %% assemble table
             tbl = table();
             for i = 1:length(S)
-                nCond = length(S(i).stimulus.keys);
-                tbl = [tbl; [table(S(i).stimulus.keys(:),'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
+                nCond = length(S(i).names);
+                tbl = [tbl; [table(S(i).names(:),'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
             end
 
             %% loop through channels and fite mfx model
@@ -53,8 +53,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                end
                
                % call lme package
-               [X, Z, names] = nirs.functional.parseWilkinsonFormula(obj.formula, tbl, true, obj.dummyCoding);
-               tmp = nirs.functional.fitMixedModel(L*X,L*Z,L*beta);
+               [X, Z, names] = nirs.math.parseWilkinsonFormula(obj.formula, tbl, true, obj.dummyCoding);
+               tmp = nirs.math.fitMixedModel(L*X,L*Z,L*beta);
                
 %                lme{iChan} = fitlme([table(beta) tbl],obj.formula, ...
 %                    'Weights',1./se, ...

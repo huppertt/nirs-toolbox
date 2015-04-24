@@ -32,13 +32,8 @@ classdef Resample < nirs.modules.AbstractModule
 
                 b = fir1(ord,Fc);
                 
-                for j = 1:2 % backward then forward
-                    d = flipud( d );
-                    d1 = d(1,:);
-                    d = bsxfun(@minus,d,d1);
-                    d = filter(b,1,d);
-                    d = bsxfun(@plus,d,d1);
-                end
+                % zero phase filtering
+                d = filtfilt(b,1,d);
                 
                 % interpolation
                 d = interp1(t,d,new_t,'pchip');
