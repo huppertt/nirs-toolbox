@@ -35,7 +35,7 @@ classdef FixNaNs < nirs.modules.AbstractModule
                         end
                         
                     catch
-                        % just replace with zeros
+                        % just replace with white noise
                         d(lst) = obj.ifFailReplaceWith;
                     end
 

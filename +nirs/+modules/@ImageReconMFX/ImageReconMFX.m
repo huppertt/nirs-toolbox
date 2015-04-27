@@ -4,7 +4,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
   
     properties
         formula = 'beta ~ cond*group + (1|subject)';
-        jacobian = nirs.Dictionary(); % key is subject name or "default"
+        jacobian = Dictionary(); % key is subject name or "default"
         dummyCoding = 'full';
         transMtx;
         mesh;
@@ -18,22 +18,22 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                obj.prevJob = prevJob;
            end
            
-           p = fileparts( which('nirs.functional.modules.ImageReconMFX') );
+           p = fileparts( which('nirs.modules.ImageReconMFX') );
            load([p filesep 'wavelet_matrix.mat']);
            obj.transMtx = blkdiag(W,W);
         end
         
-        function G = execute( obj, subj_stats )
+        function G = runThis( obj, subj_stats )
             
             %% model table
-            demo = nirs.functional.createDemographicsTable( subj_stats );
+            demo = nirs.createDemographicsTable( subj_stats );
             
-            [names, idx] = nirs.functional.getStimNames( subj_stats );
+            [names, idx] = nirs.getStimNames( subj_stats );
             tbl = [table(idx,names,'VariableNames',{'file','cond'}) ...
                 demo(idx,:)];
             
             % parse table
-            [x, z, names] = nirs.functional. ...
+            [x, z, names] = nirs.math. ...
                 parseWilkinsonFormula( obj.formula, tbl, 'true', obj.dummyCoding );
             
             x = sparse(x);
@@ -43,17 +43,26 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             % the images are [left:hbo right:hbo left:hbr right:hbr]
             % there will be four diagonal blocks in W (there are already two)
             W = obj.transMtx; % W = W(1:2562,:);
-            W = blkdiag(W,W);
+            if length( unique(subj_stats(1).probe.link.type) ) > 1
+                W = blkdiag(W,W);
+            end
+            
             
             %% SVDS; PER FWD MODEL
-            S = nirs.Dictionary();
-            U = nirs.Dictionary();
-            V = nirs.Dictionary();
+            S = Dictionary();
+            U = Dictionary();
+            V = Dictionary();
             for i = 1:length( obj.jacobian.keys )
                 J = obj.jacobian.values{i};
                 
                 key = obj.jacobian.keys{i};
-                [u,s,v] = svd(full([J.hbo J.hbr]),'econ');
+                
+                if length( unique(subj_stats(1).probe.link.type) ) == 1
+                    [u,s,v] = svd(full(J.hbo+J.hbr),'econ');
+                else
+                    [u,s,v] = svd(full([J.hbo J.hbr]),'econ');
+                end
+                
                 S( key ) = s;
                 V( key ) = v;
                 U( key ) = u;
@@ -87,7 +96,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             %% CALCULATE WAVELET MODEL
-            XiW = nirs.Dictionary();
+            XiW = Dictionary();
             for i = 1:length( obj.jacobian.keys )
                 key = obj.jacobian.keys{i};
                 
@@ -122,14 +131,18 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             %% ORGANIZE DATA
             y = []; L = sparse([]);
             for i = 1:length(subj_stats)
-                nCond = length( subj_stats(i).stimulus.keys );
+                nCond = length( subj_stats(i).names );
                 
                 b = subj_stats(i).beta(1:nCond,:);
                 covb = subj_stats(i).covb(1:nCond,1:nCond,:);
                 
                 l = sparse([]);
                 for j = 1:size(covb,3)
-                   l = blkdiag( l, inv(chol(covb(:,:,j),'lower')) ); 
+%                    l = blkdiag( l, inv(chol(covb(:,:,j),'lower')) );
+                    [lu,ls,lv] = svd(covb(:,:,j),'econ');
+                    
+                    
+                    l = blkdiag( l, pinv(ls)*lu' ); 
                 end
                 
                 % permute matrix
@@ -145,6 +158,8 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             %% WHITEN DATA
+            L(abs(L)>1e9) = 0;
+            
             y = L*y; X = L*X; 
             if ~isempty( z )
                 Z = L*Z;
@@ -154,7 +169,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             %% FITTING
-           	vw = 100;   vw0 = 1e16; % prior variance on wavelet coefs
+           	vw = 1;     vw0 = 1e16; % prior variance on wavelet coefs
             vz = 0;     vz0 = 1e16; % prior variance on rfx
             
             X = full(X); %ZZ = full(ZZ);
@@ -167,17 +182,23 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Q = vz*ZZ + eye(size(X,1));
                 
                 iR = full(X*X'*vw + Q);
-                iR = chol(iR);
-                iR = inv(iR);
-                %inv( chol(X*X'*vw + Q) );
-                
-                iX = vw*X'*(iR*iR');
+                try
+                    iR = chol(iR);
+                    iR = inv(iR);
+                    %inv( chol(X*X'*vw + Q) );
+
+                    iX = vw*X'*(iR*iR');
+                catch
+                    iX = vw*X'*pinv(iR);
+                end
+               
+%                 iX = vw*X'*pinv(iR);
                 
                 what = iX*y;
 
                 H = X*iX;
 
-                dfw = trace(H'*H)^2 / trace(H'*H*H'*H); %trace(H'*H); %;
+                dfw = trace(H);%trace(H'*H)^2 / trace(H'*H*H'*H); %trace(H'*H); %;
 
                 vw = (what'*what + sum(sum(iX.^2,2)))/dfw/2;
 
@@ -280,14 +301,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
 %             G.p( repmat(~maskb,[length(G.p)/length(maskb) 1]) ) = 1;
             
         end
-        
-        function options = getOptions( obj )
-            options = [];
-        end
-           
-        function obj = putOptions( obj, options )
-        end
-        
+  
     end
     
 end

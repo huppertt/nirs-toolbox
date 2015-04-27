@@ -23,8 +23,9 @@ function S = fitMixedModel( X, Z, y, C )
         V = q*(Z*Z') + s*C;
         
         % invert V
-        L = inv( chol(V) );
-        iV = L*L';
+%         L = inv( chol(V) );
+%         iV = L*L';
+        iV = pinv(V);
         
         % fixed effects
         b = pinv(X'*iV*X)*X'*iV*y;

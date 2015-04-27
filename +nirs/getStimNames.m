@@ -4,8 +4,13 @@ function [names, idx] = getStimNames( data )
 
     names = {}; idx = [];
     for i = 1:length(data)
-        names   = [names; data(i).stimulus.keys(:)];
-        idx     = [idx; i*ones( length(data(i).stimulus.keys(:)), 1 )];
+        if isfield(data(i), 'stimulus')
+            names   = [names; data(i).stimulus.keys(:)];
+            idx     = [idx; i*ones( length(data(i).stimulus.keys(:)), 1 )];
+        else
+            names   = [names; data(i).names(:)];
+            idx     = [idx; i*ones( length(data(i).names(:)), 1 )];
+        end
     end
 
 end

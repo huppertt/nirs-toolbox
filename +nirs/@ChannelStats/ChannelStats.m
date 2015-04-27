@@ -35,10 +35,29 @@ classdef ChannelStats
             S.names = obj.transformNames(C);
         end
         
-        function p = jointHypothesisTest(obj, h) %%% this wont work; monte carlo sampling from T-dist maybe?
-            % M -- binary mask of F-test hypothesis
-            % need to return F, p, df, fcrit
-            error('')
+        function S = hotellingT2(obj, m)
+            error('unvalidated')
+            
+            if ~islogical(m)
+                m = m > 0;
+                warning('Converting mask to true/false.')
+            end
+                        
+            n = obj.dfe;
+            k = size(obj.beta,1);
+            
+            for i = 1:size(obj.beta,2)
+                b = m .* obj.beta(:,i);
+                T2(i,1)     = b'*inv(obj.covb(:,:,i)*b;
+                F(i,1)      = 1 / ( (n-k) / k / (n-1) * T2 );
+                p(i,1)      = fcdf(F(i), n-k, k);
+            end
+            
+            S.T2    = T2;
+            S.F     = F;
+            S.p     = p;
+            S.df1   = n-k;
+            S.df2   = k;
         end
         
         function draw(obj, name, type, pthresh)

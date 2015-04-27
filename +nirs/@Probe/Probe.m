@@ -114,12 +114,12 @@ classdef Probe
             % specify colormap
             if nargin == 1
                 cmap = [0.5 0.5 1];
-            elseif nargin < 3 || isempty(cmap)
+            elseif nargin < 5 || isempty(cmap)
                 [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             end
             
             % no thresholding if not specified
-            if nargin < 5
+            if nargin < 4
                 thresh = 0;
             end
 

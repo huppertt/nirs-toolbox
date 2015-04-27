@@ -8,8 +8,14 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     
     
     %% probe
-    lambda = [690 830]';
-    lambda = lambda( tmp.probe.ml(:,4) );
+    % can't find wavelength info in file so making big assumptions here
+    if length( unique( tmp.probe.ml(:,4) ) ) == 1
+        lambda = 808; 
+    else
+        lambda = [690 830]';
+    end
+    
+	lambda = lambda( tmp.probe.ml(:,4) );
     
     link = table(tmp.probe.ml(:,1),tmp.probe.ml(:,2),lambda, ...
         'VariableNames',{'source','detector','type'});
@@ -26,7 +32,7 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     A = double( tmp.sensitivity.Adot );
     A = A(idx,:)*1e-7; %/ max(abs(A(:))) * 1; % scaling?
     
-    ext = nirs.getSpectra( link.type );
+    ext = nirs.media.getspectra( link.type );
     
     J.hbo = bsxfun(@times, ext(:,1), A);
     J.hbr = bsxfun(@times, ext(:,2), A);

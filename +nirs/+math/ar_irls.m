@@ -114,8 +114,8 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
         stats.P(i) = length(a)-1;
         
-        L = inv(chol(Xf'*Xf));
-        stats.covb(:,:,i) = (L*L')*S.mad_s^2;
+        L = pinv(Xf'*Xf); % more stable; %inv(chol(Xf'*Xf));
+        stats.covb(:,:,i) = L*S.mad_s^2; %(L*L')*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
         
