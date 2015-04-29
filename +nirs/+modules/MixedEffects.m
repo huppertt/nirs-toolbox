@@ -21,7 +21,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
             S = subjStats;
             
             demo = nirs.createDemographicsTable( S );
-                        
+            
+            G = nirs.ChannelStats();
+            
             %% assemble table
             tbl = table();
             for i = 1:length(S)
@@ -71,19 +73,24 @@ classdef MixedEffects < nirs.modules.AbstractModule
 
                 G.beta(:,iChan)    	= tmp.b;
                 G.covb(:,:,iChan) 	= tmp.covb;
-                G.dfe(iChan,1)      = tmp.df;
-                G.tstat(:,iChan)    = tmp.t;
+                G.dfe               = tmp.df;
+%                 tstat(:,iChan)    = tmp.t;
                 
                
             end
 
             %% return stats 
-%             G.names     = lme{iChan}.CoefficientNames';
-            G.names     = names;
-            G.probe     = S(1).probe;
-            G.formula   = obj.formula;
-%             G.lme       = lme;
-            G.dummyCoding = obj.dummyCoding;
+% %             G.names     = lme{iChan}.CoefficientNames';
+%             G.names     = names;
+%             G.probe     = S(1).probe;
+%             G.formula   = obj.formula;
+% %             G.lme       = lme;
+%             G.dummyCoding = obj.dummyCoding;
+
+            
+            G.names = names;
+            G.probe = S(1).probe;
+
             
         end
     end

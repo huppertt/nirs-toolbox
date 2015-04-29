@@ -4,7 +4,7 @@ function [names, idx] = getStimNames( data )
 
     names = {}; idx = [];
     for i = 1:length(data)
-        if isfield(data(i), 'stimulus')
+        if isprop(data(i), 'stimulus') || isfield(data(i), 'stimulus')
             names   = [names; data(i).stimulus.keys(:)];
             idx     = [idx; i*ones( length(data(i).stimulus.keys(:)), 1 )];
         else
