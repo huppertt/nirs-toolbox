@@ -59,7 +59,7 @@ function draw( obj, values, vrange, vcrit, cmap )
 
 
         [~, iCol] = min(abs(values(iChan)-z));
-        h = line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
+        line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
         text(x(1),y(1),['S' num2str(iSrc)], 'FontSize', 14)
         text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 14)
     end

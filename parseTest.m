@@ -46,3 +46,16 @@ function out = splitOn( s, delim )
     end
 
 end
+
+
+%%
+y = randn(100,1);
+a = categorical(randi(3,[100 1]));
+b = categorical(randi(3,[100 1]));
+c = randn(100,1);
+d = randn(100,1);
+
+tbl = table(y,a,b,c,d);
+
+lm = fitlme(tbl,'y ~ a*b*c*d + (1 | a)');
+

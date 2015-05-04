@@ -1,16 +1,14 @@
-classdef MixedEffects < nirs.modules.AbstractModule
+classdef Anova < nirs.modules.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
   
     properties
-        formula = 'beta ~ -1 + group:cond + (1|subject)';
-        dummyCoding = 'full';
-        iscentered = true;
+        formula = 'beta ~ 1 + group*cond + (1|subject)';
     end
 
     methods
-        function obj = MixedEffects( prevJob )
-           obj.name = 'Mixed Effects Model';
+        function obj = Anova( prevJob )
+           obj.name = 'Anova Model';
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -22,7 +20,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             demo = nirs.createDemographicsTable( S );
             
             % preallocate group stats
-            G = nirs.ChannelStats();
+            G = [];
             
             %% assemble table
             tbl = table();
@@ -49,30 +47,21 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     W = blkdiag(W, w);
                 end
                 
-                % unweighted fit to get design matrices
-                lm1 = fitlme([table(beta) tbl], obj.formula, 'dummyVarCoding',...
-                    obj.dummyCoding, 'FitMethod', 'REML', 'Weights', full(sqrt(diag(W'*W))));
+                % weighted fit to get design matrices
+                lm1 = fitlme([table(beta) tbl], obj.formula, ...
+                    'FitMethod', 'REML', 'Weights', full(sqrt(diag(W'*W))));
                                 
-                X = lm1.designMatrix('Fixed');
-                Z = lm1.designMatrix('Random');
+                a = lm1.anova();
                 
-                % weight model
-                X    = W*X;
-                Z    = W*Z;
-                beta = W*beta;
+                G.F(:,iChan) = a.FStat;
+                G.p(:,iChan) = a.pValue;
                 
-                % refit
-                lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Diagonal', ...
-                    'FitMethod', 'REML');
-                
-                % copy stats
-                G.beta(:,iChan)    	= lm2.Coefficients.Estimate;
-                G.covb(:,:,iChan) 	= lm2.CoefficientCovariance;
             end
             
-            G.dfe	= lm2.DFE;
-            G.names	= lm1.CoefficientNames';
-            G.probe = S(1).probe;
+            G.df1   = a.DF1;
+            G.df2   = a.DF2;
+            G.names = a.Term;
+            
         end
     end
     
