@@ -20,7 +20,7 @@ classdef Anova < nirs.modules.AbstractModule
             demo = nirs.createDemographicsTable( S );
             
             % preallocate group stats
-            G = [];
+            G = nirs.AnovaStats();
             
             %% assemble table
             tbl = table();
@@ -36,7 +36,7 @@ classdef Anova < nirs.modules.AbstractModule
                 beta = []; W = sparse([]);
                 for i = 1:length(S)
                     % coefficients
-                    beta  	= [beta; S(i).beta(1:nCond,iChan)];
+                    beta = [beta; S(i).beta(1:nCond,iChan)];
                     
                     % design whitening transform from svd
                     [u, s, ~] = svd( S(i).covb(1:nCond, 1:nCond, iChan) );
@@ -54,13 +54,13 @@ classdef Anova < nirs.modules.AbstractModule
                 a = lm1.anova();
                 
                 G.F(:,iChan) = a.FStat;
-                G.p(:,iChan) = a.pValue;
                 
             end
             
             G.df1   = a.DF1;
             G.df2   = a.DF2;
             G.names = a.Term;
+            G.probe = S(1).probe;
             
         end
     end

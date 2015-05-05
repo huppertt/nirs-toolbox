@@ -95,15 +95,22 @@ classdef ChannelStats
                 b = m(:) .* obj.beta(:,i);
                 T2(i,1)     = b'*pinv(obj.covb(:,:,i))*b;
                 F(i,1)      = (n-k) / k / (n-1) * T2(i);
-                p(i,1)      = fcdf(1/F(i), n-k, k);
+%                 p(i,1)      = fcdf(1/F(i), n-k, k);
             end
             
-            S.names = obj.names(m);
-            S.T2    = T2;
-            S.F     = F;
-            S.p     = p;
-            S.df2   = n-k;
-            S.df1   = k;
+            S = nirs.AnovaStats();
+            S.names = {strjoin( obj.names(m)', ' & ' )};
+            S.F   = F';
+            S.df1 = k;
+            S.df2 = n-k;
+            S.probe = obj.probe;
+            
+%             S.names = obj.names(m);
+%             S.T2    = T2;
+%             S.F     = F;
+%             S.p     = p;
+%             S.df2   = n-k;
+%             S.df1   = k;
         end
         
         function h = draw( obj, vtype, vrange )
@@ -157,7 +164,6 @@ classdef ChannelStats
                     title([utypes(iType) ' : ' obj.names{iName}], 'Interpreter','none')
                 end
             end
-                    
         end
     end
     

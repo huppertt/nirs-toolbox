@@ -62,7 +62,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 beta = W*beta;
                 
                 % refit
-                lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Diagonal', ...
+                lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
                     'FitMethod', 'REML');
                 
                 % copy stats
