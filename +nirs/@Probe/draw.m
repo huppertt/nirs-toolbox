@@ -59,11 +59,26 @@ function draw( obj, values, vrange, vcrit, cmap )
 
 
         [~, iCol] = min(abs(values(iChan)-z));
-        line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
-        text(x(1),y(1),['S' num2str(iSrc)], 'FontSize', 14)
-        text(x(2),y(2),['D' num2str(iDet)], 'FontSize', 14)
+        h = line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
+        set(h,'UserData',[iSrc iDet])
     end
-
+    
+    for i = 1:size(s,1)
+        x = s(i,1);
+        y = s(i,2);
+        
+        h = text(x, y,['S' num2str(i)], 'FontSize', 14);
+        set(h, 'UserData', ['S' num2str(i)]);
+    end
+    
+    for i = 1:size(d,1)
+        x = d(i,1);
+        y = d(i,2);
+        
+        h = text(x, y,['D' num2str(i)], 'FontSize', 14);
+        set(h, 'UserData', ['D' num2str(i)]);
+    end
+    
     axis tight
     axis off
 
@@ -76,11 +91,11 @@ function draw( obj, values, vrange, vcrit, cmap )
     end
 
     % adjust axes
-    pi = get(gca,'Position');
-    po = get(gca,'OuterPosition');
-
-    po(3:4) = 1.2*pi(3:4);
-    set(gca,'OuterPosition',po);
+%     pi = get(gca,'Position');
+%     po = get(gca,'OuterPosition');
+% 
+%     po(3:4) = 1.2*pi(3:4);
+%     set(gca,'OuterPosition',po);
 
     xl = xlim;
     yl = ylim;

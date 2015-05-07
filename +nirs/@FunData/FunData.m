@@ -46,7 +46,7 @@ classdef FunData < nirs.Data
             end
 
             % plots
-            gca, hold on
+            gca; hold on;
             
             % data min/max/size
             dmax = max( d(:) );
@@ -67,7 +67,7 @@ classdef FunData < nirs.Data
                 
                 % legend
                 l = legend(k{:});
-                set(l,'Interpreter', 'none')
+                set(l,'Interpreter', 'none');
             else
                 % min/max of axes
                	pmin = dmin - 0.1*dsize;
@@ -75,7 +75,9 @@ classdef FunData < nirs.Data
             end
             
             % plot data
-            plot( t, d ) 
+            plot( t, d )
+            
+            xlabel( 'seconds' );
             
             % axes limits
             xlim( [min(t) max(t)] )
