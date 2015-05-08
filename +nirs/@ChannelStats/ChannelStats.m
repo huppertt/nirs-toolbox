@@ -3,6 +3,7 @@ classdef ChannelStats
     %   Detailed explanation goes here
     
     properties
+        description
         names           % variable names
         beta            % nconds x nchannels
         covb            % nconds x nconds x nchannels
@@ -12,12 +13,17 @@ classdef ChannelStats
         
         tails = 'both';
         pcrit = 0.05;
+        qcrit = 0.05;
     end
     
     properties ( Dependent = true )
-        tcrit
         tstat
+        
+        tcrit
+        tcrit_corr
+
         p
+        q
     end
     
     methods
@@ -40,6 +46,11 @@ classdef ChannelStats
             else
                 p = 2*tcdf(-abs(t), obj.dfe);
             end
+        end
+        
+        % q values
+        function q = get.q( obj )
+            q = [];
         end
         
         % critical value of t
@@ -95,7 +106,6 @@ classdef ChannelStats
                 b = m(:) .* obj.beta(:,i);
                 T2(i,1)     = b'*pinv(obj.covb(:,:,i))*b;
                 F(i,1)      = (n-k) / k / (n-1) * T2(i);
-%                 p(i,1)      = fcdf(1/F(i), n-k, k);
             end
             
             S = nirs.AnovaStats();
@@ -104,13 +114,6 @@ classdef ChannelStats
             S.df1 = k;
             S.df2 = n-k;
             S.probe = obj.probe;
-            
-%             S.names = obj.names(m);
-%             S.T2    = T2;
-%             S.F     = F;
-%             S.p     = p;
-%             S.df2   = n-k;
-%             S.df1   = k;
         end
         
         function h = draw( obj, vtype, vrange )
@@ -148,7 +151,7 @@ classdef ChannelStats
             types = obj.probe.link.type;
             
             if any(isnumeric(types))
-                types = cellfun(@num2str, num2cell(types));
+                types = cellfun(@(x) {num2str(x)}, num2cell(types));
             end
             
             utypes = unique(types, 'stable');

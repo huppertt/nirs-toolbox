@@ -2,7 +2,7 @@ classdef TimeSeriesViewer < handle
     %UNTITLED7 Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties %(Access = protected)
+    properties(Access = protected)
         tree
         root
         
@@ -17,9 +17,7 @@ classdef TimeSeriesViewer < handle
         ax_data
         
         dtype
-        
-        dtypeMenu
-	end
+    end
     
     methods 
         function obj = TimeSeriesViewer( data, heirarchy )
@@ -27,6 +25,7 @@ classdef TimeSeriesViewer < handle
             if nargin < 2
                 obj.heirarchy = {'group', 'subject'};
             else
+                error('not implemented yet')
                 obj.heirarchy = heirarchy;
             end
             
@@ -195,7 +194,7 @@ classdef TimeSeriesViewer < handle
 
             % node for each file
             for i = 1:length(obj.data)
-                root.add( uitreenode('v0', i, obj.data(i).description, [], true) );
+                root.add( uitreenode('v0', i, [ num2str(i) ':' obj.data(i).description], [], true) );
             end
         end
         
@@ -232,16 +231,16 @@ classdef TimeSeriesViewer < handle
             setpixelposition( obj.ax_probe, [450 75 350 275] );
             
             % data type menu
-            obj.dtypeMenu = uicontrol('Style', 'popupmenu',...
+            dtypeMenu = uicontrol('Style', 'popupmenu',...
                 'String', types, ...
                 'Position', [450 50 350 25],...
                 'Callback', @(s,v) obj.dtypeMenuSelectFun(s,v) );
             
             if isnumeric( types(1) )
-                set(obj.dtypeMenu, 'UserData', cellfun(@(x) {num2str(x)}, num2cell(types)));
+                set(dtypeMenu, 'UserData', cellfun(@(x) {num2str(x)}, num2cell(types)));
                 obj.dtype = num2str( types(1) );
             else
-                set(obj.dtypeMenu, 'UserData', types);
+                set(dtypeMenu, 'UserData', types);
                 obj.dtype = types(1);
             end
 

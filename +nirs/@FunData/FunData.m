@@ -63,7 +63,7 @@ classdef FunData < nirs.Data
                 s = 0.15*dsize*s + dmin - 0.25*dsize;
                 
                 % plot
-                plot( t, s, 'LineWidth', 3 )
+                plot( t, s, 'LineWidth', 3 );
                 
                 % legend
                 l = legend(k{:});
@@ -75,13 +75,17 @@ classdef FunData < nirs.Data
             end
             
             % plot data
-            plot( t, d )
+            plot( t, d );
             
             xlabel( 'seconds' );
             
             % axes limits
-            xlim( [min(t) max(t)] )
-            ylim( [pmin pmax] )
+            xlim( [min(t) max(t)] );
+            if pmin == pmax
+                ylim(pmin + [-1 1]);
+            else
+                ylim( [pmin pmax] );
+            end
 
         end
         

@@ -29,6 +29,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 % put stats
                 ncond = length(names);
                 S(i) = nirs.ChannelStats();
+                S(i).description = data(i).description;
                 S(i).beta = thisS.beta(1:ncond,:);
                 S(i).covb = thisS.covb(1:ncond, 1:ncond, :);
                 S(i).dfe  = thisS.dfe(1);
