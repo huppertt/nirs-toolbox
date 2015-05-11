@@ -1,4 +1,4 @@
-classdef TestChannelWise 
+classdef SubjectLevelROC
     %UNTITLED6 Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -20,7 +20,7 @@ classdef TestChannelWise
     end
     
     methods
-        function obj = TestChannelWise( pipeline )
+        function obj = SubjectLevelROC( pipeline )
            if nargin > 0
                obj.pipeline = pipeline;
            end
@@ -31,8 +31,8 @@ classdef TestChannelWise
             nChan = size( data(1).data,2 );
             
             % covert to hb
-            j = nirs.functional.modules.OpticalDensity();
-            j = nirs.functional.modules.BeerLambertLaw( j );
+            j = nirs.modules.OpticalDensity();
+            j = nirs.modules.BeerLambertLaw( j );
             hb = j.run( data );
             
             % preallocate
@@ -63,7 +63,7 @@ classdef TestChannelWise
                 
                 amp = ones(size(dur));
                 
-                stim = nirs.functional.StimulusEvents();
+                stim = nirs.design.StimulusEvents();
                 stim.amp = amp;
                 stim.dur = dur;
                 stim.onset = onset;
@@ -71,13 +71,13 @@ classdef TestChannelWise
                 stim = Dictionary({'roc'},{stim});
                 
                 % add to data
-                basis = Dictionary({'default'}, {nirs.functional.basis.Canonical()});
-                X = nirs.functional.createDesignMatrix( stim, t, basis );
+                basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
+                X = nirs.design.createDesignMatrix( stim, t, basis );
                 
                 d(:,iChan) = bsxfun(@plus,d(:,iChan),X*obj.beta);
                 
                 % create data
-                j = nirs.functional.modules.ReverseBeerLambert();
+                j = nirs.modules.InverseBeerLambert();
                 tmp = hb(iData);
                 tmp.data = d;
                 tmp.stimulus = stim;

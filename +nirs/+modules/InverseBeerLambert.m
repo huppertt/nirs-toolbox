@@ -31,7 +31,7 @@ classdef InverseBeerLambert < nirs.modules.AbstractModule
                 for j = 1:max(idx)
                     lst = idx == j;
                     
-                    ext = nirs.getSpectra( obj.lambda );
+                    ext = nirs.media.getspectra( obj.lambda );
                     
                     clist = [1 2]; % hbo and hbr; need to fix this
                     

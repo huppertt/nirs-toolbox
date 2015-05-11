@@ -36,7 +36,7 @@ classdef Resample < nirs.modules.AbstractModule
                 d = filtfilt(b,1,d);
                 
                 % interpolation
-                d = interp1(t,d,new_t,'pchip');
+                d = interp1(t,d,new_t,'linear');
 
                 data(i).data = d;
                 data(i).time = new_t;
