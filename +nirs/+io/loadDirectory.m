@@ -10,7 +10,7 @@ function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
     
     % default folder structure
     if nargin < 2
-        folderHierarchy = {'group','subject','session'};
+        folderHierarchy = {'group','subject'};
     end
     
     % all files in subdirectory with correct extension

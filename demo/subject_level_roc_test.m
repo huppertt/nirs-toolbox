@@ -14,7 +14,7 @@ j = nirs.modules.AR_IRLS( j );
 
 % ROC
 r = nirs.testing.SubjectLevelROC( j );
-r.beta  = 4; % uM
-r.niter = 200;
+r.beta  = 5; % uM
+r.niter = 20;
 
 r = r.run( data );

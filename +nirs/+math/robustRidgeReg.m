@@ -1,11 +1,13 @@
 function S = robustRidgeReg( X, y )
 
     % initial fit
-    S = rfit( X, y );
-
+    %S = rfit( X, y );
+    S.b = X \ y;
+    S.r = y - X*S.b;
+    
     % loop
     count = 0; b0 = 1e16;
-    while norm(S.b-b0)/norm(b0) > 1e-4 && count < 50
+    while norm(S.b-b0)/norm(b0) > 1e-6 && count < 50
         b0 = S.b;
         
         w = wfun( S.r );
@@ -18,7 +20,7 @@ function S = robustRidgeReg( X, y )
         count = count + 1;
     end
     
-    S.covb  = pinv(X'*X + 0*S.a*eye(length(S.b))) * (mad(S.r,0)/0.6745)^2;
+    S.covb  = pinv(X'*X + S.a*eye(length(S.b))) * (mad(S.r,0)/0.6745)^2;
     S.dfe = size(X,1) - size(X,2);
     S.w = w;
 end

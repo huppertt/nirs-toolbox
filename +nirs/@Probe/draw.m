@@ -37,10 +37,12 @@ function draw( obj, values, vrange, vcrit, cmap )
     z = linspace( -vmax, vmax, size(cmap,1) );
 
     % threshold colormap
-    lst = z > vcrit(1) & z < vcrit(2);
+%     lst = z > vcrit(1) & z < vcrit(2);
     
-    [~,i] = min(abs(z));
-    cmap(lst,:) = repmat( cmap(i,:), [sum(lst) 1] );
+%     [~,i] = min(abs(z));
+%     cmap(lst,:) = repmat( cmap(i,:), [sum(lst) 1] );
+
+    lst = values < vcrit(1) | values > vcrit(2);
 
     % loop through channels and draw lines
     link = unique( [obj.link.source obj.link.detector],'rows' );
@@ -60,6 +62,11 @@ function draw( obj, values, vrange, vcrit, cmap )
 
         [~, iCol] = min(abs(values(iChan)-z));
         h = line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
+        
+        if lst(iChan)
+            set(h,'LineWidth',10)
+        end
+        
         set(h,'UserData',[iSrc iDet])
     end
     

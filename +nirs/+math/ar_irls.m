@@ -101,9 +101,9 @@ function stats = ar_irls( d,X,Pmax,tune )
             yf = myFilter(f,y);
 
             % perform IRLS
-            %[B, S] = robustfit(Xf,yf,'bisquare',tune,'off');
-            S = nirs.math.robustRidgeReg(Xf, yf);
-            B = S.b;
+            [B, S] = robustfit(Xf,yf,'bisquare',tune,'off');
+%             S = nirs.math.robustRidgeReg(Xf, yf);
+%             B = S.b;
             
             iter = iter + 1;
         end
@@ -116,8 +116,11 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
         stats.P(i) = length(a)-1;
         
-        %L = pinv(Xf'*Xf); % more stable; %inv(chol(Xf'*Xf));
-        stats.covb(:,:,i) = S.covb; %L*S.mad_s^2; %(L*L')*S.mad_s^2;
+%         % L = pinv(Xf'*Xf); % more stable; %inv(chol(Xf'*Xf));
+%         stats.covb(:,:,i) = S.covb; %L*S.mad_s^2; %(L*L')*S.mad_s^2;
+        
+        L = pinv(Xf'*Xf); % more stable
+        stats.covb(:,:,i) = L*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
         
