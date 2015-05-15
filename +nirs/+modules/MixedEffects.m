@@ -31,6 +31,14 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 tbl = [tbl; [table(S(i).names(:),'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
             end
             
+            % center numeric variables
+            n = tbl.Properties.VariableNames;
+            for i = 1:length(n)
+               if all( isnumeric( tbl.(n{i}) ) )
+                   tbl.(n{i}) = tbl.(n{i}) - mean( tbl.(n{i}) );
+               end
+            end
+            
             %% loop through channels and fite mfx model
             for iChan = 1:size(S(1).probe.link.source,1)
                 

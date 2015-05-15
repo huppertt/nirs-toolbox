@@ -20,7 +20,7 @@ classdef ChannelStats
         tstat
         
         tcrit
-        tcrit_corr
+        tcrit_fdr
 
         p
         q
@@ -50,7 +50,7 @@ classdef ChannelStats
         
         % q values
         function q = get.q( obj )
-            q = [];
+            q = nirs.math.fdr( obj.p(:) )';
         end
         
         % critical value of t
@@ -59,6 +59,26 @@ classdef ChannelStats
                 tcrit = -tinv(obj.pcrit/2, obj.dfe);
             else
                 tcrit = -tinv(obj.pcrit, obj.dfe);
+            end
+        end
+        
+        function tcrit = get.tcrit_fdr( obj )
+            % sorted p
+            p = obj.p;
+            [p, i] = sort(p);
+            
+            % corresponding q
+            q = obj.q(i);
+            
+            idx = find( q > obj.qcrit, 1 );
+            
+            % corrected pcrit
+            pcrit = p(idx-1);
+            
+            if strcmpi(obj.tails,'both')
+                tcrit = -tinv(pcrit/2, obj.dfe);
+            else
+                tcrit = -tinv(pcrit, obj.dfe);
             end
         end
     

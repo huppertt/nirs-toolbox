@@ -42,7 +42,7 @@ function draw( obj, values, vrange, vcrit, cmap )
 %     [~,i] = min(abs(z));
 %     cmap(lst,:) = repmat( cmap(i,:), [sum(lst) 1] );
 
-    lst = values < vcrit(1) | values > vcrit(2);
+    lst = values <= vcrit(1) | values >= vcrit(2);
 
     % loop through channels and draw lines
     link = unique( [obj.link.source obj.link.detector],'rows' );
@@ -61,10 +61,10 @@ function draw( obj, values, vrange, vcrit, cmap )
 
 
         [~, iCol] = min(abs(values(iChan)-z));
-        h = line(x,y,'LineWidth',5,'Color',cmap(iCol,:));
+        h = line(x,y,'LineStyle','--','LineWidth',4,'Color',cmap(iCol,:));
         
-        if lst(iChan)
-            set(h,'LineWidth',10)
+        if lst(iChan) % channel is significant
+            set(h,'LineStyle','-','LineWidth',8)
         end
         
         set(h,'UserData',[iSrc iDet])

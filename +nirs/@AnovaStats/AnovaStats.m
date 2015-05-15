@@ -46,7 +46,7 @@ classdef AnovaStats
             types = obj.probe.link.type;
             
             if any(isnumeric(types))
-                types = cellfun(@num2str, num2cell(types));
+                types = cellfun(@(x){num2str(x)}, num2cell(types));
             end
             
             utypes = unique(types, 'stable');
