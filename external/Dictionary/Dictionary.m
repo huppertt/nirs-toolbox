@@ -40,18 +40,6 @@ classdef Dictionary
             
             obj = obj.rehash();
         end
-           
-%         % update with list of keys and vals
-%         function obj = update(obj, keys, vals)
-%             assert( length(keys)==length(vals) ...
-%                     && iscell(vals) ...
-%                     && iscell(keys) ...
-%                     && Dictionary.areUniqueKeys(keys) )
-%                 
-%             for i = 1:length(keys)
-%                 obj.put(keys{i},vals{i});
-%             end
-%         end
         
         % number of items in dictionary
         function count = get.count( obj )
@@ -85,6 +73,9 @@ classdef Dictionary
             
             if ~iscell(newKeys)
                 newKeys = {newKeys};
+            end
+            
+            if ~iscell(newVals)
                 newVals = {newVals};
             end
             

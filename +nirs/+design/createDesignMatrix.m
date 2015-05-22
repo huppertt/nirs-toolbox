@@ -1,20 +1,31 @@
-function [X, names ] = createDesignMatrix( stimulus, t, basis )
+function [X, names] = createDesignMatrix( stimulus, t, basis, type )
 
+    if nargin < 4, type = ''; end
+    
     % keys are stimulus names and values are stim objects
-    keys = stimulus.keys;
-    stims = stimulus.values;
+    stim_keys = stimulus.keys;
+    stim_vals = stimulus.values;
 
     X = []; names = {};
-    for iKey = 1:length(keys)
+    for iKey = 1:length(stim_keys)
         
         % get stim vector
-        stimVector = stims{iKey}.getStimVector( t );
+        stimVector = stim_vals{iKey}.getStimVector( t );
         
         % get basis object
-        if basis.iskey( keys{iKey} );
-            basisObj = basis( keys{iKey} );
+        if isempty(type)
+            if basis.iskey( stim_keys{iKey} );
+                basisObj = basis( stim_keys{iKey} );
+            else
+                basisObj = basis( 'default' );
+            end
         else
-            basisObj = basis( 'default' );
+            if basis.iskey( {stim_keys{iKey},type} );
+                basisObj = basis( {{stim_keys{iKey},type}} );
+            else
+                basisObj = basis( {{'default',type}} );
+            end
+            
         end
         
         % apply basis to stim vector
@@ -23,13 +34,20 @@ function [X, names ] = createDesignMatrix( stimulus, t, basis )
         % append to variable names & design matrix
         if size(x,2) > 1
             for k = 1:size(x,2)
-                names{end+1} = [keys{iKey} '_' sprintf('%02i',k)];
+                names{end+1} = [stim_keys{iKey} '_' sprintf('%02i',k)];
             end
         else
-            names{end+1} = keys{iKey};
+            names{end+1} = stim_keys{iKey};
         end
-
+        
         X = [X x];
+    end
+    
+    % append type if specified
+    if ~isempty(type)
+        for i = 1:length(names)
+            names{i} = [names{i} '_' type];
+        end
     end
 
 end

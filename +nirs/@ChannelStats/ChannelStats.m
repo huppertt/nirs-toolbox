@@ -50,7 +50,7 @@ classdef ChannelStats
         
         % q values
         function q = get.q( obj )
-            q = nirs.math.fdr( obj.p(:) )';
+            q = reshape( nirs.math.fdr( obj.p(:) )', size(obj.p) );
         end
         
         % critical value of t
@@ -134,6 +134,41 @@ classdef ChannelStats
             S.df1 = k;
             S.df2 = n-k;
             S.probe = obj.probe;
+        end
+        
+        function tbl = roiAverage( obj, R, names )
+            if ischar( names )
+                names = {names};
+            end
+            
+            varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p'};
+            tbl = table({},[],[],[],[],[],[], 'VariableNames', varnames);
+            
+            R = R > 0;
+            
+            for i = 1:size(R,1)
+                for j = 1:size(obj.beta, 1)
+                    roi     = names{i};
+                    con     = obj.names{j};
+                    
+                    w       = 1./squeeze( obj.covb(j,j,R(i,:)) );
+                    x       = ones(size(w));
+                    
+                    ix      = pinv( x'*diag(w)*x ) * x' * diag(w);
+                    
+                    beta    = ix * obj.beta(j,R(i,:))';
+                    se      = sqrt( pinv( x'*diag(w)*x ) );
+                    
+                    
+                    df      = obj.dfe;
+                    t       = beta / se;
+                    p       = 2*tcdf(-abs(t),df);
+                
+                    tmp = cell2table({roi, con, beta, se, df, t, p});
+                    tmp.Properties.VariableNames = varnames;
+                    tbl = [tbl; tmp];
+                end
+            end
         end
         
         function h = draw( obj, vtype, vrange )

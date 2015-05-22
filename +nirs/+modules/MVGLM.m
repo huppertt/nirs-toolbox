@@ -23,6 +23,18 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 
+                link = data(i).probe.link;
+                [link, idx] = sortrows( link, {'source', 'detector'} );
+                
+                d = d(:,idx);
+                
+                n = length( unique(link.type) );
+                
+                Y = [];
+                for j = 1:n
+                   Y(:,j,:) = d(:,j:n:end); 
+                end
+                
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
@@ -51,8 +63,35 @@ classdef MVGLM < nirs.modules.AbstractGLM
             end
 
         end
-        
     end
     
+    methods ( Access = protected )
+        function [X, names] = createX( obj, data )
+            
+            X = []; names = {};
+            if obj.useSpectralPriors
+                
+                types = {'hbo','hbr'};
+                for i = 1:length(types)
+                    t       = data.time;
+                    stims   = data.stimulus;
+
+                    [x, n] = nirs.design. ...
+                        createDesignMatrix( stims, t, obj.basis, types{i} );
+
+                    X       = [X x];
+                    names   = [names n];
+                end
+            else
+                t       = data.time;
+                stims   = data.stimulus;
+                
+                [X, names] = nirs.design. ...
+                        createDesignMatrix( stims, t, obj.basis );
+            end
+            
+        end
+    end
+            
 end
 

@@ -7,7 +7,7 @@ function q = fdr( p )
     % number of hypothesis tests
     m = length(p);
     
-    if m > 100 % Storey's method for large number of tests
+    if m > 300 % Storey's method for large number of tests
         
         % grid to estimate fraction of null tests
         x = (0.05:0.05:0.95)';
