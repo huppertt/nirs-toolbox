@@ -1,9 +1,9 @@
-classdef SubjectLevelROC
+classdef MVSubjectLevelROC
     %UNTITLED6 Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        name    = 'ROC Test Subject Level';
+        name    = 'Multivariate GLM ROC';
         
         truth
         tstat
@@ -20,7 +20,7 @@ classdef SubjectLevelROC
     end
     
     methods
-        function obj = SubjectLevelROC( pipeline )
+        function obj = MVSubjectLevelROC( pipeline )
            if nargin > 0
                obj.pipeline = pipeline;
            end
@@ -38,6 +38,7 @@ classdef SubjectLevelROC
             % preallocate
             obj.tstat = zeros(obj.niter*nChan,1);
             obj.truth = zeros(obj.niter*nChan,1);
+            obj.p = zeros(obj.niter*nChan,1);
             
             txt0 = '';
             for iter = 1:obj.niter
@@ -47,34 +48,35 @@ classdef SubjectLevelROC
                 t = hb(iData).time;
                 
                 % choose channels
-                iChan = randperm(nChan,nChan/2);
+                iChan = randperm(nChan/2, floor(nChan/4) + mod(iter,2));
                 
-%                 % random stim design
-%                 tmin = min( t ) + obj.stimLength;
-%                 tmax = max( t ) - 2*obj.stimLength;
-%                 
-%                 nrnd = round( 2*(tmax-tmin)/obj.stimSpacing );
-%                 dt = exprnd(obj.stimLength, [nrnd 1]);
-%                 
-%                 onset = tmin + cumsum([0; dt]);
-%                 onset = onset( onset < tmax );
-%                 
-%                 dur = obj.stimLength * ones(size(onset));
-%                 
-%                 amp = ones(size(dur));
-%                 
-%                 stim = nirs.design.StimulusEvents();
-%                 stim.amp = amp;
-%                 stim.dur = dur;
-%                 stim.onset = onset;
-%                 
-%                 stim = Dictionary({'roc'},{stim});
-%                 
-%                 % add to data
-%                 basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
-%                 X = nirs.design.createDesignMatrix( stim, t, basis );
+                % random stim design
+                tmin = min( t ) + obj.stimLength;
+                tmax = max( t ) - 2*obj.stimLength;
                 
-                d(:,iChan) = bsxfun(@plus,d(:,iChan),X*obj.beta);
+                nrnd = round( 2*(tmax-tmin)/obj.stimSpacing );
+                dt = exprnd(obj.stimLength, [nrnd 1]);
+                
+                onset = tmin + cumsum([0; dt]);
+                onset = onset( onset < tmax );
+                
+                dur = obj.stimLength * ones(size(onset));
+                
+                amp = ones(size(dur));
+                
+                stim = nirs.design.StimulusEvents();
+                stim.amp = amp;
+                stim.dur = dur;
+                stim.onset = onset;
+                
+                stim = Dictionary({'roc'},{stim});
+                
+                % add to data
+                basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
+                X = nirs.design.createDesignMatrix( stim, t, basis );
+                
+                d(:,iChan) = bsxfun(@plus,d(:,iChan),X*obj.beta);               % hbo
+                d(:,iChan + nChan/2) = bsxfun(@plus,d(:,iChan), -X*obj.beta);   % hbr
                 
                 % create data
                 j = nirs.modules.InverseBeerLambert();
@@ -91,9 +93,11 @@ classdef SubjectLevelROC
                 S = obj.pipeline.run( tmp );
                 
                 % put stats
-                obj.tstat( (iter-1)*nChan+1:iter*nChan )    = S.tstat(1,:)';
-                obj.p( (iter-1)*nChan+1:iter*nChan )        = tcdf(-S.tstat(1,:)', S.dfe);
-                obj.truth( (iter-1)*nChan + iChan )         = 1;
+                T = S.tstat';
+                T = T(:);
+                obj.tstat( (iter-1)*nChan+1:iter*nChan )    = T;
+                obj.p( (iter-1)*nChan+1:iter*nChan )        = 2*tcdf(-abs(T)', S.dfe);
+                obj.truth( (iter-1)*nChan + [iChan (iChan+nChan/2)] ) = 1;
                 
                 txt = sprintf('Finished %6i of %6i.\n',iter, obj.niter);
                 fprintf( repmat('\b',[1 length(txt0)]) );

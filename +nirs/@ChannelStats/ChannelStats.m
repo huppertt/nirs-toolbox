@@ -64,13 +64,13 @@ classdef ChannelStats
         
         function tcrit = get.tcrit_fdr( obj )
             % sorted p
-            p = obj.p;
+            p = obj.p(:);
             [p, i] = sort(p);
             
             % corresponding q
             q = obj.q(i);
             
-            idx = find( q > obj.qcrit, 1 );
+            idx = find( q(:) > obj.qcrit, 1 );
             
             % corrected pcrit
             pcrit = p(idx-1);

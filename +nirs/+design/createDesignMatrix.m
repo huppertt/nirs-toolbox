@@ -22,10 +22,11 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
         else
             if basis.iskey( {stim_keys{iKey},type} );
                 basisObj = basis( {{stim_keys{iKey},type}} );
-            else
+            elseif basis.iskey({'default',type})
                 basisObj = basis( {{'default',type}} );
+            else
+                basisObj = basis( 'default' );
             end
-            
         end
         
         % apply basis to stim vector

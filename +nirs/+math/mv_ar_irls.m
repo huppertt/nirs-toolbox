@@ -1,4 +1,5 @@
-function S = mv_ar_irls( X, Y, Pmax )
+function S = mv_ar_irls( X, Y, Pmax, T )
+    if nargin < 4, T = ones(size(Y,1),1); end
 
     [m, n, p] = size(X);
     
@@ -6,23 +7,34 @@ function S = mv_ar_irls( X, Y, Pmax )
     vec   = @(Y) Y(:);
     
     % initial fit
-    S = nirs.math.robust_mvfit( stack(X), Y );
+    thisX = [stack(X) kron(eye(size(Y,2)),T)];
+    S = nirs.math.robust_mvfit( thisX, Y );
     
-    % residual
-    r = vec(Y) - stack(X)*S.b;
-    r = reshape(r, size(Y));
-    
-    % whiten data and model
-    Yf = zeros(size(Y));
-    Xf = zeros(size(X));
-    for i = 1:size(Y,2)
-        a           = ar_fit( r(:,i), Pmax );
-        Yf(:,i)     = myFilter( [1; a(2:end)], Y(:,i) );
-        Xf(:,:,i)   = myFilter( [1; a(2:end)], X(:,:,i) );
-    end
+    b0 = S.b * 1e16; iter = 0;
+    while norm(S.b-b0) / norm(b0) > 1e-4 && iter < 50
+        b0 = S.b;
         
-    % regress
-    S = nirs.math.robust_mvfit( stack(Xf), Yf );
+        % residual
+        r = vec(Y) - thisX*S.b;
+        r = reshape(r, size(Y));
+
+        % whiten data and model
+        Yf = zeros(size(Y));
+        Xf = zeros(size(X));
+        Tf = [];
+        for i = 1:size(Y,2)
+            a           = ar_fit( r(:,i), Pmax );
+            f           = [1; a(2:end)];
+            Yf(:,i)     = myFilter( f, Y(:,i) );
+            Xf(:,:,i)   = myFilter( f, X(:,:,i) );
+            Tf          = blkdiag(Tf, myFilter( f, T ));
+        end
+
+        % regress
+        S = nirs.math.robust_mvfit( [stack(Xf) Tf], Yf );
+        
+        iter = iter + 1;
+    end
 
 end
 

@@ -1,6 +1,10 @@
 classdef MVGLM < nirs.modules.AbstractGLM
     properties
         useSpectralPriors = true;
+        PPF = 50 / 5;
+%         basis = Dictionary();
+%         verbose
+%         trend_func
     end
     
     methods
@@ -13,16 +17,13 @@ classdef MVGLM < nirs.modules.AbstractGLM
         
         function S = runThis( obj, data )
             for i = 1:length(data)
-                
-                %% GET DATA AND ORGANIZE INTO 3D ARRAY
-                %% loop through channels and call mv_ar_irls
-                %% override createX
-                
+       
                 % get data
                 d  = data(i).data;
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 
+                % reshape data
                 link = data(i).probe.link;
                 [link, idx] = sortrows( link, {'source', 'detector'} );
                 
@@ -39,24 +40,40 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
                 
-                % check model
-                obj.checkRank( [X C] )
-                obj.checkCondition( [X C] )
+                % distances
+                l = data(i).probe.distances(idx);
+                l = l(1:n:end);
                 
-                % run regression
-                thisS = nirs.math.ar_irls( d, [X C], round(4*Fs) );
+                % new probe
+                probe   = data(i).probe;
+                lst     = link.type == link.type(1);
+                probe.link = link(lst,:);
+                probe.link.type = repmat( {'mv'}, [sum(lst) 1]);
                 
-                % put stats
+                % outputs
                 ncond = length(names);
-                S(i) = nirs.ChannelStats();
-                S(i).description = data(i).description;
-                S(i).beta = thisS.beta(1:ncond,:);
-                S(i).covb = thisS.covb(1:ncond, 1:ncond, :);
-                S(i).dfe  = thisS.dfe(1);
-                
+                S(i) = nirs.ChannelStats();                   
+                S(i).description    = data(i).description;
                 S(i).names          = names';
                 S(i).demographics   = data(i).demographics;
-                S(i).probe          = data(i).probe;
+                S(i).probe          = probe;
+                
+                % fit data
+                for iChan = 1:size(Y,3)
+                    if obj.useSpectralPriors
+                        thisX = X * l(iChan) * obj.PPF; 
+                    else
+                        thisX = X;
+                    end
+                    
+                    stats = nirs.math.mv_ar_irls(thisX, Y(:,:,iChan), round(4*Fs), C);
+                
+                    % put stats
+                    S(i).beta(:,iChan)      = stats.b(1:ncond);
+                    S(i).covb(:,:,iChan)    = stats.covb(1:ncond, 1:ncond, :);
+                    S(i).dfe                = stats.dfe;
+                
+                end
                 
                 % print progress
                 obj.printProgress( i, length(data) )
@@ -68,26 +85,39 @@ classdef MVGLM < nirs.modules.AbstractGLM
     methods ( Access = protected )
         function [X, names] = createX( obj, data )
             
-            X = []; names = {};
+            lambda = unique( data.probe.link.type );
+            
+            names = {};
             if obj.useSpectralPriors
                 
-                types = {'hbo','hbr'};
-                for i = 1:length(types)
-                    t       = data.time;
-                    stims   = data.stimulus;
+                t       = data.time;
+                stims   = data.stimulus;
 
-                    [x, n] = nirs.design. ...
-                        createDesignMatrix( stims, t, obj.basis, types{i} );
-
-                    X       = [X x];
-                    names   = [names n];
+                [xhbo, n] = nirs.design. ...
+                    createDesignMatrix( stims, t, obj.basis, 'hbo' );
+                
+                names   = [names n];
+                
+                [xhbr, n] = nirs.design. ...
+                    createDesignMatrix( stims, t, obj.basis, 'hbr' );
+                
+                names   = [names n];
+                
+                X = [];
+                e = nirs.media.getspectra(lambda);
+                
+                for i = 1:length( lambda )
+                    X(:,:,i) = [e(i,1)*xhbo e(i,2)*xhbr] * 1e6;
                 end
+                                
             else
+                
                 t       = data.time;
                 stims   = data.stimulus;
                 
                 [X, names] = nirs.design. ...
                         createDesignMatrix( stims, t, obj.basis );
+                    
             end
             
         end
