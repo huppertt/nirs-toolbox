@@ -107,7 +107,7 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 e = nirs.media.getspectra(lambda);
                 
                 for i = 1:length( lambda )
-                    X(:,:,i) = [e(i,1)*xhbo e(i,2)*xhbr] * 1e6;
+                    X(:,:,i) = [e(i,1)*xhbo e(i,2)*xhbr] * 1e-6;
                 end
                                 
             else

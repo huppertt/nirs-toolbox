@@ -7,7 +7,10 @@ classdef MVSubjectLevelROC
         
         truth
         tstat
-        p
+        
+        phbo
+        phbr
+        pboth
         
         pipeline
         
@@ -36,9 +39,11 @@ classdef MVSubjectLevelROC
             hb = j.run( data );
             
             % preallocate
-            obj.tstat = zeros(obj.niter*nChan,1);
-            obj.truth = zeros(obj.niter*nChan,1);
-            obj.p = zeros(obj.niter*nChan,1);
+            %obj.tstat = zeros(obj.niter*nChan,1);
+            obj.truth   = zeros(obj.niter*nChan/2,1);
+            obj.phbo    = zeros(obj.niter*nChan/2,1);
+            obj.phbr    = zeros(obj.niter*nChan/2,1);
+            obj.pboth   = zeros(obj.niter*nChan/2,1);
             
             txt0 = '';
             for iter = 1:obj.niter
@@ -51,31 +56,9 @@ classdef MVSubjectLevelROC
                 iChan = randperm(nChan/2, floor(nChan/4) + mod(iter,2));
                 
                 % random stim design
-                tmin = min( t ) + obj.stimLength;
-                tmax = max( t ) - 2*obj.stimLength;
+                [X, stim] = nirs.testing.randDesignMat( t, obj.stimLength, obj.stimSpacing );
                 
-                nrnd = round( 2*(tmax-tmin)/obj.stimSpacing );
-                dt = exprnd(obj.stimLength, [nrnd 1]);
-                
-                onset = tmin + cumsum([0; dt]);
-                onset = onset( onset < tmax );
-                
-                dur = obj.stimLength * ones(size(onset));
-                
-                amp = ones(size(dur));
-                
-                stim = nirs.design.StimulusEvents();
-                stim.amp = amp;
-                stim.dur = dur;
-                stim.onset = onset;
-                
-                stim = Dictionary({'roc'},{stim});
-                
-                % add to data
-                basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
-                X = nirs.design.createDesignMatrix( stim, t, basis );
-                
-                d(:,iChan) = bsxfun(@plus,d(:,iChan),X*obj.beta);               % hbo
+                d(:,iChan) = bsxfun(@plus, d(:,iChan), X*obj.beta);           	% hbo
                 d(:,iChan + nChan/2) = bsxfun(@plus,d(:,iChan), -X*obj.beta);   % hbr
                 
                 % create data
@@ -93,12 +76,11 @@ classdef MVSubjectLevelROC
                 S = obj.pipeline.run( tmp );
                 
                 % put stats
-                T = S.tstat';
-                T = T(:);
-                obj.tstat( (iter-1)*nChan+1:iter*nChan )    = T;
-                obj.p( (iter-1)*nChan+1:iter*nChan )        = 2*tcdf(-abs(T)', S.dfe);
-                obj.truth( (iter-1)*nChan + [iChan (iChan+nChan/2)] ) = 1;
-                
+                obj.phbo( (iter-1)*nChan/2+1:iter*nChan/2 ) = S.p(1,:);
+                obj.phbr( (iter-1)*nChan/2+1:iter*nChan/2 ) = S.p(2,:);
+                obj.pboth( (iter-1)*nChan/2+1:iter*nChan/2 ) = S.ftest([1 1]).p;
+                obj.truth((iter-1)*nChan/2 + iChan) = 1;
+                                
                 txt = sprintf('Finished %6i of %6i.\n',iter, obj.niter);
                 fprintf( repmat('\b',[1 length(txt0)]) );
                 fprintf( txt );
@@ -111,21 +93,27 @@ classdef MVSubjectLevelROC
                 h(2) = figure;
             end
 
-            [tp, fp, th] = roc( obj.truth, obj.p );
+            [tp0, fp0, th0] = roc( obj.truth, obj.phbo );
+            [tp1, fp1, th1] = roc( obj.truth, obj.phbr );
+            [tp2, fp2, th2] = roc( obj.truth, obj.pboth );
             
             figure(h(1)), hold on
-            plot( fp, tp )
+            plot( fp0, tp0, 'r' )
+            plot( fp1, tp1, 'b' )
+            plot( fp2, tp2, 'g' )
             plot(linspace(0,1), linspace(0,1),'r--')
             xlabel('False Postive Rate','FontSize',14)
             ylabel('True Positive Rate','FontSize',14)
-            legend('Pipeline', 'Random','Location','SouthEast')
+            legend('hbo', 'hbr', 'joint', 'random','Location','SouthEast')
             
             figure(h(2)), hold on
-            plot( th, fp )
+            plot( th0, fp0, 'r' )
+            plot( th1, fp1, 'b' )
+            plot( th2, fp2, 'g' )
             plot(linspace(0,1), linspace(0,1),'r--')
             xlabel('p','FontSize',14)
             ylabel('False Positive Rate','FontSize',14)
-            legend('Pipeline', 'Ideal','Location','SouthEast')
+            legend('hbo', 'hbr', 'joint', 'ideal','Location','SouthEast')
         end        
         
 %         function options = getOptions( obj )

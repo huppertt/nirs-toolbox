@@ -34,6 +34,6 @@ j = nirs.modules.MVGLM( j );
 % ROC
 r2 = nirs.testing.MVSubjectLevelROC( j );
 r2.beta  = 8; % uM
-r2.niter = 25;
+r2.niter = 50;
 
 r2 = r2.run( data );

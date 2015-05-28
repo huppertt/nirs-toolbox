@@ -1,4 +1,4 @@
-function X = randDesignMat( t, stimLength, stimSpace, basis )
+function [X, stim] = randDesignMat( t, stimLength, stimSpace, basis )
     if nargin < 5
         basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
     end
@@ -22,17 +22,17 @@ function X = randDesignMat( t, stimLength, stimSpace, basis )
     stim.dur = dur;
     stim.onset = onset;
 
-    stim = Dictionary({'roc'},{stim});
+    stim = Dictionary({'rand'},{stim});
 
     % add to data
     X = nirs.design.createDesignMatrix( stim, t, basis );
 end
 
-X = nirs.testing.randDesignMat( linspace(0,300,1200)', 5, 10 );
-
-Y = [1*X (-1*X)];
-
-e = mvnrnd([0 0], [1 0.5; 0.5 1], 1200);
-
-e(:,1) = filter(1, [1 -0.5], e(:,1));
-e(:,2) = filter(1, [1 -0.3], e(:,2));
+% X = nirs.testing.randDesignMat( linspace(0,300,1200)', 5, 10 );
+% 
+% Y = [1*X (-1*X)];
+% 
+% e = mvnrnd([0 0], [1 0.5; 0.5 1], 1200);
+% 
+% e(:,1) = filter(1, [1 -0.5], e(:,1));
+% e(:,2) = filter(1, [1 -0.3], e(:,2));
