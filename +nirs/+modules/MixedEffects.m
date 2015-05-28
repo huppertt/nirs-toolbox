@@ -22,7 +22,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             demo = nirs.createDemographicsTable( S );
             
             % preallocate group stats
-            G = nirs.ChannelStats();
+            G = nirs.core.ChannelStats();
             
             %% assemble table
             tbl = table();
