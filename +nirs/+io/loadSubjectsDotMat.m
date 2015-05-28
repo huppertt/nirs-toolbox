@@ -1,7 +1,7 @@
 function data = loadSubjectsDotMat( filename )
     load(filename)
     
-    data = nirs.FunData.empty;
+    data = nirs.core.Data.empty;
     
     % group names
     groups = fieldnames( Subjects.Data );
@@ -57,7 +57,7 @@ function data = loadSubjectsDotMat( filename )
                 demo('group')   = groups{iGroup};
                 demo('subject') = subjects{iSubj};
                 
-                data(end+1) = nirs.FunData(d, t, probe, 0, stims, demo, fname);
+                data(end+1) = nirs.core.Data(d, t, probe, 0, stims, demo, fname);
             end
             
         end

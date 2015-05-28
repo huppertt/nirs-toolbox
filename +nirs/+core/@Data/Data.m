@@ -1,9 +1,19 @@
-classdef FunData < nirs.Data
+classdef Data
     %DATA Object to hold nirs data
     
     properties
+        description;
+        data;               % channel time series in columns
+        probe;              % object describing geometry
+        time;               % vector of time points
+        Fm = 0;             % modulation frequency in MHz: 0 for CW; 110 for ISS
+        
         stimulus        = Dictionary();	% struct containing stim vectors (vectors, names, types)
         demographics    = Dictionary();	% table containing demographics (names, values)
+    end
+    
+    properties( Dependent = true )
+        Fs = 0;             % sampling frequency in Hz
     end
 
     methods
@@ -27,6 +37,19 @@ classdef FunData < nirs.Data
         function obj = set.demographics( obj, demo )
            assert( isa(demo,'Dictionary') )
            obj.demographics = demo;
+        end
+        
+        function obj = set.time( obj, time )
+           assert( isvector(time) )
+           obj.time = time(:);
+        end
+        
+        function out = get.Fs( obj )
+            if length(obj.time) > 1
+                out = 1 / ( obj.time(2) - obj.time(1) );
+            else
+                out = NaN;
+            end
         end
         
         %% show data
@@ -86,7 +109,6 @@ classdef FunData < nirs.Data
             else
                 ylim( [pmin pmax] );
             end
-
         end
         
     end

@@ -20,7 +20,7 @@ function draw( obj, values, vrange, vcrit, cmap )
     if nargin == 1
         cmap    = [0.5 0.5 1];
         vrange  = [0 0];
-        values = zeros(size(obj.link.source,1),1);
+        values  = zeros(size(obj.link.source,1),1);
     end
 
     % check for scalar vrange or vcrit
@@ -36,12 +36,7 @@ function draw( obj, values, vrange, vcrit, cmap )
     vmax = max(abs(vrange));
     z = linspace( -vmax, vmax, size(cmap,1) );
 
-    % threshold colormap
-%     lst = z > vcrit(1) & z < vcrit(2);
-    
-%     [~,i] = min(abs(z));
-%     cmap(lst,:) = repmat( cmap(i,:), [sum(lst) 1] );
-
+    % mask
     lst = values <= vcrit(1) | values >= vcrit(2);
 
     % loop through channels and draw lines

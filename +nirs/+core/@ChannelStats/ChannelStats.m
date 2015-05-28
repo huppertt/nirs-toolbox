@@ -4,24 +4,20 @@ classdef ChannelStats
     
     properties
         description
+        
         names           % variable names
+        
         beta            % nconds x nchannels
         covb            % nconds x nconds x nchannels
         dfe          	% degrees of freedom
-        demographics    % subject demographics
-        probe           % probe geometry
         
-        tails = 'both';
-        pcrit = 0.05;
-        qcrit = 0.05;
+        probe           % probe geometry
+        demographics    % subject demographics
     end
     
     properties ( Dependent = true )
         tstat
         
-        tcrit
-        tcrit_fdr
-
         p
         q
     end
@@ -38,14 +34,7 @@ classdef ChannelStats
         % p value calculation
         function p = get.p( obj )
             t = obj.tstat;
-            
-            if strcmpi(obj.tails,'pos')
-                p = tcdf(-t, obj.dfe);
-            elseif strcmpi(obj.tails,'neg')
-                p = tcdf(t, obj.dfe);
-            else
-                p = 2*tcdf(-abs(t), obj.dfe);
-            end
+            p = 2*tcdf(-abs(t), obj.dfe);
         end
         
         % q values
@@ -53,33 +42,21 @@ classdef ChannelStats
             q = reshape( nirs.math.fdr( obj.p(:) )', size(obj.p) );
         end
         
-        % critical value of t
-        function tcrit = get.tcrit( obj )
-            if strcmpi(obj.tails,'both')
-                tcrit = -tinv(obj.pcrit/2, obj.dfe);
-            else
-                tcrit = -tinv(obj.pcrit, obj.dfe);
+        % critical value
+        function out = getCritT( obj, s )
+            % takes in string in form of 'p < 0.05' or 'q < 0.10'
+            s = strtrim( strsplit( s ) );
+            
+            if s{1} == 'p'
+                pcrit = str2num(s{3}); 
+            elseif s{1} == 'q'
+                [p, idx] = sort( obj.p(:) );
+                q = obj.q(idx);
+                pcrit = interp1(q, p, str2num(s{3}));
             end
-        end
-        
-        function tcrit = get.tcrit_fdr( obj )
-            % sorted p
-            p = obj.p(:);
-            [p, i] = sort(p);
             
-            % corresponding q
-            q = obj.q(i);
-            
-            idx = find( q(:) > obj.qcrit, 1 );
-            
-            % corrected pcrit
-            pcrit = p(idx-1);
-            
-            if strcmpi(obj.tails,'both')
-                tcrit = -tinv(pcrit/2, obj.dfe);
-            else
-                tcrit = -tinv(pcrit, obj.dfe);
-            end
+            out = - tinv( abs( pcrit )/2, obj.dfe );
+           
         end
     
         % linear transform of variables
@@ -136,70 +113,20 @@ classdef ChannelStats
             S.probe = obj.probe;
         end
         
-        function tbl = roiAverage( obj, R, names )
-            if ischar( names )
-                names = {names};
-            end
-            
-            varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p'};
-            tbl = table({},[],[],[],[],[],[], 'VariableNames', varnames);
-            
-            R = R > 0;
-            
-            for i = 1:size(R,1)
-                for j = 1:size(obj.beta, 1)
-                    roi     = names{i};
-                    con     = obj.names{j};
-                    
-                    w       = 1./squeeze( obj.covb(j,j,R(i,:)) );
-                    x       = ones(size(w));
-                    
-                    ix      = pinv( x'*diag(w)*x ) * x' * diag(w);
-                    
-                    beta    = ix * obj.beta(j,R(i,:))';
-                    se      = sqrt( pinv( x'*diag(w)*x ) );
-                    
-                    
-                    df      = obj.dfe;
-                    t       = beta / se;
-                    p       = 2*tcdf(-abs(t),df);
-                
-                    tmp = cell2table({roi, con, beta, se, df, t, p});
-                    tmp.Properties.VariableNames = varnames;
-                    tbl = [tbl; tmp];
-                end
-            end
-        end
-        
-        function h = draw( obj, vtype, vrange )
+        function draw( obj, vtype, vrange, vcrit )
             % type is either beta or tstat
-            if nargin < 2
-                vtype = 'T';
-            end
+            if nargin < 2, vtype = 'tstat'; end
             
-            if lower(vtype(1)) == 'b'
-                values = obj.beta;
-                values( obj.p > obj.pcrit ) = 0;
-                vcrit = 0;
-            elseif lower(vtype(1)) == 't'
-                values  = obj.tstat;
-                vcrit   = obj.tcrit;
-            end
+            values = obj.(vtype);
             
             % range to show
             if nargin < 3
                 vmin = min( values(:) );
                 vmax = max( values(:) );
-                
-                if strcmpi( obj.tails, 'both' )
-                    vrange = ceil( max( abs( [vmin vmax] ) ) );
-                    vrange = [-vrange vrange];
-                elseif strcmpi( obj.tails, 'pos' )
-                    vrange = [0 ceil( vmax )];
-                elseif strcmpi( obj.tails, 'neg' )
-                    vrange = [-floor(vmin) 0];
-                end
+                vrange = [vmin vmax];
             end
+            
+            if nargin < 4, vcrit = 0; end
             
             % loop through var names
             h = []; % handles
@@ -251,7 +178,6 @@ classdef ChannelStats
             end
             
             newNames = newNames(:);
-
         end
     end
   

@@ -25,7 +25,7 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     
     [link, idx] = sortrows(link,{'type','source','detector'});
     
-    probe = nirs.Probe( srcPos, detPos, link );
+    probe = nirs.core.Probe( srcPos, detPos, link );
     
     
     %% jacobian

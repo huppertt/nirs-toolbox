@@ -1,4 +1,4 @@
-function data = loadCW6Data( filenames )
+function data = loadDotNirs( filenames )
 
     % if a single filename, put it in a cell
     if ischar( filenames )
@@ -12,41 +12,41 @@ function data = loadCW6Data( filenames )
         d = load( filenames{iFile}, '-mat' );
         
         % put into data class
-        tData = nirs.FunData();
-        tData.description = filenames{iFile};
+        thisFile = nirs.core.Data();
+        thisFile.description = filenames{iFile};
         
         try        
             nTime = length(d.t);
 
             % data
             if size(d.d,1) == nTime
-                tData.data = d.d;
+                thisFile.data = d.d;
             elseif size(d.d,2) == nTime
-                tData.data = d.d.';
+                thisFile.data = d.d.';
             else
                 error('Data length and time vector don''t match in size.')
             end
 
             % time vector
-            tData.time = d.t(:);
+            thisFile.time = d.t(:);
 
             % probe
-            tData.probe = nirs.util.sd2probe( d.SD );
-            [tData.probe.link, idx] = ...
-                sortrows(tData.probe.link,{'type','source','detector'});
+            thisFile.probe = nirs.util.sd2probe( d.SD );
+            [thisFile.probe.link, idx] = ...
+                sortrows(thisFile.probe.link,{'type','source','detector'});
 
-            tData.data = tData.data(:,idx);
+            thisFile.data = thisFile.data(:,idx);
 
             if isfield(d,'StimDesign')
-                tData.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign );
+                thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign );
             end
 
             % demographics for group level
             if isfield(d,'demographics')
                 for i = 1:length(d.demographics)
-                    name = d.demographics(i).name;
-                    value = d.demographics(i).value;
-                    tData.demographics(name) = value;
+                    name    = d.demographics(i).name;
+                    value   = d.demographics(i).value;
+                    thisFile.demographics(name) = value;
                 end
             end
             
@@ -55,7 +55,7 @@ function data = loadCW6Data( filenames )
         end
         
         % append to list of data
-        data(iFile) = tData;
+        data(iFile) = thisFile;
     end
 
 
