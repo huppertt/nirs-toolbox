@@ -2,9 +2,6 @@ classdef MVGLM < nirs.modules.AbstractGLM
     properties
         useSpectralPriors = true;
         PPF = 50 / 5;
-%         basis = Dictionary();
-%         verbose
-%         trend_func
     end
     
     methods

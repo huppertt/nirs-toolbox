@@ -20,7 +20,7 @@ classdef Anova < nirs.modules.AbstractModule
             demo = nirs.createDemographicsTable( S );
             
             % preallocate group stats
-            G = nirs.AnovaStats();
+            G = nirs.core.AnovaStats();
             
             %% assemble table
             tbl = table();

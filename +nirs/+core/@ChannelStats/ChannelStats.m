@@ -45,14 +45,14 @@ classdef ChannelStats
         % critical value
         function out = getCritT( obj, s )
             % takes in string in form of 'p < 0.05' or 'q < 0.10'
-            s = strtrim( strsplit( s ) );
+            s = strtrim( strsplit( s, '<' ) );
             
             if s{1} == 'p'
-                pcrit = str2num(s{3}); 
+                pcrit = str2num(s{2}); 
             elseif s{1} == 'q'
                 [p, idx] = sort( obj.p(:) );
                 q = obj.q(idx);
-                pcrit = interp1(q, p, str2num(s{3}));
+                pcrit = interp1(q, p, str2num(s{2}));
             end
             
             out = - tinv( abs( pcrit )/2, obj.dfe );

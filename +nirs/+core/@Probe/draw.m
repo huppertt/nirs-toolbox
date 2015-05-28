@@ -11,7 +11,7 @@ function draw( obj, values, vrange, vcrit, cmap )
     end
     
     % default range of values for dispaly
-    if nargin == 2
+    if nargin == 2 || (nargin > 1 && isempty(vrange))
         vmax = ceil( max( abs( values ) ) );
         vrange = [-vmax vmax];
     end
@@ -36,8 +36,12 @@ function draw( obj, values, vrange, vcrit, cmap )
     vmax = max(abs(vrange));
     z = linspace( -vmax, vmax, size(cmap,1) );
 
-    % mask
+    % significance mask
     lst = values <= vcrit(1) | values >= vcrit(2);
+    
+    % range
+    values( values <= vrange(1) ) = vrange(1);
+    values( values >= vrange(2) ) = vrange(2);
 
     % loop through channels and draw lines
     link = unique( [obj.link.source obj.link.detector],'rows' );
