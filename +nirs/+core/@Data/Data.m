@@ -18,7 +18,7 @@ classdef Data
 
     methods
         %% Constructor
-        function obj = FunData( data, time, probe, Fm, stimulus, demographics, description )
+        function obj = Data( data, time, probe, Fm, stimulus, demographics, description )
             if nargin > 0, obj.data         = data;         end
             if nargin > 1, obj.time         = time;         end
             if nargin > 2, obj.probe        = probe;        end

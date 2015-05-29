@@ -3,7 +3,7 @@ function tbl = roiAverage( data, R, names )
             names = {names};
         end
 
-        varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p', 'q'};
+        varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p'};
         tbl = table({},[],[],[],[],[],[], 'VariableNames', varnames);
 
         R = R > 0;
@@ -25,12 +25,12 @@ function tbl = roiAverage( data, R, names )
                 df      = data.dfe;
                 t       = beta / se;
                 p       = 2*tcdf(-abs(t),df);
-                
-                q       = nirs.math.fdr( p );
 
-                tmp = cell2table({roi, con, beta, se, df, t, p, q});
+                tmp = cell2table({roi, con, beta, se, df, t, p});
                 tmp.Properties.VariableNames = varnames;
                 tbl = [tbl; tmp];
             end
         end
+        q = nirs.math.fdr( tbl.p );
+        tbl = [tbl table(q)];
     end
