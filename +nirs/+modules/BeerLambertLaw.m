@@ -46,7 +46,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     L = p.distances(lst);
                     
                     % mbll model
-                    EL = bsxfun( @times, E, L *obj.PPF );
+                    EL = bsxfun( @times, E, L*obj.PPF );
                     iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)

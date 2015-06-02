@@ -44,12 +44,12 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
         X = [X x];
     end
     
-    % append type if specified
-    if ~isempty(type)
-        for i = 1:length(names)
-            names{i} = [names{i} '_' type];
-        end
-    end
+%     % append type if specified
+%     if ~isempty(type)
+%         for i = 1:length(names)
+%             names{i} = [names{i} '_' type];
+%         end
+%     end
 
 end
 

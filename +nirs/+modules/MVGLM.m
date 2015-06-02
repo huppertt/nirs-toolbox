@@ -20,11 +20,28 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 
-                % reshape data
+                % sort data
                 link = data(i).probe.link;
                 [link, idx] = sortrows( link, {'source', 'detector'} );
                 
                 d = d(:,idx);
+                
+                % unique sd pairs
+                [SD, ~, iSD] = unique(link(:,1:2), 'rows');
+                
+                % loop through sd pairs
+                X = []; names = {};
+                newLink = table([],[],[],[],'VariableNames',{'source', 'detector', 'type', 'cond'});
+                for j = 1:max(iSD)
+                    lambda = link.type(iSD == j);
+                    
+                    [x, n, tbl] = obj.createX( data(i), lambda );
+                    
+                    X = blkdiag(X,x);
+                    names = [names; n(:)];
+                end
+                
+                
                 
                 n = length( unique(link.type) );
                 
@@ -80,10 +97,8 @@ classdef MVGLM < nirs.modules.AbstractGLM
     end
     
     methods ( Access = protected )
-        function [X, names] = createX( obj, data )
-            
-            lambda = unique( data.probe.link.type );
-            
+        function [X, names, link] = createX( obj, data, lambda )
+          
             names = {};
             if obj.useSpectralPriors
                 
@@ -116,6 +131,14 @@ classdef MVGLM < nirs.modules.AbstractGLM
                         createDesignMatrix( stims, t, obj.basis );
                     
             end
+            
+        end
+        
+        function createSpectralX( obj, data )
+            
+        end
+        
+        function createDodX( obj, data )
             
         end
     end
