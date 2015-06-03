@@ -11,6 +11,9 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
         data = nirs.testing.simARNoise();
     end
     
+    [data.probe.link, i] = sortrows(data.probe.link, {'source', 'detector', 'type'});
+    data.data = data.data(:,i);
+    
     % sd pairs
     [SD, ~, iSD] = unique( data.probe.link(:,1:2), 'rows' );
 
@@ -23,7 +26,7 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
     end
     
     % choose channels
-	iAct = randperm(nSD, nSD/2);
+	iAct = randperm(nSD, nAct);
     
     % design mat
     [X, stim] = nirs.testing.randDesignMat( data.time, stimLength, stimSpace, basis );
@@ -33,7 +36,16 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
     truth = zeros( size( data, 1), 1 );
     for i = 1:length(iAct)
         lst = iSD == iAct(i);
-        data.data(:,lst) = data.data(:,lst) + repmat( X*beta, [1 sum(lst)] );
+        
+        lambda = data.probe.link.type(lst);
+        e = nirs.media.getspectra( lambda );
+        
+        xhbo =  X*beta;
+        xhbr = -X*beta;
+        
+        tmp =  [xhbo xhbr] * e(:,1:2)' * 1e-6 * diag(data.probe.distances(lst)) * 5/50;
+        
+        data.data(:,lst) = data.data(:,lst) + tmp;
         
         truth = truth + lst;
     end

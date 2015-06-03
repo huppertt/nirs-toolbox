@@ -33,7 +33,7 @@ function data = loadDotNirs( filenames )
             % probe
             thisFile.probe = nirs.util.sd2probe( d.SD );
             [thisFile.probe.link, idx] = ...
-                sortrows(thisFile.probe.link,{'type','source','detector'});
+                sortrows(thisFile.probe.link,{'source','detector','type'});
 
             thisFile.data = thisFile.data(:,idx);
 
