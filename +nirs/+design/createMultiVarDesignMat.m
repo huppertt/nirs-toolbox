@@ -29,7 +29,7 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
 
             x = [];
             for j = 1:length(lambda)
-                e = nirs.media.getspectra( lambda(j) );
+                e = nirs.media.getspectra( lambda(j) ) * 1e-6;
                 x = [x; [e(1)*xhbo e(2)*xhbr]];
             end
             

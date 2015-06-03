@@ -22,9 +22,20 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 
                 % sort data
                 link = data(i).probe.link;
-                [link, idx] = sortrows( link, {'source', 'detector'} );
+                [link, idx] = sortrows( link, {'source', 'detector', 'type'} );
                 
                 d = d(:,idx);
+                
+                % design mat
+                [X, tbl] = nirs.design.createMultiVarDesignMat( ...
+                    data(i).stimulus, t, obj.basis, link, true );
+                
+                C = obj.getTrendMatrix( t );
+                
+                % fit data
+                stats = nirs.math.mv_ar_irls( X, d, round(4*Fs), C);
+                
+                
                 
                 % unique sd pairs
                 [SD, ~, iSD] = unique(link(:,1:2), 'rows');

@@ -7,7 +7,7 @@ function S = robust_mvfit( X, Y )
     b = X \ vec(Y);
     
     b0 = 1e16*b; iter = 0;
-    while norm(b - b0)/norm(b0) > 1e-3 && iter < 50
+    while norm(b - b0)/norm(b0) > 1e-3 && iter < 10
         b0 = b;
         
         % residual & covariance

@@ -1,10 +1,20 @@
 function S = mv_ar_irls( X, Y, Pmax, T )
     if nargin < 4, T = ones(size(Y,1),1); end
-
-    [m, n, p] = size(X);
     
-    stack = @(X) reshape( permute(X,[1 3 2]), [m*p n]);
-    vec   = @(Y) Y(:);
+    if ndims(X) == 3
+        [m, n, p] = size(X);
+    else
+        [m, p] = size(Y);
+        n = size(X,2);
+    end
+
+    unstack = @(X) reshape( X, [m n p] );
+    stack	= @(X) reshape( X, [m*p n] );
+    vec     = @(Y) Y(:);
+    
+    if ndims(X) == 2
+        X = unstack(X);
+    end
     
     % initial fit
     thisX = [stack(X) kron(eye(size(Y,2)),T)];
@@ -47,5 +57,13 @@ function out = myFilter( f, y )
     
     out = filter(f, 1, y);
     out = bsxfun(@plus,out,sum(f)*y1); % add the corrected offset back
+
+end
+
+function wfun()
+
+end
+
+function wfit()
 
 end
