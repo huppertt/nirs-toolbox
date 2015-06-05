@@ -27,6 +27,16 @@ function s = convertOneStim( stim )
     end
     
     s.onset = stim.onset(:);
-    s.dur   = stim.dur(:);
-    s.amp   = stim.amp(:);
+    
+    if length(stim.dur) == 1
+        s.dur = stim.dur * ones(size(stim.onset));
+    else
+        s.dur   = stim.dur(:);
+    end
+    
+    if length(stim.dur) == 1
+        s.amp = stim.amp * ones(size(stim.onset));
+    else
+        s.amp = stim.amp(:);
+    end
 end

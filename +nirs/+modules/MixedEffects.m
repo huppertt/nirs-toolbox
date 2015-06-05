@@ -45,6 +45,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 % get hemodynamic response and covariance
                 beta = []; W = sparse([]); C = sparse([]);
                 for i = 1:length(S)
+                    nCond = length(S(i).names);
+                    
                     % coefficients
                     beta  	= [beta; S(i).beta(1:nCond,iChan)];
                     

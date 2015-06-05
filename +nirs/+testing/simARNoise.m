@@ -20,9 +20,9 @@ function data = simARNoise( probe )
     
     % output
     data = nirs.core.Data();
-    data.data = 10 * e;
-    data.probe = probe;
-    data.time = (0:size(e,1)-1)' / 10;
+    data.data   = e * 5e-3;
+    data.probe  = probe;
+    data.time   = (0:size(e,1)-1)' / 10;
   
 end
 

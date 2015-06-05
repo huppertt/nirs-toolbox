@@ -5,7 +5,7 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
     
     if nargin < 4, stimSpace    = 10;   end
     if nargin < 3, stimLength   = 2;    end
-    if nargin < 2, beta         = 5;    end
+    if nargin < 2, beta         = 8;    end
     
     if nargin < 1
         data = nirs.testing.simARNoise();

@@ -17,73 +17,88 @@ function S = mv_ar_irls( X, Y, Pmax, T )
     end
     
     % initial fit
-    tmpX = [stack(X) kron(eye(size(Y,2)),T)];
-    b = (tmpX'*tmpX) \ (tmpX' * vec(Y));
-    
+    b = mySolve([stack(X) kron(eye(size(Y,2)),T)], vec(Y));
+            
     b0 = b * 1e16; iter = 0;
-    while norm(b-b0)/norm(b0) > 1e-2 && iter < 1
+    while norm(b-b0)/norm(b0) > 1e-2 && iter < 10
+        
+        disp( norm(b-b0)/norm(b0) )
+        
         b0 = b;
         
         % residual
         r = vec(Y) - [stack(X) kron(eye(size(Y,2)),T)]*b;
         r = reshape(r, size(Y));
+        
+%         [u, s, v] = svd(r,'econ');
+%         r = r - u(:,1)*s(1,1)*v(:,1)';
 
         % whiten data and model
         Yf = zeros(size(Y));
         Xf = zeros(size(X));
         Tf = zeros([m*p p*size(T,2)]);
+        
+%         tmp = Y - u(:,1)*s(1,1)*v(:,1)';
         for i = 1:size(Y,2)
             a           = ar_fit( r(:,i), Pmax );
             f           = [1; -a(2:end)];
+%             Yf(:,i)     = myFilter( f, tmp(:,i) );%Y(:,i) );
             Yf(:,i)     = myFilter( f, Y(:,i) );
             Xf(:,:,i)   = myFilter( f, X(:,:,i) );
             
             idx1 = (i-1)*m+1 : i*m;
             idx2 = (i-1)*size(T,2)+1 : i*size(T,2);
+            
             Tf(idx1, idx2) = myFilter( f, T );
+            
+            rf0(:,i) = myFilter( f, r(:,i) );
         end
         
         % filtered residual
         rf = reshape( vec(Yf) - [stack(Xf) Tf]*b, size(Yf) );
 
         % weight by covariance of resid
-        [u,s,~] = svd(cov(rf),'econ');
+        [u,s,~] = svd(cov(rf0),'econ');
 
         % this is a whitening filter when multiplied on the right
         % i.e. cov(r * W) = I
         Q = u * diag( 1./sqrt(diag(s)) );
+        %Q = diag(1./std(rf,1));
 
         % spatial prewhitening
         Yq = Yf*Q;
         Xq = myKronProd( Q, stack(Xf) );
         Tq = myKronProd( Q, Tf );
         
-        % tukey weights
-        rq = rf * Q; %reshape( vec(Yq) - [Xq Tq] * b, size(Yq) );
-        w  = wfun( rq );
+        for j = 1:10
+            % tukey weights
+            rq = reshape( vec(Yq) - [Xq Tq] * b, size(Yq) );
 
-% %         % weighted fit
-% %         Xw = bsxfun(@times, Xq, w(:));
-% %         Tw = bsxfun(@times, Tq, w(:));
-% % 
-% %         Yw = w.*Yq;
-% % 
-% %         try
-% %             L = inv(chol([Xw Tw]'*[Xw Tw]));
-% %             b = (L*L')*([Xw Tw]'*vec(Yw));
-% %         catch
-% %             b = ([Xw Tw]'*[Xw Tw]) \ ([Xw Tw]'*vec(Yw));
-% %         end
+            w  = wfun( rq );
+
+            % weighted fit
+            Xw = bsxfun(@times, Xq, w(:));
+            Tw = bsxfun(@times, Tq, w(:));
+
+            Yw = w.*Yq;
+
+            b = mySolve([Xw Tw], vec(Yw));
+        end
         
         % update iter count
         iter = iter + 1;
         
-        [b, tmps] = robustfit([Xq Tq], vec(Yq), [], [], 'off');
+        %[b, tmps] = robustfit([Xq Tq], vec(Yq), [], [], 'off');
     end
     
     S.b     = b;
-    S.covb  = tmps.covb; %([Xq Tq]'*[Xq Tq]) \ eye(size(b,1));
+%     S.covb  = tmps.covb; %([Xq Tq]'*[Xq Tq]) \ eye(size(b,1));
+    S.covb  = ([Xw Tw]'*[Xw Tw]) \ eye(size(b,1));
     S.dfe   = numel(Y) - numel(b);
+end
+
+function b = mySolve( X, y )
+    b = (X'*X) \ (X'*y);
 end
 
 function X = myKronProd( Q, X )
