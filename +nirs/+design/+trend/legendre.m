@@ -1,23 +1,19 @@
 function L = legendre( t, P )
 
     assert( isvector(t) && isscalar(P) )
-    
-    % polynomials will be centered
-    t = linspace(-1,1,length(t))';
-    
-    % preallocation
-    L = zeros(size(t,1),P+1);
-    
-    % 0th order
-    L(:,1) = 1; 
-    
-    if P > 0
-        L(:,2) = t; % 1st order
 
-        for i = 2:P % 2nd to Pth order
-            L(:,i+1) = ( (2*i+1) * L(:,i) .* t - i * L(:,i-1) ) / (i+1);
-        end
-    end
+    % recursive definition: not orthogonal
+    % gram-schmidt: not numerically stable
+    
+    %% using cholesky decomposition
+    n = length(t);
+    
+    x = linspace(-1, 1, n)';                        % polys on [-1 1]
+    
+    L = bsxfun( @power, x, 0:P );                   % polynomials of x
+    L = bsxfun( @rdivide, L, sqrt(sum(L.^2,1)) );   % normalize
+    
+    L = L*inv(chol(L'*L));                          % orthonormalization
+    
 
 end
-

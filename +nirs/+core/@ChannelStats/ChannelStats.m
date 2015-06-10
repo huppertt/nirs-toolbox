@@ -40,6 +40,9 @@ classdef ChannelStats
         % q values
         function q = get.q( obj )
             q = reshape( nirs.math.fdr( obj.p(:) )', size(obj.p) );
+%             for i = 1:size(obj.p,1)
+%                 q(i,:) = nirs.math.fdr( obj.p(i,:) );
+%             end
         end
         
         % critical value
@@ -48,15 +51,18 @@ classdef ChannelStats
             s = strtrim( strsplit( s, '<' ) );
             
             if s{1} == 'p'
-                pcrit = str2num(s{2}); 
+                pcrit = str2num(s{2});
+                out = - tinv( abs( pcrit )/2, obj.dfe );
             elseif s{1} == 'q'
-                [p, idx] = sort( obj.p(:) );
-                q = obj.q(idx);
-                pcrit = interp1(q, p, str2num(s{2}));
+                
+%                 [p, idx] = sort( obj.p(:) );
+%                 q = obj.q(idx);
+                
+                t = abs(obj.tstat(:))';
+                q = obj.q(:);
+                
+                out = interp1(q, t, str2num(s{2}));
             end
-            
-            out = - tinv( abs( pcrit )/2, obj.dfe );
-           
         end
     
         % linear transform of variables
@@ -99,14 +105,18 @@ classdef ChannelStats
             n = obj.dfe;
             k = size(obj.beta,1);
             
-            for i = 1:size(obj.beta,2)
-                b = m(:) .* obj.beta(:,i);
-                T2(i,1)     = b'*pinv(obj.covb(:,:,i))*b;
-                F(i,1)      = (n-k) / k / (n-1) * T2(i);
+            for i = 1:size(m,1)
+                for j = 1:size(obj.beta,2)
+                    b = m(i,:)' .* obj.beta(:,j);
+                    T2(i,j)     = b'*pinv(obj.covb(:,:,j))*b;
+                    F(i,j)      = (n-k) / k / (n-1) * T2(i,j);
+                end
+                names{i,1} = ['F' num2str(i)];
             end
             
-            S = nirs.AnovaStats();
-            S.names = {strjoin( obj.names(m)', ' & ' )};
+            S = nirs.core.AnovaStats();
+%             S.names = {strjoin( obj.names(m)', ' & ' )};
+            S.names = names;
             S.F   = F';
             S.df1 = k;
             S.df2 = n-k;

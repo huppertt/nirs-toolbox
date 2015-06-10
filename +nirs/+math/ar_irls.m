@@ -58,13 +58,13 @@ function stats = ar_irls( d,X,Pmax,tune )
     nChan = size(d,2);
     nTime = size(d,1);
     
-    stats.beta = zeros(nCond,nChan);    % betas
-    stats.tstat = zeros(nCond,nChan);   % tstats
-    stats.pval = zeros(nCond,nChan);    % two-sided t-test
-    stats.ppos = zeros(nCond,nChan);    % one-sided t-test (positive only)
-    stats.pneg = zeros(nCond,nChan);    % one-sided t-test (negative only)
-    stats.P = zeros(nChan,1);           % the final AR model order
-    stats.w = zeros(nTime,nChan);       % save the weights
+%     stats.beta = zeros(nCond,nChan);    % betas
+%     stats.tstat = zeros(nCond,nChan);   % tstats
+%     stats.pval = zeros(nCond,nChan);    % two-sided t-test
+%     stats.ppos = zeros(nCond,nChan);    % one-sided t-test (positive only)
+%     stats.pneg = zeros(nCond,nChan);    % one-sided t-test (negative only)
+%     stats.P = zeros(nChan,1);           % the final AR model order
+%     stats.w = zeros(nTime,nChan);       % save the weights
     stats.dfe = nTime - nCond;          % degrees of freedom
 
     % loop through each channel
@@ -75,9 +75,17 @@ function stats = ar_irls( d,X,Pmax,tune )
         B = X \ y;
         B0 = 1e6*ones(size(B));
         
+% %         res = y - X*B;
+% %         
+% %         T = wden(res,'sqtwolog','s','sln',3,'sym8');
+% %         X = [X T];
+% %         
+% %         B = X \ y;
+% %         B0 = 1e6*ones(size(B));
+        
         % iterative re-weighted least squares
         iter = 0;
-        maxiter = 5;
+        maxiter = 10;
         
         % while our coefficients are changing greater than some threshold
         % and it's less than the max number of iterations
@@ -88,6 +96,9 @@ function stats = ar_irls( d,X,Pmax,tune )
             % get the residual
             res = y - X*B;
             
+% %             T = wden(res,'sqtwolog','s','sln',3,'sym8');
+% %             X(:,end) = T;
+                        
             % fit the residual to an ar model
             a = nirs.math.ar_fit(res,Pmax);
             
@@ -102,8 +113,6 @@ function stats = ar_irls( d,X,Pmax,tune )
 
             % perform IRLS
             [B, S] = robustfit(Xf,yf,'bisquare',tune,'off');
-%             S = nirs.math.robustRidgeReg(Xf, yf);
-%             B = S.b;
             
             iter = iter + 1;
         end
@@ -116,14 +125,12 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
         stats.P(i) = length(a)-1;
         
-%         % L = pinv(Xf'*Xf); % more stable; %inv(chol(Xf'*Xf));
-%         stats.covb(:,:,i) = S.covb; %L*S.mad_s^2; %(L*L')*S.mad_s^2;
-        
         L = pinv(Xf'*Xf); % more stable
         stats.covb(:,:,i) = L*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
         
+% %         X = X(:,1:end-1);
     end   
 end
 

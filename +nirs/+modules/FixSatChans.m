@@ -25,41 +25,21 @@ classdef FixSatChans < nirs.modules.AbstractModule
                 u = median(v);
                 s = mad(v,0) / 0.6745;
                 
-                p = tcdf(-abs(v-u)/s, length(v)-1);
+                t = (v-u)/s;
                 
-%                 % power spec
-%                 a = fft(d);
-%                 a = abs( a(2:end,:) );
-%                 
-%                 u = median(a)';
-%                 s = mad(a,0)' / 0.6745;
-%                 
-%                 t = bsxfun(@minus, a, u');
-%                 t = bsxfun(@rdivide, t, s');
-%                 
-%                 p2 = tcdf(-abs(t), length(a)-1);
-%                 p2 = sum( p2 < 1e-6, 1 )';
-
-%                 
-%                 % autocorr
-%                 a = zeros( size(d,2), round(4*Fs)+1 );
-%                 for j = 1:size(d,2)
-%                     a(j,:) = autocorr(d(:,j), round(4*Fs));
-%                 end
-%                 
-%                 a = sum(abs(a),2);
-
-                for j = 1:size(d,2)
-                    a(j,1) = length(ar_fit(d(:,j), round(10*Fs)));
+                lst = find( abs(t) > 2 );
+                
+                a = zeros( size(lst) );
+                for j = 1:length(lst)
+                    a(j,1) = length(ar_fit(d(:,lst(j)), round(10*Fs)));
                 end
                 
                 % bad chans = high variance and autcorr
-                lst = (p < 0.05) & (a > 3*Fs);
+                bad = lst(a > 3*Fs);
                 
-                d(:,lst) = lognrnd( log(100), log(1.1), [size(d,1) sum(lst)] );
+                d(:,bad) = lognrnd( log(100), log(1.1), [size(d,1) length(bad)] );
                 
-                disp([i sum(lst)])
-                %data(i).data = d;
+                data(i).data = d;
             end
         end
     end

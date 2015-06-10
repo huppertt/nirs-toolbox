@@ -29,20 +29,16 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         % residual
         r = vec(Y) - [stack(X) kron(eye(size(Y,2)),T)]*b;
         r = reshape(r, size(Y));
-        
-%         [u, s, v] = svd(r,'econ');
-%         r = r - u(:,1)*s(1,1)*v(:,1)';
 
         % whiten data and model
         Yf = zeros(size(Y));
         Xf = zeros(size(X));
         Tf = zeros([m*p p*size(T,2)]);
         
-%         tmp = Y - u(:,1)*s(1,1)*v(:,1)';
         for i = 1:size(Y,2)
             a           = ar_fit( r(:,i), Pmax );
             f           = [1; -a(2:end)];
-%             Yf(:,i)     = myFilter( f, tmp(:,i) );%Y(:,i) );
+            
             Yf(:,i)     = myFilter( f, Y(:,i) );
             Xf(:,:,i)   = myFilter( f, X(:,:,i) );
             
@@ -58,12 +54,12 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         rf = reshape( vec(Yf) - [stack(Xf) Tf]*b, size(Yf) );
 
         % weight by covariance of resid
-        [u,s,~] = svd(cov(rf0),'econ');
+        [u, s, ~] = svd(cov(rf0),'econ');
 
         % this is a whitening filter when multiplied on the right
         % i.e. cov(r * W) = I
-        Q = u * diag( 1./sqrt(diag(s)) );
-        %Q = diag(1./std(rf,1));
+        %Q = u * diag( 1./sqrt(diag(s)) );
+        Q = diag(1./std(rf,1));
 
         % spatial prewhitening
         Yq = Yf*Q;
@@ -98,7 +94,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
 end
 
 function b = mySolve( X, y )
-    b = (X'*X) \ (X'*y);
+    b = X \ y;
 end
 
 function X = myKronProd( Q, X )
