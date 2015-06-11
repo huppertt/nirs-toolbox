@@ -4,8 +4,13 @@ function probe = sd2probe( SD )
         iDet    = SD.MeasList(:,2);
         wl      = SD.MeasList(:,4);
         
-        wl( wl==1 ) = 690; % ASSUMED
-        wl( wl==2 ) = 830; % ASSUMED
+        if ~isfield(SD,'Lambda')
+            SD.Lambda = [690 830];
+            warning('Assuming wavelengths = [690 830]')
+        end
+        
+        
+        wl = SD.Lambda( wl ); wl = wl(:);
         
         link  = table(iSrc,iDet, wl,'VariableNames',{'source','detector','type'});
         

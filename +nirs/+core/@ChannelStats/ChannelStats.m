@@ -107,9 +107,18 @@ classdef ChannelStats
             
             for i = 1:size(m,1)
                 for j = 1:size(obj.beta,2)
-                    b = m(i,:)' .* obj.beta(:,j);
-                    T2(i,j)     = b'*pinv(obj.covb(:,:,j))*b;
+                    n = obj.dfe;
+                    k = sum(m(i,:));
+                    
+%                     b = m(i,:)' .* obj.beta(:, j);
+%                     T2(i,j)     = b'*pinv(obj.covb(:,:,j))*b;
+                    
+                    b = obj.beta(m(i,:),j);
+                    T2(i,j) = b'*pinv(obj.covb(m(i,:),m(i,:),j))*b;
+                    
                     F(i,j)      = (n-k) / k / (n-1) * T2(i,j);
+                    df1(i,j)    = k-1;
+                    df2(i,j)    = n-k;
                 end
                 names{i,1} = ['F' num2str(i)];
             end
@@ -117,9 +126,9 @@ classdef ChannelStats
             S = nirs.core.AnovaStats();
 %             S.names = {strjoin( obj.names(m)', ' & ' )};
             S.names = names;
-            S.F   = F';
-            S.df1 = k;
-            S.df2 = n-k;
+            S.F   = F;
+            S.df1 = df1;
+            S.df2 = df2;
             S.probe = obj.probe;
         end
         

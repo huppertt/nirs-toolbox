@@ -8,8 +8,8 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         n = size(X,2);
     end
 
-    unstack = @(X) reshape( X, [m n p] );
-    stack	= @(X) reshape( X, [m*p n] );
+    unstack = @(X) permute( reshape(X, [m n p]), [1 3 2] );
+    stack	= @(X) reshape( permute(X, [1 3 2]), [m*p n] );
     vec     = @(Y) Y(:);
     
     if ndims(X) == 2
@@ -20,7 +20,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
     b = mySolve([stack(X) kron(eye(size(Y,2)),T)], vec(Y));
             
     b0 = b * 1e16; iter = 0;
-    while norm(b-b0)/norm(b0) > 1e-2 && iter < 10
+    while norm(b-b0)/norm(b0) > 1e-3 && iter < 10
         
         disp( norm(b-b0)/norm(b0) )
         
@@ -36,9 +36,9 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         Tf = zeros([m*p p*size(T,2)]);
         
         for i = 1:size(Y,2)
-            a           = ar_fit( r(:,i), Pmax );
-            f           = [1; -a(2:end)];
-            
+            a = ar_fit( r(:,i), Pmax );
+            f = [1; -a(2:end)];
+       
             Yf(:,i)     = myFilter( f, Y(:,i) );
             Xf(:,:,i)   = myFilter( f, X(:,:,i) );
             
@@ -46,27 +46,26 @@ function S = mv_ar_irls( X, Y, Pmax, T )
             idx2 = (i-1)*size(T,2)+1 : i*size(T,2);
             
             Tf(idx1, idx2) = myFilter( f, T );
-            
-            rf0(:,i) = myFilter( f, r(:,i) );
         end
         
         % filtered residual
         rf = reshape( vec(Yf) - [stack(Xf) Tf]*b, size(Yf) );
 
         % weight by covariance of resid
-        [u, s, ~] = svd(cov(rf0),'econ');
+        [u, s, ~] = svd(cov(rf),'econ');
 
         % this is a whitening filter when multiplied on the right
         % i.e. cov(r * W) = I
-        %Q = u * diag( 1./sqrt(diag(s)) );
-        Q = diag(1./std(rf,1));
+        Q = u * diag( 1./sqrt(diag(s)) );
+%         Q = diag(1./std(rf,1));
+%         Q = inv(chol(cov(rf0)));
 
         % spatial prewhitening
         Yq = Yf*Q;
         Xq = myKronProd( Q, stack(Xf) );
         Tq = myKronProd( Q, Tf );
         
-        for j = 1:10
+        for j = 1:3
             % tukey weights
             rq = reshape( vec(Yq) - [Xq Tq] * b, size(Yq) );
 
@@ -84,7 +83,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         % update iter count
         iter = iter + 1;
         
-        %[b, tmps] = robustfit([Xq Tq], vec(Yq), [], [], 'off');
+%         [b, tmps] = robustfit([Xq Tq], vec(Yq), [], [], 'off');
     end
     
     S.b     = b;
@@ -94,7 +93,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
 end
 
 function b = mySolve( X, y )
-    b = X \ y;
+    b = (X'*X) \ (X'*y);
 end
 
 function X = myKronProd( Q, X )

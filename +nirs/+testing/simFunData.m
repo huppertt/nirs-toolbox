@@ -41,7 +41,7 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
         e = nirs.media.getspectra( lambda );
         
         xhbo =  X*beta;
-        xhbr = -X*beta;
+        xhbr =  X*beta;
         
         tmp =  [xhbo xhbr] * e(:,1:2)' * 1e-6 * diag(data.probe.distances(lst)) * 5/50;
         

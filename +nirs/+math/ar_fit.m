@@ -55,7 +55,7 @@ function [coef, res] = ar_fit( y,Pmax )
     
     % qr factorization will speed up stepwise regression significantly
     [Q,R] = qr(X,0); % zero is very important for performance
-    invR = pinv(R);  % save this for permance reasons
+    invR = pinv(R);  % save this for performance reasons
     
     BIC = zeros(Pmax+1,1);
     for i = 1:length(BIC)

@@ -100,7 +100,7 @@ function stats = ar_irls( d,X,Pmax,tune )
 % %             X(:,end) = T;
                         
             % fit the residual to an ar model
-            a = nirs.math.ar_fit(res,Pmax);
+            a = nirs.math.ar_fit(res, Pmax);
             
             % create a whitening filter from the coefficients
             f = [1; -a(2:end)];
