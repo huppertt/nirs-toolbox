@@ -117,7 +117,7 @@ classdef ChannelStats
                     T2(i,j) = b'*pinv(obj.covb(m(i,:),m(i,:),j))*b;
                     
                     F(i,j)      = (n-k) / k / (n-1) * T2(i,j);
-                    df1(i,j)    = k-1;
+                    df1(i,j)    = k;
                     df2(i,j)    = n-k;
                 end
                 names{i,1} = ['F' num2str(i)];

@@ -4,8 +4,8 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
     end
     
     if nargin < 4, stimSpace    = 10;   end
-    if nargin < 3, stimLength   = 2;    end
-    if nargin < 2, beta         = 8;    end
+    if nargin < 3, stimLength   = 1;    end
+    if nargin < 2, beta         = 10;    end
     
     if nargin < 1
         data = nirs.testing.simARNoise();
@@ -41,7 +41,7 @@ function [data, truth] = simFunData( data, beta, stimLength, stimSpace, basis )
         e = nirs.media.getspectra( lambda );
         
         xhbo =  X*beta;
-        xhbr =  X*beta;
+        xhbr = -X*beta / 2;
         
         tmp =  [xhbo xhbr] * e(:,1:2)' * 1e-6 * diag(data.probe.distances(lst)) * 5/50;
         
