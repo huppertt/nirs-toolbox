@@ -57,7 +57,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 end
                 
                 p.link.type = type;
-                [p.link,idx] = sortrows(p.link,{'type','source','detector'});
+                [p.link,idx] = sortrows(p.link,{'source','detector','type'});
                 
                 data(i).data  = d(:,idx);
                 data(i).probe = p;

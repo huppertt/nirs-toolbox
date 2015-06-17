@@ -5,7 +5,7 @@ classdef ChannelStats
     properties
         description
         
-        names           % variable names
+        variables
         
         beta            % nconds x nchannels
         covb            % nconds x nconds x nchannels
@@ -25,10 +25,11 @@ classdef ChannelStats
     methods
         % t statistic calculation
         function tstat = get.tstat( obj )
-            tstat = zeros(size(obj.beta));
-            for i = 1:size(obj.beta,2)
-                tstat(:,i)  = obj.beta(:,i) ./ sqrt( diag(obj.covb(:,:,i)) );
-            end
+%             tstat = zeros(size(obj.beta));
+%             for i = 1:size(obj.beta,2)
+%                 tstat(:,i)  = obj.beta(:,i) ./ sqrt( diag(obj.covb(:,:,i)) );
+%             end
+            tstat = obj.beta ./ sqrt(diag(obj.covb));
         end
         
         % p value calculation

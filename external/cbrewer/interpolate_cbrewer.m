@@ -30,7 +30,7 @@ X2=0:ncolors-1;
 
 z=interp1(X,cbrew_init(:,1),X2,interp_method);
 z2=interp1(X,cbrew_init(:,2),X2,interp_method);
-z3=interp1(X,cbrew_init(:,3),X2, interp_method);
+z3=interp1(X,cbrew_init(:,3),X2,interp_method);
 interp_cmap=round([z' z2' z3']);
 
 end

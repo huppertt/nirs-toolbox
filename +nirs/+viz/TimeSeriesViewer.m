@@ -20,15 +20,7 @@ classdef TimeSeriesViewer < handle
     end
     
     methods 
-        function obj = TimeSeriesViewer( data, heirarchy )
-            % set inputs
-            if nargin < 2
-                obj.heirarchy = {'group', 'subject'};
-            else
-                error('not implemented yet')
-                obj.heirarchy = heirarchy;
-            end
-            
+        function obj = TimeSeriesViewer( data )
             obj.data = data;
            
             % put together the tree structure
@@ -62,9 +54,11 @@ classdef TimeSeriesViewer < handle
             
             % make sure it is a leaf
             if ~ischar( iData )
-                cla( obj.ax_probe )
-                axes( obj.ax_probe )
-                obj.data(iData).probe.draw();
+%                 delete( obj.ax_probe )
+%                 obj.ax_probe = axes;
+%                 setpixelposition( obj.ax_probe, [450 75 350 275] );
+                cla(obj.ax_probe);
+                obj.data(iData).probe.draw(obj.ax_probe);
             
                 % line and optode handles
                 obj.lines   = findobj(obj.ax_probe, 'Type', 'line');

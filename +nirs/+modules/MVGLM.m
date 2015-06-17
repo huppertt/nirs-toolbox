@@ -80,7 +80,7 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 ncond = size(tbl,1);
                 S(i) = nirs.core.ChannelStats();                   
                 S(i).description    = data(i).description;
-                S(i).names          = tbl;
+                S(i).variables          = tbl;
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = probe;
                 S(i).beta = stats.b(1:ncond);
