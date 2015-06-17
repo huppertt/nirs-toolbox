@@ -1,4 +1,4 @@
-function [coef, res] = ar_fit( y,Pmax )
+function [coef, res, yhat] = ar_fit( y,Pmax )
     % Copyright (c) 2014, Jeffrey W Barker (jwb52@pitt.edu)
     % All rights reserved.
     % 
@@ -83,5 +83,7 @@ function [coef, res] = ar_fit( y,Pmax )
     % finally, our output
     coef = invR(1:Popt+1,1:Popt+1) * Q(:,1:Popt+1)'*yt;
     res = filter([1; -coef(2:end)], 1, y-coef(1));
+    
+    yhat = y - res;
     
 end

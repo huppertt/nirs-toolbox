@@ -30,11 +30,12 @@ classdef Anova < nirs.modules.AbstractModule
             end
             
             %% loop through channels and fite mfx model
-            for iChan = 1:size(S(1).probe.link.source,1)
-                
+            for iChan = 1:size(S(1).probe.link.source,1)                
                 % get hemodynamic response and covariance
                 beta = []; W = sparse([]);
                 for i = 1:length(S)
+                    nCond = length(S(i).names);
+                    
                     % coefficients
                     beta = [beta; S(i).beta(1:nCond,iChan)];
                     

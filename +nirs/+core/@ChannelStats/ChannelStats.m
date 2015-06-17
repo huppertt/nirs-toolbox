@@ -159,7 +159,7 @@ classdef ChannelStats
             
             for iName = 1:length( obj.names )
                 
-                for iType = 1:length(utypes)
+                for iType = 1%:length(utypes)
                     lst = strcmp( types, utypes(iType) );
                     
                     h(end+1) = figure;

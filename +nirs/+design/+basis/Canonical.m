@@ -2,7 +2,7 @@ classdef Canonical
 % Canonical HRF response
     
     properties
-        peakTime    = 6;
+        peakTime    = 4;
         uShootTime  = 16;
         peakDisp    = 1;
         uShootDisp  = 1;

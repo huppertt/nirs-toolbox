@@ -16,10 +16,15 @@ function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
     % all files in subdirectory with correct extension
     files = rdir([rootFolder filesep '**' filesep '*' fileExt]);
     
+    data = nirs.core.Data.empty;
     for iFile = 1:length( files )
         
         % load using load function
-        data(iFile,1) = loadFunc( files(iFile).name );
+        tmp = loadFunc( files(iFile).name );
+        
+        if ~isempty(tmp)
+            data(end+1) = tmp;
+        end
         
         % split filename on separators
         fsplit = strsplit( files(iFile).name, filesep );
@@ -31,8 +36,8 @@ function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
         for iDemo = 1:length(folderHierarchy)
             data(iFile).demographics(folderHierarchy{iDemo}) = demo{iDemo};
         end
-        
     end
     
+    data = data';
 end
 

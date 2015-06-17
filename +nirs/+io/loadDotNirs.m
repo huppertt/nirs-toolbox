@@ -5,17 +5,18 @@ function data = loadDotNirs( filenames )
         filenames = {filenames};
     end
     
+    data = nirs.core.Data.empty;
+    
     % iterate through cell array
     for iFile = 1:length(filenames)
-        
-        % load data as a struct
-        d = load( filenames{iFile}, '-mat' );
-        
-        % put into data class
-        thisFile = nirs.core.Data();
-        thisFile.description = filenames{iFile};
-        
-        try        
+        try
+            % load data as a struct
+            d = load( filenames{iFile}, '-mat' );
+
+            % put into data class
+            thisFile = nirs.core.Data();
+            thisFile.description = filenames{iFile};
+                
             nTime = length(d.t);
 
             % data
@@ -50,12 +51,14 @@ function data = loadDotNirs( filenames )
                 end
             end
             
+        % append to list of data
+        data(end+1) = thisFile;
+            
         catch err
             warning(err.message)
         end
         
-        % append to list of data
-        data(iFile) = thisFile;
+        
     end
 
 
