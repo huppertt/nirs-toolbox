@@ -30,7 +30,7 @@ classdef Probe
             
             d = sqrt( sum( vec.^2,2 ) );
         end
-
+        
         % swap sources with detectors
         function obj = swapSD( obj )
             d = obj.srcPos;
