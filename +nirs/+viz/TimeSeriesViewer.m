@@ -54,11 +54,8 @@ classdef TimeSeriesViewer < handle
             
             % make sure it is a leaf
             if ~ischar( iData )
-%                 delete( obj.ax_probe )
-%                 obj.ax_probe = axes;
-%                 setpixelposition( obj.ax_probe, [450 75 350 275] );
                 cla(obj.ax_probe);
-                obj.data(iData).probe.draw(obj.ax_probe);
+                obj.data(iData).probe.draw([], [], obj.ax_probe);
             
                 % line and optode handles
                 obj.lines   = findobj(obj.ax_probe, 'Type', 'line');

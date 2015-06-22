@@ -2,6 +2,16 @@ classdef ChannelStats
     %CHANNELSTATS Summary of this class goes here
     %   Detailed explanation goes here
     
+    %drawB( type, threshold )
+    %drawF( threshold )
+    %drawT( type, threshold )
+    
+    %printB
+    %printF
+    %printT
+    
+    %F -- dependent
+    
     properties
         description
         
@@ -25,10 +35,6 @@ classdef ChannelStats
     methods
         % t statistic calculation
         function tstat = get.tstat( obj )
-%             tstat = zeros(size(obj.beta));
-%             for i = 1:size(obj.beta,2)
-%                 tstat(:,i)  = obj.beta(:,i) ./ sqrt( diag(obj.covb(:,:,i)) );
-%             end
             tstat = obj.beta ./ sqrt(diag(obj.covb));
         end
         
@@ -41,9 +47,6 @@ classdef ChannelStats
         % q values
         function q = get.q( obj )
             q = reshape( nirs.math.fdr( obj.p(:) )', size(obj.p) );
-%             for i = 1:size(obj.p,1)
-%                 q(i,:) = nirs.math.fdr( obj.p(i,:) );
-%             end
         end
         
         % critical value
@@ -54,11 +57,8 @@ classdef ChannelStats
             if s{1} == 'p'
                 pcrit = str2num(s{2});
                 out = - tinv( abs( pcrit )/2, obj.dfe );
+                
             elseif s{1} == 'q'
-                
-%                 [p, idx] = sort( obj.p(:) );
-%                 q = obj.q(idx);
-                
                 t = abs(obj.tstat(:))';
                 q = obj.q(:);
                 
@@ -111,9 +111,6 @@ classdef ChannelStats
                     n = obj.dfe;
                     k = sum(m(i,:));
                     
-%                     b = m(i,:)' .* obj.beta(:, j);
-%                     T2(i,j)     = b'*pinv(obj.covb(:,:,j))*b;
-                    
                     b = obj.beta(m(i,:),j);
                     T2(i,j) = b'*pinv(obj.covb(m(i,:),m(i,:),j))*b;
                     
@@ -125,7 +122,7 @@ classdef ChannelStats
             end
             
             S = nirs.core.AnovaStats();
-%             S.names = {strjoin( obj.names(m)', ' & ' )};
+            
             S.names = names;
             S.F   = F;
             S.df1 = df1;

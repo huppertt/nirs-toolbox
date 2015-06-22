@@ -8,7 +8,7 @@ function draw( obj, colors, lineStyles, axis_handle )
     
     n = size(link, 1);
     
-    if nargin < 2 || isepmty(colors)
+    if nargin < 2 || isempty(colors)
        colors = repmat([0.3 0.5 1], [n 1]);
     elseif size(colors,1) == 1
        colors = repmat(colors, [n 1]);
