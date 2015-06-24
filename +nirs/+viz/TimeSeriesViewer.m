@@ -55,7 +55,7 @@ classdef TimeSeriesViewer < handle
             % make sure it is a leaf
             if ~ischar( iData )
                 cla(obj.ax_probe);
-                obj.data(iData).probe.draw([], [], obj.ax_probe);
+                obj.data(iData).probe.draw([0.3 0.5 1], {'LineStyle', '-', 'LineWidth', 6}, obj.ax_probe);
             
                 % line and optode handles
                 obj.lines   = findobj(obj.ax_probe, 'Type', 'line');
@@ -193,7 +193,7 @@ classdef TimeSeriesViewer < handle
             % reset lines
             for i = 1:length(obj.lines)
                 set(obj.lines(i), 'LineStyle', '-');
-                set(obj.lines(i), 'Color', [0.5 0.5 1])
+                set(obj.lines(i), 'Color', [0.3 0.5 1])
             end
         end
     end
@@ -203,28 +203,28 @@ classdef TimeSeriesViewer < handle
             probe = obj.data(1).probe;
             
             % make figure window
-            figure('Position', [100 100 850 750])
+            figure('Position', [100 100 1000 800])
             
             % show tree
             obj.tree = uitree('v0', 'Root', obj.root, 'SelectionChangeFcn', @(t, v) obj.treeSelectFun(t, v) );
             obj.tree.setMultipleSelectionEnabled(false)
-            obj.tree.Position = [50 50 350 300];
+            obj.tree.Position = [25 25 400 350];
             
             % menu for selecting data type
             types = unique(probe.link.type);
             
             % axis for plotting data
             obj.ax_data = gca;
-            setpixelposition( obj.ax_data, [75 420 700 300] )
+            setpixelposition( obj.ax_data, [50 450 925 300] )
             
             % axis for plotting probe
             obj.ax_probe = axes;
-            setpixelposition( obj.ax_probe, [450 75 350 275] );
+            setpixelposition( obj.ax_probe, [450 75 525 300] );
             
             % data type menu
             dtypeMenu = uicontrol('Style', 'popupmenu',...
                 'String', types, ...
-                'Position', [450 50 350 25],...
+                'Position', [450 25 525 25],...
                 'Callback', @(s,v) obj.dtypeMenuSelectFun(s,v) );
             
             if isnumeric( types(1) )

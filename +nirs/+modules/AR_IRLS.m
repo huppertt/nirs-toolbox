@@ -17,6 +17,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 
+                probe = data(i).probe;
+                
+                % make sure data is in order
+                [probe.link, idx] = sortrows(probe.link, {'source', 'detector', 'type'});
+                d = d(:, idx);
+                
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
@@ -32,29 +38,34 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 ncond = length(names);
                 nchan = size(data(i).probe.link, 1);
                 
-                link = repmat( data(i).probe.link, [ncond 1] );
-                condition = repmat(names, [nchan 1]);
-                                
+                link = repmat( probe.link, [ncond 1] );
+                condition = repmat(names(:)', [nchan 1]);
+                condition = condition(:);
+                                                
                 S(i) = nirs.core.ChannelStats();
                 
                 S(i).variables = [link table(condition)];
-                S(i).beta = vec( stats.beta(1:ncond,:) );
+                S(i).beta = vec( stats.beta(1:ncond,:)' );
                 
-                covb = [];
+                covb = zeros( nchan*ncond );
                 for j = 1:nchan
-                   covb = blkdiag(covb, stats.covb(1:ncond, 1:ncond, j)); 
+                   idx = (0:ncond-1)*nchan + j;
+                   covb(idx, idx) = stats.covb(1:ncond, 1:ncond, j);
                 end
                 
                 S(i).covb = covb;
                 
-%                 S(i).covb = thisS.covb(1:ncond, 1:ncond, :);
                 S(i).dfe  = stats.dfe(1);
                 
                 S(i).description = data(i).description;
                 
-%                 S(i).names          = names';
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = data(i).probe;
+                
+%                 % sort
+%                 [S(i).variables, idx] = sortrows(S(i).variables, {'condition', 'source', 'detector', 'type'});
+%                 S(i).beta = S(i).beta(idx);
+%                 s(i).covb = S(i).covb(idx,idx);
                 
                 % print progress
                 obj.printProgress( i, length(data) )

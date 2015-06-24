@@ -3,14 +3,10 @@ classdef ChannelStats
     %   Detailed explanation goes here
     
     %drawB( type, threshold )
-    %drawF( threshold )
     %drawT( type, threshold )
     
     %printB
-    %printF
     %printT
-    
-    %F -- dependent
     
     properties
         description
@@ -26,13 +22,25 @@ classdef ChannelStats
     end
     
     properties ( Dependent = true )
+        conditions
+        
         tstat
         
         p
         q
     end
     
+    
     methods
+        % unique conditions
+        function c = get.conditions( obj )
+            if ~isempty(obj.variables)
+                c = unique(obj.variables.condition); 
+            else
+                c = [];
+            end
+        end
+        
         % t statistic calculation
         function tstat = get.tstat( obj )
             tstat = obj.beta ./ sqrt(diag(obj.covb));
@@ -65,10 +73,25 @@ classdef ChannelStats
                 out = interp1(q, t, str2num(s{2}));
             end
         end
+        
+        %% stat calculations
     
+%         function A = get.joinTest( obj )
+%             [~, ~, idx] = unique( table(obj.variables.source, obj.variables.detector, obj.variables.condition), 'rows', 'stable' );
+%             
+%             for i = 1:max(idx)
+%                 F(i,1) = 
+%             end
+%             
+%         end
+
         % linear transform of variables
-        function S = ttest(obj, C, b)
+        function S = ttest(obj, c, b)
             % test hypothesis that C*beta = b
+            
+            nchan = size(obj.probe.link,1);
+            
+            C = kron(c, eye(nchan));
             
             if nargin < 3
                 b = zeros(size(C,1),1);
@@ -77,17 +100,22 @@ classdef ChannelStats
             % transform beta
             beta = bsxfun(@minus, C*obj.beta, b);
             
-            % calculate new covariance
-            for i = 1:size(beta,2)
-                covb(:,:,i) = C*obj.covb(:,:,i)*C';
-                tstat(:,i)  = beta(:,i) ./ sqrt( diag(covb(:,:,i)) );
-            end
+            % new covariance
+            covb = C*obj.covb*C';
             
+            % output
             S = obj;
             
             S.beta  = beta;
             S.covb  = covb;
-            S.names = obj.transformNames(C);
+            
+            % new condition names
+            condition = obj.transformNames(c);
+            condition = repmat( condition(:)', [nchan 1] );
+            condition = condition(:);
+            
+            link = repmat( obj.probe.link, [size(c,1) 1] );
+            S.variables = [link table(condition)];
         end
         
         function S = ftest(obj, m)
@@ -173,7 +201,7 @@ classdef ChannelStats
         % this function generates new names based on a linear tranformation
         % T of the variables
         function newNames = transformNames( obj, T )
-            names = obj.names;
+            names = obj.conditions;
             for i = 1:size(T,1)
                 newNames{i} = '';
                 for j = 1:size(T,2)
