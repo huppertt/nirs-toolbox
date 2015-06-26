@@ -3,11 +3,11 @@ classdef AnovaStats
     %   Detailed explanation goes here
     
     properties
-        names	% variable names
-        F       % F-stats
-        df1     % degrees of freedom 1
-        df2     % degrees of freedom 2
-        probe   % probe geometry
+        variables	% variable names
+        F           % F-stats
+        df1         % degrees of freedom 1
+        df2         % degrees of freedom 2
+        probe       % probe geometry
         
         pcrit = 0.05;
     end

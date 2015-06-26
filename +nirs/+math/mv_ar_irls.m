@@ -36,11 +36,11 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         Tf = zeros([m*p p*size(T,2)]);
         
         for i = 1:size(Y,2)
-            a = ar_fit( r(:,i), Pmax );
+            a = nirs.math.ar_fit( r(:,i), Pmax );
             f = [1; -a(2:end)];
        
             Yf(:,i)     = myFilter( f, Y(:,i) );
-            Xf(:,:,i)   = myFilter( f, X(:,:,i) );
+            Xf(:,i,:)   = myFilter( f, squeeze(X(:,i,:)) );
             
             idx1 = (i-1)*m+1 : i*m;
             idx2 = (i-1)*size(T,2)+1 : i*size(T,2);
@@ -82,12 +82,9 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         
         % update iter count
         iter = iter + 1;
-        
-%         [b, tmps] = robustfit([Xq Tq], vec(Yq), [], [], 'off');
     end
     
     S.b     = b;
-%     S.covb  = tmps.covb; %([Xq Tq]'*[Xq Tq]) \ eye(size(b,1));
     S.covb  = ([Xw Tw]'*[Xw Tw]) \ eye(size(b,1));
     S.dfe   = numel(Y) - numel(b);
 end

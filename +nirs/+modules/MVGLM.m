@@ -8,8 +8,9 @@ classdef MVGLM < nirs.modules.AbstractGLM
         function obj = MVGLM( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
             
-            obj.name = 'Multivariate GLM';
-            obj.basis('default') = nirs.design.basis.Canonical();
+            obj.name             	= 'Multivariate GLM';
+            obj.basis('default')    = nirs.design.basis.Canonical();
+            obj.trend_func          = @(t) nirs.design.trend.legendre(t, 1);
         end
         
         function S = runThis( obj, data )
@@ -33,76 +34,39 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 C = obj.getTrendMatrix( t );
                 
                 % fit data
-                %profile clear; profile on;
                 stats = nirs.math.mv_ar_irls( X, d, round(4*Fs), C);
-                %profile off; profile viewer
-                
-                
-% %                 % unique sd pairs
-% %                 [SD, ~, iSD] = unique(link(:,1:2), 'rows');
-% %                 
-% %                 % loop through sd pairs
-% %                 X = []; names = {};
-% %                 newLink = table([],[],[],[],'VariableNames',{'source', 'detector', 'type', 'cond'});
-% %                 for j = 1:max(iSD)
-% %                     lambda = link.type(iSD == j);
-% %                     
-% %                     [x, n, tbl] = obj.createX( data(i), lambda );
-% %                     
-% %                     X = blkdiag(X,x);
-% %                     names = [names; n(:)];
-% %                 end
-% %                 
-% %                 
-% %                 
-% %                 n = length( unique(link.type) );
-% %                 
-% %                 Y = [];
-% %                 for j = 1:n
-% %                    Y(:,j,:) = d(:,j:n:end); 
-% %                 end
-% %                 
-% %                 % get experiment design
-% %                 [X, names] = obj.createX( data(i) );
-% %                 C = obj.getTrendMatrix( t );
-% %                 
-% %                 % distances
-% %                 l = data(i).probe.distances(idx);
-% %                 l = l(1:n:end);
-                
+
                 % new probe
-                probe   = data(i).probe;
-                lst     = link.type == link.type(1);
-                probe.link = link(lst,:);
-                probe.link.type = repmat( {'mv'}, [sum(lst) 1]);
+                probe = data(i).probe;
+                
+                if obj.useSpectralPriors
+                    lst  = link.type == link.type(1);
+                    probe.link = repmat(link(lst,:), [2 1]);
+                    type = repmat( {'hbo', 'hbr'}, [sum(lst) 1]);
+                    probe.link.type = type(:);
+                    probe.link = sortrows(probe.link, {'source', 'detector', 'type'});
+                end
                 
                 % outputs
                 ncond = size(tbl,1);
-                S(i) = nirs.core.ChannelStats();                   
+                
+                S(i) = nirs.core.ChannelStats();
                 S(i).description    = data(i).description;
-                S(i).variables          = tbl;
+                
+                [tbl, idx] = sortrows(tbl, {'condition', 'source', 'detector', 'type'});
+                
+                
+                S(i).variables    	= tbl;
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = probe;
-                S(i).beta = stats.b(1:ncond);
-                S(i).covb = stats.covb(1:ncond, 1:ncond);
+                
+                b       = stats.b(1:ncond);
+                covb    = stats.covb(1:ncond, 1:ncond);
+                
+                S(i).beta = b(idx);
+                S(i).covb = covb(idx, idx);
                 S(i).dfe  = stats.dfe;
                 
-%                 % fit data
-%                 for iChan = 1:size(Y,3)
-%                     if obj.useSpectralPriors
-%                         thisX = X * l(iChan) * obj.PPF; 
-%                     else
-%                         thisX = X;
-%                     end
-%                     
-%                     stats = nirs.math.mv_ar_irls(thisX, Y(:,:,iChan), round(4*Fs), C);
-%                 
-%                     % put stats
-%                     S(i).beta(:,iChan)      = stats.b(1:ncond);
-%                     S(i).covb(:,:,iChan)    = stats.covb(1:ncond, 1:ncond, :);
-%                     S(i).dfe                = stats.dfe;
-%                 
-%                 end
                 
                 % print progress
                 obj.printProgress( i, length(data) )

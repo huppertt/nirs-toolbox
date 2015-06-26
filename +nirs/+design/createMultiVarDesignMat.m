@@ -29,15 +29,19 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
 
             x = [];
             for j = 1:length(lambda)
-                e = nirs.media.getspectra( lambda(j) ) * 1e-6;
+                e = nirs.media.getspectra( lambda(j) );
                 x = [x; [e(1)*xhbo e(2)*xhbr]];
             end
             
-            tbl = table( SD(i,1*ones(size(x,2),1))', SD(i,2*ones(size(x,2),1))', ...
-                repmat({'hbo', 'hbr'}', [length(n) 1]), ...
-                [n; n], ...
+            src_idx = SD(i,1*ones(size(x,2),1))';
+            det_idx = SD(i,2*ones(size(x,2),1))';
+            mtype   = repmat({'hbo', 'hbr'}, [length(n) 1]);
+            conds   = [n; n];
+            
+            tbl = table( src_idx, det_idx, mtype(:), conds, ...
                 'VariableNames',  {'source', 'detector', 'type', 'condition'} );
         else
+            error('')% test this first
             x = [];
             tbl = table( [],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'condition'} );
             for j = 1:length(lambda)
@@ -58,6 +62,9 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
         T   = [T; tbl];
     end
 
+    % sort
+    [T, idx] = sortrows(T, {'condition', 'source', 'detector', 'type'});
+    X = X(:, idx);
 
 end
 

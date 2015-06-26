@@ -1,0 +1,44 @@
+function out = jointTest( obj )
+
+    % get unique sd pair/conditions to jointly test
+    vars = obj.variables;
+    vars.type = [];
+    
+    [~, uvars ,utests] = unique(vars, 'rows', 'stable');
+    
+    % loop through pairs/conditions
+    for i = 1:max(utests)
+       m = utests == i;
+       T2 = obj.beta(m)'*pinv(obj.covb(m,m))*obj.beta(m);
+       
+       n = obj.dfe;
+       k = sum(m);
+       
+       F(i,1) = (n-k) ./ k ./ (n-1) .* T2;
+       df1(i,1) = k;
+       df2(i,1) = n-k;
+    end
+    
+    % output
+    out = nirs.core.ChannelFStats();
+    
+    out.F   = F;
+    out.df1 = df1;
+    out.df2 = df2;
+    
+    % new variables
+    newVars = obj.variables(uvars, :);
+    newVars.type(:) = {'joint'};
+    
+    out.variables = newVars;
+    
+    % new probe
+    link = obj.probe.link;
+    link.type = [];
+    
+    [~,idx] = unique(link, 'rows', 'stable');
+    
+    out.probe = obj.probe;
+    out.probe.link = out.probe.link(idx, :);
+    out.probe.link.type(:) = {'joint'};
+end
