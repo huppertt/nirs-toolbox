@@ -58,13 +58,13 @@ function stats = ar_irls( d,X,Pmax,tune )
     nChan = size(d,2);
     nTime = size(d,1);
     
-%     stats.beta = zeros(nCond,nChan);    % betas
-%     stats.tstat = zeros(nCond,nChan);   % tstats
-%     stats.pval = zeros(nCond,nChan);    % two-sided t-test
-%     stats.ppos = zeros(nCond,nChan);    % one-sided t-test (positive only)
-%     stats.pneg = zeros(nCond,nChan);    % one-sided t-test (negative only)
-%     stats.P = zeros(nChan,1);           % the final AR model order
-%     stats.w = zeros(nTime,nChan);       % save the weights
+    stats.beta = zeros(nCond,nChan);    % betas
+    stats.tstat = zeros(nCond,nChan);   % tstats
+    stats.pval = zeros(nCond,nChan);    % two-sided t-test
+    stats.ppos = zeros(nCond,nChan);    % one-sided t-test (positive only)
+    stats.pneg = zeros(nCond,nChan);    % one-sided t-test (negative only)
+    stats.P = zeros(nChan,1);           % the final AR model order
+    stats.w = zeros(nTime,nChan);       % save the weights
     stats.dfe = nTime - nCond;          % degrees of freedom
 
     % loop through each channel
@@ -74,14 +74,6 @@ function stats = ar_irls( d,X,Pmax,tune )
         % initial fit
         B = X \ y;
         B0 = 1e6*ones(size(B));
-        
-% %         res = y - X*B;
-% %         
-% %         T = wden(res,'sqtwolog','s','sln',3,'sym8');
-% %         X = [X T];
-% %         
-% %         B = X \ y;
-% %         B0 = 1e6*ones(size(B));
         
         % iterative re-weighted least squares
         iter = 0;
@@ -95,9 +87,6 @@ function stats = ar_irls( d,X,Pmax,tune )
             
             % get the residual
             res = y - X*B;
-            
-% %             T = wden(res,'sqtwolog','s','sln',3,'sym8');
-% %             X(:,end) = T;
                         
             % fit the residual to an ar model
             a = nirs.math.ar_fit(res, Pmax);
@@ -130,7 +119,6 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.w(:,i) = S.w;
         stats.a{i} = a;
         
-% %         X = X(:,1:end-1);
     end   
 end
 

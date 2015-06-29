@@ -28,6 +28,7 @@ function out = jointTest( obj )
     
     % new variables
     newVars = obj.variables(uvars, :);
+    newVars.type = cell(size(newVars.type));
     newVars.type(:) = {'joint'};
     
     out.variables = newVars;
@@ -40,5 +41,6 @@ function out = jointTest( obj )
     
     out.probe = obj.probe;
     out.probe.link = out.probe.link(idx, :);
+    out.probe.link.type = cell(size(out.probe.link.type));
     out.probe.link.type(:) = {'joint'};
 end

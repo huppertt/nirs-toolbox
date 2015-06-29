@@ -29,7 +29,7 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 
                 % design mat
                 [X, tbl] = nirs.design.createMultiVarDesignMat( ...
-                    data(i).stimulus, t, obj.basis, link, true );
+                    data(i).stimulus, t, obj.basis, link, obj.useSpectralPriors );
                 
                 C = obj.getTrendMatrix( t );
                 
