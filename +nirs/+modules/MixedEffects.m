@@ -34,13 +34,13 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             %% loop through files
             W = sparse([]);
-            beta = [];
+            b = [];
             vars = table();
             for i = 1:length(S)
                 % coefs
-                beta = [beta; S(i).beta];
+                b = [b; S(i).beta];
                 
-                % whitening
+                % whitening transform
                 [u, s, ~] = svd(S(i).covb, 'econ');
                 W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
                 
@@ -53,101 +53,57 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             
             % sort
-            [vars, idx] = sortrows(vars, {'source', 'detector', 'type', 'condition'});
+            [vars, idx] = sortrows(vars, {'source', 'detector', 'type', 'cond'});
             
             % list for first source
-            [~, ~,lst] = unique([vars.source vars.detector vars.type], 'rows', 'stable')
+            [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+            sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
-error('')       
-            %% assemble table
-            tbl = table();
-            for i = 1:length(S)
-                nCond = length(S(i).conditions);
-                tbl = [tbl; [table(S(i).conditions(:),'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
-            end
+            %% design mats
+            tmp = vars(lst == 1, :);
             
-            % center numeric variables
-            n = tbl.Properties.VariableNames;
-            for i = 1:length(n)
-               if all( isnumeric( tbl.(n{i}) ) )
-                   tbl.(n{i}) = tbl.(n{i}) - mean( tbl.(n{i}) );
-               end
-            end
-            
-            %% design matrices
-            beta = randn(size(tbl,1), 1);
-            lm1 = fitlme([table(beta) tbl], obj.formula, 'dummyVarCoding',...
+            beta = randn(size(tmp,1), 1);
+            lm1 = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
                     obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', 'Isotropic');
                 
             X = lm1.designMatrix('Fixed');
             Z = lm1.designMatrix('Random');
             
-            nchan = size(S(1).probe.link.source,1);
+            nchan = max(lst);
             
             X = kron(speye(nchan), X);
             Z = kron(speye(nchan), Z);
             
-            %% betas and covariance
+            %% put them back in the original order
+            vars(idx,:) = vars;
+            X(idx, :)   = X;
+            Z(idx, :)   = Z;
+            beta        = b;
             
+            %% Weight the model
+            X    = W*X;
+            Z    = W*Z;
+            beta = W*beta;
             
-            
-            
-            
-            
-            
-            %% loop through channels and fit mfx model
-            for iChan = 1:size(S(1).probe.link.source,1)
-                
-                % get hemodynamic response and covariance
-                beta = []; W = sparse([]); C = sparse([]);
-                for i = 1:length(S)
-                    nCond = length(S(i).names);
-                    
-                    % coefficients
-                    beta  	= [beta; S(i).beta(1:nCond,iChan)];
-                    
-                    % design whitening transform from svd
-                    [u, s, ~] = svd( S(i).covb(1:nCond, 1:nCond, iChan) );
-                    s = 1./diag(sqrt(s));
-                    w = diag(s)*u';
-                    
-                    % put them in giant block diag matrix
-                    W = blkdiag(W, w);
-                end
-                
-                % unweighted fit to get design matrices
-                lm1 = fitlme([table(beta) tbl], obj.formula, 'dummyVarCoding',...
-                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', 'Isotropic');
-                                
-                X = lm1.designMatrix('Fixed');
-                Z = lm1.designMatrix('Random');
-                
-                % weight model
-                X    = W*X;
-                Z    = W*Z;
-                beta = W*beta;
-                
-                % refit
-                lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
+            %% fit the model
+            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
                     'FitMethod', 'ML');
-                
-%                 [b,s] = robustfit(X, beta, [], [], 'off');
-                
-                % copy stats
-                G.beta(:,iChan)    	= lm2.Coefficients.Estimate;
-                G.covb(:,:,iChan) 	= lm2.CoefficientCovariance;
-                
-%                 G.beta(:,iChan) = b;
-%                 G.covb(:,:,iChan) = s.covb;
-                
-%                 lm2 = nirs.math.fitMixedModel(full(X), full(Z), beta, full(C));
-%                 G.beta(:,iChan) = lm2.b;
-%                 G.covb(:,:,iChan) = lm2.covb;
-            end
             
-            G.dfe	= lm2.DFE;
-            G.names	= lm1.CoefficientNames';
-            G.probe = S(1).probe;
+            
+           cnames = lm1.CoefficientNames(:);
+           cnames = repmat(cnames, [nchan 1]);
+           
+           %% output
+           G.beta       = lm2.Coefficients.Estimate;
+           G.covb       = lm2.CoefficientCovariance;
+           G.dfe        = lm2.DFE;
+           G.probe      = S(1).probe;
+           
+           sd = repmat(sd, [length(unique(cnames)) 1]);
+           sd = sortrows(sd, {'source', 'detector', 'type'});
+           
+           G.variables = [sd table(cnames)];
+           G.variables.Properties.VariableNames{4} = 'cond';
         end
     end
     

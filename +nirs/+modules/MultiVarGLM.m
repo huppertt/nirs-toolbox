@@ -1,11 +1,11 @@
-classdef MVGLM < nirs.modules.AbstractGLM
+classdef MultiVarGLM < nirs.modules.AbstractGLM
     properties
         useSpectralPriors = true;
         PPF = 50 / 5;
     end
     
     methods
-        function obj = MVGLM( prevJob )
+        function obj = MultiVarGLM( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
             
             obj.name             	= 'Multivariate GLM';
@@ -53,7 +53,7 @@ classdef MVGLM < nirs.modules.AbstractGLM
                 S(i) = nirs.core.ChannelStats();
                 S(i).description    = data(i).description;
                 
-                [tbl, idx] = sortrows(tbl, {'condition', 'source', 'detector', 'type'});
+                [tbl, idx] = sortrows(tbl, {'cond', 'source', 'detector', 'type'});
                 
                 
                 S(i).variables    	= tbl;
@@ -110,14 +110,6 @@ classdef MVGLM < nirs.modules.AbstractGLM
                         createDesignMatrix( stims, t, obj.basis );
                     
             end
-            
-        end
-        
-        function createSpectralX( obj, data )
-            
-        end
-        
-        function createDodX( obj, data )
             
         end
     end

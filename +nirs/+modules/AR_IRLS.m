@@ -39,12 +39,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 nchan = size(data(i).probe.link, 1);
                 
                 link = repmat( probe.link, [ncond 1] );
-                condition = repmat(names(:)', [nchan 1]);
-                condition = condition(:);
+                cond = repmat(names(:)', [nchan 1]);
+                cond = cond(:);
                                                 
                 S(i) = nirs.core.ChannelStats();
                 
-                S(i).variables = [link table(condition)];
+                S(i).variables = [link table(cond)];
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
                 
                 covb = zeros( nchan*ncond );

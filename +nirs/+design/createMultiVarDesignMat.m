@@ -15,7 +15,7 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
     
     % loop through source-detector pairs
     X = []; 
-    T = table( [],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'condition'} );
+    T = table( [],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'} );
     
     for i = 1:max(iSD)
         
@@ -50,14 +50,14 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
             conds   = [n; n];
             
             tbl = table( src_idx, det_idx, mtype(:), conds, ...
-                'VariableNames',  {'source', 'detector', 'type', 'condition'} );
+                'VariableNames',  {'source', 'detector', 'type', 'cond'} );
             
         % no spectral priors (dOD)
         else
             
             % loop through each wavelength
             x = [];
-            tbl = table( [],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'condition'} );
+            tbl = table( [],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'} );
             for j = 1:length(lambda)
                 
                 % get design matrix for lambda j
@@ -74,7 +74,7 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
                 
                 tbl = [tbl; 
                     table( src_idx, det_idx, mtype, n, ...
-                    'VariableNames',  {'source', 'detector', 'type', 'condition'} )];
+                    'VariableNames',  {'source', 'detector', 'type', 'cond'} )];
             end
         end
         
@@ -85,7 +85,7 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
     end
 
     % sort using the convention i chose
-    [T, idx] = sortrows(T, {'condition', 'source', 'detector', 'type'});
+    [T, idx] = sortrows(T, {'cond', 'source', 'detector', 'type'});
     X = X(:, idx);
 
 end

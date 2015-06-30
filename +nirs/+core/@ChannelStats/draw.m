@@ -1,4 +1,7 @@
 function draw( obj, vtype, vrange, thresh )
+    % stats.draw( 'tstat', [-5 5], 'q < 0.1' )
+    % stats.draw( 'tstat', [-5 5], 3 )
+
     % type is either beta or tstat
     if nargin < 2, vtype = 'tstat'; end
 
@@ -28,7 +31,7 @@ function draw( obj, vtype, vrange, thresh )
     end
 
     % meas types
-    types = obj.probe.link.type;
+    types = obj.variables.type;
 
     % convert to strings for consistency in loop below
     if any(isnumeric(types))
@@ -39,7 +42,7 @@ function draw( obj, vtype, vrange, thresh )
     utypes = unique(types, 'stable');
     
     % unique conditions
-    uconds = unique(obj.variables.condition, 'stable');
+    uconds = unique(obj.variables.cond, 'stable');
     
     % colormap
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
@@ -47,8 +50,8 @@ function draw( obj, vtype, vrange, thresh )
 
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
-            lst = strcmp( obj.variables.type, utypes(iType) ) & ...
-                strcmp( obj.variables.condition, uconds(iCond) );
+            lst = strcmp( types, utypes(iType) ) & ...
+                strcmp( obj.variables.cond, uconds(iCond) );
             
             % values
             vals = values(lst);

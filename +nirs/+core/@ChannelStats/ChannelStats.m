@@ -34,7 +34,7 @@ classdef ChannelStats
         % unique conditions
         function c = get.conditions( obj )
             if ~isempty(obj.variables)
-                c = unique(obj.variables.condition); 
+                c = unique(obj.variables.cond); 
             else
                 c = [];
             end
@@ -96,15 +96,3 @@ classdef ChannelStats
     end
   
 end
-
-        %% stat calculations
-    
-%         function A = get.joinTest( obj )
-%             [~, ~, idx] = unique( table(obj.variables.source, obj.variables.detector, obj.variables.condition), 'rows', 'stable' );
-%             
-%             for i = 1:max(idx)
-%                 F(i,1) = 
-%             end
-%             
-%         end
-
