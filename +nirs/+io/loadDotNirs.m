@@ -43,10 +43,10 @@ function data = loadDotNirs( filenames )
             end
 
             % demographics for group level
-            if isfield(d,'demographics')
-                for i = 1:length(d.demographics)
-                    name    = d.demographics(i).name;
-                    value   = d.demographics(i).value;
+            if isfield(d,'Demographics')
+                for i = 1:length(d.Demographics)
+                    name    = d.Demographics(i).name;
+                    value   = d.Demographics(i).value;
                     thisFile.demographics(name) = value;
                 end
             end
