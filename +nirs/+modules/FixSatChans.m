@@ -37,7 +37,7 @@ classdef FixSatChans < nirs.modules.AbstractModule
                 % bad chans = high variance and autcorr
                 bad = lst(a > 3*Fs);
                 
-                d(:,bad) = lognrnd( log(100), log(1.1), [size(d,1) length(bad)] );
+                d(:,bad) = lognrnd( 0, 1, [size(d,1) length(bad)] );
                 
                 data(i).data = d;
             end

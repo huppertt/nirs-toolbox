@@ -3,7 +3,7 @@ function S = ttest(obj, c, b)
 
     nchan = size(obj.probe.link,1);
 
-    C = kron(c, eye(nchan));
+    C = kron(eye(nchan), c);
 
     if nargin < 3
         b = zeros(size(C,1),1);
@@ -22,10 +22,10 @@ function S = ttest(obj, c, b)
     S.covb  = covb;
 
     % new condition names
-    condition = obj.transformNames(c);
-    condition = repmat( condition(:)', [nchan 1] );
-    condition = condition(:);
+    cond = obj.transformNames(c);
+    cond = repmat( cond(:)', [nchan 1] );
+    cond = cond(:);
 
     link = repmat( obj.probe.link, [size(c,1) 1] );
-    S.variables = [link table(condition)];
+    S.variables = [link table(cond)];
 end

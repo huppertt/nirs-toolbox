@@ -28,6 +28,8 @@ function data = loadSubjectsDotMat( filename )
                link = [link; baseLink];
             end
             
+            [link, idx] = sortrows(link, {'source','detector','type'});
+            
             probe.link = link;
             
             % loop over data files
@@ -45,6 +47,9 @@ function data = loadSubjectsDotMat( filename )
                     raw = thisData.raw.(wl{iWl});
                     d = [d raw(:,2:end)];
                 end
+                
+                % sort channels
+                d = d(:,idx);
                 
                 % get stims
                 stims = nirs.util.convertStimDesignStruct( thisData.StimDesign );

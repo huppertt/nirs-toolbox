@@ -80,6 +80,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             Z(idx, :)   = Z;
             beta        = b;
             
+            %% check weights
+            m = median(W(W~=0));
+            W(W > 100*m) = 0;
+            
             %% Weight the model
             X    = W*X;
             Z    = W*Z;
