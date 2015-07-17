@@ -1,4 +1,4 @@
-function [b, r, bic] = stepwise_regression(X, y)
+function [b, r, bic] = stepwise(X, y)
     % qr factorization will speed up stepwise regression significantly
     [Q,R] = qr(X,0); % note that the zero is very important for performance
     invR = pinv(R);

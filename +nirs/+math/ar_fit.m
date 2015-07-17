@@ -12,7 +12,7 @@ function [coef, res, yhat] = ar_fit( y,Pmax )
     
     X = [ones(2*n,1) [Xf; Xb]];
     
-    [coef, res] = nirs.math.stepwise_regression(X, [y; flipud(y)]);
+    [coef, res] = nirs.math.stepwise(X, [y; flipud(y)]);
     
     yhat = y - res(1:n);
 end
