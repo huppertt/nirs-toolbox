@@ -1,8 +1,7 @@
 function mesh = getNirfastMeshes( obj )
-%     probe = obj.probe.makeUniqueProbe();
     probe = obj.probe;
     assert( isnumeric(probe.link.type) )
-%     probe = obj.probe;
+    
     types = unique(probe.link.type);
     
     for i = 1:length( types )
@@ -10,7 +9,7 @@ function mesh = getNirfastMeshes( obj )
         mesh{i}.dimension = 3;
         mesh{i}.type = 'stnd';
         mesh{i}.nodes = obj.mesh.nodes;
-        mesh{i}.elements = obj.mesh.elements;
+        mesh{i}.elements = obj.mesh.elems;
 
         [~,ix,jx] = unique(obj.mesh.faces,'rows');
         vec=histc(jx,1:max(jx));
@@ -24,8 +23,8 @@ function mesh = getNirfastMeshes( obj )
         mesh{i}.bndvtx = bndvtx;
         mesh{i}.region = obj.mesh.regions;
 
-        mesh{i}.element_area = ele_area_c(obj.mesh.nodes,obj.mesh.elements);
-        mesh{i}.support = mesh_support(obj.mesh.nodes, obj.mesh.elements,mesh{i}.element_area);
+        mesh{i}.element_area = ele_area_c(obj.mesh.nodes,obj.mesh.elems);
+        mesh{i}.support = mesh_support(obj.mesh.nodes, obj.mesh.elems,mesh{i}.element_area);
 
         %%
         mesh{i}.mua = zeros( size(obj.mesh.nodes,1),1 );

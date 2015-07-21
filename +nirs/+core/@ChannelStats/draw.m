@@ -1,6 +1,14 @@
 function draw( obj, vtype, vrange, thresh )
-    % stats.draw( 'tstat', [-5 5], 'q < 0.1' )
-    % stats.draw( 'tstat', [-5 5], 3 )
+    %% draw - Draws channelwise values on a probe.
+    % Args:
+    %     vtype   - either 'beta' or 'tstat'
+    %     vrange  - range to display; either a scalar or vector with 2 elements
+    %     thresh  - either a scalar such that values > thresh are significant or
+    %               a string specifying statistical significance (e.g. 'p < 0.05')
+    % 
+    % Examples:
+    %     stats.draw( 'tstat', [-5 5], 'q < 0.1' )
+    %     stats.draw( 'tstat', 5, 3 )
 
     % type is either beta or tstat
     if nargin < 2, vtype = 'tstat'; end

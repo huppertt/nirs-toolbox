@@ -3,22 +3,22 @@ function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
 %   Detailed explanation goes here
     
     
-    if nargin < 3
+    if nargin < 3 || isempty(values)
         h = patch('vertices',nodes,'faces',faces, ...
             'facecolor',[0.9 0.9 0.9], ...
             'edgecolor','none'); 
         camlight; lighting gouraud
     else
     
-        if nargin < 5
+        if nargin < 5 || isempty(thresh)
             thresh = 0;
         end
 
-        if nargin < 4
+        if nargin < 4 || isempty(vmax)
             vmax = ceil( max(abs(values)) );
         end
 
-        if nargin < 6
+        if nargin < 6 || isempty(cmap)
             try
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',5001) )');
             catch

@@ -4,6 +4,7 @@ classdef Mesh
         nodes
         faces
         elems
+        regions
     end
     
     methods
@@ -19,8 +20,13 @@ classdef Mesh
             if nargin < 3, vmax     = []; end
             if nargin < 2, values   = []; end
             
-            h = nirs.plotmesh( obj.nodes, obj.faces, ...
+            if isempty(obj.faces)
+                h = nirs.util.plotmesh( obj.nodes, obj.elems, ...
                 	values, vmax, thresh, cmap );
+            else
+                h = nirs.util.plotmesh( obj.nodes, obj.faces, ...
+                	values, vmax, thresh, cmap );
+            end
         end
     end
     

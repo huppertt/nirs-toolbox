@@ -1,33 +1,50 @@
 classdef ChannelStats
-    %CHANNELSTATS Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    %drawB( type, threshold )
-    %drawT( type, threshold )
-    
-    %printB
-    %printT
-    
+    %% CHANNELSTATS - Holds regression stats for channel space.
+    % 
+    % Properties: 
+    %     description  - description of data (e.g. filename)
+    %     variables    - a table containing w/ source, detector, type, cond for
+    %                    each regression coefficient
+    %     beta         - regression coefficients
+    %     covb         - covariance of beta
+    %     dfe          - degrees of freedom
+    %     probe        - Probe object describing measurement geometry
+    %     demographics - Dictionary containing demographics info
+    %                    (e.g. demographics('age') returns 28)
+    %     conditions   - (dependent) list of stim conditions
+    %     tstat        - (dependent) t-stats of beta
+    %     p            - (dependent) p-values of beta
+    %     q            - (dependent) q-values of beta (false discovery rate)
+    %     
+    %  Methods:
+    %     getCritT    - returns critical t value
+    %     draw        - displays the time series data and stimulust timings
+    %     table       - returns a table of all stats (minus full covariance)
+    %     ttest       - performs a t-test and returns a new ChannelStats object
+    %     ftest       - performs an F-test across conditions 
+    %     jointTest   - performs a joint hypothesis test across all channels in
+    %                   each SD pair (i.e. joint test of hbo & hbr for S1-D1)
+
     properties
-        description
+        description     % description of data (e.g. filename)
         
-        variables
+        variables       % table describing regression coefficients
         
-        beta            % nconds x nchannels
-        covb            % nconds x nconds x nchannels
+        beta            % regression coefficients
+        covb            % covariance of beta
         dfe          	% degrees of freedom
         
-        probe           % probe geometry
-        demographics    % subject demographics
+        probe           % Probe object describing measurement geometry
+        demographics    % Dictionary containing demographics info
     end
     
     properties ( Dependent = true )
-        conditions
+        conditions      % (dependent) list of stim conditions
         
-        tstat
+        tstat           % (dependent) t-stats of beta
         
-        p
-        q
+        p               % (dependent) p-values of beta
+        q               % (dependent) q-values of beta (false discovery rate)
     end
     
     methods
@@ -58,7 +75,12 @@ classdef ChannelStats
         
         % critical value
         function out = getCritT( obj, s )
-            % takes in string in form of 'p < 0.05' or 'q < 0.10'
+            %% getCritT - returns critical t-stat
+            % 
+            % Args:
+            %     s - string specifying statistical significance
+            %         (e.g. 'p < 0.05' or 'q < 0.1')
+        
             s = strtrim( strsplit( s, '<' ) );
             
             if s{1} == 'p'
@@ -74,6 +96,7 @@ classdef ChannelStats
         end
         
         function out = table( obj )
+            %% table - returns a table of the regression stats
             beta = obj.beta;
             tstat = obj.tstat;
             p = obj.p;

@@ -1,5 +1,12 @@
 function draw( obj, colors, lineStyles, axis_handle )
-
+    %% draw - Plots the probe geometry.
+    % 
+    % Args:
+    %     colors      - (optional) n x 3 array of colors [R, G, B] for each channel
+    %     lineStyles  - (optional) 2D cell array with each row containing
+    %                   arguments for the 'line' functions (e.g. {'LineWidth',6})
+    %     axis_handle - (optional) handle to axis to the plot to
+        
     % sd pairs
     link = unique( [obj.link.source obj.link.detector], 'rows' );
 

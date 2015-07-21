@@ -1,6 +1,6 @@
-% this function generates new names based on a linear tranformation
-% T of the variables
 function newNames = transformNames( obj, T )
+    %% transformNames - this function generates new names for ttest
+
     names = obj.conditions;
     for i = 1:size(T,1)
         newNames{i} = '';

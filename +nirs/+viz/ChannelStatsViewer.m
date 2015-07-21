@@ -24,7 +24,8 @@ classdef ChannelStatsViewer < handle
     end
     
     methods 
-        function obj = ChannelStatsViewer( stats, heirarchy )
+        function obj = ChannelStatsViewer( stats )
+            error('Not Implemented Yet.')
             % set inputs
             if nargin < 2
                 obj.heirarchy = {'group', 'subject'};

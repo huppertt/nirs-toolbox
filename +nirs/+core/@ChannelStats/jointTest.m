@@ -1,4 +1,6 @@
 function out = jointTest( obj )
+    %% jointTest - performs a joint hypothesis test across all channels in
+    %              each SD pair (i.e. joint test of hbo & hbr for S1-D1)
 
     % get unique sd pair/conditions to jointly test
     vars = obj.variables;

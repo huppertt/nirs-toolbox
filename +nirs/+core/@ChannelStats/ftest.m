@@ -1,7 +1,15 @@
 function S = ftest(obj, m)
-    % this uses Hotelling's T squared test for joint 
-    % hypothesis testing
-
+    %% ftest - This uses Hotelling's T squared test to calculate F-stats
+    % 
+    % Args:
+    %     m - each row specifies a mask of the conditions that 
+    %         should be jointly tested
+    %         
+    % Example:
+    %     % performs two differents F-tests of all 3 variables and also
+    %     % of the first two variables
+    %     stats.ftest([1 1 1; 1 1 0])
+    
     if ~islogical(m)
         m = m > 0;
         warning('Converting mask to true/false.')

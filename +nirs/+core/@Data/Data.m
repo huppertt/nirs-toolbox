@@ -1,12 +1,28 @@
 classdef Data
-    %DATA Object to hold nirs data
+    %% DATA - Holds NIRS data.
+    % 
+    % Properties: 
+    %     description  - description of data (e.g. filename)
+    %     data         - ntime x nchan array of NIRS data
+    %     probe        - a Probe object containing measurement geometry
+    %     time         - a vector containing the time
+    %     Fm           - modulation frequency in MHz (0 for CW NIRS)
+    %     Fs           - sampling frequency
+    %     stimulus     - a Dictionary object containing stimulus info
+    %                    (e.g. stimulus('tapping') returns a StimulusEvents Object)
+    %     demographics - a Dictionary object containing demographics info
+    %                    (e.g. demographics('age') returns 28)
+    % 
+    %     
+    %  Methods:
+    %     draw - displays the time series data and stimulus timings
     
     properties
-        description;
-        data;               % channel time series in columns
-        probe;              % object describing geometry
-        time;               % vector of time points
-        Fm = 0;             % modulation frequency in MHz: 0 for CW; 110 for ISS
+        description
+        data               % channel time series in columns
+        probe;             % object describing geometry
+        time               % vector of time points
+        Fm = 0             % modulation frequency in MHz: 0 for CW; 110 for ISS
         
         stimulus        = Dictionary();	% struct containing stim vectors (vectors, names, types)
         demographics    = Dictionary();	% table containing demographics (names, values)
@@ -17,8 +33,18 @@ classdef Data
     end
 
     methods
-        %% Constructor
         function obj = Data( data, time, probe, Fm, stimulus, demographics, description )
+            %% Data - Creates a Data object.
+            % 
+            % Args:
+            %     data         - (optional) ntime x nchan array of NIRS data
+            %     time         - (optional) a vector containing the time
+            %     probe        - (optional) a Probe object containing measurement geometry
+            %     Fm           - (optional) modulation frequency (0 for CW NIRS)
+            %     stimulus     - (optional) a Dictionary object containing stimulus info
+            %     demographics - (optional) a Dictionary object containing demographics info
+            %     description  - (optional) description of data (e.g. filename)
+
             if nargin > 0, obj.data         = data;         end
             if nargin > 1, obj.time         = time;         end
             if nargin > 2, obj.probe        = probe;        end
@@ -28,7 +54,6 @@ classdef Data
             if nargin > 6, obj.description  = description;  end
         end
         
-        %% Set/Get
         function obj = set.stimulus( obj, stim )
            assert( isa(stim,'Dictionary') )
            obj.stimulus = stim;
@@ -52,8 +77,12 @@ classdef Data
             end
         end
         
-        %% show data
         function draw( obj, lstChannels )
+            %% draw - Plots the probe geometry.
+            % 
+            % Args:
+            %     lstChannels - list of channels to show
+            
             % get data
             if nargin == 1
                 lstChannels = 1:size(obj.data,2);

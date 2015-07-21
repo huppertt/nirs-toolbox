@@ -12,7 +12,7 @@ classdef SpectralProp
         
         water;      	% water content (0 to 1)
         lipid;
-        cytC;
+        % cytC;
         
         a;          	% mie scattering magnitude
         b;              % mie scaattering exponent 
@@ -46,7 +46,7 @@ classdef SpectralProp
             obj.ri = 1.45;
             obj.water = 0.7;
             obj.lipid = 0;
-            obj.cytC = 0;
+            %obj.cytC = 0;
                 
             if nargin > 2
                 obj.so2 = so2;
@@ -90,10 +90,10 @@ classdef SpectralProp
            obj.lipid = lipid;
        end
        
-       function obj = set.cytC( obj, cytC )
-           assert( isscalar(cytC) && cytC >= 0 )
-           obj.cytC = cytC;
-       end
+%        function obj = set.cytC( obj, cytC )
+%            assert( isscalar(cytC) && cytC >= 0 )
+%            obj.cytC = cytC;
+%        end
        
        function obj = set.a( obj, a )
            assert( isscalar(a) && a >= 0 )
@@ -120,10 +120,10 @@ classdef SpectralProp
         end
         
         function mua = get.mua( obj )
-            ext = nirs.utilities.getSpectra( obj.lambda );
+            ext = nirs.media.getspectra( obj.lambda );
 
             mua = ext(:,1)*obj.hbo*1e-6 + ext(:,2)*obj.hbr*1e-6 + ...
-                    ext(:,3)*obj.water + ext(:,4)*obj.lipid + ext(:,5)*obj.cytC;
+                    ext(:,3)*obj.water + ext(:,4)*obj.lipid; % + ext(:,5)*obj.cytC;
                 
             mua = mua';
         end
@@ -158,7 +158,7 @@ classdef SpectralProp
             
             ext = nirs.utilities.getSpectra( obj.lambda );
             hb = pinv( ext(:,1:2) )  ...
-                *  (mua(:) - ext(:,3)*obj.water + ext(:,4)*obj.lipid + ext(:,5)*obj.cytC);
+                *  (mua(:) - ext(:,3)*obj.water + ext(:,4)*obj.lipid);% + ext(:,5)*obj.cytC);
             
             obj.so2 = hb(1) / sum(hb);
             obj.hbt = sum(hb) * 1e6;

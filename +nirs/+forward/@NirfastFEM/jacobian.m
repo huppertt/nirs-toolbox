@@ -39,7 +39,7 @@ function [J, meas] = jacobian( obj, type )
             J.kappa = Jkappa;
         end
     else
-        ext = nirs.getSpectra( types );
+        ext = nirs.media.getspectra( types );
 
         [~,~,iType] = unique( obj.probe.link.type );
         
@@ -76,7 +76,7 @@ function [J, meas] = jacobian( obj, type )
 %             end
     end
     
-    meas = nirs.Data( d,0,obj.probe,obj.Fm );
+    meas = nirs.core.Data( d,0,obj.probe,obj.Fm );
     
 end
 

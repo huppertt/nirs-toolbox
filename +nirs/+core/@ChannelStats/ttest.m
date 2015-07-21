@@ -1,5 +1,13 @@
 function S = ttest(obj, c, b)
-    % test hypothesis that C*beta = b
+    %% ttest - Tests the null hypothesis c*beta = b
+    % 
+    % Args:
+    %     c - contrast vector/matrix
+    %     b - (optional) mean of the null distribution
+    %     
+    % Example:
+    %     % tests the sum and difference of betas
+    %     stats.ttest([1 1; 1 -1])
 
     nchan = size(obj.probe.link,1);
 
