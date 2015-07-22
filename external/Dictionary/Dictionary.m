@@ -1,12 +1,41 @@
 classdef Dictionary
+    %% DICTIONARY - This is an implementation of a Hash Table/Dictionary that
+    %               is a value class (can be copied with = operator).
+    % 
+    % Properties: 
+    %     keys   - cell array of keys (these can be any data type)
+    %     values - cell array of values for each key
+    %     count  - number of items in the dictionary
+    % 
+    % Methods:
+    %     iskey   - checks if key exists
+    %     isempty - checks if Dictionary is empty
+    %     remove  - removes an item from the Dictionary given a key
+    %     hash    - (static) returns hash of a key
+    % 
+    % Example:
+    %     >> d = Dictionary();
+    %     >> d('a') = 1;
+    %     >> d(@(x) x*x) = 2;
+    %     >> d('a')
+    % 
+    %     ans =
+    % 
+    %          1
+    % 
+    %     >> d(@(x) x*x)
+    % 
+    %     ans =
+    % 
+    %          2
     
     properties (SetAccess = private)
-        keys    = {}
-        values  = {}
+        keys    = {} % cell array of keys (these can be any data type)
+        values  = {} % cell array of values for each key
     end
     
     properties( Dependent = true )
-        count
+        count % number of items in the dictionary
     end
     
     properties ( Access = private )
@@ -15,9 +44,20 @@ classdef Dictionary
     end
     
     methods
-        
-        % constructor
         function obj = Dictionary( keys, vals )
+            %% Dictionary - Creates a Dictionary object.
+            % 
+            % Args:
+            %     keys - cell array of keys
+            %     vals - cell array of vals
+            %     
+            % Examples:
+            %     % empty dictionary
+            %     d = Dictionary()
+            %     
+            %     % intitialized dictionary
+            %     d = Dictionary({'a', 'b','c'}, {1, 2, 'hello'});
+            
             % check java classpath
             dictLoc = fileparts(which('Dictionary'));
             clsPth  = javaclasspath('-dynamic');
@@ -41,13 +81,17 @@ classdef Dictionary
             obj = obj.rehash();
         end
         
-        % number of items in dictionary
         function count = get.count( obj )
+            %% count - returns the number of items in dictionary
             count = length(obj.keys);
         end
         
-        % remove items
         function obj = remove( obj, keys )
+            %% remove - remove items from dictionary
+            % 
+            % Args:
+            %     keys - either a single key or cell array of keys
+            
             if ischar(keys)
                 keys = {keys};
             end
@@ -68,6 +112,39 @@ classdef Dictionary
             
         end
         
+        function out = iskey( obj, key )
+            %% iskey - returns true if key exists
+            
+            [~,keyexists] = obj.getindex(key);
+            out = keyexists;
+        end
+        
+        function out = isempty( obj )
+            %% isempty - returns true if dictionary is empty
+            out = obj.count == 0;
+        end
+        
+        function obj = resize( obj, N )
+            %% resize - resize the  dictionary table
+            %
+            % Args:
+            %     N - the size of the new table (should be 2-3 times
+            %         the expected number of items to be put in the dictionary
+            %
+            % Notes: The Dictionary will resize itself as needed so
+            %        manually resizing is not typically necessary
+            
+            assert( N < uint64(2^32) )
+   
+            % resize table
+            obj.TABLE_SIZE   = N;
+            
+            % rehash indices
+            obj = obj.rehash();
+        end
+    end
+       
+    methods (Hidden = true)
         % put new items
         function obj = put( obj, newKeys, newVals )
             
@@ -99,7 +176,6 @@ classdef Dictionary
                     obj.values  {end+1} = newVals{k};
                 end
             end
-            
         end
         
         % get items
@@ -127,17 +203,6 @@ classdef Dictionary
             end
         end
         
-        % check if keys exists
-        function out = iskey( obj, key )
-            [~,keyexists] = obj.getindex(key);
-            out = keyexists;
-        end
-        
-        % check if empty
-        function out = isempty( obj )
-           out = obj.count == 0;
-        end
-        
         % assignment, i.e. dict('hello') = 1234
         function obj = subsasgn(obj,s,b)
             if strcmp(s.type,'()')
@@ -161,20 +226,11 @@ classdef Dictionary
                 out = builtin('subsref',obj,s);
             end
         end
-        
-        function obj = resize( obj, N )
-            assert( N < uint64(2^32) )
-   
-            % resize table
-            obj.TABLE_SIZE   = N;
-            
-            % rehash indices
-            obj = obj.rehash();
-        end
     end
     
     methods ( Static )
         function [h, b] = hash( key )
+            %% hash - returns the hash of a key
             b = getByteStreamFromArray(key);
             h = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
             
@@ -184,6 +240,7 @@ classdef Dictionary
         end
         
         function out = areUniqueKeys( keys )
+            %% areUniqueKeys - returns true if the list of keys are unique
             b = {};
             for i = 1:length( keys )
                b{i} = cast(getByteStreamFromArray(keys{i}),'char');
