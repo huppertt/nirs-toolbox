@@ -35,16 +35,16 @@ function S = ftest(obj, m)
 
 
     % new condition names
-    condition = obj.transformNames(m);
-    for i = 1:length(condition)
-        condition{i} = strjoin(strsplit(condition{i},'+'),' & ');
+    cond = obj.transformNames(m);
+    for i = 1:length(cond)
+        cond{i} = strjoin(strsplit(cond{i},'+'),' & ');
     end
 
-    condition = repmat( condition(:)', [nchan 1] );
-    condition = condition(:);
+    cond = repmat( cond(:)', [nchan 1] );
+    cond = cond(:);
 
     link = repmat( obj.probe.link, [size(m,1) 1] );
-    vars = [link table(condition)];
+    vars = [link table(cond)];
 
     S = nirs.core.ChannelFStats();
 

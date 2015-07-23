@@ -32,8 +32,6 @@ function G = mvgc(Y, Pmax)
                 
                 G(i,j) = log(mad(rr)/mad(ru));
             end
-            
-            disp([i j])
         end
     end
 
