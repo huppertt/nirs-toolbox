@@ -6,7 +6,7 @@ function [coef, res, wres, ymoco] = robust_ari1_fit( y, Pmax, tune )
     [~, res] = nirs.math.ar_fit(yd, Pmax);
     
     w = wfun(res, tune);
-    [coef, ~] = ar_fit(w.*yd, Pmax);
+    [coef, ~] = nirs.math.ar_fit(w.*yd, Pmax);
     
     res     = filter([1; -coef(2:end)], 1, yd-coef(1));
     wres    = w.*res; %filter([1; -coef(2:end)], 1, w.*yd-coef(1));

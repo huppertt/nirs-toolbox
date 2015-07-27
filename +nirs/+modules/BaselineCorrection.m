@@ -1,7 +1,7 @@
 classdef BaselineCorrection < nirs.modules.AbstractModule
     
     properties
-        tune = 4.685;
+        tune = 5;
     end
     
     methods
@@ -20,6 +20,14 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
                     y   = data(i).data(:,j);
                     Fs  = data(i).Fs;
                     t   = data(i).time;
+                    
+%                     [a, r] = nirs.math.ar_fit(diff([0; y]), round(4*Fs));
+%                     
+%                     lst = abs(r)./(mad(r,0)/0.6745) > obj.tune;
+%                     r(lst) = 0;
+%                     
+%                     f = [1; -a(2:end)];
+%                     ymoco2 = cumsum(filter(1, f, r));
                     
                     [~, ~, ~, ymoco] = ...
                         nirs.math.robust_ari1_fit(y, round(4*Fs), obj.tune);

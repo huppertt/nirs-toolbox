@@ -22,13 +22,13 @@ function mesh = getNirfastMeshes( obj )
 
         mesh{i}.bndvtx = bndvtx;
         
-        mesh{i}.region(:,1) = obj.mesh.fregions - 1;
-        mesh{i}.region(:,2) = obj.mesh.fregions;
+        mesh{i}.region(:,1) = obj.mesh.regions - 1;
+        mesh{i}.region(:,2) = obj.mesh.regions;
         
-        lst = obj.mesh.fregions == 1;
+        lst = obj.mesh.regions == 1;
         mesh{i}.region(lst,1) = 1;
         mesh{i}.region(lst,2) = 0;
-        for j = 1:max(obj.mesh.fregions)
+        for j = 1:max(obj.mesh.regions)
             mesh{i}.mua(j,1) = obj.prop{j}.mua(i);
             mesh{i}.kappa(j,1) = obj.prop{j}.kappa(i);
             mesh{i}.mus(j,1) = obj.prop{j}.mus(i);
@@ -43,12 +43,19 @@ function mesh = getNirfastMeshes( obj )
         A = ((2./(1-Ro)) - 1 + cos_theta_c.^3) ./ (1 - cos_theta_c.^2);
         mesh{i}.ksi=1./(2*A);
         
-        [ind, ~] = mytsearchn_bem(mesh{i},probe.srcPos);
+%         [ind, ~] = mytsearchn_bem(mesh{i},probe.srcPos);
+%         srcPos = mesh{i}.nodes(ind,:);
+%         
+%         [ind, int_func] = mytsearchn_bem(mesh{i},probe.detPos);
+%         detPos = mesh{i}.nodes(ind,:);
+
+        [ind, ~] = dsearchn(mesh{i}.nodes,probe.srcPos);
         srcPos = mesh{i}.nodes(ind,:);
         
-        [ind, int_func] = mytsearchn_bem(mesh{i},probe.detPos);
+        [ind, int_func] = dsearchn(mesh{i}.nodes,probe.detPos);
         detPos = mesh{i}.nodes(ind,:);
         
+        [ind, int_func] = mytsearchn_bem(mesh{i},probe.detPos);
         
         mesh{i}.source.coord = srcPos;
         mesh{i}.source.fixed = 1;

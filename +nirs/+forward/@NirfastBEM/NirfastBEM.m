@@ -8,10 +8,6 @@ classdef NirfastBEM
         Fm = 0;
     end
     
-%     properties(SetAccess = private)
-%         nLayers;
-%     end
-    
     methods
         %% Constructor
         function obj = NirfastBEM( mesh, prop, probe, Fm )
@@ -26,9 +22,6 @@ classdef NirfastBEM
         mesh = getNirfastMeshes( obj )
         [J,meas] = jacobian( obj, type );
         [J,meas] = layeredJacobian( obj );
-        
-        
-%         [J,meas] = spectralJacobian( obj );
         
     end
     

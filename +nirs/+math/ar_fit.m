@@ -14,5 +14,6 @@ function [coef, res, yhat] = ar_fit( y,Pmax )
     
     [coef, res] = nirs.math.stepwise(X, [y; flipud(y)]);
     
-    yhat = y - res(1:n);
+    res = res(1:n);
+    yhat = y - res;
 end
