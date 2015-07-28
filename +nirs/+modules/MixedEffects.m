@@ -5,7 +5,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
     properties
         formula = 'beta ~ -1 + group:cond + (1|subject)';
         dummyCoding = 'full';
-        iscentered = true;
+        centerVars = true;
     end
 
     methods
@@ -22,11 +22,13 @@ classdef MixedEffects < nirs.modules.AbstractModule
             demo = nirs.createDemographicsTable( S );
             
             % center numeric variables
-            n = demo.Properties.VariableNames;
-            for i = 1:length(n)
-               if all( isnumeric( demo.(n{i}) ) )
-                   demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
-               end
+            if obj.centerVars
+                n = demo.Properties.VariableNames;
+                for i = 1:length(n)
+                   if all( isnumeric( demo.(n{i}) ) )
+                       demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+                   end
+                end
             end
             
             % preallocate group stats
@@ -81,8 +83,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
             beta        = b;
             
             %% check weights
-            m = median(W(W~=0));
-            W(W > 100*m) = 0;
+            dWTW = sqrt(diag(W'*W));
+            m = median(dWTW);
+            W(dWTW > 100*m,:) = 0;
             
             %% Weight the model
             X    = W*X;
