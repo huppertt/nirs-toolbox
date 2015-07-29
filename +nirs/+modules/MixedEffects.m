@@ -55,7 +55,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             
             % sort
-            [vars, idx] = sortrows(vars, {'source', 'detector', 'type', 'cond'});
+            [vars, idx] = sortrows(vars, {'source', 'detector', 'type'});
             
             % list for first source
             [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
@@ -80,7 +80,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             vars(idx,:) = vars;
             X(idx, :)   = X;
             Z(idx, :)   = Z;
-            beta        = b;
+            beta        = b; % already in correct order
             
             %% check weights
             dWTW = sqrt(diag(W'*W));

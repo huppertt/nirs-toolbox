@@ -11,10 +11,22 @@ function S = ttest(obj, c, b)
 
     nchan = size(obj.probe.link,1);
 
+    % sort variables
+    [~, icond] = sort(obj.conditions);
+    
+    [obj.variables, ivars] = sortrows(obj.variables, {'source', 'detector', 'type', 'cond'});
+    obj.beta = obj.beta(ivars);
+    obj.covb = obj.covb(ivars, ivars);
+    
+    c = c(:, icond);
+    
+    % full contrast matrix
     C = kron(eye(nchan), c);
 
     if nargin < 3
         b = zeros(size(C,1),1);
+    else
+        b = repmat(b(icond), [nchan 1]);
     end
 
     % transform beta
@@ -31,9 +43,9 @@ function S = ttest(obj, c, b)
 
     % new condition names
     cond = obj.transformNames(c);
-    cond = repmat( cond(:)', [nchan 1] );
-    cond = cond(:);
+    cond = repmat( cond(:), [nchan 1] );
 
     link = repmat( obj.probe.link, [size(c,1) 1] );
+    link = sortrows(link, {'source', 'detector', 'type'});
     S.variables = [link table(cond)];
 end

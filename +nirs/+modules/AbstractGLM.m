@@ -6,7 +6,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
         basis       = Dictionary();
         verbose     = false;
         isconstant  = true;
-        trend_func  = @(t) nirs.design.trend.legendre(t, 3);
+        trend_func  = @nirs.design.trend.constant
     end
 
     methods( Access = protected )

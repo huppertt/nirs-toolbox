@@ -91,7 +91,9 @@ classdef ChannelStats
                 t = abs(obj.tstat(:))';
                 q = obj.q(:);
                 
-                out = interp1(q, t, str2num(s{2}));
+                [~,idx] = unique(q);
+                
+                out = interp1(q(idx), t(idx), str2num(s{2}));
             end
         end
         
