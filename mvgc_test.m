@@ -1,17 +1,17 @@
-raw  = nirs.io.loadDirectory( '/Volumes/TinyDrive/Fetch/fnirs_data', {} );
+%raw  = nirs.io.loadDirectory( '/Volumes/TinyDrive/Fetch/fnirs_data', {} );
+raw  = nirs.io.loadDirectory( '~/Desktop/Tangos/data/processed', {} );
 
 j = nirs.modules.RemoveStimless(); 
 j = nirs.modules.Resample(j); 
 j.Fs = 2;
+
 j = nirs.modules.OpticalDensity(j); 
 j = nirs.modules.BeerLambertLaw(j); 
 
 hb = j.run(raw);
 
 G1 = []; G2 = [];
-
-
-for i = 201:400
+for i = 3:100
     idx = randperm(length(hb),2);
     
     Y1 = hb(idx(1)).data(:,1:2:end);
@@ -25,7 +25,8 @@ for i = 201:400
 %     iR(:,:,i) = pinv(R(:,:,i));
     
     G1(:,:,i) = nirs.math.mvgc(Y, 16);
-    G2(:,:,i) = nirs.math.pwgranger(Y, 16);
+    
+%     G2(:,:,i) = nirs.math.pwgranger(Y, 16);
     disp(i)
 end
 

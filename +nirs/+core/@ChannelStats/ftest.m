@@ -17,7 +17,17 @@ function S = ftest(obj, m)
 
     nchan = size(obj.probe.link,1);
 
-    M = kron(m, eye(nchan)) > 0;
+    % sort variables
+    [~, icond] = sort(obj.conditions);
+    
+    [obj.variables, ivars] = sortrows(obj.variables, {'source', 'detector', 'type', 'cond'});
+    obj.beta = obj.beta(ivars);
+    obj.covb = obj.covb(ivars, ivars);
+    
+    m = m(:, icond);
+    
+    % full contrast matrix
+    M = kron(eye(nchan), m);
 
     n = obj.dfe * ones(size(M,1),1);
     k = sum(M,2);
@@ -26,29 +36,26 @@ function S = ftest(obj, m)
     df2 = n-k;
 
     for i = 1:size(M,1)
-        idx = M(i,:);
+        idx = M(i,:) > 0;
         b = obj.beta(idx);
         T2(i,1) = b'*pinv(obj.covb(idx,idx))*b;
     end
 
     F = (n-k) ./ k ./ (n-1) .* T2;
 
-
     % new condition names
     cond = obj.transformNames(m);
     for i = 1:length(cond)
         cond{i} = strjoin(strsplit(cond{i},'+'),' & ');
     end
-
-    cond = repmat( cond(:)', [nchan 1] );
-    cond = cond(:);
+    cond = repmat( cond(:), [nchan 1] );
 
     link = repmat( obj.probe.link, [size(m,1) 1] );
-    vars = [link table(cond)];
-
+    link = sortrows(link, {'source', 'detector', 'type'});
+    
     S = nirs.core.ChannelFStats();
-
-    S.variables = vars;
+    S.variables = [link table(cond)];
+   
     S.F         = F;
     S.df1       = df1;
     S.df2       = df2;

@@ -54,8 +54,8 @@ classdef Probe
         function obj = swapSD( obj )
             %% swapSD - Swaps sources for detectors and vice versa.
 
-            d = obj.srcPos;
-            s = obj.detPos;
+            s = obj.srcPos;
+            d = obj.detPos;
             
             obj.srcPos = d;
             obj.detPos = s;
