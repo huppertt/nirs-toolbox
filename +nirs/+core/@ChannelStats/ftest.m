@@ -33,7 +33,7 @@ function S = ftest(obj, m)
     k = sum(M,2);
 
     df1 = k;
-    df2 = n-k;
+    df2 = n-k+1; % adding 1 so that df2 matches tstats dfe
 
     for i = 1:size(M,1)
         idx = M(i,:) > 0;
@@ -41,7 +41,7 @@ function S = ftest(obj, m)
         T2(i,1) = b'*pinv(obj.covb(idx,idx))*b;
     end
 
-    F = (n-k) ./ k ./ (n-1) .* T2;
+    F = (n-k+1) ./ k ./ n .* T2;
 
     % new condition names
     cond = obj.transformNames(m);

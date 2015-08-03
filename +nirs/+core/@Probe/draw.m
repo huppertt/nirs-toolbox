@@ -96,6 +96,11 @@ function rescaleAxes( axis_handle, s, d )
     xl = [xmin xmax];
     yl = [ymin ymax];
     
+    if ~all( [diff(xl) diff(yl)] > 0 )
+       xl = xlim;
+       yl = ylim;
+    end
+    
     xl = 1.2*diff(xl)/2*[-1 1]+mean(xl);
     yl = 1.2*diff(yl)/2*[-1 1]+mean(yl);
     

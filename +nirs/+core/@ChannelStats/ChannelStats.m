@@ -114,6 +114,8 @@ classdef ChannelStats
         stats = jointTest( obj );
         
         draw( obj, vtype, vrange, thresh );
+        
+        printAll( obj, vtype, vrange, thresh, folder, ext );
     end
     
     methods (Access = protected)
