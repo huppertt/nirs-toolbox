@@ -2,10 +2,11 @@ classdef TestChannelStats < matlab.unittest.TestCase
 
     properties
         stats
+        permStats
     end
     
     methods
-        function obj = TestChannelStats()
+        function obj = TestChannelStats()            
             % make a probe
             srcPos = [0 0 0];
             
@@ -43,6 +44,16 @@ classdef TestChannelStats < matlab.unittest.TestCase
             stats.probe    	= probe;
             
             obj.stats = stats;
+            
+            % permuted stats
+            newStats = obj.stats;
+            idx = [1 3 2 8 7 4 5 6]'; % first one must be condition A
+            
+            newStats.beta = obj.stats.beta(idx);
+            newStats.covb = obj.stats.covb(idx, idx);
+            newStats.variables = obj.stats.variables(idx, :);
+            
+            obj.permStats = newStats;
         end
     end
     
@@ -91,14 +102,7 @@ classdef TestChannelStats < matlab.unittest.TestCase
             obj.verifyEqual(s.covb, covb)
             
             % make sure ordering of variables wont effect results
-            newObj = obj.stats;
-            idx = [1 3 2 8 7 4 5 6]';
-            
-            newObj.beta = obj.stats.beta(idx);
-            newObj.covb = obj.stats.covb(idx, idx);
-            newObj.variables = obj.stats.variables(idx, :);
-            
-            newS = newObj.ttest(c);
+            newS = obj.permStats.ttest(c);
             
             obj.verifyEqual(s, newS);
         end
@@ -126,17 +130,48 @@ classdef TestChannelStats < matlab.unittest.TestCase
                 T2(i,1)     = b(idx)'*inv(covb(idx,idx))*b(idx);
                 df1(i,1)    = sum(idx);
                 df2(i,1)    = obj.stats.dfe - df1(i) + 1;
-                F(i,1)      = df1(i) / df2(i) / obj.stats.dfe * T2(i);
+                F(i,1)      = df2(i) / df1(i) / obj.stats.dfe * T2(i);
                 p(i,1)      = fcdf(1./F(i), df2(i), df1(i));
             end
             
+            obj.verifyEqual(F, f.F);
+            obj.verifyEqual(df1, f.df1);
+            obj.verifyEqual(df2, f.df2);
+            obj.verifyEqual(p, f.p);
             
+            % make sure permutations of the data
+            % do not alter results
+            newF = obj.permStats.ftest(m);
             
+            obj.verifyEqual(f, newF);
         end
         
         
         function testJointTest( obj )
+            f = obj.stats.jointTest();
             
+            M = kron(eye(2), [1 0 1 0; 0 1 0 1]) > 0;
+            
+            b = obj.stats.beta;
+            covb = obj.stats.covb;
+            
+            for i = 1:size(M,1)
+                idx = M(i,:);
+                T2(i,1)     = b(idx)'*inv(covb(idx,idx))*b(idx);
+                df1(i,1)    = sum(idx);
+                df2(i,1)    = obj.stats.dfe - df1(i) + 1;
+                F(i,1)      = df2(i) / df1(i) / obj.stats.dfe * T2(i);
+                p(i,1)      = fcdf(1./F(i), df2(i), df1(i));
+            end
+            
+            obj.verifyEqual(F, f.F);
+            obj.verifyEqual(df1, f.df1);
+            obj.verifyEqual(df2, f.df2);
+            obj.verifyEqual(p, f.p);
+            
+            newF = obj.permStats.jointTest();
+            
+            obj.verifyEqual(f, newF);
         end
     end
 end

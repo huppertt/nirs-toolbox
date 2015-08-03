@@ -20,7 +20,7 @@ classdef ChannelFStats
         function fcrit = getCritF( obj )
             fcrit = zeros(length(obj.names),1);
             for i = 1:length(obj.names)
-                fcrit(i) = finv( 1-obj.pcrit, obj.df1(i), obj.df2(i) );
+                fcrit(i) = 1/finv( obj.pcrit, obj.df2(i), obj.df1(i) );
             end
         end
         

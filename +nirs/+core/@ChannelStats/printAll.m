@@ -1,4 +1,11 @@
 function printAll( obj, vtype, vrange, thresh, folder, ext )
+    %% PRINTALL - draws and saves figures to a folder
+    % 
+    % Args:
+    %     vtype, vrange, thresh  -  same as draw function
+    %     folder  -  directory to save to
+    %     ext     -  file extension of images (eps, tif, or jpg)
+
     n = length(obj.conditions);
     
     I = eye(n);

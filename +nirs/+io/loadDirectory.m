@@ -34,7 +34,7 @@ function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
         demo = fsplit(length(rsplit)+1:end-1);
 
         for iDemo = 1:length(folderHierarchy)
-            data(iFile).demographics(folderHierarchy{iDemo}) = demo{iDemo};
+            data(end).demographics(folderHierarchy{iDemo}) = demo{iDemo};
         end
     end
     

@@ -1,7 +1,13 @@
 function out = jointTest( obj )
     %% jointTest - performs a joint hypothesis test across all channels in
     %              each SD pair (i.e. joint test of hbo & hbr for S1-D1)
-
+    
+    % ensure that data is sorted
+    [vars, ivars] = sortrows(obj.variables, {'source', 'detector', 'type', 'cond'});
+    obj.variables = obj.variables(ivars, :);
+    obj.beta = obj.beta(ivars);
+    obj.covb = obj.covb(ivars, ivars);
+    
     % get unique sd pair/conditions to jointly test
     vars = obj.variables;
     vars.type = [];
@@ -16,9 +22,9 @@ function out = jointTest( obj )
        n = obj.dfe;
        k = sum(m);
        
-       F(i,1) = (n-k) ./ k ./ (n-1) .* T2;
+       F(i,1) = (n-k+1) ./ k ./ n .* T2;
        df1(i,1) = k;
-       df2(i,1) = n-k;
+       df2(i,1) = n-k+1;
     end
     
     % output
