@@ -35,8 +35,8 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
                 error('File extension not recognized.')
             end
             
-            fname = [folder filesep obj.conditions{i} '_' utypes{j} '.' ext];
-            fname = strjoin(strsplit(fname, ':'), '__');
+            fname = [obj.conditions{i} '_' utypes{j} '.' ext];
+            fname = [folder filesep strjoin(strsplit(fname, ':'), '__')];
             print(ptype, fname)
             
             close
