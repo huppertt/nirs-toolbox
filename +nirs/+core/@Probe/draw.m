@@ -1,4 +1,4 @@
-function draw( obj, colors, lineStyles, axis_handle )
+function h=draw( obj, colors, lineStyles, axis_handle )
     %% draw - Plots the probe geometry.
     % 
     % Args:
@@ -31,14 +31,14 @@ function draw( obj, colors, lineStyles, axis_handle )
         axis_handle = axes();
     end
     
-    drawProbe(link, s, d, colors, lineStyles, axis_handle);
+    h=drawProbe(link, s, d, colors, lineStyles, axis_handle);
     
     labelOptodes( axis_handle, s, d )
     
     rescaleAxes( axis_handle, s, d )
 end
 
-function drawProbe(link, s, d, colors, lineStyles, axis_handle)
+function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
     axes(axis_handle);
     hold on;
     
@@ -49,9 +49,9 @@ function drawProbe(link, s, d, colors, lineStyles, axis_handle)
         x = [s(iSrc,1) d(iDet,1)]';
         y = [s(iSrc,2) d(iDet,2)]';
 
-        h = line(x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
+        h(iChan) = line(x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
         
-        set(h,'UserData',[iSrc iDet]);
+        set(h(iChan),'UserData',[iSrc iDet]);
     end
     
     hold off;
