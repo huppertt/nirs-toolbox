@@ -66,9 +66,10 @@ data=get(handles.figure_nirsview,'Userdata');
 cla(handles.axes_SDG);
 axes(handles.axes_SDG);
 hold on;
-SDGhandlesBase=data(val).probe.draw;
+SDGhandlesBase=data(val).probe.draw([],[],handles.axes_SDG);
 set(SDGhandlesBase,'Color',[.8 .8 .8]);
-SDGhandles=data(val).probe.draw;
+
+SDGhandles=data(val).probe.draw([],[],handles.axes_SDG);
 
 cla(handles.axes_maindata);
 axes(handles.axes_maindata);
@@ -78,7 +79,7 @@ typesAll=arrayfun(@(x){num2str(x)},data(val).probe.link.type);
 types=unique(typesAll);
 lstdisp=[1];
 
-SDcolors=makeSDcolors(data(val).probe.link);
+SDcolors=nirs.util.makeSDcolors(data(val).probe.link);
 
 set(linehandles,'visible','off');
 for idx=1:length(lstdisp)

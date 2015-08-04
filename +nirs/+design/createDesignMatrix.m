@@ -2,6 +2,10 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
 
     if nargin < 4, type = ''; end
     
+    if nargin < 3, 
+        basis = Dictionary({'default'}, {nirs.design.basis.Canonical()}); 
+    end
+    
     % keys are stimulus names and values are stim objects
     stim_keys = stimulus.keys;
     stim_vals = stimulus.values;

@@ -1,8 +1,8 @@
-function data = simARNoise( probe )
+function data = simARNoise( probe, t, P)
 
-    if nargin < 1
-        probe = defaultProbe();
-    end
+    if nargin < 3, P = 10; end
+    if nargin < 2, t = (0:1/10:300)'; end
+    if nargin < 1, probe = defaultProbe(); end
     
     nchan = size(probe.link,1);
     
@@ -10,19 +10,19 @@ function data = simARNoise( probe )
     mu = zeros(nchan,1);
     S = toeplitz( [1 0.33*ones(1,nchan-1)] );
     
-    e = mvnrnd( mu, S, 5 * 60 * 10 );
+    e = mvnrnd( mu, S, length(t) );
 
     % add temporal covariance
     for i = 1:size(e,2)
-        a = randAR( 30 );
+        a = randAR( P );
         e(:,i) = filter(1, [1; -a], e(:,i));
     end
     
     % output
     data = nirs.core.Data();
-    data.data   = e * 5e-3;
+    data.data   = 100 * exp( - e * 5e-3 );
     data.probe  = probe;
-    data.time   = (0:size(e,1)-1)' / 10;
+    data.time   = t;
   
 end
 
@@ -78,6 +78,7 @@ function probe = defaultProbe()
     
     link = sortrows(link);
     
-    probe.link = table(link(:,1), link(:,2), link(:,3), 'VariableNames', {'source', 'detector', 'type'});
+    probe.link = table(link(:,1), link(:,2), link(:,3), ...
+        'VariableNames', {'source', 'detector', 'type'});
     
 end

@@ -1,5 +1,5 @@
 classdef FixSatChans < nirs.modules.AbstractModule
-%% FixFlatChans - Attempts to replace oversaturated channels with high variance noise.
+%% FixSatChans - Attempts to replace oversaturated channels with high variance noise.
 %
 % Note: This should be run on raw data (before optical density conversion).
     
