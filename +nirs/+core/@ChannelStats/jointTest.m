@@ -3,10 +3,7 @@ function out = jointTest( obj )
     %              each SD pair (i.e. joint test of hbo & hbr for S1-D1)
     
     % ensure that data is sorted
-    [vars, ivars] = sortrows(obj.variables, {'source', 'detector', 'type', 'cond'});
-    obj.variables = obj.variables(ivars, :);
-    obj.beta = obj.beta(ivars);
-    obj.covb = obj.covb(ivars, ivars);
+    obj = obj.sorted();
     
     % get unique sd pair/conditions to jointly test
     vars = obj.variables;

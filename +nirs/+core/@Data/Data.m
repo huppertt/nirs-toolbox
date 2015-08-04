@@ -77,7 +77,17 @@ classdef Data
             end
         end
         
-        function h=draw( obj, lstChannels )
+        function out = sorted( obj, colsToSortBy )
+            %% returns sorted channels of data by column in probe.link
+            out = obj;
+            if nargin < 2
+                colsToSortBy = {'source', 'detector', 'type'};
+            end
+            [out.probe.link, idx] = sortrows(out.probe.link, colsToSortBy);
+            out.data = out.data(:,idx);
+        end
+        
+        function draw( obj, lstChannels )
             %% draw - Plots the probe geometry.
             % 
             % Args:
@@ -127,7 +137,7 @@ classdef Data
             end
             
             % plot data
-            h=plot( t, d );
+            plot( t, d );
             
             xlabel( 'seconds' );
             

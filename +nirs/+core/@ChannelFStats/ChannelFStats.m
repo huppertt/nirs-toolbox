@@ -17,6 +17,7 @@ classdef ChannelFStats
     %     getCritF    - returns critical F value
     %     draw        - displays the time series data and stimulust timings
     %     table       - returns a table of all stats (minus full covariance)
+    %     sorted      - returns new ChannelFStats object with sorted channels
     
     properties
         variables	% description of data (e.g. filename)
@@ -78,6 +79,21 @@ classdef ChannelFStats
             df2 = obj.df2;
             
             out = [obj.variables table(F, df1, df2, p, q)];
+        end
+        
+        % sorting
+        function out = sorted( obj, colsToSortBy )
+            %% sorted - returns sorted stats by columns in variables
+            out = obj;
+            if nargin < 2
+                colsToSortBy = {'source', 'detector', 'type', 'cond'};
+            end
+            
+            [out.variables, idx] = sortrows(out.variables, colsToSortBy);
+            
+            out.F = obj.F(idx);
+            out.df1 = obj.df1(idx);
+            out.df2 = obj.df2(idx);
         end
         
         % draw

@@ -24,6 +24,7 @@ classdef ChannelStats
     %     ftest       - performs an F-test across conditions 
     %     jointTest   - performs a joint hypothesis test across all channels in
     %                   each SD pair (i.e. joint test of hbo & hbr for S1-D1)
+    %     sorted      - returns new ChannelStats object with sorted channels
 
     properties
         description     % description of data (e.g. filename)
@@ -107,6 +108,19 @@ classdef ChannelStats
             dfe = obj.dfe * ones(size(p));
             
             out = [obj.variables table(beta, se, tstat, dfe, p, q)];
+        end
+        
+        function out = sorted( obj, colsToSortBy )
+            %% sorted - returns sorted stats by columns in variables
+            out = obj;
+            if nargin < 2
+                colsToSortBy = {'source', 'detector', 'type', 'cond'};
+            end
+            
+            [out.variables, idx] = sortrows(out.variables, colsToSortBy);
+            
+            out.beta = obj.beta(idx);
+            out.covb = obj.covb(idx, idx);
         end
         
         stats = ttest( obj, c, b );

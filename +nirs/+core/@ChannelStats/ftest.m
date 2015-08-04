@@ -19,10 +19,7 @@ function S = ftest(obj, m)
 
     % sort variables
     [~, icond] = sort(obj.conditions);
-    
-    [obj.variables, ivars] = sortrows(obj.variables, {'source', 'detector', 'type', 'cond'});
-    obj.beta = obj.beta(ivars);
-    obj.covb = obj.covb(ivars, ivars);
+    obj = obj.sorted();
     
     m = m(:, icond);
     
