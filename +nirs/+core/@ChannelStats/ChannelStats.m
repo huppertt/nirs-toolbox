@@ -18,7 +18,7 @@ classdef ChannelStats
     %     
     %  Methods:
     %     getCritT    - returns critical t value
-    %     draw        - displays the time series data and stimulust timings
+    %     draw        - draws beta or tstat values on top of probe geometry
     %     table       - returns a table of all stats (minus full covariance)
     %     ttest       - performs a t-test and returns a new ChannelStats object
     %     ftest       - performs an F-test across conditions 

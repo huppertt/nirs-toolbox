@@ -1,8 +1,14 @@
 classdef AddDemographics < nirs.modules.AbstractModule
-  
+%% AddDemographics - Adds demographics info to data given a table.
+% 
+% Options: 
+%     demoTable     - a matlab table with the demographics info
+%     varToMatch    - the column of demoTable which also matches an
+%                     existing demographics variable (e.g. match on subject
+%                     name)
     properties
-        demoTable
-        varToMatch = 'subject';
+        demoTable                  % a matlab table with the demographics info
+        varToMatch = 'subject';    % the column of demoTable to match files with
     end
     
     methods

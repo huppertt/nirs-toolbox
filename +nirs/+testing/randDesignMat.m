@@ -7,6 +7,6 @@ function [X, stim] = randDesignMat( t, stimLength, stimSpace, basis )
 
     stim = Dictionary( {'rand'}, {stim} );
     
-    % add to data
+    % design mat
     X = nirs.design.createDesignMatrix( stim, t, basis );
 end

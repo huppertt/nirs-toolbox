@@ -1,9 +1,11 @@
 classdef DiscardStims < nirs.modules.AbstractModule
-    %UNTITLED6 Summary of this class goes here
-    %   Detailed explanation goes here
-    
+%% DiscardStims - Removes specified stim conditions from design.
+% 
+% Options: 
+%     listOfStims - cell array of stim names
+
     properties
-        listOfStims     = {};
+        listOfStims = {}; % cell array of stim names
     end
     
     methods

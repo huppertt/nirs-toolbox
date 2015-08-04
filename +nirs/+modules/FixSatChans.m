@@ -1,10 +1,9 @@
 classdef FixSatChans < nirs.modules.AbstractModule
-
-    properties
-    end
+%% FixFlatChans - Attempts to replace oversaturated channels with high variance noise.
+%
+% Note: This should be run on raw data (before optical density conversion).
     
     methods
-
         function obj = FixSatChans( prevJob )
            obj.name = 'Fix Oversaturated Channels';
            
@@ -31,10 +30,10 @@ classdef FixSatChans < nirs.modules.AbstractModule
                 
                 a = zeros( size(lst) );
                 for j = 1:length(lst)
-                    a(j,1) = length(ar_fit(d(:,lst(j)), round(10*Fs)));
+                    a(j,1) = length(nirs.math.ar_fit(d(:,lst(j)), round(10*Fs)));
                 end
                 
-                % bad chans = high variance and autcorr
+                % bad chans = high variance and autocorr
                 bad = lst(a > 3*Fs);
                 
                 d(:,bad) = lognrnd( 0, 1, [size(d,1) length(bad)] );

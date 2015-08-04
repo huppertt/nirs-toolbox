@@ -1,12 +1,10 @@
 classdef AbstractGLM < nirs.modules.AbstractModule
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
+%% ABSTRACTGLM  -  Abstract class with common GLM functions.
   
     properties
-        basis       = Dictionary();
-        verbose     = false;
-        isconstant  = true;
-        trend_func  = @nirs.design.trend.constant
+        basis       = Dictionary();                 % dictionary of bases using stim name as key
+        verbose     = true;                         % flag to show GLM progress
+        trend_func  = @nirs.design.trend.constant   % a function of time that returns trend regressors
     end
 
     methods( Access = protected )
@@ -26,10 +24,6 @@ classdef AbstractGLM < nirs.modules.AbstractModule
                 C = obj.trend_func( t );
             else
                 C = ones(size(t));
-            end
-
-            if obj.isconstant == false;
-                C = C(:,2:end);
             end
         end
         

@@ -1,10 +1,9 @@
 classdef FixFlatChans < nirs.modules.AbstractModule
-
-    properties
-    end
+%% FixFlatChans - Replaces flatlined channels with high variance noise.
+%
+% Note: This should be run on raw data (before optical density conversion).
     
     methods
-
         function obj = FixFlatChans( prevJob )
            obj.name = 'Fix Flatlined Channels';
            

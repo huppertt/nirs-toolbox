@@ -1,11 +1,15 @@
 classdef Resample < nirs.modules.AbstractModule
-  
+%% RESAMPLE - Resamples time-series NIRS data.
+% 
+% Options: 
+%     Fs - new sampling frequency (Hz)
+    
+
     properties
-        Fs = 4;
+        Fs = 4; % new sampling frequency (Hz)
     end
     
     methods
-
         function obj = Resample( prevJob )
            obj.name = 'Resample';
            
@@ -40,7 +44,6 @@ classdef Resample < nirs.modules.AbstractModule
 
                     data(i).data = d;
                     data(i).time = new_t;
-                    
                 end
             end
         end

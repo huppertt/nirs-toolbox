@@ -1,7 +1,11 @@
 classdef BaselineCorrection < nirs.modules.AbstractModule
-    
+%% BaselineCorrection - Attemps a very conservative motion correction to remove DC-shifts.
+% 
+% Options: 
+%     tune - number of standard deviations to define an outlier
+
     properties
-        tune = 5;
+        tune = 5; % number of standard deviations to define an outlier
     end
     
     methods
@@ -21,19 +25,28 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
                     Fs  = data(i).Fs;
                     t   = data(i).time;
                     
-%                     [a, r] = nirs.math.ar_fit(diff([0; y]), round(4*Fs));
-%                     
-%                     lst = abs(r)./(mad(r,0)/0.6745) > obj.tune;
-%                     r(lst) = 0;
-%                     
-%                     f = [1; -a(2:end)];
-%                     ymoco2 = cumsum(filter(1, f, r));
+                    m = median(y);
                     
-                    [~, ~, ~, ymoco] = ...
-                        nirs.math.robust_ari1_fit(y, round(4*Fs), obj.tune);
+%                     % fitting an ARI model with one diff
+%                     yd = diff([0; y-m]);
+%                     
+%                     [a, r] = nirs.math.robust_ar_fit(yd, round(4*Fs));
                     
-                    X = nirs.design.trend.legendre(t, 3);
-                    ymoco = ymoco - X*(X\ymoco);
+                    [~,~,~,ymoco] = nirs.math.robust_ari1_fit(y-m, round(4*Fs), obj.tune);
+%                     % weights
+%                     s = mad(r, 0) / 0.6745;
+%                     w = abs(r/s/obj.tune) < 1;
+%                     
+%                     % filter
+%                     f = [1; -a(2:end)];                  
+%                     
+%                     ymoco = cumsum( filter(1, f, w.*r) );
+%                     
+%                     % remove low poly behaviour
+%                     X = nirs.design.trend.legendre(t, 2);
+%                     ymoco = ymoco - X*(X\ymoco);
+%                     
+                    ymoco = ymoco + m;
                     
                     data(i).data(:,j) = ymoco;
                 end

@@ -1,17 +1,21 @@
 classdef AbstractModule
-    %UNTITLED4 Summary of this class goes here
-    %   Detailed explanation goes here
+%% AbstractModule - Abstract class at the core of the pipeline design.
     
     properties
-        name    = '';
-        prevJob = [];
+        name    = ''; % name of the module for convenience
+        prevJob = []; % the module preceding this module in the pipeline
     end
     
     methods( Abstract )
-       output   = runThis( obj, input );
+        % every module must specify a runThis function which performs the
+        % core functionality of that module
+        output = runThis( obj, input );
     end
     
     methods
+        % Every module automatically inherits the run function. This function
+        % calls the previous module before performing its own
+        % functionality.
         function out = run( obj, input )
             % if no prev job execute and return result
             if isempty( obj.prevJob )
@@ -25,6 +29,7 @@ classdef AbstractModule
         
         % option interface
         function out = options( obj, opts )
+            %% options - returns list of options or put options into module
             if nargin == 1
                 out = obj.getoptions();
             else
@@ -32,7 +37,6 @@ classdef AbstractModule
             end
         end
     end
-        
         
     methods( Access = private )
         function out = getoptions( obj )
@@ -51,8 +55,6 @@ classdef AbstractModule
                     out = [out; {p.Name}];
                 end
             end
-            
-         
         end
         
         function obj = putoptions( obj, opts )

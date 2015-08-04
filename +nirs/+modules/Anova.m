@@ -8,14 +8,15 @@ classdef Anova < nirs.modules.AbstractModule
 
     methods
         function obj = Anova( prevJob )
-           obj.name = 'Anova Model';
-           if nargin > 0
-               obj.prevJob = prevJob;
-           end
+            error('this module needs fixed')
+            
+            obj.name = 'Anova Model';
+            if nargin > 0
+                obj.prevJob = prevJob;
+            end
         end
         
         function G = runThis( obj, S )
-            
             
             % demographics info
             demo = nirs.createDemographicsTable( S );
@@ -23,9 +24,9 @@ classdef Anova < nirs.modules.AbstractModule
             % center numeric variables
             n = demo.Properties.VariableNames;
             for i = 1:length(n)
-               if all( isnumeric( demo.(n{i}) ) )
-                   demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
-               end
+                if all( isnumeric( demo.(n{i}) ) )
+                    demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+                end
             end
             
             % preallocate group stats
@@ -46,7 +47,7 @@ classdef Anova < nirs.modules.AbstractModule
                 % table of variables
                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
                 
-                vars = [vars; 
+                vars = [vars;
                     [table(file_idx) S(i).variables repmat(demo(i,:), [size(S(i).beta,1) 1])]
                     ];
             end

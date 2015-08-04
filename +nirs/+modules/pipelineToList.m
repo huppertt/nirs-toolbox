@@ -1,5 +1,9 @@
 function list = pipelineToList( pipeline )
-    
+%% pipelineToList - Disassembles a pipeline into a cell array of modules.
+%
+% Args:
+%     pipeline - an pipeline consisting of modules
+
     list = {};
     while ~isempty( pipeline )
         % get module

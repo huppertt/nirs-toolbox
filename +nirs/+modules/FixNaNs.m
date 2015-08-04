@@ -1,7 +1,14 @@
 classdef FixNaNs < nirs.modules.AbstractModule
+%% FixNaNs - Attempts to fix NaN values by interpolation.
+%
+% Options:
+%    ifFailReplaceWith - value to replace NaNs with if interpolation fails
+%
+% Notes:
+%     1 is a good value for raw data; 0 otherwise
 
     properties
-        ifFailReplaceWith = 0;
+        ifFailReplaceWith = 1; % value to replace NaNs with if interpolation fails
     end
     
     methods
@@ -23,7 +30,6 @@ classdef FixNaNs < nirs.modules.AbstractModule
                 lst = isnan(d);
                 
                 if any(lst(:))
-                
                     try
                         for j = 1:size(d,2)
                             if any(lst(:,j))

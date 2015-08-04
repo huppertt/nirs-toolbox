@@ -1,6 +1,18 @@
 function [names, idx] = getStimNames( data )
-% This returns all of the stim names for the list of data files and the
-% indices they were found in.
+%% getStimNames - returns a list of stim names for the list in data
+% 
+% Args:
+%     data - a list of nirs.core.Data or nirs.core.ChannelStats objects
+%     
+% Returns:
+%     names - a flat list of all stim names
+%     idx   - a list of indices matching the size of "names" indicating the
+%               corresponding item in "data"
+%
+% Example:
+%     unique( nirs.getStimNames(raw_data) ) % returns unique stim 
+%                                           % conditions in raw_data
+    
 
     names = {}; idx = [];
     for i = 1:length(data)

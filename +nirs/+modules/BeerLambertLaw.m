@@ -1,10 +1,14 @@
 classdef BeerLambertLaw < nirs.modules.AbstractModule
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
+%% BeerLambertLaw - Converts optical density to hemoglobin.
+% 
+% dOD(lambda) = ext(hbo, lambda) * conc(hbo) * distance * PPF + ...
+%         ext(hbr, lambda) * conc(hbr) * distance * PPF;
+%
+% Options: 
+%     tune - number of standard deviations to define an outlier
     
     properties
-        PPF = 5 / 50; % arbitrary scaling factor
-        chromophores = {'hbo','hbr'};
+        PPF = 5 / 50;   % partial pathlength factor 
     end
     
     methods
@@ -53,7 +57,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     d(:,lst) = (d(:,lst)*iEL') * 1e6;
                     
                     % new channel type
-                    type(lst,1) = obj.chromophores;
+                    type(lst,1) = {'hbo', 'hbr'};
                 end
                 
                 p.link.type = type;

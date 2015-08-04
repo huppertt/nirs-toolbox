@@ -1,9 +1,15 @@
 classdef WaveletFilter < nirs.modules.AbstractModule
-  
+%% WaveletFilter - Filter to remove outliers (motion) and low freq characteristics.
+%
+% Options:
+%     sthresh         - std dev to define outliers
+%     wbasis          - wavelet basis function
+%     removeScaling   - flag to remove low freq scaling coefficients
+        
     properties
-        sthresh         = 5;
-        wbasis          = 'sym8';
-        removeScaling   = true;
+        sthresh         = 5;        % std dev to define outliers
+        wbasis          = 'sym8';   % wavelet basis function
+        removeScaling   = true;     % flag to remove low freq scaling coefficients
     end
     
     methods

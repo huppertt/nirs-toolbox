@@ -1,6 +1,9 @@
 classdef OpticalDensity < nirs.modules.AbstractModule
-    methods
+%% OpticalDensity - Converts raw data to optical density.
+% 
+% dOD = -log( raw/mean(raw) )
 
+    methods
         function obj = OpticalDensity( prevJob )
            obj.name = 'Optical Density';
            if nargin > 0
@@ -12,12 +15,10 @@ classdef OpticalDensity < nirs.modules.AbstractModule
             for i = 1:length(data)
                 d = data(i).data;
                 
-                d = real( -log(d) );
                 m = mean( d, 1 );
-                d = bsxfun( @minus, d, m );
+                d = bsxfun( @plus, -log(d), log(m) );
                 
-                data(i).data = d;
-                
+                data(i).data = real(d);
             end
         end
     end

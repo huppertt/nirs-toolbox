@@ -1,7 +1,7 @@
 classdef MultiVarGLM < nirs.modules.AbstractGLM
     properties
         useSpectralPriors = true;
-        PPF = 50 / 5;
+        PPF = 5 / 50;
     end
     
     methods
@@ -10,7 +10,7 @@ classdef MultiVarGLM < nirs.modules.AbstractGLM
             
             obj.name             	= 'Multivariate GLM';
             obj.basis('default')    = nirs.design.basis.Canonical();
-            obj.trend_func          = @(t) nirs.design.trend.legendre(t, 1);
+            obj.trend_func          = @nirs.design.trend.constant;
         end
         
         function S = runThis( obj, data )

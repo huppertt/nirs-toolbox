@@ -1,6 +1,10 @@
 classdef KeepStims < nirs.modules.AbstractModule
+%% KeepStims - Removes all stims except those specified.
+% 
+% Options: 
+%     listOfStims - cell array of stim names
     properties
-        listOfStims = {};
+        listOfStims = {}; % cell array of stim names
     end
 
     methods

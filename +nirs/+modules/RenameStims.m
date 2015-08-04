@@ -1,9 +1,24 @@
 classdef RenameStims < nirs.modules.AbstractModule
+%% RenameStims - Renames stimulus conditions.
+% 
+% Options:
+%     listOfChanges - % n x 2 cell array of changes
+%     
+% Example:
+%     j = nirs.modules.RenameStims();
+%     j.listOfChanges = { ...
+%         'miSSpellledHOrror',        'NiceName1';
+%         'HorRRRRORTWO',             'NiceName2';
+%         'OMGThisNameIsTooDangLong', 'NiceName3'
+%         };
+%
+%     j.run( raw );
+%     
+% Notes:
+%     If you rename a condition to one that exists, the two stims are merged.
     
     properties
-        listOfChanges = {};
-        % listOfChanges = {  old_name1, new_name1; 
-        %           old_name2, new_name2    };
+        listOfChanges = {}; % n x 2 cell array of changes
     end
     
     methods

@@ -1,7 +1,11 @@
 classdef PCAFilter < nirs.modules.AbstractModule
-  
+%% PCAFilter - Removes principal components reducing spatial covariance.
+%
+% Options:
+%     ncomp - % number of components to remove
+
     properties
-        ncomp = 1;
+        ncomp = 1; % number of components to remove
     end
     
     methods

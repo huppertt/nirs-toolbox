@@ -1,5 +1,26 @@
 classdef AR_IRLS < nirs.modules.AbstractGLM
-   
+%% AR_IRLS - Performs first-level per file GLM analysis.
+% 
+% Options:
+%     basis       - a Dictionary object containing temporal bases using stim name as key
+%     verbose     - flag to display progress
+%     trend_func  - a function that takes in a time vector and returns trend regressors
+%     
+% Example:
+%     j = nirs.modules.AR_IRLS();
+%     
+%     b = Dictionary();
+%     b('default') = nirs.design.basis.Canonical(); % default basis
+%     b('A')       = nirs.design.basis.Gamma();     % a different basis for condition 'A'
+%     
+%     j.basis = b;
+%     
+%     j.trend_func = @(t) nirs.design.trend.legendre(t, 3); % 3rd order polynomial for trend
+%     
+% Note: 
+%     trend_func must at least return a constant term unless all baseline periods are
+%     specified explicitly in the stimulus design with BoxCar basis functions
+    
     methods
         function obj = AR_IRLS( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
@@ -61,11 +82,6 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = data(i).probe;
-                
-%                 % sort
-%                 [S(i).variables, idx] = sortrows(S(i).variables, {'condition', 'source', 'detector', 'type'});
-%                 S(i).beta = S(i).beta(idx);
-%                 s(i).covb = S(i).covb(idx,idx);
                 
                 % print progress
                 obj.printProgress( i, length(data) )

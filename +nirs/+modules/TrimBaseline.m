@@ -1,9 +1,13 @@
 classdef TrimBaseline < nirs.modules.AbstractModule
-% Trim pre/post baseline
+%% TrimBaseline - Removes excessive baseline at the beginning or end of file.
+%
+% Options:
+%     preBaseline  - maximum baseline (seconds) at the beginning of scan
+%     postBaseline - maximum baseline (seconds) after final task period ends
     
     properties
-        preBaseline  = 30;
-        postBaseline = 30;
+        preBaseline  = 30;  % maximum baseline (seconds) at the beginning of scan
+        postBaseline = 30;  % maximum baseline (seconds) after final task period ends
     end
     
     methods

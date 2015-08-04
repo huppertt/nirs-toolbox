@@ -1,5 +1,15 @@
 function draw( obj, fmax, thresh)
 
+    %% draw - Draws channelwise F-statisitcs on a probe.
+    % Args:
+    %     fmax    - display range from 0 to fmax
+    %     thresh  - either a scalar such that F-stats > thresh are significant or
+    %               a string specifying statistical significance (e.g. 'p < 0.05')
+    % 
+    % Examples:
+    %     stats.draw( 10, 'q < 0.1' )
+    %     stats.draw( 10, 5 )
+    
     % significance masking
     if nargin < 3
         mask = ones(size(obj.F)) > 0;
