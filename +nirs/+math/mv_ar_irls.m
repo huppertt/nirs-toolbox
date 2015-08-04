@@ -66,7 +66,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         Xq = myKronProd( Q, stack(Xf) );
         Tq = myKronProd( Q, Tf );
         
-        for j = 1:3
+        for j = 1:10
             % tukey weights
             rq = reshape( vec(Yq) - [Xq Tq] * b, size(Yq) );
 
