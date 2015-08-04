@@ -306,6 +306,7 @@ while(~isempty(j.prevJob))
 end
 lst=min(find(ismember(Names,toCharArray(name)')));
 
+optval=[];
 opt=options(JJ{lst});
 for idx=1:length(opt)
     optval(idx).field=opt{idx};
