@@ -87,7 +87,7 @@ classdef Data
             out.data = out.data(:,idx);
         end
         
-        function draw( obj, lstChannels )
+        function h=draw( obj, lstChannels )
             %% draw - Plots the probe geometry.
             % 
             % Args:
@@ -137,7 +137,7 @@ classdef Data
             end
             
             % plot data
-            plot( t, d );
+            h=plot( t, d );
             
             xlabel( 'seconds' );
             
