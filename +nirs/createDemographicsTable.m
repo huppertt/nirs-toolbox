@@ -20,5 +20,9 @@ function tbl = createDemographicsTable( data )
     end
 
     % covert to table
-    tbl = struct2table(tbl);
+    if(exist('tbl'))
+        tbl = struct2table(tbl);
+    else
+        tbl=table;
+    end
 end
