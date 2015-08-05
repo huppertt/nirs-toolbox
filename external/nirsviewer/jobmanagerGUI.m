@@ -22,7 +22,7 @@ function varargout = jobmanagerGUI(varargin)
 
 % Edit the above text to modify the response to help jobmanagerGUI
 
-% Last Modified by GUIDE v2.5 31-Jul-2015 10:54:18
+% Last Modified by GUIDE v2.5 05-Aug-2015 11:39:31
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -157,8 +157,8 @@ function update_tree(handles);
 
 info=get(handles.listbox_avaliable,'UserData');
 jobs=get(handles.listbox_loaded,'UserData');
-delete(findobj('tag','uitree_cont'));
-delete(findobj('tag','uitree_obj'));
+delete(findobj('tag','uitree_cont_jobs'));
+delete(findobj('tag','uitree_obj_jobs'));
 
 import javax.swing.*
 import javax.swing.tree.*;
@@ -194,6 +194,12 @@ while(~isempty(j.prevJob))
                  val='false'
              end
          end
+         if(isa(val,'Dictionary'))
+             val='Dictionary';
+         end
+         if(isa(val,'function_handle'))
+             val=func2str(val);
+         end
          
          str =[opt{idx} ' = ' val(1,:)];
          o = uitreenode('v0', str,  str, [], true);
@@ -212,7 +218,7 @@ end
 
 [mtree,container] = uitree('v0', 'Root', root);
 set(container,'units',get(handles.listbox_loaded,'units'));
-set(container,'tag','uitree_cont');
+set(container,'tag','uitree_cont_jobs');
 
 set(container,'position',get(handles.listbox_loaded,'position'));
 set(container,'visible','on');
@@ -367,7 +373,7 @@ root = uitreenode('v0','jobs', 'jobs', [], false);
 [mtree,container] = uitree('v0', 'Root', root);
 
 set(container,'units',get(hObject,'units'));
-set(container,'tag','uitree_cont');
+set(container,'tag','uitree_cont_jobs');
 set(container,'position',get(hObject,'position'));
 set(container,'visible','on');
 set(hObject,'visible','off');
@@ -376,7 +382,7 @@ set(container,'userdata',root);
 return
 
 function name=getselectednode
-a=findobj('tag','uitree_cont');
+a=findobj('tag','uitree_cont_jobs');
 a=get(a,'Userdata');
 node=get(a.Tree,'LastSelectedPathComponent');
 if(node.getLevel==2)
@@ -520,6 +526,15 @@ function uimeu_regress_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+jobs=get(handles.listbox_loaded,'UserData');
+ROCtest=nirs.testing.ChannelStatsROC;
+ROCtest.pipeline=jobs;
+iter=get(handles.uimenu_changeiterations,'Userdata');
+ROCtest=ROCtest.run(iter);
+ROCtest.draw;
+
+return
+
 
 % --------------------------------------------------------------------
 function uimenu_savejob_Callback(hObject, eventdata, handles)
@@ -612,4 +627,105 @@ end
 % set(prop,'Description',optval.help);
 % opts=setfield(opts,optval.name,optval.default);
 % end
+return
+
+
+% --------------------------------------------------------------------
+function uimenu_defaultjob_singlesubject_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_defaultjob_singlesubject (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+jobs=nirs.modules.ImportData();
+jobs.Input='raw';
+
+jobs = nirs.modules.Resample(jobs);
+jobs.Fs = 5; % resample to 5 Hz
+
+jobs = nirs.modules.OpticalDensity( jobs );
+jobs = nirs.modules.BeerLambertLaw( jobs );
+jobs = nirs.modules.ExportData(jobs);
+jobs.Output='Hb';
+jobs = nirs.modules.TrimBaseline( jobs );
+jobs.preBaseline   = 30;
+jobs.postBaseline  = 30;
+jobs = nirs.modules.AR_IRLS(jobs );
+jobs = nirs.modules.ExportData(jobs);
+jobs.Output='SubjStats';
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+
+% --------------------------------------------------------------------
+function uimenu_defaultjob_group_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_defaultjob_group (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+jobs=nirs.modules.ImportData();
+jobs.Input='raw';
+
+jobs = nirs.modules.Resample(jobs);
+jobs.Fs = 5; % resample to 5 Hz
+
+jobs = nirs.modules.OpticalDensity( jobs );
+jobs = nirs.modules.BeerLambertLaw( jobs );
+jobs = nirs.modules.ExportData(jobs);
+jobs.Output='Hb';
+jobs = nirs.modules.TrimBaseline( jobs );
+jobs.preBaseline   = 30;
+jobs.postBaseline  = 30;
+jobs = nirs.modules.AR_IRLS(jobs );
+jobs = nirs.modules.ExportData(jobs);
+jobs.Output='SubjStats';
+jobs = nirs.modules.MixedEffects(jobs );
+jobs.formula       = 'beta ~ -1 + cond + (1|subject)';  % See help fitlme for examples
+jobs = nirs.modules.ExportData(jobs);
+jobs.Output='GroupStats';
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+
+% --- Executes on button press in pushbutton_run.
+function pushbutton_run_Callback(hObject, eventdata, handles)
+% hObject    handle to pushbutton_run (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+job=get(handles.listbox_loaded,'UserData');
+flag=test_job(job);
+if(flag)
+    job.run([]);
+end
+try;
+    nirs_viewer('uimenu_refresh_Callback');
+end
+
+return
+
+function flag = test_job(job)
+%TODO
+flag=true;
+
+
+% --------------------------------------------------------------------
+function uimenu_changeiterations_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_changeiterations (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+ 
+prompt={'Enter number of iterations for ROC testing'};
+name='Iterations';
+numlines=1;
+defaultanswer={'10'};
+
+answer=inputdlg(prompt,name,numlines,defaultanswer);
+ 
+set(handles.uimenu_changeiterations,'Label',['# Iterations = ' answer{1}]); 
+set(handles.uimenu_changeiterations,'Userdata',str2num(answer{1}));
+  
+   
 return

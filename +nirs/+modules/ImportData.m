@@ -16,7 +16,11 @@ classdef ImportData < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            data = evalin('base', obj.Input);
+            if(isempty(data))
+                data = evalin('base', obj.Input);
+            else
+                disp('Import data module skipped: Data provided');
+            end
         end
     end
     

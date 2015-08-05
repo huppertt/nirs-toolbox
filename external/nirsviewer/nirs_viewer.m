@@ -19,7 +19,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before nirs_viewer is made visible.
 function nirs_viewer_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
@@ -34,11 +33,27 @@ function varargout = nirs_viewer_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 return
 
-
-
 function varargout = nirs_viewer_dataview(varargin) 
 
-data=evalin('base',varargin{1});
+handles=guihandles(findobj('tag','figure_nirsview'));
+name=get(handles.listbox_data,'String');
+try
+    name=name{get(handles.listbox_data,'value')};
+catch
+    %Nothing loaded yet
+    return
+end
+subtype=strtrim(name(strfind(name,':')+1:end));
+name=strtrim(name(1:strfind(name,':')-1));
+subtypesAll=evalin('base',['unique(' name '(1).probe.link.type);']);
+
+if(~iscell(subtypesAll)); subtypesAll=num2cell(subtypesAll); end;
+for idx2=1:length(subtypesAll)
+    if(isnumeric(subtypesAll{idx2})); subtypesAll{idx2}=num2str(subtypesAll{idx2}); end;
+end;
+set(handles.listbox_showdatasubtype,'String',subtypesAll,'value',find(ismember(subtype,subtypesAll)));
+
+data=evalin('base',name);
 handles=guihandles(findobj('tag','figure_nirsview'));
 
 
@@ -105,15 +120,19 @@ mtree.expand(s);
 mtree.setSelectedNode(f);
 set(mtree,'NodeSelectedCallback',@updatewindow);
 
-
-set(handles.figure_nirsview,'Userdata',data);
 updatewindow;
 return
 
+% This function does the drawing 
 function updatewindow(varargin)
 
-
 handles=guihandles(findobj('tag','figure_nirsview'));
+name=get(handles.listbox_data,'String');
+name=name{get(handles.listbox_data,'value')};
+subtype={strtrim(name(strfind(name,':')+1:end))};
+name=strtrim(name(1:strfind(name,':')-1));
+data=evalin('base',name);
+
 
 a=findobj('tag','uitree_cont');
 a=get(a,'Userdata');
@@ -121,7 +140,12 @@ node=get(a.Tree,'LastSelectedPathComponent');
 
 filename=node.getName;
 val=str2num(node.getValue);
-data=get(handles.figure_nirsview,'Userdata');
+
+try
+    typesAll=arrayfun(@(x){num2str(x)},data(val).probe.link.type);
+catch
+    typesAll=arrayfun(@(x){x{1}},data(val).probe.link.type);
+end
 
 cla(handles.axes_SDG);
 axes(handles.axes_SDG);
@@ -130,21 +154,33 @@ SDGhandlesBase=data(val).probe.draw([],[],handles.axes_SDG);
 set(SDGhandlesBase,'Color',[.8 .8 .8]);
 
 SDGhandles=data(val).probe.draw([],[],handles.axes_SDG);
-axis tight
+axis tight;
+axis on;
+box off;
+set(handles.axes_SDG,'color',get(handles.figure_nirsview,'color'))
+set(handles.axes_SDG,'Xcolor',get(handles.figure_nirsview,'color'))
+set(handles.axes_SDG,'Ycolor',get(handles.figure_nirsview,'color'))
+
+set(handles.axes_SDG,'Xtick',[],'Ytick',[])
+
+%See if there is anything already drawn and keep the visibility (if
+%possible)
+lines=findobj('type','line','parent',handles.axes_maindata,'tag','dataline');
+isvis={};
+for idx=1:length(lines)
+    isvis{idx}=get(lines(idx),'visible');
+end
 
 cla(handles.axes_maindata);
 axes(handles.axes_maindata);
 linehandles=data(val).draw;
-
-typesAll=arrayfun(@(x){num2str(x)},data(val).probe.link.type);
-types=unique(typesAll);
-lstdisp=[1];
+set(linehandles,'tag','dataline');
 
 SDcolors=nirs.util.makeSDcolors(data(val).probe.link);
 
 set(linehandles,'visible','off');
-for idx=1:length(lstdisp)
-    lst=find(ismember(typesAll,types{lstdisp(idx)}));
+for idx=1:length(subtype)
+    lst=find(ismember(typesAll,subtype{idx}));
     set(linehandles(lst),'visible','on');
     for idx2=1:length(lst)
         set(linehandles(lst(idx2)),'color',SDcolors(idx2,:));
@@ -164,26 +200,65 @@ end
 
 set(SDGhandles,'ButtonDownFcn','set(gcbo,''visible'',''off''); nirs_viewer(''updatewin'');');
 set(SDGhandlesBase,'ButtonDownFcn','set(findobj(''tag'',get(gcbo,''tag'')),''visible'',''on''); nirs_viewer(''updatewin'');');
-setappdata(handles.figure_nirsview,'linelinks',linelinks)
+setappdata(handles.figure_nirsview,'linelinks',linelinks);
 
+set(handles.axes_maindata,'uiContextMenu',handles.MainPlot_menu);
+set(handles.axes_SDG,'uiContextMenu',handles.SDG_menu);
 
-function updatewin
+delete(linehandles(find(~ismember(typesAll,subtype))));
+
+lines=findobj('type','line','parent',handles.axes_maindata,'tag','dataline');
+if(length(lines)==length(isvis))
+    for idx=1:length(lines)
+        set(lines(idx),'visible',isvis{idx});
+    end
+end
+
+return
+
+function updatedatalist
 handles=guihandles(findobj('tag','figure_nirsview'));
+
+% Find all the nirs.core.data types avaliable for display
 datatypes=evalin('base','whos;');
 datatypes(~ismember({datatypes.class},'nirs.core.Data'))=[];
-set(handles.listbox_data,'String',{datatypes.name});
-
-if(1)
-    l=findobj('type','line','parent',handles.axes_maindata,'visible','on');
-    for idx=1:length(l)
-        rangey(idx,1)=min(get(l(idx),'Ydata'));
-        rangey(idx,2)=max(get(l(idx),'Ydata'));
-        rangex(idx,1)=min(get(l(idx),'Xdata'));
-        rangex(idx,2)=max(get(l(idx),'Xdata'));
+names={datatypes.name};
+subnames={};
+for idx=1:length(names)
+    subtypes=evalin('base',['unique(' names{idx} '(1).probe.link.type);']);
+    if(~iscell(subtypes)); subtypes=num2cell(subtypes); end;
+    for idx2=1:length(subtypes)
+        if(isnumeric(subtypes{idx2})); subtypes{idx2}=num2str(subtypes{idx2}); end;
+        subnames={subnames{:} [names{idx} ' : ' subtypes{idx2}]};
     end
-    set(handles.axes_maindata,'Ylim',[min(rangey(:)) max(rangey(:))],'Xlim',[min(rangex(:)) max(rangex(:))]);
-    
 end
+
+if(length(datatypes)>0)
+    set(handles.listbox_data,'String',subnames);
+else
+    set(handles.listbox_data,'String','<None Loaded>');  
+end
+
+return
+
+function updatewin
+updatedatalist;
+ 
+handles=guihandles(findobj('tag','figure_nirsview'));
+
+if(strcmp(get(handles.uimenu_autoscale,'Checked'),'on'))
+    l=findobj('type','line','parent',handles.axes_maindata,'visible','on');
+else
+    l=findobj('type','line','parent',handles.axes_maindata);
+end
+for idx=1:length(l)
+    rangey(idx,1)=min(get(l(idx),'Ydata'));
+    rangey(idx,2)=max(get(l(idx),'Ydata'));
+    rangex(idx,1)=min(get(l(idx),'Xdata'));
+    rangex(idx,2)=max(get(l(idx),'Xdata'));
+end
+set(handles.axes_maindata,'Ylim',[min(rangey(:)) max(rangey(:))],'Xlim',[min(rangex(:)) max(rangex(:))]);
+
 return
 
 % --- Executes on selection change in listbox_data.
@@ -209,15 +284,8 @@ function listbox_data_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-% Find all the nirs.core.data types avaliable for display
-datatypes=evalin('base','whos;');
-datatypes(~ismember({datatypes.class},'nirs.core.Data'))=[];
-
-if(length(datatypes)>0)
-    set(hObject,'String',{datatypes.name});
-    nirs_viewer_dataview(datatypes(get(hObject,'value')).name);
-end
+updatedatalist;
+nirs_viewer_dataview;
 
 return
 
@@ -241,7 +309,11 @@ function uimenu_jobmanager_Callback(hObject, eventdata, handles)
 % hObject    handle to uimenu_jobmanager (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+h=nirs.viz.jobmanager;
 
+set(h,'CloseRequestFcn',[get(h,'CloseRequestFcn') '; nirs_viewer(''uimenu_refresh_Callback'');']);
+
+return
 
 % --------------------------------------------------------------------
 function uimenu_stimdesign_Callback(hObject, eventdata, handles)
@@ -270,9 +342,141 @@ function uimenu_loadsaved_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+[filename, pathname] = uigetfile('*.mat', 'Load a saved workspace');
+if(filename~=0)
+    evalin('base',['load(''' fullfile(pathname,filename) ''');']);
+end
+uimenu_refresh_Callback([],[],[]);
+
+
+return
 
 % --------------------------------------------------------------------
 function uimenu_savedata_Callback(hObject, eventdata, handles)
 % hObject    handle to uimenu_savedata (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% Find all the variables associated with the nirs.core toolbox and save
+% those to file
+datatypes=evalin('base','whos;');
+names={};
+for idx=1:length(datatypes)
+    if(~isempty(strfind(datatypes(idx).class,'nirs.')))
+        names={names{:} datatypes(idx).name};
+    end
+end
+
+if(~isempty(names))
+    [filename, pathname] = uiputfile('nirs_results.mat', 'Save Workspace as');
+    if(filename~=0)
+        filename=fullfile(pathname,filename);
+        str=['save(''' filename ''''];
+        for idx=1:length(names)
+            str=[str ',''' names{idx} ''''];
+        end
+        str=[str ');'];
+        evalin('base',str);
+    end
+    
+else
+    msgbox('Nothing to save');
+end
+
+
+return
+
+
+% --------------------------------------------------------------------
+function uimenu_refresh_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_refresh (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+updatedatalist;
+nirs_viewer_dataview;
+
+
+% --- Executes on selection change in listbox_showdatasubtype.
+function listbox_showdatasubtype_Callback(hObject, eventdata, handles)
+% hObject    handle to listbox_showdatasubtype (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: contents = cellstr(get(hObject,'String')) returns listbox_showdatasubtype contents as cell array
+%        contents{get(hObject,'Value')} returns selected item from listbox_showdatasubtype
+
+
+% --- Executes during object creation, after setting all properties.
+function listbox_showdatasubtype_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to listbox_showdatasubtype (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: listbox controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --------------------------------------------------------------------
+function uimenu_autoscale_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_autoscale (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if(strcmp(get(handles.uimenu_autoscale,'Checked'),'on'))
+    set(handles.uimenu_autoscale,'Checked','off');
+else
+    set(handles.uimenu_autoscale,'Checked','on');
+end
+updatewin;
+return
+
+% --------------------------------------------------------------------
+function uimenu_plotnew_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_plotnew (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Launch a new figure and copy all the objects over 
+f=figure;
+l=legend(handles.axes_maindata);
+c=copyobj([handles.axes_maindata l],f);
+copyobj(handles.axes_SDG,f);
+
+return
+
+% --------------------------------------------------------------------
+function uimenu_showall_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_showall (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+lines=findobj('type','line','parent',handles.axes_maindata,'tag','dataline');
+set(lines,'visible','on')
+
+
+return
+
+% --------------------------------------------------------------------
+function uimenu_shownone_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_shownone (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+lines=findobj('type','line','parent',handles.axes_maindata,'tag','dataline');
+set(lines,'visible','off')
+
+return
+% --------------------------------------------------------------------
+function uimenu_launch_chanstats_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_launch_chanstats (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function uimenu_create_datareport_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_create_datareport (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
