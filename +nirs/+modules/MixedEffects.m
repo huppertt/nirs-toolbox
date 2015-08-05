@@ -1,7 +1,17 @@
 classdef MixedEffects < nirs.modules.AbstractModule
-    %UNTITLED3 Summary of this class goes here
-    %   Detailed explanation goes here
-  
+%% MixedEffect - Performs group level mixed effects analysis.
+% 
+% Options:
+%     formula     - string specifiying regression formula (see Wilkinson notation)
+%     dummyCoding - dummyCoding format for categorical variables (full, reference, effects)
+%     centerVars  - (true or false) flag for whether or not to center numerical variables
+%         
+% Example Formula:
+%     % this will calculate the group average for each condition
+%     j = nirs.modules.MixedEffects();
+%     j.formula = 'beta ~ -1 + group:cond + (1|subject)';
+%     j.dummyCoding = 'full';
+    
     properties
         formula = 'beta ~ -1 + group:cond + (1|subject)';
         dummyCoding = 'full';

@@ -8,9 +8,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
 %     beta     - nconditions x ngroups giving the magnitude of responses of 
 %                each condition for each group
 %     channels - n x 2 array specifying the SD pairs to add activity to
-    
-    
-    
+
     if nargin < 1 || isempty(noise)
         for i = 1:30
             noise(i,1) = nirs.testing.simARNoise();

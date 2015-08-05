@@ -4,12 +4,11 @@ classdef Anova < nirs.modules.AbstractModule
   
     properties
         formula = 'beta ~ 1 + group*cond + (1|subject)';
+        centerVars = false;
     end
 
     methods
         function obj = Anova( prevJob )
-            error('this module needs fixed')
-            
             obj.name = 'Anova Model';
             if nargin > 0
                 obj.prevJob = prevJob;
@@ -21,11 +20,13 @@ classdef Anova < nirs.modules.AbstractModule
             % demographics info
             demo = nirs.createDemographicsTable( S );
             
-            % center numeric variables
-            n = demo.Properties.VariableNames;
-            for i = 1:length(n)
-                if all( isnumeric( demo.(n{i}) ) )
-                    demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+            if obj.centerVars
+                % center numeric variables
+                n = demo.Properties.VariableNames;
+                for i = 1:length(n)
+                    if all( isnumeric( demo.(n{i}) ) )
+                        demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+                    end
                 end
             end
             
@@ -33,16 +34,15 @@ classdef Anova < nirs.modules.AbstractModule
             G = nirs.core.ChannelFStats();
             
             %% loop through files
-            W = sparse([]);
+            w = [];
             b = [];
             vars = table();
             for i = 1:length(S)
                 % coefs
                 b = [b; S(i).beta];
                 
-                % whitening transform
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                % weights
+                w = [w; 1./sqrt(diag(S(i).covb))];
                 
                 % table of variables
                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
@@ -60,123 +60,36 @@ classdef Anova < nirs.modules.AbstractModule
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
             %% loop through
+            variables = table([],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'});
+            F = []; df1 = []; df2 = [];
             for iChan = 1:max(lst)
                 
                 tmp = vars(lst == iChan, :);
 
                 beta = b(lst == iChan);
-                se   = sqrt(diag(W));
-                se   = se(lst == iChan);
                 
-                lm1 = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
-                        'reference', 'FitMethod', 'ML', 'CovariancePattern', 'Isotropic');
+                lm = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
+                        'reference', 'FitMethod', 'ML', 'CovariancePattern', 'Isotropic', ...
+                        'Weights', w(lst==iChan));
+                    
+                a = lm.anova();
+                
+                F = [F; a.FStat];
+                df1 = [df1; a.DF1];
+                df2 = [df2; a.DF2];
+                
+                cond = a.Term;
+                variables = [variables; 
+                    [repmat(sd(iChan,:), [length(a.FStat) 1]) table(cond)]];
             end
             
-                
-            X = lm1.designMatrix('Fixed');
-            Z = lm1.designMatrix('Random');
-            
-            nchan = max(lst);
-            
-            X = kron(speye(nchan), X);
-            Z = kron(speye(nchan), Z);
-            
-            %% put them back in the original order
-            vars(idx,:) = vars;
-            X(idx, :)   = X;
-            Z(idx, :)   = Z;
-            beta        = b;
-            
-            %% Weight the model
-            X    = W*X;
-            Z    = W*Z;
-            beta = W*beta;
-            
-            %% fit the model
-            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
-                    'FitMethod', 'ML');
-            
-            
-           cnames = lm1.CoefficientNames(:);
-           cnames = repmat(cnames, [nchan 1]);
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            % demographics info
-            demo = nirs.createDemographicsTable( S );
-            
-            % preallocate group stats
-            G = nirs.core.ChannelFStats();
-            
-            %% assemble table
-            tbl = table();
-            for i = 1:length(S)
-                nCond = length(S(i).conditions);
-                tbl = [tbl; [table(S(i).names(:),'VariableNames',{'cond'}) repmat(demo(i,:),[nCond 1])]];
-            end
-            
-            %% loop through channels and fite mfx model
-            for iChan = 1:size(S(1).probe.link.source,1)                
-                % get hemodynamic response and covariance
-                beta = []; W = sparse([]);
-                for i = 1:length(S)
-                    nCond = length(S(i).names);
-                    
-                    % coefficients
-                    beta = [beta; S(i).beta(1:nCond,iChan)];
-                    
-                    % design whitening transform from svd
-                    [u, s, ~] = svd( S(i).covb(1:nCond, 1:nCond, iChan) );
-                    s = 1./diag(sqrt(s));
-                    w = diag(s)*u';
-                    
-                    % put them in giant block diag matrix
-                    W = blkdiag(W, w);
-                end
-                
-                % weighted fit to get design matrices
-                lm1 = fitlme([table(beta) tbl], obj.formula, ...
-                    'FitMethod', 'REML', 'Weights', full(sqrt(diag(W'*W))));
-                                
-                a = lm1.anova();
-                
-                G.F(:,iChan) = a.FStat;
-                
-            end
-            
-            G.df1   = a.DF1;
-            G.df2   = a.DF2;
-            G.names = a.Term;
+            G.F = F;
+            G.df1 = df1;
+            G.df2 = df2;
+            G.variables = variables;
             G.probe = S(1).probe;
             
+            G = G.sorted();
         end
     end
     

@@ -608,7 +608,7 @@ function prop = bone( lambda )
     mus = interp1(mus(:,1),mus(:,2),lambda);
     ri = 1.45;
 
-    prop = nirs.OpticalProperties(mua,mus,lambda,ri);
+    prop = nirs.media.OpticalProp(mua,mus,lambda,ri);
 
 end
 
