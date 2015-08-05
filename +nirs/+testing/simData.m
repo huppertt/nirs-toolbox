@@ -24,7 +24,12 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
     end
     
     if nargin < 3
-        beta = ones( length(stim.keys), 1 );
+        beta = 10*ones( length(stim.keys), 1 );
+    end
+    
+    if length(beta) == length(stim.keys)
+        % oxy; deoxy
+        b = [beta; -beta/3];
     end
     
     if nargin < 5
@@ -45,14 +50,39 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
     Y    = data.data;
     truth = zeros(size(Y,2), 1);
     
+    % optical density
+    m = mean(Y);
+    Y = bsxfun(@plus, -log(Y), log(m));
+        
     for i = 1:size(channels, 1)
-        lst = link.source == channels(:,1) & link.detector == channels(:,2);
+        lst = find(link.source == channels(i,1) ...
+            & link.detector == channels(i,2));
         
-        truth(lst) = 1;
-        %%% TODO 
+        % extincion coefs
+        lambda = link.type(lst);
+        e = nirs.media.getspectra(lambda);
+        e = e(:,1:2);
         
+        
+        % sd distance
+        l = data.probe.distances(lst);
+                
+        % design mat
+        Xhbo = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbo' );
+        Xhbr = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbr' );
+        
+        % add to channels according to MBLL
+        for j = 1:length(lst)
+            Yact = [Xhbo*e(j,1)*l(j) Xhbr*e(j,1)*l(j)] * b * 5/50 * 1e-6;
+            Y(:,lst(j)) = Y(:,lst(j)) + Yact;
+        end        
+
+        truth(lst) = 1;        
     end
     
-
+    Y = exp( -bsxfun(@minus, Y, log(m)) );
+    
+    data.data = Y;
+    data.stimulus = stim;
 end
 
