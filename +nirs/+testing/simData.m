@@ -14,30 +14,32 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
 %     
 %     sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
 %     channels = sd(1:round(end/2),:);
+%
+%     [data, truth] = simData( noise, stim, beta, channels )
     
-    if nargin < 1
+    if nargin < 1 || isempty(noise)
         noise = nirs.testing.simARNoise();
     end
     
-    if nargin < 2
+    if nargin < 2 || isempty(stim)
         stim = nirs.testing.randStimDesign(noise.time, 2, 7, 1);
     end
     
-    if nargin < 3
-        beta = 10*ones( length(stim.keys), 1 );
+    if nargin < 3 || isempty(beta)
+        beta = 7*ones( length(stim.keys), 1 );
     end
     
     if length(beta) == length(stim.keys)
         % oxy; deoxy
-        b = [beta; -beta/3];
+        b = [beta; -beta/2];
     end
     
-    if nargin < 5
+    if nargin < 5 || isempty(basis)
         % default to canonical basis
         basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
     end
     
-    if nargin < 4
+    if nargin < 4 || isempty(channels)
         % default to first half of channels
         sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
         channels = sd(1:round(end/2),:);
@@ -73,7 +75,7 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
         
         % add to channels according to MBLL
         for j = 1:length(lst)
-            Yact = [Xhbo*e(j,1)*l(j) Xhbr*e(j,1)*l(j)] * b * 5/50 * 1e-6;
+            Yact = [Xhbo*e(j,1)*l(j) Xhbr*e(j,2)*l(j)] * b * 5/50 * 1e-6;
             Y(:,lst(j)) = Y(:,lst(j)) + Yact;
         end        
 

@@ -1,60 +1,54 @@
-function createFakeDataset( folder )
-    % SD variable
-    SD.SrcPos = [];
-    SD.SrcPos(:,1) = [-80:20:-20 20:20:80];
-    SD.SrcPos(:,2) = 20;
-    SD.SrcPos(:,3) = 0;
-
-    SD.DetPos = [];
-    SD.DetPos(:,1) = [-70:20:-30 30:20:70];
-    SD.DetPos(:,2) = 0;
-    SD.DetPos(:,3) = 0;
-
-    SD.NumSrc = size(SD.SrcPos,1);
-    SD.NumDet = size(SD.DetPos,1);
-
-    n = SD.NumSrc;
-    SD.MeasList = [
-        1 1;
-        2 1;
-        2 2;
-        3 2;
-        3 3;
-        4 4;
-        5 4;
-        6 4;
-        6 5;
-        7 5;
-        7 6;
-        8 6];
-
-    SD.MeasList(:,3:4) = 1;
-    SD.MeasList = [SD.MeasList; SD.MeasList];
-
-    SD.MeasList(end/2:end,4) = 2;
+function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
+%% simDataSet - simulates a dataset for ROC testing
+% 
+% Args:
+%     noise - a list of nirs.core.Data objects to use as baseline noise
+%     ngrou - number of groups to split data into
+%     stimFunc - a function which takes in a time vector and returns a stim design
+%     beta     - nconditions x ngroups giving the magnitude of responses of 
+%                each condition for each group
+%     channels - n x 2 array specifying the SD pairs to add activity to
     
-    % time variable
-    t = (0:5*60*4-1)' / 4;
     
-    % StimDesign
-    on = 10:20:300-20;
-    dur = 10*ones(size(on));
-    amp = 10*ones(size(on));
     
-    StimDesign(1).cond  = 'A';
-    StimDesign(1).onset = on(1:2:end);
-    StimDesign(1).dur   = dur(1:2:end);
-    StimDesign(1).amp   = amp(1:2:end);
+    if nargin < 1 || isempty(noise)
+        for i = 1:30
+            noise(i,1) = nirs.testing.simARNoise();
+        end
+    end
     
-    StimDesign(2).cond  = 'B';
-    StimDesign(2).onset = on(2:2:end);
-    StimDesign(2).dur   = dur(2:2:end);
-    StimDesign(2).amp   = amp(2:2:end);
-end
-
-function Y = simulateNoise(ntime, nchan)
-    Y = randn(ntime, nchan);
+    if nargin < 2 || isempty(ngroup)
+        ngroup = 1;
+    end
     
-    f = [1 -0.5 -0.3 0 0 0.3 0 0 -0.1];
-    Y = filter(1, f, Y);
+    if nargin < 3 || isempty(stimFunc)
+        stimFunc = @(t) nirs.testing.randStimDesign(t, 2, 7, 1);
+    end
+    
+    s = stimFunc(noise(1).time);
+    if nargin < 4
+        beta = 7*ones( length(s.keys), ngroup );
+    end
+    
+    if size(beta,1) == length(s.keys)
+        % oxy; deoxy
+        b = [beta; -beta/2];
+    end
+        
+    if nargin < 5 || isempty(channels)
+        sd = unique([noise(1).probe.link.source noise(1).probe.link.detector], 'rows');
+        channels = sd(1:round(end/2),:);
+    end
+    
+    data = noise;
+    
+    % group index
+	gidx = nirs.testing.randSplit(length(noise), ngroup);
+    
+    % loop through
+    for i = 1:length(noise)
+        data(i).demographics('group') = num2str(gidx(i));
+        [data(i), truth] = nirs.testing.simData(data(i), stimFunc(data(i).time), beta(:, gidx(i)), channels);
+    end
+    
 end
