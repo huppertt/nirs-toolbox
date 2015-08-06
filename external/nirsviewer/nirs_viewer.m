@@ -239,6 +239,29 @@ else
     set(handles.listbox_data,'String','<None Loaded>');  
 end
 
+
+%Update the UImenu with the list of avaliable channel stats objected
+datatypes=evalin('base','whos;');
+datatypes(~ismember({datatypes.class},'nirs.core.ChannelStats'))=[];
+names={datatypes.name};
+delete(get(handles.uimenu_launch_chanstats,'children'));
+set(handles.uimenu_launch_chanstats,'Callback',[]);
+for idx=1:length(datatypes)
+    h=uimenu('parent',handles.uimenu_launch_chanstats,'Label',datatypes(idx).name);
+    set(h,'Callback',['nirs_viewer(''uimenu_launch_chanstats_Callback'',gcbo,[],guidata(gcbo),''' datatypes(idx).name ''')']);
+end
+
+datatypes2=evalin('base','whos;');
+datatypes2(~ismember({datatypes2.class},'nirs.core.Data'))=[];
+names={datatypes.name datatypes2.name};
+delete(get(handles.uimenu_create_datareport,'children'));
+set(handles.uimenu_create_datareport,'Callback',[]);
+for idx=1:length(names)
+    h=uimenu('parent',handles.uimenu_create_datareport,'Label',names{idx});
+    set(h,'Callback',['nirs_viewer(''uimenu_create_datareport_Callback'',gcbo,[],guidata(gcbo),''' names{idx} ''')']);
+end
+
+
 return
 
 function updatewin
@@ -469,14 +492,27 @@ set(lines,'visible','off')
 
 return
 % --------------------------------------------------------------------
-function uimenu_launch_chanstats_Callback(hObject, eventdata, handles)
+function uimenu_launch_chanstats_Callback(hObject, eventdata, handles,varargin)
 % hObject    handle to uimenu_launch_chanstats (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 
 % --------------------------------------------------------------------
-function uimenu_create_datareport_Callback(hObject, eventdata, handles)
+function uimenu_create_datareport_Callback(hObject, eventdata, handles,varargin)
 % hObject    handle to uimenu_create_datareport (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+data=evalin('base',varargin{1});
+if(length(data)>1)
+     ButtonName = questdlg(['Warning: This Channel Stats variable has ' num2str(length(data)) ' entries. Continue?'], ...
+                         'This could take a while', ...
+                         'Yes','No','No');
+                     if(strcmp(ButtonName,'No'))
+                         return;
+                     end
+end
+rpt=nirs.util.create_chanstats_rpt(data,[varargin{1} '_report']);
+
+return
