@@ -97,6 +97,6 @@ classdef ChannelFStats
         end
         
         % draw
-        draw( obj,  frange, idx );
+        draw( obj,  frange, thresh );
     end
 end
