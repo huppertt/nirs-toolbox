@@ -67,7 +67,7 @@ set(container,'units',get(handles.uipanel1,'units'),'position',get(handles.uipan
 set(handles.uipanel1,'visible','off');
 set(container,'UserData',browser);
 set(container,'tag','jobmanager_browser')
-
+browser.setHtmlText('Click on avaliable modules to see help info');
 return
 
 % --- Outputs from this function are returned to the command line.
@@ -215,6 +215,7 @@ for idx=length(g):-1:1
     root.add(g(idx));
 end
 end
+figure(handles.figure1);
 
 [mtree,container] = uitree('v0', 'Root', root);
 set(container,'units',get(handles.listbox_loaded,'units'));
@@ -312,12 +313,7 @@ while(~isempty(j.prevJob))
 end
 lst=min(find(ismember(Names,toCharArray(name)')));
 
-optval=[];
-opt=options(JJ{lst});
-for idx=1:length(opt)
-    optval(idx).field=opt{idx};
-    optval(idx).value=JJ{lst}.(opt{idx});
-end
+prop=javaoptions(JJ{lst});
 
 com.mathworks.mwswing.MJUtilities.initJIDE;
  
@@ -328,12 +324,10 @@ import com.mathworks.mwswing.*;
 % Property list
 list = java.util.ArrayList();
 
-for idx=1:length(optval)
-    prop=local_gui(optval(idx));
-    list.add(prop);
-    set(prop,'Name',optval(idx).field,'Value',optval(idx).value);
-set(prop,'Category',JJ{lst}.name);
-set(prop,'Description','');
+for idx=1:length(prop)
+    set(prop(idx),'Value',JJ{lst}.(get(prop(idx),'name')));
+    list.add(prop(idx));
+   
 end
 
 % Prepare a properties table containing the list
@@ -343,13 +337,47 @@ grid = com.jidesoft.grid.PropertyTable(model);
 pane = com.jidesoft.grid.PropertyPane(grid);
 
 warning('off','MATLAB:hg:PossibleDeprecatedJavaSetHGProperty');
-addlistener(model,'PropertyChange',@callback_onPropertyChange);
+hModel = handle(model, 'CallbackProperties');
+set(hModel, 'PropertyChangeCallback', @callback_onPropertyChange);
+
+%addlistener(model,'PropertyChange',@callback_onPropertyChange);
  
 % Display the properties pane onscreen
 [pan,comp]=javacomponent(pane, [0 0 200 200], handles.uipanel2);
 set(comp,'units','normalized','position',[0 0 1 1]);
 
 return
+
+function callback_onPropertyChange(varargin)
+handles=guidata(findobj('tag','listbox_loaded'));
+prop=varargin{2};
+val=prop.getNewValue;
+propname=prop.getPropertyName;
+name=getselectednode;
+
+jobs=get(handles.listbox_loaded,'UserData');
+j.prevJob=jobs;
+cnt=1;
+while(~isempty(j.prevJob))
+    JJ{cnt}=j.prevJob;
+    JJ{cnt}.prevJob=[];
+    j=j.prevJob;
+    Names{cnt}=JJ{cnt}.name;
+    cnt=cnt+1;
+end
+lst=min(find(ismember(Names,toCharArray(name)')));
+JJ{lst}=setfield(JJ{lst},propname.toCharArray',val);
+
+JJ{end}.prevJob=[];
+for idx=length(JJ)-1:-1:1
+    JJ{idx}.prevJob=JJ{idx+1};  
+end
+jobs=JJ{1};
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+return
+
 
 % --- Executes during object creation, after setting all properties.
 function listbox_loaded_CreateFcn(hObject, eventdata, handles)
@@ -390,7 +418,7 @@ if(node.getLevel==2)
 end
 name=node.getName;
 
-% --- Executes on button press in pushbutton_moveup.
+% --- Executes on button press in pushbutton_mov
 function pushbutton_moveup_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_moveup (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -555,78 +583,6 @@ function uimenu_exportscript_Callback(hObject, eventdata, handles)
 % hObject    handle to uimenu_exportscript (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-
-
-
-
-function prop=local_gui(optval)
-
-prop = com.jidesoft.grid.DefaultProperty();
-
-switch(class(optval.value))
-    case('double')
-        javatype=javaclass('double');
-        set(prop,'Type',javatype);
-end
-
-
-
-% 
-% warning('off','MATLAB:hg:PossibleDeprecatedJavaSetHGProperty');
-% switch(optval.type)
-%     case('enum')
-%         javatype = javaclass('char', 1);
-%         options = optval.typesub;
-%         
-%         model = javax.swing.SpinnerListModel(options);
-%         
-%         editor = com.jidesoft.grid.SpinnerCellEditor(model);
-%         context = com.jidesoft.grid.EditorContext(['spinnereditor' num2str(cnt)]);
-%         com.jidesoft.grid.CellEditorManager.registerEditor(javatype, editor, context);
-%         set(prop,'Type',javatype,'EditorContext',context);
-%         
-%     case('old-enum')
-%         %This broke on Matlab 2014b on Mac OS Yosimite.  Fix this later.
-%         javatype = javaclass('char', 1);
-%         options = optval.typesub;
-%         editor = com.jidesoft.grid.ListComboBoxCellEditor(options);
-%         context = com.jidesoft.grid.EditorContext(['comboboxeditor' num2str(cnt)]);
-%         com.jidesoft.grid.CellEditorManager.initDefaultEditor();
-%         com.jidesoft.grid.CellEditorManager.registerEditor(javatype, editor,context);
-%         % set(prop,'Type',javatype, 'EditorContext',context);
-%         set(prop,'Type',javatype);
-%     case('logical')
-%         javatype=javaclass('logical');
-%         editor=com.jidesoft.grid.BooleanCheckBoxCellEditor;
-%         context = com.jidesoft.grid.EditorContext(['comboboxeditor' num2str(cnt)]);
-%         com.jidesoft.grid.CellEditorManager.initDefaultEditor();
-%         com.jidesoft.grid.CellEditorManager.registerEditor(javatype, editor,context);
-%         set(prop,'Type',javatype,'EditorContext',context);
-%         %set(prop,'Type',javatype);
-%     case('int')
-%         javatype=javaclass('int32');
-%         set(prop,'Type',javatype);
-%     case('float')
-%         javatype=javaclass('double');
-%         set(prop,'Type',javatype);
-%     case('spinner')
-%         javatype=javaclass('int32');
-%         spinner = javax.swing.SpinnerNumberModel(optval.default,optval.typesub(1),optval.typesub(end),mean(diff(optval.typesub)));
-%         editor = com.jidesoft.grid.SpinnerCellEditor(spinner);
-%         context = com.jidesoft.grid.EditorContext(['spinnereditor' num2str(cnt)]);
-%         com.jidesoft.grid.CellEditorManager.registerEditor(javatype, editor, context);
-%         set(prop,'Type',javatype,'EditorContext',context);
-%     case('char')
-%         javatype=javaclass('char',1);
-%         set(prop,'Type',javatype);
-% end
-% 
-% set(prop,'Name',optval.name,'Value',optval.default);
-% set(prop,'Category',optval.category);
-% set(prop,'Description',optval.help);
-% opts=setfield(opts,optval.name,optval.default);
-% end
 return
 
 

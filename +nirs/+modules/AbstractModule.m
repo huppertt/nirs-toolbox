@@ -36,6 +36,18 @@ classdef AbstractModule
                 out = obj.putoptions( opts );
             end
         end
+        
+        function prop = javaoptions(obj)
+            values = obj.getoptions();
+            for idx=1:length(values)
+                prop(idx)=javatypes(class(obj.(values{idx})));
+                set(prop(idx),'Name',values{idx},'Value',obj.(values{idx}));
+                set(prop(idx),'Category','Misc');
+                set(prop(idx),'Description','');
+            end
+            if(~exist('prop')), prop=[]; end;
+        end
+        
     end
         
     methods( Access = private )

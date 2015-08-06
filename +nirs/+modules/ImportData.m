@@ -22,6 +22,14 @@ classdef ImportData < nirs.modules.AbstractModule
                 disp('Import data module skipped: Data provided');
             end
         end
+        function prop = javaoptions(obj)
+           prop = javaoptions@nirs.modules.AbstractModule(obj);
+           set(prop(1),'Category','ImportData',...
+               'Description','Name of the matlab variable to import');
+           
+        end
+        
+        
     end
     
 end
