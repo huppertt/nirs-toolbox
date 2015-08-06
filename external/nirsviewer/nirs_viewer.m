@@ -514,5 +514,6 @@ if(length(data)>1)
                      end
 end
 rpt=nirs.util.create_chanstats_rpt(data,[varargin{1} '_report']);
+report(rpt);
 
 return

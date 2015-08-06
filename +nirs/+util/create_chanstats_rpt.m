@@ -120,7 +120,7 @@ if(addtitle)
     cfr_section3 = rptgen.cfr_section('StyleName','rgChapterTitle',...
         'SectionTitle','Images');
     setParent( cfr_table, cfr_section3);
-    setParent(cfr_section2,cfr_section1);
+    setParent(cfr_section3,cfr_section1);
 else
     setParent( cfr_table, cfr_section1);
 end
