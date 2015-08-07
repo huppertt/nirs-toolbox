@@ -155,12 +155,13 @@ function [X, names] = parseCategorical( T, tbl )
         for j = 1:length(T)
             n = [n tbl.(T{j})];
         end
-
+        
+        
+        
         names = {};
         for j = 1:size(n,1)
             names{j,1} = strjoin(n(j,:),':');
         end
-
         [names,~,I] = unique(names,'stable'); 
         
         % if you input strings to dummyvar it will sort them

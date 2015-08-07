@@ -19,6 +19,9 @@ function [names, idx] = getStimNames( data )
         if isprop(data(i), 'stimulus') || isfield(data(i), 'stimulus')
             names   = [names; data(i).stimulus.keys(:)];
             idx     = [idx; i*ones( length(data(i).stimulus.keys(:)), 1 )];
+        elseif(isprop(data(i),'conditions') || isfield(data(i),'conditions'))
+            names   = [names; data(i).conditions(:)];
+            idx     = [idx; i*ones( length(data(i).conditions(:)), 1 )];
         else
             names   = [names; data(i).names(:)];
             idx     = [idx; i*ones( length(data(i).names(:)), 1 )];
