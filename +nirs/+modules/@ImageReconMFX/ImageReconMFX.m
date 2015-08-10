@@ -3,10 +3,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
     %   Detailed explanation goes here
     
     properties
-        formula = 'beta ~ cond*group*voxID + (1|subject)';
+        formula = 'beta ~ cond*group + (1|subject)';
         jacobian = Dictionary(); % key is subject name or "default"
         dummyCoding = 'full';
+        centerVars=false
         transMtx;
+        itransMtx;
         mesh;
         probe;
     end
@@ -21,14 +23,30 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             p = fileparts( which('nirs.modules.ImageReconMFX') );
             load([p filesep 'wavelet_matrix.mat']);
+            W=speye(size(W,1),size(W,2));
+            iW=speye(size(W,1),size(W,2));
+            
             obj.transMtx = blkdiag(W,W);
+            obj.itransMtx = blkdiag(iW,iW);
         end
         
-        function G = runThis( obj, subj_stats )
+        function G = runThis( obj,S )
             
-            %% model table
-            demo = nirs.createDemographicsTable( subj_stats );
-            [names, idx] = nirs.getStimNames( subj_stats );
+            % demographics info
+            demo = nirs.createDemographicsTable( S );
+            if(isempty(demo))
+                demo=table({S.description}','VariableNames',{'description'});
+            end
+            % center numeric variables
+            if obj.centerVars
+                n = demo.Properties.VariableNames;
+                for i = 1:length(n)
+                   if all( isnumeric( demo.(n{i}) ) )
+                       demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+                   end
+                end
+            end
+            
             
             %% Wavelet ( or other tranform )
             W = obj.transMtx; % W = W(1:2562,:);
@@ -38,328 +56,187 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             for i = 1:L.count
                 key = L.keys{i};
                 J =L(key);
-                LL{i}=[J.hbo*W J.hbr*W];
+                LL{i}=[];
+                flds=fields(J);
+                for j=1:length(flds)
+                    LL{i}=[LL{i} J.(flds{j})*W];
+                end
+                types=flds;
+                nVox=size(J.hbo,2);
             end
             
             % Do an generalized SVD
-            [U,S,V]=nirs.math.hogSVD(LL);
+            [U,s,V]=nirs.math.hogSVD(LL);
             % [U1,U2...,V,S1,S2...]=gsvd(L1,L2,...);
             % L1 = U1*S1*V'
             % L2 = U2*S2*V'
             
-            iL=Dictionary();
-            for i = 1:L.count
+           for i = 1:L.count
                 key = L.keys{i};
-                L(key)=U{i}*S{i};
-                iL(key)=pinv(L(key));
+                L(key)=U{i}*s{i};
+           end
+            
+            
+            %% loop through files
+            W = sparse([]);
+            b = [];
+            vars = table();
+            for i = 1:length(S)
+                % coefs
+                b = [b; S(i).beta];
+                
+                % whitening transform
+                [u, s, ~] = svd(S(i).covb, 'econ');
+                W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                
+                % table of variables
+                file_idx = repmat(i, [size(S(i).beta,1) 1]);
+                
+               
+                vars = [vars; 
+                    [table(file_idx) S(i).variables repmat(demo(i,:), [size(S(i).beta,1) 1])]
+                    ];
             end
             
-            %Now create the tables
-            tblAll=[]; WeightAll=[];
-            beta=[];
-            for i=1:length(subj_stats);
-                sname = demo.subject(idx);
-                if obj.jacobian.iskey( sname )
-                    key = sname;
-                elseif obj.jacobian.iskey('default')
-                    key = 'default';
-                else
-                    error(['No forward model for subject: ' sname '.'])
-                end
-                y_tilda =iL(key)*subj_stats(i).beta;
-                covb = subj_stats(i).covb;
-                w = inv(chol(covb,'lower'))*L(key);
-                
-                nV=length(y_tilda);
-                tbl=[];  %table(y_tilda,'VariableNames',{'beta'});
-                beta=[beta; y_tilda];
-                for j=1:length(demo.Properties.VariableNames)
-                    tbl=[tbl table(arrayfun(@(x){x},repmat(demo.(demo.Properties.VariableNames{j}){idx},nV,1)),...
-                        'VariableNames',{demo.Properties.VariableNames{j}})];
-                end
-                tbl=[tbl table(arrayfun(@(x){x},repmat(names{idx(i)},nV,1)),...
-                    arrayfun(@(x){num2str(x)},[1:nV]'),...
-                    'VariableNames',{'cond','voxID'})];
-                if(isempty(tblAll))
-                    tblAll=tbl;
-                else
-                    tblAll=[tblAll; tbl];
-                end
-                WeightAll=sparse(blkdiag(WeightAll,w));
+            % sort
+            [vars, idx] = sortrows(vars, {'file_idx','source', 'detector','type'});
+            
+            % list for first source
+            [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+            sd.Properties.VariableNames = {'source', 'detector', 'type'};
+            
+            %% design mats
+            tmp = vars(lst == 1, :);
+            
+            beta = randn(size(tmp,1), 1);
+            
+            %RUn a test to get the Fixed/Random matrices
+            warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
+            lm1 = fitlme([table(beta) tmp], obj.formula,'FitMethod', 'reml', 'CovariancePattern', 'Isotropic');
+%                     , 'dummyVarCoding',obj.dummyCoding, );
+               
+            X = lm1.designMatrix('Fixed');
+            Z = lm1.designMatrix('Random');
+            
+            %Now, lets make the full model
+            XFull=[];
+            ZFull=[];
+           
+            for i=1:size(X,2)
+                Xx=[];
+                for j=1:length(S)
+                        if(isfield(demo,'subject'))
+                            sname = vars.subject(j);
+                            if obj.jacobian.iskey( sname )
+                                key = sname;
+                            elseif obj.jacobian.iskey('default')
+                                key = 'default';
+                            else
+                                error(['No forward model for subject: ' sname '.'])
+                            end
+                        else
+                            key = 'default';
+                        end
+                        [lia,locb]=ismember(obj.probe.link,sd);
+                        % locb - is the location of this sd entry in the fwdmodel
+                        if(~all(lia))
+                            error('Src-Det found in data but not in fwd model');
+                        end
+                        llocal(locb,:)=X(j,i)*L(key);
+                        Xx=vertcat(Xx,llocal);
+                    end
+                XFull=horzcat(XFull,Xx);
+            end
+            for i=1:size(Z,2)
+                Zx=[];
+                for j=1:length(S)
+                        if(isfield(demo,'subject'))
+                            sname = vars.subject(j);
+                            if obj.jacobian.iskey( sname )
+                                key = sname;
+                            elseif obj.jacobian.iskey('default')
+                                key = 'default';
+                            else
+                                error(['No forward model for subject: ' sname '.'])
+                            end
+                        else
+                            key = 'default';
+                        end
+                        [lia,locb]=ismember(obj.probe.link,sd);
+                        % locb - is the location of this sd entry in the fwdmodel
+                        if(~all(lia))
+                            error('Src-Det found in data but not in fwd model');
+                        end
+                        llocal(locb,:)=Z(j,i)*L(key);
+                        Zx=vertcat(Zx,llocal);
+                    end
+                ZFull=horzcat(ZFull,Zx);
+            end
+            if(isempty(ZFull)), ZFull=zeros(size(XFull,1),0); end;
+            X=XFull;
+            Z=ZFull;
+          
+            %% put them back in the original order
+            vars(idx,:) = vars;
+            X(idx, :)   = X;
+            Z(idx, :)   = Z;
+            beta        = b; % already in correct order
+            
+            %% check weights
+            dWTW = sqrt(diag(W'*W));
+            m = median(dWTW);
+            W(dWTW > 100*m,:) = 0;
+            
+            %% Weight the model
+            X    = W*X;
+            Z    = W*Z;
+            beta = W*beta;
+            
+            %% fit the model
+            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
+                    'FitMethod', 'ML');
+            
+            G = nirs.core.ImageStats();
+            G.description = ['Reconstructed model from: ' obj.formula];
+            G.mesh = obj.mesh;
+            G.probe = obj.probe;
+            G.demographics = demo;  
+   
+            %Sort the betas
+            cnames = lm1.CoefficientNames(:);
+            
+            iW=[];
+            for idx=1:length(types)
+                iW=blkdiag(iW,obj.itransMtx);
             end
             
-            % The model is:
-            % w*L*Y = w*L*X * beta + w*L*Z * b +eps
-            [X, Z, names] = parseWilkinsonFormula( obj.formula, tblAll, true, obj.dummyCoding );
-            
-            
-            lme3 = fitlmematrix(X,beta,Z,[],'covariancepattern','isotropic');
-            
-            
-        
-            
-            
-            %
-            %             %% SVDS; PER FWD MODEL
-            %             S = Dictionary();
-            %             U = Dictionary();
-            %             V = Dictionary();
-            %             for i = 1:length( obj.jacobian.keys )
-            %                 J = obj.jacobian.values{i};
-            %
-            %                 key = obj.jacobian.keys{i};
-            %
-            %                 if length( unique(subj_stats(1).probe.link.type) ) == 1
-            %                     [u,s,v] = svd(full(J.hbo+J.hbr),'econ');
-            %                 else
-            %                     [u,s,v] = svd(full([J.hbo J.hbr]),'econ');
-            %                 end
-            %
-            %                 S( key ) = s;
-            %                 V( key ) = v;
-            %                 U( key ) = u;
-            %
-            %             end
-            %             clear J
-            %
-            %             %% MASK; ACROSS FWD MODELS
-            %             maskw = zeros( size(v,1), 1) > 0;
-            %             maskb = zeros( size(v,1), 1) > 0;
-            %             for i = 1:length( obj.jacobian.keys )
-            %                 key = obj.jacobian.keys{i};
-            %
-            %                 % reparameterize model to fit wavelet coefs
-            %                 X   = U(key)*S(key)*V(key)';
-            %                 xiw = U(key)*S(key)*pinv(W*V(key));
-            %
-            %                 % only fit coefs that have "enough" sensitivity
-            %                 lst = sqrt(sum(xiw.^2,1))';
-            %                 lst = abs(lst) > 1e-2*max(abs(lst));
-            %
-            %                 % we do the union across all forward models
-            %                 maskw = maskw | lst;
-            %
-            %                 % only fit coefs that have "enough" sensitivity
-            %                 lst = sqrt(sum(X.^2,1))';
-            %                 lst = abs(lst) > 1e-2*max(abs(lst));
-            %
-            %                 % we do the union across all forward models
-            %                 maskb = maskb | lst;
-            %             end
-            %
-            %             %% CALCULATE WAVELET MODEL
-            %             XiW = Dictionary();
-            %             for i = 1:length( obj.jacobian.keys )
-            %                 key = obj.jacobian.keys{i};
-            %
-            %                 % reparameterize model to fit wavelet coefs
-            %                 xiw = U(key)*S(key)*pinv(W*V(key));
-            %
-            %                 XiW(key) = xiw(:,maskw);
-            %             end
-            %             clear xiw;
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            %% ASSEMBLE X & Z
-            X = []; Z = [];
-            for i = 1:size(x,1)
-                sname = demo.subject(1);
-                
-                if obj.jacobian.iskey( sname )
-                    key = sname;
-                elseif obj.jacobian.iskey('default')
-                    key = 'default';
-                else
-                    error(['No forward model for subject: ' sname '.'])
-                end
-                
-                X = [X; kron(x(i,:), XiW(key))];
-                
-                if ~isempty(z)
-                    Z = [Z; kron(z(i,:), XiW(key))];
-                end
-                
+            cnames = lm1.CoefficientNames(:);
+             
+            V=iW*V;
+            Vall=[];
+            for idx=1:length(cnames)
+                Vall=sparse(blkdiag(Vall,V));
             end
+            V=Vall;
+            G.beta=V*lm2.Coefficients.Estimate;
+            [Uu,Su,Vu]=nirs.math.mysvd(lm2.CoefficientCovariance);
             
-            %% ORGANIZE DATA
-            y = []; L = sparse([]);
-            for i = 1:length(subj_stats)
-                nCond = length( subj_stats(i).names );
-                
-                b = subj_stats(i).beta(1:nCond,:);
-                covb = subj_stats(i).covb(1:nCond,1:nCond,:);
-                
-                l = sparse([]);
-                for j = 1:size(covb,3)
-                    %                    l = blkdiag( l, inv(chol(covb(:,:,j),'lower')) );
-                    [lu,ls,lv] = svd(covb(:,:,j),'econ');
-                    
-                    
-                    l = blkdiag( l, pinv(ls)*lu' );
-                end
-                
-                % permute matrix
-                idx = [];
-                for j = 1:nCond
-                    idx = [idx  j:nCond:numel(b)];
-                end
-                l = l(idx,idx);
-                
-                % append
-                y = [y; b(:)];
-                L = blkdiag(L,l);
-            end
+            G.covb_chol = V*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
+            G.dfe        = lm2.DFE;
+
+          
+           tbl=[];
+           for i=1:length(cnames)
+               for j=1:length(types)
+               tbl=[tbl; table(arrayfun(@(x){x},[1:nVox]'),...
+                              repmat({types{j}},nVox,1),...
+                              repmat({cnames{i}},nVox,1),...
+                              'VariableNames',{'VoxID','type','cond'})];
+               end
+           end
+           G.variables=tbl; 
             
-            %% WHITEN DATA
-            L(abs(L)>1e9) = 0;
-            
-            y = L*y; X = L*X;
-            if ~isempty( z )
-                Z = L*Z;
-                ZZ = Z*Z'; clear Z
-            else
-                ZZ = 0;
-            end
-            
-            %% FITTING
-            vw = 1;     vw0 = 1e16; % prior variance on wavelet coefs
-            vz = 0;     vz0 = 1e16; % prior variance on rfx
-            
-            X = full(X); %ZZ = full(ZZ);
-            
-            iter = 0;
-            while abs( (vw0-vw)/vw0 ) > 1e-2 && iter < 10
-                
-                vw0 = vw; vz0 = vz;
-                
-                Q = vz*ZZ + eye(size(X,1));
-                
-                iR = full(X*X'*vw + Q);
-                try
-                    iR = chol(iR);
-                    iR = inv(iR);
-                    %inv( chol(X*X'*vw + Q) );
-                    
-                    iX = vw*X'*(iR*iR');
-                catch
-                    iX = vw*X'*pinv(iR);
-                end
-                
-                %                 iX = vw*X'*pinv(iR);
-                
-                what = iX*y;
-                
-                H = X*iX;
-                
-                dfw = trace(H);%trace(H'*H)^2 / trace(H'*H*H'*H); %trace(H'*H); %;
-                
-                vw = (what'*what + sum(sum(iX.^2,2)))/dfw/2;
-                
-                vz = ((y-X*what)'*(y-X*what) + trace(ZZ))/size(y,1);
-                
-                iter = iter+1;
-                
-                disp(iter);
-            end
-            clear Q H
-            
-            %% CONVERT BACK TO IMAGE SPACE
-            %             ix = sparse( size(maskw,1)*size(x,2),size(y,1) );
-            ix = zeros( size(maskw,1)*size(x,2),size(y,1) );
-            
-            %             ix( repmat(mask,[size(x,2) 1]),: ) = iX;
-            
-            bhat = zeros(size(ix,1),1);
-            %             bhat( repmat(mask,[size(x,2) 1]) ) = what;
-            
-            nb = size(bhat,1); nw = size(W,1); % ni = nb/nw;
-            for i = 1:size(x,2)
-                sname = demo.subject(1);
-                
-                if obj.jacobian.iskey( sname )
-                    key = sname;
-                elseif obj.jacobian.iskey('default')
-                    key = 'default';
-                else
-                    error(['No forward model for subject: ' sname '.'])
-                end
-                
-                iW = V(key)*diag(diag(1./S(key)))*U(key)'*XiW(key);
-                
-                idx1 = ((i-1)*nw+1):i*nw;
-                idx2 = ((i-1)*sum(maskw)+1):i*sum(maskw);
-                bhat( idx1 ) = iW*what( idx2 );
-                
-                ix(idx1,:) = iW*iX(idx2,:);
-            end
-            
-            %             for i = 2:size(x,2)
-            %                 iW = blkdiag(iW,iW);
-            %             end
-            %
-            %             ix = iW*what;
-            %
-            % %             ix = V*(pinv(W*V)*ix);
-            %             bhat = iX*y;
-            
-            
-            %% PUT STATS
-            lst = abs(bhat) < 0.01*max(abs(bhat))  | repmat(~maskb,[length(bhat)/length(maskb) 1]);
-            bhat(lst) = 0;
-            
-            G.iX        	= ix; clear ix;
-            G.se            = sqrt( sum(G.iX.^2,2) );
-            G.se( lst )     = Inf;
-            G.tstat         = bhat./G.se;
-            G.bhat          = bhat;
-            G.dfe           = ceil(dfw);
-            G.names         = names;
-            G.p             = 2*tcdf(-abs(G.tstat),G.dfe);
-            G.ppos        	= tcdf(-G.tstat,G.dfe);
-            G.pneg        	= tcdf(G.tstat,G.dfe);
-            
-            %             idx = (1:length(y))';
-            %             idx = reshape( idx, [length(idx)/length(subj_stats) length(subj_stats)] );
-            %
-            %             tic
-            %             nperms = 200;
-            %             bperm = zeros(size(bhat,1),nperms);
-            %             for i = 1:nperms
-            %                 %pidx = idx( :,randperm(size(idx,2)) );
-            %                 %pidx = idx( :,randi(size(idx,2),size(idx,2),1) );
-            %                 tmp1 = randi(size(idx,1),size(idx));
-            %                 tmp2 = randi(size(idx,2),size(idx));
-            %                 pidx = sub2ind( size(idx), tmp1(:), tmp2(:) );
-            %                 bperm(:,i) = ix*y( pidx(:) );
-            %             end
-            %             toc
-            %
-            %             p = zeros(size(bhat));
-            %             for i = 1:nperms
-            %                p = p + (abs(bhat) <= abs(bperm(:,i)));
-            %             end
-            %             p = p / nperms;
-            %
-            %
-            %             G.bhat  = bhat;
-            %             G.bperm = bperm;
-            %             G.mu    = mean(bperm,2);
-            %             G.se    = std(bperm,[],2);
-            %             G.tstat = (G.bhat-0*G.mu)./G.se;
-            %             G.dfe   = ceil(dfw);
-            % %             G.p     = 2*tcdf(-abs(G.tstat),G.dfe);
-            %             G.p     = tcdf(-G.tstat,G.dfe);
-            %            	G.names	= names;
-            % %             G.p = p;
-            %             G.p( repmat(~maskb,[length(G.p)/length(maskb) 1]) ) = 1;
-            
+              
         end
         
     end

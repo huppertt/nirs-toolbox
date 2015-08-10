@@ -3,6 +3,7 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     tmp = load(filename, 'sensitivity','probe');
     
     %% mesh
+    mesh=nirs.core.Mesh;
     mesh.nodes = tmp.sensitivity.mesh.vertices;
     mesh.faces = tmp.sensitivity.mesh.faces;
     
