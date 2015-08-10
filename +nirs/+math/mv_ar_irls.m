@@ -23,7 +23,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
     b0 = b * 1e16; iter = 0;
     while norm(b-b0)/norm(b0) > 1e-3 && iter < 10
         
-        disp( norm(b-b0)/norm(b0) )
+%         disp( norm(b-b0)/norm(b0) )
         
         b0 = b;
         

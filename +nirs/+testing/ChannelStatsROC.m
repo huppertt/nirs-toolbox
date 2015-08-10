@@ -136,7 +136,7 @@ classdef ChannelStatsROC
             end
             xlabel('False Positive Rate')
             ylabel('True Positive Rate')
-            legend(obj.types)
+            legend(obj.types, 'Location', 'SouthEast')
             
             figure, hold on
             for i = 1:length(obj.types)
@@ -145,7 +145,13 @@ classdef ChannelStatsROC
             end
             ylabel('False Positive Rate')
             xlabel('Estimated FPR (p-value)')
-            legend(obj.types)
+            legend(obj.types, 'Location', 'SouthEast')
+        end
+        
+        function [tp, fp, phat] = roc( obj )
+            for i = 1:length(obj.types)
+               [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
+            end
         end
         
         function out = sensitivity( obj, pval )

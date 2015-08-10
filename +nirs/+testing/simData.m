@@ -32,6 +32,8 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
     if length(beta) == length(stim.keys)
         % oxy; deoxy
         b = [beta; -beta/2];
+    else
+        b = beta;
     end
     
     if nargin < 5 || isempty(basis)

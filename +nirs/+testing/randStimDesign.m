@@ -5,6 +5,11 @@ function stim = randStimDesign( t, stimDur, stimSpace, ncond )
 %     t           - time vector
 %     stimDur     - stim duration
 %     stimSpace   - average space between stim onsets
+%     ncond       - number of conditions
+
+    if nargin < 4
+        ncond = 1;
+    end
     
     % min max times
     tmin = min( t ) + 1*stimDur;

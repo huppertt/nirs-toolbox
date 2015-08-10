@@ -24,6 +24,10 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
         
         % wavelengths
         lambda = link.type(lst);
+        
+        if spectralFlag && ~isnumeric(lambda)
+            error('Multivariate design with spectral priors requires optical density')
+        end
 
         % with spectral priors?
         if spectralFlag
