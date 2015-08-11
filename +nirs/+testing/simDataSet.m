@@ -30,7 +30,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
     
     if size(beta,1) == length(s.keys)
         % oxy; deoxy
-        b = [beta; -beta/2];
+        b = [beta; -beta/3];
     end
         
     if nargin < 5 || isempty(channels)
@@ -45,8 +45,9 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
     
     % loop through
     for i = 1:length(noise)
-        data(i).demographics('group') = num2str(gidx(i));
-        [data(i), truth] = nirs.testing.simData(data(i), stimFunc(data(i).time), beta(:, gidx(i)), channels);
+        data(i).demographics('group') = ['G' num2str(gidx(i))];
+        data(i).demographics('subject') = ['S' num2str(i)];
+        [data(i), truth] = nirs.testing.simData(data(i), stimFunc(data(i).time), b(:, gidx(i)), channels);
     end
     
 end

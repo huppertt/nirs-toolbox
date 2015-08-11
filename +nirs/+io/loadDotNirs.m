@@ -33,10 +33,10 @@ function data = loadDotNirs( filenames )
 
             % probe
             thisFile.probe = nirs.util.sd2probe( d.SD );
-            [thisFile.probe.link, idx] = ...
-                sortrows(thisFile.probe.link,{'source','detector','type'});
-
-            thisFile.data = thisFile.data(:,idx);
+%             [thisFile.probe.link, idx] = ...
+%                 sortrows(thisFile.probe.link,{'source','detector','type'});
+% 
+%             thisFile.data = thisFile.data(:,idx);
 
             if isfield(d,'StimDesign')
                 thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign );
@@ -52,7 +52,7 @@ function data = loadDotNirs( filenames )
             end
             
         % append to list of data
-        data(end+1) = thisFile;
+        data(end+1) = thisFile.sorted();
             
         catch err
             warning(err.message)
