@@ -89,7 +89,7 @@ function [X, T] = createMultiVarDesignMat( stimulus, t, basis, link, spectralFla
     end
 
     % sort using the convention i chose
-    [T, idx] = sortrows(T, {'cond', 'source', 'detector', 'type'});
+    [T, idx] = sortrows(T, {'source', 'detector', 'type', 'cond'});
     X = X(:, idx);
 
 end

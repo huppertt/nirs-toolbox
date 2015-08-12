@@ -1,5 +1,4 @@
 function S = mv_ar_irls( X, Y, Pmax, T )
-
     if nargin < 4, T = ones(size(Y,1),1); end
     
     if ndims(X) == 3
@@ -41,12 +40,14 @@ function S = mv_ar_irls( X, Y, Pmax, T )
             f = [1; -a(2:end)];
        
             Yf(:,i)     = myFilter( f, Y(:,i) );
-            Xf(:,i,:)   = myFilter( f, squeeze(X(:,i,:)) );
+            Xf(:,:,i)   = myFilter( f, squeeze(X(:,:,i)) );
             
             idx1 = (i-1)*m+1 : i*m;
             idx2 = (i-1)*size(T,2)+1 : i*size(T,2);
             
             Tf(idx1, idx2) = myFilter( f, T );
+            
+            rf2(:,i) = filter(f, 1, r(:,i));
         end
         
         % filtered residual
@@ -66,7 +67,7 @@ function S = mv_ar_irls( X, Y, Pmax, T )
         Xq = myKronProd( Q, stack(Xf) );
         Tq = myKronProd( Q, Tf );
         
-        for j = 1:10
+        for j = 1:3
             % tukey weights
             rq = reshape( vec(Yq) - [Xq Tq] * b, size(Yq) );
 
