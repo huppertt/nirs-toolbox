@@ -1,4 +1,4 @@
-function S = ttest(obj, c, b)
+function S = ttest(obj, c, b, names)
     %% ttest - Tests the null hypothesis c*beta = b
     % 
     % Args:
@@ -39,7 +39,12 @@ function S = ttest(obj, c, b)
     S.covb  = covb;
 
     % new condition names
-    cond = obj.transformNames(c);
+    if nargin < 4
+        cond = obj.transformNames(c);
+    else
+        cond = names;
+    end
+    
     cond = repmat( cond(:), [nchan 1] );
 
     link = repmat( obj.probe.link, [size(c,1) 1] );
