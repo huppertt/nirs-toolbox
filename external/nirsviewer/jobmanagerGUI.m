@@ -22,7 +22,7 @@ function varargout = jobmanagerGUI(varargin)
 
 % Edit the above text to modify the response to help jobmanagerGUI
 
-% Last Modified by GUIDE v2.5 05-Aug-2015 11:39:31
+% Last Modified by GUIDE v2.5 10-Aug-2015 08:38:05
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -191,7 +191,7 @@ while(~isempty(j.prevJob))
              if(val)
                  val='true';
              else
-                 val='false'
+                 val='false';
              end
          end
          if(isa(val,'Dictionary'))
@@ -340,11 +340,13 @@ warning('off','MATLAB:hg:PossibleDeprecatedJavaSetHGProperty');
 hModel = handle(model, 'CallbackProperties');
 set(hModel, 'PropertyChangeCallback', @callback_onPropertyChange);
 
+
 %addlistener(model,'PropertyChange',@callback_onPropertyChange);
  
 % Display the properties pane onscreen
 [pan,comp]=javacomponent(pane, [0 0 200 200], handles.uipanel2);
 set(comp,'units','normalized','position',[0 0 1 1]);
+set( handles.uipanel2,'UserData',name);
 
 return
 
@@ -353,7 +355,9 @@ handles=guidata(findobj('tag','listbox_loaded'));
 prop=varargin{2};
 val=prop.getNewValue;
 propname=prop.getPropertyName;
-name=getselectednode;
+
+name=get(findobj('tag','uipanel2'),'Userdata');
+%name=getselectednode;
 
 jobs=get(handles.listbox_loaded,'UserData');
 j.prevJob=jobs;
@@ -595,6 +599,7 @@ function uimenu_defaultjob_singlesubject_Callback(hObject, eventdata, handles)
 
 jobs=nirs.modules.ImportData();
 jobs.Input='raw';
+jobs=nirs.modules.RemoveStimless(jobs);
 
 jobs = nirs.modules.Resample(jobs);
 jobs.Fs = 5; % resample to 5 Hz
@@ -623,11 +628,10 @@ function uimenu_defaultjob_group_Callback(hObject, eventdata, handles)
 
 jobs=nirs.modules.ImportData();
 jobs.Input='raw';
-
+jobs=nirs.modules.RemoveStimless(jobs);
 jobs = nirs.modules.Resample(jobs);
 jobs.Fs = 5; % resample to 5 Hz
-
-jobs = nirs.modules.OpticalDensity( jobs );
+ jobs = nirs.modules.OpticalDensity( jobs );
 jobs = nirs.modules.BeerLambertLaw( jobs );
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='Hb';
@@ -685,3 +689,18 @@ set(handles.uimenu_changeiterations,'Userdata',str2num(answer{1}));
   
    
 return
+
+
+% --- Executes when user attempts to close figure1.
+function figure1_CloseRequestFcn(hObject, eventdata, handles)
+% hObject    handle to figure1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: delete(hObject) closes the figure
+
+disp('Processing job created in workspace');
+job=get(handles.listbox_loaded,'UserData');
+assignin('base','job',job)
+
+delete(hObject);

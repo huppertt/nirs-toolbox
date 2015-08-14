@@ -22,6 +22,86 @@ classdef NirfastBEM
         mesh = getNirfastMeshes( obj )
         [J,meas] = jacobian( obj, type );
         [J,meas] = layeredJacobian( obj );
+       
+        function meshBEM=mesh2BEM(obj);
+            meshBEM=nirs.core.Mesh;
+            
+            for idx=1:length(obj.mesh)    
+                meshBEM.faces=[meshBEM.faces; obj.mesh(idx).faces+length(meshBEM.nodes)];
+                meshBEM.nodes=[meshBEM.nodes; obj.mesh(idx).nodes];
+            end
+            
+            meshBEM.regions=zeros(length(meshBEM.faces),2);
+            cnt=0;
+            for idx=1:length(obj.mesh)
+               meshBEM.regions(cnt+[1:length(obj.mesh(idx).faces)],2)=idx;
+               meshBEM.regions(cnt+[1:length(obj.mesh(idx).faces)],1)=idx-1;
+               cnt=length(obj.mesh(idx).faces);
+            end
+         
+            
+        end
+        
+        function obj = loadBEM_fif(obj,filename)
+            
+            % These are the levels of the icosohedral
+            vertLength=[12 42 162 642 2562 10242];
+            faceLength=[20 80 320 1280 5120 20480];
+       
+            surf=mne_read_bem_surfaces(filename);
+            
+            BEM(1)=nirs.core.Mesh();
+            BEM(1).nodes=double(surf(1).rr)*1000;
+            BEM(1).faces=double(surf(1).tris);
+            
+            
+            fid=fopen(which('ext1020.sfp'),'r');
+            marker=textscan(fid,'%s\t%d\t%d\t%d');
+            fclose(fid);
+            Pos=double([marker{2} marker{3} marker{4}]);
+            
+            Pos = icbm_spm2tal(Pos);
+            
+            [TR, TT] = icp(BEM(1).nodes',Pos');
+            Pos=(TR*Pos'+TT*ones(1,size(Pos,1)))';
+            k=dsearchn(BEM(1).nodes,Pos);
+            Pos=BEM(1).nodes(k,:); 
+             
+            fidtbl=table(marker{1},Pos(:,1),Pos(:,2),Pos(:,3),repmat({'10-20'},length(marker{1}),1),...
+                repmat({'mm'},length(marker{1}),1),repmat(true,length(marker{1}),1),...
+                'VariableNames',BEM(1).fiducials.Properties.VariableNames);
+            
+            if(height(BEM(1).fiducials)==0)
+                BEM(1).fiducials=fidtbl;
+            else
+                BEM(1).fiducials=[BEM(1).fiducials; fidtbl];
+            end
+            
+            BEM(2)=nirs.core.Mesh();
+            BEM(2).nodes=double(surf(end).rr)*1000;
+            BEM(2).faces=double(surf(end).tris);
+            
+            obj.mesh=BEM;
+            
+            
+        end
+        
+        function draw(obj,values,varargin)
+        
+            if(~exist('values'))
+                for idx=1:length(obj.mesh)
+                    obj.mesh(idx).draw();
+                end
+            else
+                cnt=0;
+                for idx=1:length(obj.mesh)
+                    obj.mesh(idx).draw(values(cnt+[1:length(obj.mesh(idx).nodes)]),varargin{:});
+                    hold on;
+                    cnt=cnt+length(obj.mesh(idx).nodes);
+                end
+            end
+            
+        end
         
     end
     

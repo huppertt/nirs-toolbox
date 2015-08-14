@@ -112,8 +112,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             %RUn a test to get the Fixed/Random matrices
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            lm1 = fitlme([table(beta) tmp], obj.formula,'FitMethod', 'reml', 'CovariancePattern', 'Isotropic');
-%                     , 'dummyVarCoding',obj.dummyCoding, );
+            lm1 = fitlme([table(beta) tmp], obj.formula,'FitMethod', 'reml', 'CovariancePattern', 'Isotropic', 'dummyVarCoding',obj.dummyCoding);
                
             X = lm1.designMatrix('Fixed');
             Z = lm1.designMatrix('Random');

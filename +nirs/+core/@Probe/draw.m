@@ -33,9 +33,9 @@ function h=draw( obj, colors, lineStyles, axis_handle )
     
     h=drawProbe(link, s, d, colors, lineStyles, axis_handle);
     
-    labelOptodes( axis_handle, s, d )
+    labelOptodes( axis_handle, s, d );
     
-    rescaleAxes( axis_handle, s, d )
+    rescaleAxes( axis_handle, s, d );
 end
 
 function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)

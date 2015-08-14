@@ -3,32 +3,35 @@ function mesh = getNirfastMeshes( obj )
     probe = obj.probe;
     assert( isnumeric(probe.link.type) )
     
+    meshBEM=obj.mesh2BEM();
+    
+    
     types = unique(probe.link.type);
     for i = 1:length( types )
         %% geometries
         mesh{i}.dimension = 3;
         mesh{i}.type = 'stnd_bem';
-        mesh{i}.nodes = obj.mesh.nodes;
-        mesh{i}.elements = obj.mesh.faces;
+        mesh{i}.nodes = meshBEM.nodes;
+        mesh{i}.elements = meshBEM.faces;
 
-        [~,ix,jx] = unique(obj.mesh.faces,'rows');
-        vec = histc(jx,1:max(jx));
-        qx = vec == 1;
-        bdy_faces = obj.mesh.faces(ix(qx),:);
-        exterior_nodes_id = unique(bdy_faces(:));
+%         [~,ix,jx] = unique(obj.mesh.faces,'rows');
+%         vec = histc(jx,1:max(jx));
+%         qx = vec == 1;
+%         bdy_faces = obj.mesh.faces(ix(qx),:);
+%         exterior_nodes_id = unique(bdy_faces(:));
+% 
+%         bndvtx = zeros(size(obj.mesh.nodes,1),1);
+%         bndvtx(exterior_nodes_id) = 1;
 
-        bndvtx = zeros(size(obj.mesh.nodes,1),1);
-        bndvtx(exterior_nodes_id) = 1;
-
-        mesh{i}.bndvtx = bndvtx;
+        mesh{i}.bndvtx = false(size(mesh{i}.nodes,1),1);
+        mesh{i}.bndvtx(unique(mesh{1}.elements(find(meshBEM.regions(:,1)==0),:)))=true;
+        mesh{i}.region = meshBEM.regions;
         
-        mesh{i}.region(:,1) = obj.mesh.regions - 1;
-        mesh{i}.region(:,2) = obj.mesh.regions;
-        
-        lst = obj.mesh.regions == 1;
+        lst = find(meshBEM.regions(:,1) == 0);
         mesh{i}.region(lst,1) = 1;
         mesh{i}.region(lst,2) = 0;
-        for j = 1:max(obj.mesh.regions)
+
+        for j = 1:max(meshBEM.regions(:))
             mesh{i}.mua(j,1) = obj.prop{j}.mua(i);
             mesh{i}.kappa(j,1) = obj.prop{j}.kappa(i);
             mesh{i}.mus(j,1) = obj.prop{j}.mus(i);

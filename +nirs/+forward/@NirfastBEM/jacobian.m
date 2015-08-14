@@ -21,7 +21,7 @@ function [J, meas] = jacobian( obj, type )
     assert( isnumeric( types ) );
     
     % sources
-    for i = 1:length( types )
+    for i = 1:length( types ) 
 
         lst = obj.probe.link.type == types(i);
         data = bemdata_stnd( mesh{i},obj.Fm );
@@ -61,7 +61,7 @@ function [J, meas] = jacobian( obj, type )
         
     end
     
-    meas = nirs.Data( d_det/2 + d_src/2,0,obj.probe,obj.Fm );
+    meas = nirs.core.Data( d_det/2 + d_src/2,0,obj.probe,obj.Fm );
     
     % assemble jacobian
     Jmua = zeros( size(obj.probe.link,1), size(mesh{1}.nodes,1) );
@@ -73,12 +73,12 @@ function [J, meas] = jacobian( obj, type )
         
         Jmua(i,:) = ( phi_src{iType(i)}(:,iSrc) .* phi_det{iType(i)}(iDet) ).';
     end
-    
+        
     if ~isSpectral
         J.mua = Jmua;
     else
         % convert jacobian to conc
-        ext = nirs.getSpectra( types );
+        ext = nirs.media.getspectra( types );
                 
         ehbo = ext(iType,1);
         ehbr = ext(iType,2);

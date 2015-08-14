@@ -33,7 +33,7 @@ if nargin==3
     end
 end
 
-c=(3e11./mesh.ri);
+c=(mesh.c./mesh.ri);
 omega = sqrt((mesh.mua + (1i*(2*pi*frequency*1e6)./c))./mesh.kappa);
 % Establish boundary relations based on .region file.
 relations = GetSurfRelations(mesh);
@@ -121,11 +121,12 @@ if frequency == 0
     q_tot = sparse(q_tot);
 end
 
-[L,U] = ilu(K,struct('type','ilutp','droptol',1e-3));
+K=K+diag(max(diag(K),1E-4));
+[L,U] = ilu(K,struct('type','ilutp','droptol',1E-4));
 
 u = zeros(size(q_tot));
 for i = 1:size(q_tot,2);
-    u(:,i) = bicgstabl(K,q_tot(:,i),1e-6,20,L,U);
+    u(:,i) = bicgstabl(K,q_tot(:,i),1e-6,10,L,U);
 end
 
 % u = K\q_tot;
@@ -248,6 +249,7 @@ BdyNodeIndices=cell(size(relations,1),1);
 
 for i=1:size(relations,1)
     region=relations(i,1);
+      
     % find all the region IDs involved with 'region'
     allflag=mesh.region(:,1)==region | mesh.region(:,2)==region;
     allregions = unique([mesh.region(allflag,1); mesh.region(allflag,2)]);

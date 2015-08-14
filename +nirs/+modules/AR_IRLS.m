@@ -89,6 +89,24 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
 
         end
         
+        
+        function prop = javaoptions(obj)
+            
+            prop=javaoptions@nirs.modules.AbstractGLM(obj);
+            opts=obj.options;
+            
+            diction=nirs.util.createDictionaryFromToolset('nirs.design.basis');
+            DictionaryProp=javatypes('enum',{diction.values});
+            set(DictionaryProp,'Name','basis','Value','test');
+            set(DictionaryProp,'Category','Misc');
+            set(DictionaryProp,'Description','Select the canonical basic function');
+            prop(find(ismember(opts,'basis')))=DictionaryProp;
+            
+            
+            
+            
+        end
+        
     end
     
 end

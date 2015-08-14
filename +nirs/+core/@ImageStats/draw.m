@@ -24,6 +24,7 @@ function draw( obj, vtype, vrange, thresh )
     % significance mask
     if nargin < 4
         mask = ones(size(values)) > 0;
+        thresh=[];
         
     elseif isscalar(thresh)
         mask = abs(values) > thresh;
