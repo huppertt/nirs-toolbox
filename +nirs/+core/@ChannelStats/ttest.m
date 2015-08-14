@@ -20,7 +20,7 @@ function S = ttest(obj, c, b, names)
     % full contrast matrix
     C = kron(eye(nchan), c);
 
-    if nargin < 3
+    if nargin < 3 || isempty(b)
         b = zeros(size(C,1),1);
     else
         b = repmat(b(icond), [nchan 1]);
