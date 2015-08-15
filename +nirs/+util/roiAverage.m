@@ -3,9 +3,51 @@ function tbl = roiAverage( data, R, names )
         names = {names};
     end
     
-    % sort probe
+     % sort probe
     link = data.probe.link;
-    [link, ilink] = sortrows(link, {'source', 'detector', 'type'});
+    [link, ilink] = sortrows(link, {'type','source', 'detector'});
+    
+    if(isa(R{1},'table'))
+        
+        %First deal with the NaN values;
+        allSrc=unique(link.source);
+        allDet=unique(link.detector);
+        
+        for idx=1:length(R)
+            src=R{idx}.source(isnan(R{idx}.detector));
+            if(length(src)>0)
+            R{idx}=[R{idx}; table(kron(src,ones(length(allDet),1)),...
+                kron(ones(length(src),1),allDet),'VariableNames',{'source','detector'})];
+            end
+            
+            det=R{idx}.detector(isnan(R{idx}.source));
+            if(length(det)>0)
+            R{idx}=[R{idx}; table(kron(ones(length(det),1),allSrc),...
+                    kron(ones(length(allSrc),1),det),'VariableNames',{'source','detector'})];
+            end
+            
+        end
+        
+        
+        % The region definition is a table, parse it to the contrast vector
+        types=unique(link.type);
+        
+        RNew=cell(length(R)*length(types),1);
+        NamesNew=cell(length(R)*length(types),1);
+        cnt=1;
+        for idx=1:length(types)
+            for idx2=1:length(R)
+                RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
+                    'VariableNames',{'type'})]);
+                NamesNew{cnt}=[names{idx2} ':' types{idx}];
+                cnt=cnt+1;
+            end
+        end
+        R=RNew;
+        names=NamesNew;
+    end
+    
+   
     
     % change ROIs to sorted indices
     for i = 1:length(R)
