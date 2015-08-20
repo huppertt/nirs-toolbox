@@ -50,4 +50,5 @@ function S = ttest(obj, c, b, names)
     link = repmat( obj.probe.link, [size(c,1) 1] );
     link = sortrows(link, {'source', 'detector', 'type'});
     S.variables = [link table(cond)];
+    S.description = 'T-test';
 end

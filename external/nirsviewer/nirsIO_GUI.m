@@ -22,7 +22,7 @@ function varargout = nirsIO_GUI(varargin)
 
 % Edit the above text to modify the response to help nirsIO_GUI
 
-% Last Modified by GUIDE v2.5 15-Aug-2015 21:35:36
+% Last Modified by GUIDE v2.5 20-Aug-2015 12:32:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -258,9 +258,26 @@ function uitable1_CellSelectionCallback(hObject, eventdata, handles)
 % eventdata  structure with the following fields (see MATLAB.UI.CONTROL.TABLE)
 %	Indices: row and column indices of the cell(s) currently selecteds
 % handles    structure with handles and user data (see GUIDATA)
-% tempdata=get(handles.figure1,'Userdata');
-% fileIdx=eventdata.Indices(1);
-% disp(tempdata(fileIdx));
+
+tempdata=get(handles.figure1,'Userdata');
+
+if(isempty(eventdata.Indices))
+    return
+end
+
+fileIdx=eventdata.Indices(1);
+str=evalc('disp(tempdata(fileIdx))');
+
+html=help2html(str);
+
+delete(findobj('tag','data_browser'));
+jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
+[browser,container]=javacomponent(jObject,[],handles.figure1);
+set(container,'units',get(handles.edit_datamsg,'units'),'position',get(handles.edit_datamsg,'position'));
+set(handles.edit_datamsg,'visible','off');
+set(container,'tag','data_browser')
+browser.setHtmlText(html);
+
 return
 
 
@@ -307,3 +324,19 @@ function edit_namedata_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+% --- Executes during object creation, after setting all properties.
+function edit_datamsg_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to edit_datamsg (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+set(hObject,'max',15,'string','');

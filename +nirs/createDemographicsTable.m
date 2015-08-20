@@ -14,8 +14,10 @@ function tbl = createDemographicsTable( data )
         demo = data(i).demographics;
         
         % create struct
-        for j = 1:length(demo.keys)
-            tbl(i).(demo.keys{j}) = demo.values{j};
+        if(isprop(demo,'keys'))
+            for j = 1:length(demo.keys)
+                tbl(i).(demo.keys{j}) = demo.values{j};
+            end
         end
     end
 

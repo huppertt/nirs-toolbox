@@ -59,9 +59,14 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 % table of variables
                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
                 
+                if(~isempty(demo))
                 vars = [vars; 
                     [table(file_idx) S(i).variables repmat(demo(i,:), [size(S(i).beta,1) 1])]
                     ];
+                else
+                     vars = [vars; ...
+                    [table(file_idx) S(i).variables]];
+                end
             end
             
             % sort
@@ -120,6 +125,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
            
            G.variables = [sd table(cnames)];
            G.variables.Properties.VariableNames{4} = 'cond';
+           G.description = ['Mixed Effects Model: ' obj.formula];
         end
     end
     

@@ -116,7 +116,7 @@ raw = nirs.io.loadDirectory([root_dir filesep 'data'], {'group', 'subject'});
 
 ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));
 
-num_iter = 50;  
+num_iter = 10;  
 
 % Load the default single_subject module
 jobs = nirs.modules.default_modules.single_subject;
@@ -192,3 +192,16 @@ ROCtest.simfunc=@()nirs.testing.simDataSet;
 ROCtest.pipeline=nirs.modules.default_modules.group_analysis;
 ROCtest=ROCtest.run(num_iter);
 ROCtest.draw;
+
+    p = nirs.modules.Resample();
+    p = nirs.modules.OpticalDensity(p);
+    p = nirs.modules.BeerLambertLaw(p);
+    p = nirs.modules.AR_IRLS(p);
+    p.verbose = false;
+    p = nirs.modules.MixedEffects(p);
+    p.formula = 'beta ~ -1 + cond';
+
+    test = nirs.testing.ChannelStatsROC(p, @nirs.testing.simDataSet);
+
+    test = test.run(5);
+

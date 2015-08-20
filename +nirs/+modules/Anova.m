@@ -90,6 +90,7 @@ classdef Anova < nirs.modules.AbstractModule
             G.probe = S(1).probe;
             
             G = G.sorted();
+            G.description = ['ANOVA Model: ' obj.formula];
         end
     end
     

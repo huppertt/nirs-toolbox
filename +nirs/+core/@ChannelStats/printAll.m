@@ -22,8 +22,9 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
     for i = 1:length(obj.conditions)
         obj.ttest(I(i,:)).draw(vtype, vrange, thresh);
         for j = length(utypes):-1:1
-            
-            set(gcf, 'PaperPositionMode', 'auto')
+            f=findobj('name',[utypes{j} ' : ' obj.conditions{i}]);
+            figure(f);
+            set(f, 'PaperPositionMode', 'auto')
             
             if strcmp(ext, 'eps')
                 ptype = '-depsc';
@@ -37,11 +38,12 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
             
             fname = [obj.conditions{i} '_' utypes{j} '.' ext];
             fname = [folder filesep strjoin(strsplit(fname, ':'), '__')];
-            print(ptype, fname)
+            print(f,ptype, fname)
             
-            close
+            close(f);
         end
+        
     end
-
+  
 end
 

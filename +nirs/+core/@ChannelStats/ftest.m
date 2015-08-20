@@ -57,4 +57,5 @@ function S = ftest(obj, m)
     S.df1       = df1;
     S.df2       = df2;
     S.probe     = obj.probe;
+    
 end

@@ -57,7 +57,7 @@ if(addtitle)
     rpt = RptgenML.CReport('Description','This is a report generated for the nirs.core.chanstats variable','DirectoryType','pwd');
     %set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
 else
-    rpt = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle','Images');
+    rpt = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle',Stats.description);
    
 end
 
@@ -72,7 +72,7 @@ setParent(cfr_titlepage,rpt);
 
 
 cfr_section1 = rptgen.cfr_section('StyleName','rgChapterTitle',...
-    'SectionTitle','Results');
+    'SectionTitle',[Stats.description ' Results']);
 setParent(cfr_section1,rpt);
 
 
@@ -113,7 +113,15 @@ for idx=1:length(Stats.conditions)
         X(idx2,idx).Caption=caption;
     end
 end
-tbl=array2table(X,'RowNames',types,'VariableNames',Stats.conditions);
+
+for idx=1:length(Stats.conditions)
+    str=Stats.conditions{idx};
+    str=strjoin(strsplit(strjoin(strsplit(str,'-'),'_neg_'),'+'),'_pos_');
+    if(strcmp(str(1),'_')), str(1)=[]; end;
+    VarNames{idx}=str;
+end
+
+tbl=array2table(X,'RowNames',types,'VariableNames',VarNames);
 cfr_table=nirs.util.reporttable(tbl);
 
 if(addtitle)
@@ -127,7 +135,7 @@ end
 
 
 %% Now add the stats as a table
-cfr_table=nirs.util.reporttable(Stats.table);
+cfr_table=nirs.util.reporttable(sortrows(Stats.table,{'type','cond','source','detector'}));
 if(addtitle)
     cfr_section4 = rptgen.cfr_section('StyleName','rgChapterTitle',...
         'SectionTitle','Channel Statistics');

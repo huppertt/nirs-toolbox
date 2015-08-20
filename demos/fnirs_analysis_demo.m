@@ -1,10 +1,11 @@
 clear 
 
 % change this to save results somewhere else
-root_dir = '/Users/lab/Desktop/tmp' ;
+root_dir = '/Users/thuppert/Desktop/tmp' ;
+mkdir(root_dir);
 
 %% download the dataset
-urlwrite('https://bitbucket.org/jeffx/nirs-toolbox/downloads/demo_data.zip', ...
+urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip', ...
     [root_dir filesep 'demo_data.zip'])
 % This command will download the demo_data.zip file from the server.  This
 % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow 

@@ -55,7 +55,7 @@ function draw( obj, vtype, vrange, thresh )
     % colormap
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
-
+  
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
             lst = strcmp( types, utypes(iType) ) & ...
@@ -83,7 +83,8 @@ function draw( obj, vtype, vrange, thresh )
                 end
             end
             
-            figure;
+            f=figure;
+            set(f,'name',[utypes{iType} ' : ' uconds{iCond}]);
             obj.probe.draw(colors, lineStyles);
             c = colorbar; colormap(cmap); caxis(vrange);
             a = gca;

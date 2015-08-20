@@ -25,7 +25,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
     
     s = stimFunc(noise(1).time);
     if nargin < 4
-        beta = 7*ones( length(s.keys), ngroup );
+        beta = 7*ones( length(s.keys), ngroup )/length(noise);
     end
     
     if size(beta,1) == length(s.keys)

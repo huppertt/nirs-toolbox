@@ -48,4 +48,5 @@ function out = jointTest( obj )
     out.probe.link = out.probe.link(idx, :);
     out.probe.link.type = cell(size(out.probe.link.type));
     out.probe.link.type(:) = {'joint'};
+    S.description = 'Joint F-test';
 end
