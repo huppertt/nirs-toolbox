@@ -596,24 +596,7 @@ function uimenu_defaultjob_singlesubject_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-jobs=nirs.modules.ImportData();
-jobs.Input='raw';
-jobs=nirs.modules.RemoveStimless(jobs);
-
-jobs = nirs.modules.Resample(jobs);
-jobs.Fs = 5; % resample to 5 Hz
-
-jobs = nirs.modules.OpticalDensity( jobs );
-jobs = nirs.modules.BeerLambertLaw( jobs );
-jobs = nirs.modules.ExportData(jobs);
-jobs.Output='Hb';
-jobs = nirs.modules.TrimBaseline( jobs );
-jobs.preBaseline   = 30;
-jobs.postBaseline  = 30;
-jobs = nirs.modules.AR_IRLS(jobs );
-jobs = nirs.modules.ExportData(jobs);
-jobs.Output='SubjStats';
+jobs=nirs.modules.default_modules.single_subject;
 set(handles.listbox_loaded,'UserData',jobs);
 update_tree(handles);
 
@@ -624,27 +607,7 @@ function uimenu_defaultjob_group_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-
-
-jobs=nirs.modules.ImportData();
-jobs.Input='raw';
-jobs=nirs.modules.RemoveStimless(jobs);
-jobs = nirs.modules.Resample(jobs);
-jobs.Fs = 5; % resample to 5 Hz
- jobs = nirs.modules.OpticalDensity( jobs );
-jobs = nirs.modules.BeerLambertLaw( jobs );
-jobs = nirs.modules.ExportData(jobs);
-jobs.Output='Hb';
-jobs = nirs.modules.TrimBaseline( jobs );
-jobs.preBaseline   = 30;
-jobs.postBaseline  = 30;
-jobs = nirs.modules.AR_IRLS(jobs );
-jobs = nirs.modules.ExportData(jobs);
-jobs.Output='SubjStats';
-jobs = nirs.modules.MixedEffects(jobs );
-jobs.formula       = 'beta ~ -1 + cond + (1|subject)';  % See help fitlme for examples
-jobs = nirs.modules.ExportData(jobs);
-jobs.Output='GroupStats';
+jobs=nirs.modules.default_modules.group_analysis;
 set(handles.listbox_loaded,'UserData',jobs);
 update_tree(handles);
 

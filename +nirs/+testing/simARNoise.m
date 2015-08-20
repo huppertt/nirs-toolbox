@@ -34,14 +34,16 @@ end
 
 function probe = defaultProbe()
 
-    probe = nirs.core.Probe();
     
-    probe.srcPos(:,1) = (-80:20:80)';
-    probe.srcPos(:,2:3) = 0;
     
-    probe.detPos(:,1) = (-70:20:70)';
-    probe.detPos(:,2) = 25;
-    probe.detPos(:,3) = 0;
+    srcPos(:,1) = (-80:20:80)';
+    srcPos(:,2:3) = 0;
+    
+    detPos(:,1) = (-70:20:70)';
+    detPos(:,2) = 25;
+    detPos(:,3) = 0;
+    
+    probe = nirs.core.Probe(srcPos,detPos);
     
     link = [1	1	690
         2	1	690

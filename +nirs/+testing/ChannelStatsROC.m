@@ -98,29 +98,49 @@ classdef ChannelStatsROC
                [data, truth] = obj.simfunc();
                
                % pipeline stats
-               stats = obj.pipeline.run(data);
                
-               % multivariate joint hypothesis testing
-               fstats = stats.jointTest();
+               T=[];
+               P=[];
+               Types={};
                
-               % types
-               types = unique(stats.variables.type, 'stable');
-               
-               t = []; p = [];
-               for j = 1:length(types)
-                   lst = strcmp(types(j), stats.variables.type);
+               for i=1:length(obj.pipeline)
                    
-                   t(:,j) = truth(lst);
-                   p(:,j) = stats.p(lst);
+                   stats = obj.pipeline(i).run(data);
+                   
+                   % multivariate joint hypothesis testing
+                   fstats = stats.jointTest();
+                   
+                   % types
+                   types = unique(stats.variables.type, 'stable');
+                  
+                   
+                   t = []; p = [];
+                   for j = 1:length(types)
+                       lst = strcmp(types(j), stats.variables.type);
+                       
+                       t(:,j) = truth(lst);
+                       p(:,j) = stats.p(lst);
+                   end
+                   
+                   t(:, end+1) = sum(t, 2) > 0;
+                   p(:, end+1) = fstats.p;
+                   
+                    types=[types; {'joint'}];
+                   
+                   if(length(obj.pipeline)>1)
+                       types=arrayfun(@(x){[x{1} '-' num2str(i)]},types);
+                   end
+                   
+                   T=[T t];
+                   P=[P p];
+                   Types={Types{:} types{:}};
+                   
                end
                
-               t(:, end+1) = sum(t, 2) > 0;
-               p(:, end+1) = fstats.p;
+               obj.truth = [obj.truth; T];
+               obj.pvals = [obj.pvals; P];
                
-               obj.truth = [obj.truth; t];
-               obj.pvals = [obj.pvals; p];
-               
-               obj.types = [types; {'joint'}];
+               obj.types = Types;
             
                 disp( ['Finished iter: ' num2str(i)] )
             end
