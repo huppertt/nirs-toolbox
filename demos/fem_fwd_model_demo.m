@@ -1,3 +1,6 @@
+%% NIRS Forward model
+
+
 %% mesh
 % nodes
 [x, y, z] = ndgrid(-50:10:50, -50:10:50, 0:10:50);

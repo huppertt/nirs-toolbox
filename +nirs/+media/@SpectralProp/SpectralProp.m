@@ -40,7 +40,7 @@ classdef SpectralProp
             obj.so2 = 0.7;
             obj.hbt = 60;
 
-            obj.a = 24.2;  % x10 to change to mm-1 as the default
+            obj.a = 2.42;  
             obj.b = 1.611;
 
             obj.ri = 1.45;

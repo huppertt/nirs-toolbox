@@ -140,6 +140,9 @@ node=get(a.Tree,'LastSelectedPathComponent');
 
 filename=node.getName;
 val=str2num(node.getValue);
+if(isempty(val))
+    return
+end
 
 try
     typesAll=arrayfun(@(x){num2str(x)},data(val).probe.link.type);
@@ -251,6 +254,8 @@ for idx=1:length(datatypes)
     set(h,'Callback',['nirs_viewer(''uimenu_launch_chanstats_Callback'',gcbo,[],guidata(gcbo),''' datatypes(idx).name ''')']);
 end
 
+%% TODO-  the HTML reporter needs to handle core.data class
+if(0)
 datatypes2=evalin('base','whos;');
 datatypes2(~ismember({datatypes2.class},'nirs.core.Data'))=[];
 names={datatypes.name datatypes2.name};
@@ -260,7 +265,7 @@ for idx=1:length(names)
     h=uimenu('parent',handles.uimenu_create_datareport,'Label',names{idx});
     set(h,'Callback',['nirs_viewer(''uimenu_create_datareport_Callback'',gcbo,[],guidata(gcbo),''' names{idx} ''')']);
 end
-
+end
 
 return
 
@@ -270,17 +275,38 @@ updatedatalist;
 handles=guihandles(findobj('tag','figure_nirsview'));
 
 if(strcmp(get(handles.uimenu_autoscale,'Checked'),'on'))
-    l=findobj('type','line','parent',handles.axes_maindata,'visible','on');
+    l=findobj('type','line','parent',handles.axes_maindata,'visible','on','Tag','dataline');
+    lstim=findobj('type','line','parent',handles.axes_maindata,'visible','on','Tag','');
 else
-    l=findobj('type','line','parent',handles.axes_maindata);
+    l=findobj('type','line','parent',handles.axes_maindata,'Tag','dataline');
+    lstim=findobj('type','line','parent',handles.axes_maindata,'Tag','');
 end
+
+rangey=[-1 1];
+
+
 for idx=1:length(l)
     rangey(idx,1)=min(get(l(idx),'Ydata'));
     rangey(idx,2)=max(get(l(idx),'Ydata'));
     rangex(idx,1)=min(get(l(idx),'Xdata'));
     rangex(idx,2)=max(get(l(idx),'Xdata'));
 end
-set(handles.axes_maindata,'Ylim',[min(rangey(:)) max(rangey(:))],'Xlim',[min(rangex(:)) max(rangex(:))]);
+
+minY=min(rangey(:));
+rangeY = max(rangey(:))-minY;
+
+for idx=1:length(lstim)
+    yd=get(lstim(idx),'yData');
+    yd=yd-min(yd);
+    yd=(yd./max(yd))*rangeY*.1+minY-rangeY*.15;
+    set(lstim(idx),'yData',yd);
+    rangex(length(l)+idx,1)=min(get(lstim(idx),'Xdata'));
+   rangex(length(l)+idx,2)=max(get(lstim(idx),'Xdata'));
+end
+minY=minY-rangeY*.15;
+
+
+set(handles.axes_maindata,'Ylim',[minY max(rangey(:))],'Xlim',[min(rangex(:)) max(rangex(:))]);
 
 return
 
@@ -293,6 +319,11 @@ function listbox_data_Callback(hObject, eventdata, handles)
 % Hints: contents = cellstr(get(hObject,'String')) returns listbox_data contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listbox_data
 name=get(hObject,'String');
+
+if(strcmp(name,'<None Loaded>'))
+    return
+end
+
 name=name{get(hObject,'value')};
 nirs_viewer_dataview(name);
 
@@ -358,6 +389,9 @@ function uimenu_loadfiles_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+h=nirs.io.loadGUI;
+waitfor(h);
+uimenu_refresh_Callback([],[],[]);
 
 % --------------------------------------------------------------------
 function uimenu_loadsaved_Callback(hObject, eventdata, handles)

@@ -34,7 +34,11 @@ function s = convertOneStim( stim )
         s.dur   = stim.dur(:);
     end
     
-    if length(stim.dur) == 1
+    if(~isfield(stim,'amp'))
+        stim.amp=1;
+    end
+    
+    if length(stim.amp) == 1
         s.amp = stim.amp * ones(size(stim.onset));
     else
         s.amp = stim.amp(:);
