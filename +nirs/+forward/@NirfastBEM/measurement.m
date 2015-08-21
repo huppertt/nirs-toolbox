@@ -21,7 +21,7 @@ function meas = measurement( obj )
         
     end
 
-    meas = nirs.Data( d,0,obj.probe,obj.Fm );
+    meas = nirs.core.Data( d,0,obj.probe,obj.Fm );
     
 end
 

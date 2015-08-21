@@ -156,7 +156,7 @@ classdef SpectralProp
         function obj = set.mua( obj, mua )
             assert( isvector(mua) && length(mua) == length(obj.lambda) )
             
-            ext = nirs.utilities.getSpectra( obj.lambda );
+            ext = nirs.media.getspectra( obj.lambda );
             hb = pinv( ext(:,1:2) )  ...
                 *  (mua(:) - ext(:,3)*obj.water + ext(:,4)*obj.lipid);% + ext(:,5)*obj.cytC);
             
@@ -174,7 +174,7 @@ classdef SpectralProp
         end
         
         function obj = set.kappa( obj, kappa )
-            assert( isvector(kappa) && kappa >= 0 );
+            assert( isvector(kappa) && all(kappa) >= 0 );
             obj.mus = 1./kappa/3 - obj.mua;
         end
         

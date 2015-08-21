@@ -160,12 +160,11 @@ ROCtest=ROCtest.run(num_iter);
 
 ROCtest.draw;
 
-% Let's try to run this again with the OLS regrssion model
+%% Let's try to run this again with the OLS regrssion model
 
 % Create a new model
 ROCtest=nirs.testing.ChannelStatsROC;
-ROCtest.pipeline;
-% Add the data to is
+% Add the data to the pipeline
 ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));
 
 % Create our job to test
@@ -193,15 +192,4 @@ ROCtest.pipeline=nirs.modules.default_modules.group_analysis;
 ROCtest=ROCtest.run(num_iter);
 ROCtest.draw;
 
-    p = nirs.modules.Resample();
-    p = nirs.modules.OpticalDensity(p);
-    p = nirs.modules.BeerLambertLaw(p);
-    p = nirs.modules.AR_IRLS(p);
-    p.verbose = false;
-    p = nirs.modules.MixedEffects(p);
-    p.formula = 'beta ~ -1 + cond';
-
-    test = nirs.testing.ChannelStatsROC(p, @nirs.testing.simDataSet);
-
-    test = test.run(5);
-
+  

@@ -1,4 +1,4 @@
-classdef SlabForwardModel 
+classdef SlabModel 
     %SLABFORWARDMODEL Summary of this class goes here
     %   Detailed explanation goes here
     
@@ -10,7 +10,7 @@ classdef SlabForwardModel
     
     methods
         %% Constructor
-        function obj = SlabForwardModel( probe, prop, Fm )
+        function obj = SlabModel( probe, prop, Fm )
            if nargin > 0, obj.probe = probe; end
            if nargin > 1, obj.prop = prop; end
            if nargin > 2, obj.Fm = Fm; end
@@ -22,9 +22,9 @@ classdef SlabForwardModel
             w = obj.Fm*2*pi * 1e6;
 
             for iLink = 1:size( obj.probe.link,1 )
-                iLambda = obj.probe.link(iLink,3);
+                iLambda = find(obj.prop.lambda==obj.probe.link.type(iLink));
                 k = obj.prop.kappa( iLambda );
-                v = obj.prop.v( iLambda );
+                v = obj.prop.v;
                 mua = obj.prop.mua( iLambda );
 
                 Vp = sqrt(sqrt(1+(w/mua/v)^2) + 1);
@@ -37,15 +37,14 @@ classdef SlabForwardModel
                 phi(1,iLink) = -d(iLink) * sqrt(mua/2/k) * Vm + atan(d(iLink)*sqrt(mua/2/k)*Vm/(1+d(iLink)*sqrt(mua/2/k)*Vp));
             end
             
-            meas = nirs.Data( exp(logAC + 1i*phi),...
-                obj.probe,...
-                0, ...
-                obj.Fm, ...
-                'Analytical slab forward model.');
+            
+            
+            meas = nirs.core.Data( exp(logAC + 1i*phi),...
+                obj.probe,0,obj.Fm);
         end
         
         function [J,meas] = jacobian( obj )
-            for iLambda = 1:length(obj.optProp.lambda)
+            for iLambda = 1:length(obj.prop.lambda)
                 meas = obj.measurement();
                 y0 = meas.data.';
 
@@ -64,19 +63,46 @@ classdef SlabForwardModel
 
                 %dy/dmua
                 thisModel = obj;
-                thisModel.optProp.mua(iLambda) = 1.0001*thisModel.optProp.mua(iLambda);
+                thisModel.prop.mua(iLambda) = 1.0001*thisModel.prop.mua(iLambda);
                 newMeas = thisModel.measurement();
                 y1 = newMeas.data.';
 
-                J(iLambda).mua = (y1 - y0)/(.0001*obj.optProp.mua(iLambda)) ./ y0;
+                J(iLambda).mua = (y1 - y0)/(.0001*obj.prop.mua(iLambda)) ./ y0;
 
                 %dy/dk
                 thisModel = obj;
-                thisModel.optProp.kappa(iLambda) = 1.0001*thisModel.optProp.kappa(iLambda);
+                thisModel.prop.kappa(iLambda) = 1.0001*thisModel.prop.kappa(iLambda);
                 newMeas = thisModel.measurement();
                 y1 = newMeas.data.';
 
-                J(iLambda).kappa = (y1 - y0)/(.0001*obj.optProp.kappa(iLambda)) ./ y0;
+                J(iLambda).kappa = (y1 - y0)/(.0001*obj.prop.kappa(iLambda)) ./ y0;
+
+                %                   % assemble jacobian
+%     Jmua = zeros( size(obj.probe.link,1), size(mesh{1}.nodes,1) );
+% 
+%     [~,~,iType] = unique( obj.probe.link.type );
+%     for i = 1:length(obj.probe.link.type)
+%         iSrc = obj.probe.link.source(i);
+%         iDet = obj.probe.link.detector(i);
+%         
+%         Jmua(i,:) = ( phi_src{iType(i)}(:,iSrc) .* phi_det{iType(i)}(iDet) ).';
+%     end
+%         
+%     if ~isSpectral
+%         J.mua = Jmua;
+%     else
+%         % convert jacobian to conc
+%         ext = nirs.media.getspectra( types );
+%                 
+%         ehbo = ext(iType,1);
+%         ehbr = ext(iType,2);
+%         
+%         J.hbo = bsxfun(@times,ehbo,Jmua);
+%         J.hbr = bsxfun(@times,ehbr,Jmua);
+%         
+%     end
+                
+                
             end
         end
     end
