@@ -6,14 +6,15 @@ classdef OpticalProp
         lambda;      	% wavelengths (nm)
         
         mua          	% absorption (mm^-1)
-        mus;          	% reduced scattering (mm^-1)
-         
+        mus;          	% scattering (mm^-1)
+        g;              % Anisotropy  
         ri;            	% refractive index
     end
     
     properties( Dependent )
         kappa;       	% diffusion coefficient ( 1/(3*mua + 3*mus) )
         v;            	% speed of light in medium
+        musp;          	% reduced scattering (mm^-1)
     end
     
     methods
@@ -21,8 +22,9 @@ classdef OpticalProp
         function obj = OpticalProp( mua, mus, lambda, ri )
             if nargin == 0
                 obj.lambda = [690 830];
+                obj.g =[ .89 .89];
                 obj.mua = [0.0113173914928 0.0133132051072];	
-                obj.mus = [1.440357033817907 1.069599610609434];
+                obj.mus = [14.40357033817907 10.69599610609434];
                 obj.ri = 1.45;
             end
             if nargin > 2
@@ -41,7 +43,10 @@ classdef OpticalProp
             assert( isvector(mua) && all(mua >= 0) )
             obj.mua = mua(:)';
         end
-        
+        function obj = set.g(obj,g)
+            assert( isvector(g) && all(g >= 0) )
+            obj.g = g(:)';
+        end
         function obj = set.mus( obj, mus )
             assert( isvector(mus) && all(mus >= 0) )
             obj.mus = mus(:)';
@@ -60,6 +65,10 @@ classdef OpticalProp
         %% Dependent Methods
         function v = get.v( obj )
            v = 3e11 ./ obj.ri;
+        end
+        
+        function musp = get.musp(obj)
+            musp = obj.mus.*(1-obj.g);
         end
         
         function kappa = get.kappa( obj )

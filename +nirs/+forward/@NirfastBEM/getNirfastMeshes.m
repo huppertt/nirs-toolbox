@@ -30,11 +30,16 @@ function mesh = getNirfastMeshes( obj )
         lst = find(meshBEM.regions(:,1) == 0);
         mesh{i}.region(lst,1) = 1;
         mesh{i}.region(lst,2) = 0;
-
+        
+        element_area = triarea(mesh{i}.nodes(mesh{i}.elements(:,1),:),...
+            mesh{i}.nodes(mesh{i}.elements(:,2),:),mesh{i}.nodes(mesh{i}.elements(:,3),:));
+        
+       support=mean(element_area);
+       
         for j = 1:max(meshBEM.regions(:))
-            mesh{i}.mua(j,1) = obj.prop{j}.mua(i);
-            mesh{i}.kappa(j,1) = obj.prop{j}.kappa(i);
-            mesh{i}.mus(j,1) = obj.prop{j}.mus(i);
+            mesh{i}.mua(j,1) = obj.prop{j}.mua(i)./(support).^(1/3);
+            mesh{i}.kappa(j,1) = obj.prop{j}.kappa(i).*(support).^(1/3);
+            mesh{i}.mus(j,1) = obj.prop{j}.musp(i)./(support).^(1/3);
             mesh{i}.ri(j,1) = obj.prop{j}.ri;
             mesh{i}.c(j,1) = obj.prop{j}.v;
         end
@@ -76,3 +81,11 @@ function mesh = getNirfastMeshes( obj )
     end
 end
 
+function area = triarea(p1,p2,p3)
+
+p12=(p1+p2)/2;
+height=sqrt(sum((p12-p3).^2,2));
+width=sqrt(sum((p1-p2).^2,2));
+area=.5*height.*width;
+
+end

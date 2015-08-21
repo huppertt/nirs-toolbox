@@ -18,14 +18,14 @@ classdef SpectralProp
         b;              % mie scaattering exponent 
         
         lambda;         % wavelengths (nm)
-        
+        g;              % anisotropy index
         ri;             % refractive index
     end
     
     properties( Dependent )
         mua;                    % absorption (mm^-1)
-        mus;                    % reduced scattering (mm^-1)
-        
+        mus;                    % scattering (mm^-1)
+        musp;                   % reduced scattering (mm^-1)
         hbo;                 	% oxy-hemoglobin (uM)
         hbr;                  	% deoxy-hemoglobin (uM)
    
@@ -35,14 +35,14 @@ classdef SpectralProp
     
     methods
         %% Constructor
-        function obj = SpectralProp( so2, hbt, lambda, mus, ri )
+        function obj = SpectralProp( so2, hbt, lambda, mus, ri,g )
             obj.lambda = [690 830];
             obj.so2 = 0.7;
             obj.hbt = 60;
 
-            obj.a = 2.42;  
+            obj.a = 2.42;  % mm -1
             obj.b = 1.611;
-
+            obj.g = .89;
             obj.ri = 1.45;
             obj.water = 0.7;
             obj.lipid = 0;
@@ -59,8 +59,11 @@ classdef SpectralProp
                 obj.mus = mus;
             end
             
-            if nargin == 4
+            if nargin > 4
                 obj.ri = ri;
+            end
+            if nargin == 5
+                obj.g = g;
             end
         end
         
@@ -74,7 +77,11 @@ classdef SpectralProp
            assert( isscalar(so2) && so2 >= 0 && so2 <= 1 )
            obj.so2 = so2;
        end
-       
+        function obj = set.g(obj,g)
+            assert( isvector(g) && all(g >= 0) )
+            obj.g = g(:)';
+        end
+        
        function obj = set.hbt( obj, hbt )
            assert( isscalar(hbt) && hbt >= 0 )
            obj.hbt = hbt;
@@ -129,7 +136,11 @@ classdef SpectralProp
         end
         
         function mus = get.mus( obj )
-            mus = obj.a * (obj.lambda/500).^-obj.b;
+            mus = (obj.a * (obj.lambda/500).^-obj.b)/(1-obj.g);
+        end
+        
+        function musp = get.musp( obj )
+            musp = (obj.a * (obj.lambda/500).^-obj.b);
         end
         
         function v = get.v( obj )
@@ -137,7 +148,7 @@ classdef SpectralProp
         end
         
         function kappa = get.kappa( obj )
-            kappa = 1./(3*obj.mua + 3*obj.mus);
+            kappa = 1./(3*obj.mua + 3*obj.musp);
         end
         
         %% Dependent Set Methods
@@ -166,8 +177,9 @@ classdef SpectralProp
         
         function obj = set.mus( obj, mus )
             assert( isvector(mus) && length(mus) == length(obj.lambda) )
+            musp = mus*(1-obj.g);
             n = size(obj.lambda,2);
-            p = pinv( [ones(n,1) -log(obj.lambda'/500)] ) * log( mus(:) );
+            p = pinv( [ones(n,1) -log(obj.lambda'/500)] ) * log( musp(:) );
             
             obj.a = exp(p(1));
             obj.b = p(2);
@@ -175,7 +187,7 @@ classdef SpectralProp
         
         function obj = set.kappa( obj, kappa )
             assert( isvector(kappa) && all(kappa) >= 0 );
-            obj.mus = 1./kappa/3 - obj.mua;
+            obj.mus = (1./kappa/3 - obj.mua)/(1-obj.g);
         end
         
     end

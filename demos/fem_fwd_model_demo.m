@@ -8,9 +8,9 @@
 % First, lets create a slab-model mesh
 % nodes
 
-xrange=[-80:5:80];
-yrange=[-80:5:80];
-zrange=[0:5:80];
+xrange=[-100:2:100];
+yrange=[-100:2:100];
+zrange=[0:2:100];
 
 
 [x, y, z] = ndgrid(xrange, yrange, zrange);
@@ -92,41 +92,30 @@ fwdFEM.prop  = prop;
 meas_FEM = fwdFEM.measurement();
 
 % We can also compute the jacobian (in optical density)
-[J, meas_FEM] = fwdFEM.jacobian();
+%[J, meas_FEM] = fwdFEM.jacobian();
 
 % or the spectral jacobian (incorporates the beer-lambert law to give
 % HbO2/Hb (and mus for the FD-NIRS models)
-[J, meas_FEM] = fwdFEM.jacobian('spectral');
+%[J, meas_FEM] = fwdFEM.jacobian('spectral');
 
 
 % Let's do the same thing using the NIRFAST-BEM model
 %% NIRFAST BEM model demo
 % First, lets create a slab-model mesh
 % nodes
-n=[];
-[x,y,z]=ndgrid(xrange,yrange,zrange(1));
-n = [n; x(:) y(:) z(:)];
-[x,y,z]=ndgrid(xrange,yrange,zrange(end));
-n = [n; x(:) y(:) z(:)];
-[x,y,z]=ndgrid(xrange,yrange(1),zrange);
-n = [n; x(:) y(:) z(:)];
-[x,y,z]=ndgrid(xrange,yrange(end),zrange);
-n = [n; x(:) y(:) z(:)];
-[x,y,z]=ndgrid(xrange(1),yrange,zrange);
-n = [n; x(:) y(:) z(:)];
-[x,y,z]=ndgrid(xrange(end),yrange,zrange);
-n = [n; x(:) y(:) z(:)];
-n=unique(n,'rows');
+[x, y, z] = ndgrid(xrange, yrange, zrange);
+v=zeros(size(x));
+v(find(x==xrange(1)))=1;
+v(find(x==xrange(end)))=1;
+v(find(y==yrange(1)))=1;
+v(find(y==yrange(end)))=1;
+v(find(z==zrange(1)))=1;
+v(find(z==zrange(end)))=1;
+p=isosurface(x,y,z,v);
 
-% elements
-e = delaunay(n);
-
-% faces
-f = [e(:, 1:3); e(:,[1 2 4]); e(:, [1 3 4]); e(:, 2:4)];
-f = unique(sort(f,2), 'rows');
 
 % This command will create a nirs.core.Mesh data type
-mesh = nirs.core.Mesh(n, f);
+mesh = nirs.core.Mesh(p.vertices,p.faces);
 
 fwdBEM = nirs.forward.NirfastBEM();
 fwdBEM.mesh  = mesh;
@@ -154,8 +143,29 @@ fwdSlab.prop=prop{1};
 meas_Slab = fwdSlab.measurement();
 %[J,meas_Slab]=fwdSlab.jacobian;
 
+
+% The theoretical model from
+% Fantini et al 1994 Applied Optics 33(22) 5204-5213
+r=probe.distances;
+
+[~,iLambda]=ismember(probe.link.type,prop{1}.lambda);
+mua=prop{1}.mua(iLambda)';
+kappa=prop{1}.kappa(iLambda)';
+Udc = 1./r.*exp(-r.*sqrt(mua./kappa));
+
+[~,iLambda]=ismember(probe.link.type,prop{1}.lambda);
+
+
 % Let's compare the models
 figure; hold on;
-plot(probe.distances,log(abs(meas_BEM.data)),'b');
-plot(probe.distances,log(abs(meas_FEM.data)),'r');
-plot(probe.distances,log(abs(meas_Slab.data)),'g');
+lst1=find(iLambda==1);  % First wavelength
+plot(probe.distances(lst1),log10(abs(meas_BEM.data(lst1))),'b');
+plot(probe.distances(lst1),log10(abs(meas_FEM.data(lst1))),'r');
+plot(probe.distances(lst1),log10(abs(meas_Slab.data(lst1))),'g');
+plot(probe.distances(lst1),log10(Udc(lst1)),'k');
+
+lst2=find(iLambda==2);  % Second wavelength
+plot(probe.distances(lst2),log10(abs(meas_BEM.data(lst2))),'b--');
+plot(probe.distances(lst2),log10(abs(meas_FEM.data(lst2))),'r--');
+plot(probe.distances(lst2),log10(abs(meas_Slab.data(lst2))),'g--');
+plot(probe.distances(lst2),log10(Udc(lst2)),'k--');

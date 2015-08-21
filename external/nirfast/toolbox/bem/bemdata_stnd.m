@@ -121,8 +121,8 @@ if frequency == 0
     q_tot = sparse(q_tot);
 end
 
-K=K+diag(max(diag(K),1E-4));
-[L,U] = ilu(K,struct('type','ilutp','droptol',1E-4));
+K=K+diag(max(diag(K),1E-2));
+[L,U] = ilu(K,struct('type','ilutp','droptol',1E-6));
 
 u = zeros(size(q_tot));
 for i = 1:size(q_tot,2);
