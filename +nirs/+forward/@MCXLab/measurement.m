@@ -9,7 +9,7 @@ function meas = measurement( obj )
     fbin = fix(fbin);
     
     % get a probe in proper format
-    probe = obj.probe.makeUniqueProbe();
+    probe = obj.probe;
     
     % either simulate all dets once or all sources once
     % swap if their are less dets than srcs
@@ -21,15 +21,14 @@ function meas = measurement( obj )
     thisObj = obj;
     thisObj.probe = probe;
     
-    % check that probe is valid
-    assert( probe.isValidSrcs() )
     
     % preallocation
     data = complex( zeros(1,size(probe.link,1),'single') );
     
+    for itype=unique(probe.link.type)'
     % for each source compute flux
     for iSrc = 1:size(probe.srcPos,1)
-        cfg = thisObj.getConfig( iSrc,'source' );
+        cfg = thisObj.getConfig( [iSrc itype],'source');
         
         tic,
         [~,flux,~] = evalc('mcxlab(cfg)'); % stupid way to suppress mcxlab output
@@ -38,16 +37,16 @@ function meas = measurement( obj )
             flux.data = (iRep-1)/iRep * flux.data + tmp.data/iRep;
         end
         t = toc;
-        disp(['Completed forward model for source ' num2str(iSrc) ' of ' num2str(size(probe.srcPos,1)) ' in ' num2str(t) ' seconds.'])
+        disp(['Completed forward model for source ' num2str(iSrc) '(' num2str(itype) ') of ' num2str(size(probe.srcPos,1)) ' in ' num2str(t) ' seconds.'])
 
         flux.data = flux.data/thisObj.nPhotons/obj.image.dim(1)^3;
         flux.data = fft( flux.data,[],4 );
         
         fluence = flux.data(:,:,:,fbin+1);
         
-        lst = find( probe.link(:,1) == iSrc );
+        lst = find( probe.link.source == iSrc & probe.link.type==itype);
         
-        pos = probe.detPos( probe.link(lst,2),:);
+        pos = probe.detPos( probe.link.detector(lst),:);
         pos = pos / thisObj.image.dim(1) + repmat(thisObj.image.origin,[size(pos,1) 1]);
 
 %         thisR = nirs.utilities.quad_interp(pos,real(log(fluence)),3);
@@ -60,7 +59,7 @@ function meas = measurement( obj )
         
     end
     
-    meas = nirs.Data( data, obj.probe, 0, 110, 'MCX' );
+    meas = nirs.core.Data( data, obj.probe, 0, obj.Fm, 'MCX' );
     
 end
 

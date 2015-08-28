@@ -33,7 +33,7 @@ function [J,meas] = jacobian( obj )
         [Dx, Dy, Dz] = gradient(det.fluence);
         
         Jkappa = ( Sx(:).*Dx(:) + Sy(:).*Dy(:) + Sz(:).*Dz(:) );
-save('/home/barker/background_figures/jacobian/mcx_jacobian.mat','Jmua','Jkappa','meas');
+% save('/home/barker/background_figures/jacobian/mcx_jacobian.mat','Jmua','Jkappa','meas');
         for iLayer = 1:obj.nLayers
             mask = obj.image.vol == iLayer;
             J.mua(iLink,iLayer) = - sum( Jmua(mask) ) / meas.data(iLink);

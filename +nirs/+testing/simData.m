@@ -14,7 +14,7 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
 %     
 %     sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
 %     channels = sd(1:round(end/2),:);
-%
+% 
 %     [data, truth] = simData( noise, stim, beta, channels )
     
     if nargin < 1 || isempty(noise)

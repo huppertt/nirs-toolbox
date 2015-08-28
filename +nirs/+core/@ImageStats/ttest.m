@@ -30,7 +30,8 @@ function S = ttest(obj, c, b)
     beta = bsxfun(@minus, C*obj.beta, b);
 
     % new covariance
-    covb = C*obj.covb*C';
+    co=C*obj.cov_chol;
+    covb = co*co';
 
     % output
     S = obj;

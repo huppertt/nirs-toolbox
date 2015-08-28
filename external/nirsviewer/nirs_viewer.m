@@ -60,21 +60,21 @@ handles=guihandles(findobj('tag','figure_nirsview'));
 %% Populate the filename/subject/group info
 
 table=nirs.createDemographicsTable(data);
-if(isfield(table,'Group')); 
+if(ismember('Group',table.Properties.VariableNames)); 
     table.group=table.Group;
     table=rmfield(table,'Group');
 end
-if(isfield(table,'Subject')); 
+if(ismember('Subject',table.Properties.VariableNames))
     table.subject=table.Subjects;
     table=rmfield(table,'Subject');
 end
 
-if(~isfield(table,'group'))
+if(~ismember('group',table.Properties.VariableNames))
     for idx=1:length(data)
         table.group{idx}='group 1';
     end
 end
-if(~isfield(table,'subject'))
+if(~ismember('subject',table.Properties.VariableNames))
     for idx=1:length(data)
         table.subject{idx}='subject 1';
     end
@@ -365,7 +365,10 @@ function uimenu_jobmanager_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 h=nirs.viz.jobmanager;
 
-set(h,'CloseRequestFcn',[get(h,'CloseRequestFcn') '; nirs_viewer(''uimenu_refresh_Callback'');']);
+waitfor(h);
+nirs_viewer('uimenu_refresh_Callback');
+ 
+%set(h,'CloseRequestFcn',[func2str(get(h,'CloseRequestFcn')) '; nirs_viewer(''uimenu_refresh_Callback'');']);
 
 return
 

@@ -28,12 +28,12 @@ function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
 
         n = size(cmap,1);
         
-        cmap((n-1)/2+1,:) = 0.9;
+        cmap(round((n-1)/2+1),:) = 0.9;
 
         z = linspace(-vmax, vmax, n);
         lst = abs(z) < thresh;
 
-        cmap(lst,:) = repmat( cmap((n-1)/2+1, :), [sum(lst) 1] );
+        cmap(lst,:) = repmat( cmap(round((n-1)/2+1), :), [sum(lst) 1] );
 
 
         h = patch('vertices',nodes,'faces',faces, ...

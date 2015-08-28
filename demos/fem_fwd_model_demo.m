@@ -8,9 +8,9 @@
 % First, lets create a slab-model mesh
 % nodes
 
-xrange=[-100:2:100];
-yrange=[-100:2:100];
-zrange=[0:2:100];
+xrange=[-100:10:100];
+yrange=[-100:10:100];
+zrange=[0:10:100];
 
 
 [x, y, z] = ndgrid(xrange, yrange, zrange);
@@ -27,6 +27,7 @@ f = unique(sort(f,2), 'rows');
 mesh = nirs.core.Mesh(n, f, e);
 
 %The mesh can be drawn using the command
+figure;
 mesh.draw();
 
 
@@ -144,6 +145,21 @@ meas_Slab = fwdSlab.measurement();
 %[J,meas_Slab]=fwdSlab.jacobian;
 
 
+%% Now the MCextreme model
+fwdMCX = nirs.forward.MCXLab;
+fwdMCX.probe=probe;
+fwdMCX.prop=prop;
+
+% This model uses a segmented volume/image
+IM=nirs.core.Image;
+IM.vol=zeros(length(xrange),length(yrange),length(zrange));
+IM.vol(2:end-1,2:end-1,2:end-1)=1;
+IM.dim=[xrange(2)-xrange(1),zrange(2)-zrange(1),zrange(2)-zrange(1)];
+IM.origin=[xrange(1) yrange(1) zrange(1)];
+
+fwdMCX.image=IM;
+fwdMCX.Fm=0;
+
 % The theoretical model from
 % Fantini et al 1994 Applied Optics 33(22) 5204-5213
 r=probe.distances;
@@ -153,10 +169,19 @@ mua=prop{1}.mua(iLambda)';
 kappa=prop{1}.kappa(iLambda)';
 Udc = 1./r.*exp(-r.*sqrt(mua./kappa));
 
-[~,iLambda]=ismember(probe.link.type,prop{1}.lambda);
-
 
 % Let's compare the models
+[~,iLambda]=ismember(probe.link.type,prop{1}.lambda);
+for idx=1:max(iLambda)
+    lst=find(iLambda==idx);
+    [~,j]=min(r(lst));
+    meas_BEM.data(lst)=meas_BEM.data(lst)./meas_BEM.data(lst(j));
+    meas_FEM.data(lst)=meas_FEM.data(lst)./meas_FEM.data(lst(j));
+    meas_Slab.data(lst)=meas_Slab.data(lst)./meas_Slab.data(lst(j));
+    Udc(lst)=Udc(lst)./Udc(lst(j));
+end
+
+
 figure; hold on;
 lst1=find(iLambda==1);  % First wavelength
 plot(probe.distances(lst1),log10(abs(meas_BEM.data(lst1))),'b');
@@ -169,3 +194,7 @@ plot(probe.distances(lst2),log10(abs(meas_BEM.data(lst2))),'b--');
 plot(probe.distances(lst2),log10(abs(meas_FEM.data(lst2))),'r--');
 plot(probe.distances(lst2),log10(abs(meas_Slab.data(lst2))),'g--');
 plot(probe.distances(lst2),log10(Udc(lst2)),'k--');
+
+legend({'BEM Model','FEM Model','Slab Model','Analytic'})
+xlabel('Src-Det distance (mm)');
+ylabel('Log10(Y)');

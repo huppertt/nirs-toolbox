@@ -9,12 +9,14 @@ function out = jointTest( obj )
     vars = obj.variables;
     vars.type = [];
     
+    vars.VoxID=cellfun(@(x)(x),vars.VoxID);
     [~, uvars ,utests] = unique(vars, 'rows', 'stable');
     
     % loop through pairs/conditions
     for i = 1:max(utests)
        m = utests == i;
-       T2 = obj.beta(m)'*pinv(obj.covb(m,m))*obj.beta(m);
+       covb=obj.covb_chol(m,:)*obj.covb_chol(m,:)';
+       T2 = obj.beta(m)'*pinv(covb)*obj.beta(m);
        
        n = obj.dfe;
        k = sum(m);
@@ -25,7 +27,7 @@ function out = jointTest( obj )
     end
     
     % output
-    out = nirs.core.ChannelFStats();
+    out = nirs.core.ImageFStats();
     
     out.F   = F;
     out.df1 = df1;
@@ -48,4 +50,7 @@ function out = jointTest( obj )
     out.probe.link = out.probe.link(idx, :);
     out.probe.link.type = cell(size(out.probe.link.type));
     out.probe.link.type(:) = {'joint'};
+    
+    out.mesh=obj.mesh;
+    
 end

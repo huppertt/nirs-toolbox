@@ -2,7 +2,7 @@ function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
 
     if nargin < 4, fileExt  = '.nirs'; end
     if nargin < 3, loadFunc = @nirs.io.loadDotNirs; end
-
+    
     % remove trailing file separator
     if rootFolder(end) == filesep
         rootFolder = rootFolder(1:end-1);

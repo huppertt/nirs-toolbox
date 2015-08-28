@@ -15,7 +15,7 @@ function S = ftest(obj, m)
         warning('Converting mask to true/false.')
     end
 
-    nchan = size(obj.probe.link,1);
+    nchan = size(obj.beta,1)/length(obj.conditions);
 
     % sort variables
     [~, icond] = sort(obj.conditions);
@@ -24,7 +24,7 @@ function S = ftest(obj, m)
     m = m(:, icond);
     
     % full contrast matrix
-    M = kron(eye(nchan), m);
+    M = kron(speye(nchan,nchan), m);
 
     n = obj.dfe * ones(size(M,1),1);
     k = sum(M,2);
@@ -35,7 +35,10 @@ function S = ftest(obj, m)
     for i = 1:size(M,1)
         idx = M(i,:) > 0;
         b = obj.beta(idx);
-        T2(i,1) = b'*pinv(obj.covb(idx,idx))*b;
+        
+        covb=obj.covb_chol(idx,:)*obj.covb_chol(idx,:)';
+        
+        T2(i,1) = b'*pinv(covb)*b;
     end
 
     F = (n-k+1) ./ k ./ n .* T2;
@@ -47,14 +50,15 @@ function S = ftest(obj, m)
     end
     cond = repmat( cond(:), [nchan 1] );
 
-    link = repmat( obj.probe.link, [size(m,1) 1] );
-    link = sortrows(link, {'source', 'detector', 'type'});
+%     link = repmat( obj.probe.link, [size(m,1) 1] );
+%     link = sortrows(link, {'source', 'detector', 'type'});
     
-    S = nirs.core.ChannelFStats();
-    S.variables = [link table(cond)];
+    S = nirs.core.ImageFStats();
+    S.variables = obj.variables; 
    
     S.F         = F;
-    S.df1       = df1;
-    S.df2       = df2;
+    S.df1       = full(df1);
+    S.df2       = full(df2);
     S.probe     = obj.probe;
+    S.mesh      = obj.mesh;
 end

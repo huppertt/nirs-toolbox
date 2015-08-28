@@ -12,11 +12,12 @@ classdef ImageStats
     %     probe        - Probe object describing measurement geometry
     %     demographics - Dictionary containing demographics info
     %                    (e.g. demographics('age') returns 28)
+    %     typeII_StdE  - StdErr used to compute the typeII 
     %     conditions   - (dependent) list of stim conditions
     %     tstat        - (dependent) t-stats of beta
     %     p            - (dependent) p-values of beta
     %     q            - (dependent) q-values of beta (false discovery rate)
-    %     
+    %       
     %  Methods:
     %     getCritT    - returns critical t value
     %     draw        - draws beta or tstat values on top of probe geometry
@@ -35,7 +36,7 @@ classdef ImageStats
         beta            % regression coefficients
         covb_chol       % covariance of beta =covb_chol*covb_chol'  (since storing the while thing is too large)
         dfe          	% degrees of freedom
-        
+        typeII_StdE     % StdErr used to compute the typeII 
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
     end
@@ -47,6 +48,7 @@ classdef ImageStats
         
         p               % (dependent) p-values of beta
         q               % (dependent) q-values of beta (false discovery rate)
+        p_typeII        % (dependent) typeII error p-values of beta
     end
     
     methods
@@ -62,12 +64,22 @@ classdef ImageStats
         % t statistic calculation
         function tstat = get.tstat( obj )
             tstat = obj.beta ./ sqrt(sum(obj.covb_chol.^2,2));
+            tstat(find(isnan(tstat)))=0;
         end
         
         % p value calculation
         function p = get.p( obj )
             t = obj.tstat;
             p = 2*tcdf(-abs(t), obj.dfe);
+          
+        end
+        
+        function p_typeII = get.p_typeII(obj)
+            se = sum(obj.covb_chol.^2,2);
+            beta=obj.beta;
+            t=beta./(sqrt(se+obj.typeII_StdE.^2));
+            p_typeII = 2*tcdf(-abs(t), obj.dfe);
+        
         end
         
         % q values
@@ -115,13 +127,13 @@ classdef ImageStats
             %% sorted - returns sorted stats by columns in variables
             out = obj;
             if nargin < 2
-                colsToSortBy = {'source', 'detector', 'type', 'cond'};
+                colsToSortBy = {'VoxID', 'type', 'cond'};
             end
             
             [out.variables, idx] = sortrows(out.variables, colsToSortBy);
             
             out.beta = obj.beta(idx);
-            out.covb = obj.covb(idx, idx);
+            out.covb_chol = obj.covb_chol(idx, :);
         end
         
         stats = ttest( obj, c, b );

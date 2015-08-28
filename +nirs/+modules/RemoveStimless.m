@@ -1,4 +1,7 @@
 classdef RemoveStimless < nirs.modules.AbstractModule
+%% RemoveStimless - Removes files with no stimulus information.
+% 
+
 
     methods
         function obj = RemoveStimless( prevJob )

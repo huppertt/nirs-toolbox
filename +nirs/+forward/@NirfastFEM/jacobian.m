@@ -31,6 +31,7 @@ function [J, meas] = jacobian( obj, type )
             Jmua(lst,:) = jac.complex;
         end
     end
+    Jmua=-Jmua;
     
     if ~isSpectral
         J.mua = Jmua;

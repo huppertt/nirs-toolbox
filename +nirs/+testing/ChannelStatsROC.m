@@ -142,7 +142,8 @@ classdef ChannelStatsROC
                
                obj.types = Types;
             
-                disp( ['Finished iter: ' num2str(i)] )
+               it=round(length(obj.truth)/length(T));
+                disp( ['Finished iter: ' num2str(it)] )
             end
         end
         
@@ -163,6 +164,7 @@ classdef ChannelStatsROC
                [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
                plot(phat, fp, 'Color', colors(i,:))
             end
+            plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--')
             ylabel('False Positive Rate')
             xlabel('Estimated FPR (p-value)')
             legend(obj.types, 'Location', 'SouthEast')
