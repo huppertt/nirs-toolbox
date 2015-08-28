@@ -101,14 +101,28 @@ caption = 'p<0.05';
 
 %Let's create a table of file locations
 types=unique(Stats.probe.link.type);
+
+if(~iscell(types)); 
+    types=arrayfun(@(x)({[num2str(x)]}),types);
+end
+
 for idx=1:length(Stats.conditions)
-    n=.8*(7/length(Stats.conditions)); % scale to fit on a 9" paper with 1" margins
+    % If we aren't going to transpose the dispaly
+    if(length(types)>length(Stats.conditions))
+        n=.8*(7/length(Stats.conditions)); % scale to fit on a 9" paper with 1" margins
+    else
+        n=.8*(7/length(types));
+    end
     for idx2=1:length(types)
         X(idx2,idx)=rptgen.cfr_image('MaxViewportSize',[n n],...
             'ViewportSize',[n n],...
             'ViewportType','fixed',...
             'DocHorizAlign','center');
-        X(idx2,idx).FileName=fullfile(fol,[Stats.conditions{idx} '_' types{idx2} '.jpeg']);
+        cond=Stats.conditions{idx};
+        cond(strfind(cond,':'))='*';
+        ffile=dir(fullfile(fol,[cond '_' types{idx2} '.jpeg']));
+        
+        X(idx2,idx).FileName=fullfile(fol,ffile.name);
         X(idx2,idx).Title=[Stats.conditions{idx}  types{idx2}];
         X(idx2,idx).Caption=caption;
     end
@@ -118,10 +132,23 @@ for idx=1:length(Stats.conditions)
     str=Stats.conditions{idx};
     str=strjoin(strsplit(strjoin(strsplit(str,'-'),'_neg_'),'+'),'_pos_');
     if(strcmp(str(1),'_')), str(1)=[]; end;
+    str=strjoin(strsplit(str,':'),'_x_');
     VarNames{idx}=str;
 end
 
-tbl=array2table(X,'RowNames',types,'VariableNames',VarNames);
+
+
+
+if(size(X,2)>size(X,1))
+    types=unique(Stats.probe.link.type);
+    if(~iscell(types));
+        types=arrayfun(@(x)({['Lambda' num2str(x)]}),types);
+    end
+    tbl=array2table(X','RowNames',VarNames,'VariableNames',types);
+else
+    tbl=array2table(X,'RowNames',types,'VariableNames',VarNames);
+end
+
 cfr_table=nirs.util.reporttable(tbl);
 
 if(addtitle)

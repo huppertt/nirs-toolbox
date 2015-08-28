@@ -80,8 +80,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
             tmp = vars(lst == 1, :);
             
             beta = randn(size(tmp,1), 1);
+            
+            nRE=max(1,length(strfind(obj.formula,'|')));
+            
             lm1 = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
-                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', 'Isotropic');
+                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
                 
             X = lm1.designMatrix('Fixed');
             Z = lm1.designMatrix('Random');
@@ -100,15 +103,22 @@ classdef MixedEffects < nirs.modules.AbstractModule
             %% check weights
             dWTW = sqrt(diag(W'*W));
             m = median(dWTW);
-            W(dWTW > 100*m,:) = 0;
             
+            %W(dWTW > 100*m,:) = 0;
+            lstBad=find(dWTW > 100*m);
+            
+            W(lstBad,:)=[];
+            W(:,lstBad)=[];
+            X(lstBad,:)=[];
+            Z(lstBad,:)=[];
+            beta(lstBad,:)=[];
             %% Weight the model
             X    = W*X;
             Z    = W*Z;
             beta = W*beta;
             
             %% fit the model
-            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
+            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern',repmat({'Isotropic'},nRE,1), ...
                     'FitMethod', 'ML');
             
            cnames = lm1.CoefficientNames(:);

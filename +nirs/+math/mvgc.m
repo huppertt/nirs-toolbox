@@ -30,7 +30,7 @@ Y=Y(max(i)+1:end,:);
     % add a constant term
     X   = [ones(m,1) X];
     lst = [0; lst];
-    iX=inv(X'*X)*X';
+    iX=pinv(X'*X)*X';
 %     for i = 1:n
 %         % unrestricted model (all terms)
 %         a   = iX * Y(:,i);
@@ -64,7 +64,7 @@ Y=Y(max(i)+1:end,:);
         % channel j terms
         l = lst ~= j;
                 
-        iXl=inv(X(:,l)'*X(:,l))*X(:,l)';
+        iXl=pinv(X(:,l)'*X(:,l))*X(:,l)';
         
         for i = 1:n
             if i == j
