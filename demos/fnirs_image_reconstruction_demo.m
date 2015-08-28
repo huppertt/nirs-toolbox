@@ -132,3 +132,43 @@ ROCtest.pipeline=j;
 ROCtest=ROCtest.run(num_iter);
 
 ROCtest.draw;
+
+
+
+%% Demo of image reconstruction methods
+
+fold='/Users/lab/Desktop/SAMPLE';
+raw = nirs.io.loadDirectory(fold,{});
+
+% Note, the image recon module wants optical density not concentration
+j = nirs.modules.TrimBaseline();
+j = nirs.modules.OpticalDensity(j);
+j = nirs.modules.Resample(j);
+j = nirs.modules.AR_IRLS(j);
+
+SubjStats = j.run(raw);
+
+% This input function loads an AtlasViewer saved forward model
+[Jacobian mesh probe] = nirs.io.loadSensDotMat(fullfile(fold,'Wii01_8-04-10d_fwd.mat'));
+j = nirs.modules.ImageReconMFX();
+
+% The jacobian is a dictionary indexed by the subject name (or default)
+j.jacobian('default')=Jacobian;
+j.probe('default')=probe;
+j.mesh=mesh;  
+j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
+
+j.basis=nirs.inverse.basis.identity(mesh);
+
+%j.basis=nirs.inverse.basis.gaussian(mesh,.01);
+% Now create the priors in the model
+prior.hbo=zeros(size(Jacobian.hbo,2),1);
+prior.hbr=zeros(size(Jacobian.hbr,2),1);
+% The fields and dimensions in in the prior need to match that of the Jacobian
+j.prior('default')=prior;
+% Prior is a dictionary and uses the names of the stimulus conditions in the model
+
+ImageStats=j.run(SubjStats);
+
+ImageStats.draw()
+

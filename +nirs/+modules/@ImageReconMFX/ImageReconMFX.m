@@ -275,6 +275,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                                 llocal=X(k,i)*L(key);
                             end
                             Xx=vertcat(Xx,llocal);
+                            break;
                         end
                     end
                 end
@@ -312,6 +313,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                             end
                            
                             Zx=vertcat(Zx,llocal);
+                            break;
                         end
                     end
                 end
