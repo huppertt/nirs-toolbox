@@ -1,4 +1,4 @@
-function draw( obj, vtype, vrange, thresh )
+function h = draw( obj, vtype, vrange, thresh )
     %% draw - Draws channelwise values on a probe.
     % Args:
     %     vtype   - either 'beta' or 'tstat'
@@ -57,6 +57,7 @@ function draw( obj, vtype, vrange, thresh )
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
 
+    h=[];
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
             lst = strcmp( types, utypes(iType) ) & ...
@@ -79,6 +80,7 @@ function draw( obj, vtype, vrange, thresh )
             end
             
             figure;
+            h(end+1)=axes;
             obj.mesh.draw(vals,vrange(2),thresh,cmap);
             %c = colorbar; colormap(cmap); caxis(vrange);
 %             a = gca;

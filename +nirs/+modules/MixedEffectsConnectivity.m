@@ -44,6 +44,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             vars = table();
             for i = 1:length(S)
                 tbl=S(i).table;
+                tbl=[tbl repmat(demo(i,:),height(tbl),1)];
                 %tbl=sortrows(tbl,{'TypeOrigin','TypeDest'});
                 LabelsOrig=strcat(repmat('src',height(tbl),1),num2str(tbl.SourceOrigin),...
                     repmat('det',height(tbl),1), num2str(tbl.DetectorOrigin),tbl.TypeOrigin);
@@ -59,7 +60,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             formula=obj.formula;
             formula=['Grangers ' formula(strfind(formula,'~'):end)];
             lmG = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
-                'FitMethod', 'ML', 'CovariancePattern', repmat({'diagional'},nRE,1),...
+                'FitMethod', 'ML', 'CovariancePattern', repmat({'Diagonal'},nRE,1),...
                 'Verbose',true);
             
             formula=obj.formula;
@@ -67,7 +68,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             vars.FisherZ(vars.FisherZ==-Inf)=-1/eps(1);
             formula=['FisherZ ' formula(strfind(formula,'~'):end)];
             lmZ = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
-                'FitMethod', 'ML', 'CovariancePattern', repmat({'diagional'},nRE,1),...
+                'FitMethod', 'ML', 'CovariancePattern', repmat({'Diagonal'},nRE,1),...
                 'Verbose',true);
             
             %Now sort back out 
@@ -75,12 +76,13 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             G.description = 'Group Level Connectivity';
             G.probe=S(1).probe;
             
-            Labels=strcat(repmat('Labels_',length(Labels),1),Labels);
+          %  Labels=strcat(repmat('Labels_',length(Labels),1),Labels);
             
             [n,m]=size(S(1).Grangers);
+            nConds=length(unique(vars.conditions));
             
-            lst=find(ismember(lmG.CoefficientNames,Labels));
-            Gr=reshape(lmG.Coefficients.Estimate(lst),n,m);
+           % lst=find(ismember(lmG.CoefficientNames,Labels));
+            Gr=reshape(lmG.Coefficients.Estimate,n,m,nConds);
     
             Z=reshape(lmZ.Coefficients.Estimate,n,m); 
             G.Pearsons=tanh(Z);

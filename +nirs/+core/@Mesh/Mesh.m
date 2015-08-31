@@ -52,6 +52,10 @@ classdef Mesh
             if nargin < 3, vmax     = []; end
             if nargin < 2, values   = []; end
             
+            if(islogical(values));
+                values=1*values;
+            end
+            
           if isempty(obj.faces)
                h = nirs.util.plotmesh( obj.nodes, obj.elems, ...
                 	values, vmax, thresh, cmap );

@@ -23,11 +23,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             if nargin > 0
                 obj.prevJob = prevJob;
             end
-%             
-%             p = fileparts( which('nirs.modules.ImageReconMFX') );
-%             load([p filesep 'wavelet_matrix.mat']);
-%             W=speye(size(W,1),size(W,2));
-%             iW=speye(size(W,1),size(W,2));
+
             nVox=20484;
             obj.basis=nirs.inverse.basis.identity(nVox);
             

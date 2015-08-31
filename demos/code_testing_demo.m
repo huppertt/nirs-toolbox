@@ -4,7 +4,15 @@
 % Regression testing describes how to run sensitivity/specificity analysis
 % to compare the preformance of various code and options 
 
+% Durectory to download and unpack the demo data
+root_dir = '/Users/thuppert/Desktop/tmp' ;
+% number of iterations to run in ROC tests (more = better; but longer run time)
+num_iter = 10;  
+
+
 %% Unity testing 
+disp('PART 1:  Unity testing Demo');
+
 % Unity tests are included in the folder +nirs/+testing/+unity
 % These tools devive from the builtin matlab.unittest.* class of objects
 % There are currently two tests included:
@@ -16,7 +24,7 @@
 % 
 % Any additional tests can be created and added to the same folder.
 % To run the unity tests type:
-nirs.testing.unittests.runTests;
+disp(nirs.testing.unittests.runTests);
 % This should give:
 % >> nirs.testing.unittests.runTests
 % Running nirs.testing.unittests.TestChannelStats
@@ -50,6 +58,9 @@ nirs.testing.unittests.runTests;
 % ChannelStatsROC.m	 - the actual functoin for running the ROC analysis
 % randSplit.m  - a helper function for spliting a dataset for boot-strapping
 % roc.m - a helper function for running the reciever operator curve analyis
+
+disp('--------------------------------------------------------------------');
+disp('PART 2:  Sensitivity-Specificity Demo');
 
 % The first step is to create the job to run
 ROCtest=nirs.testing.ChannelStatsROC;
@@ -89,34 +100,41 @@ ROCtest=nirs.testing.ChannelStatsROC;
 % In this example, let's use some experimental baseline data as our
 % baseline noise
 
-root_dir = '/Users/lab/Desktop/tmp' ;
-
-% % This is the same data as the other demo script.  
-% %% download the dataset
-% urlwrite('https://bitbucket.org/jeffx/nirs-toolbox/downloads/demo_data.zip', ...
-%     [root_dir filesep 'demo_data.zip'])
+%% download the dataset
 % % This command will download the demo_data.zip file from the server.  This
 % % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow 
 % % The file is about 90Mb in size.
-% 
-% % unzip the data
-% unzip([root_dir filesep 'demo_data.zip'],[root_dir filesep]);
-% % This will unpack a folder called "data" containing two groups (G1 & G2).
-% % A script "simulation.m" is included which was used to generate the data
-% % (but is not intended to be run).  The data was simulated from a set of
-% % experimental resting state NIRS data with simulated evoked responses
-% % added to it to demostrate this analysis pipeline.
-% 
+
+if(~exist(root_dir,'dir'))
+    mkdir(root_dir);
+    
+    disp('downloading sample data from bitbucket site');
+    urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip', ...
+        [root_dir filesep 'demo_data.zip']);
+    % This command will download the demo_data.zip file from the server.  This
+    % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
+    % The file is about 90Mb in size.
+    
+    % unzip the data
+    unzip([root_dir filesep 'demo_data.zip'],[root_dir filesep]);
+    % This will unpack a folder called "data" containing two groups (G1 & G2).
+    % A script "simulation.m" is included which was used to generate the data
+    % (but is not intended to be run).  The data was simulated from a set of
+    % experimental resting state NIRS data with simulated evoked responses
+    % added to it to demostrate this analysis pipeline.
+    
+else
+    disp(['Data found in: ' root_dir ': skipping download']);
+end
 
 %% load data
 % this function loads a whole directory of .nirs files. The second argument 
 % tells the function to use the first level of folder names to specify 
 % group id and to use the second for subject id.
-raw = nirs.io.loadDirectory([root_dir filesep 'data'], {'group', 'subject'});
+raw = nirs.io.loadDirectory([root_dir filesep 'demo_data' filesep 'data'], {'group', 'subject'});
 
 ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));
 
-num_iter = 10;  
 
 % Load the default single_subject module
 jobs = nirs.modules.default_modules.single_subject;
@@ -135,7 +153,7 @@ List=nirs.modules.pipelineToList(jobs);
 %     [1x1 nirs.modules.AR_IRLS       ]
 %     [1x1 nirs.modules.ExportData    ]
 
-% Let's change the resample module 
+% Let's change the resample module (3rd entry)
 List{3}.Fs=5;
 
 % ANd then store back as a job
@@ -162,6 +180,9 @@ ROCtest.draw;
 
 %% Let's try to run this again with the OLS regrssion model
 
+disp('--------------------------------------------------------------------');
+disp('PART 3:  Comparision of AR-iRLS and OLS Regression Demo');
+
 % Create a new model
 ROCtest=nirs.testing.ChannelStatsROC;
 % Add the data to the pipeline
@@ -186,10 +207,18 @@ ROCtest.draw;
 
 
 %% Let's finally look at a group-level ROC example
+disp('--------------------------------------------------------------------');
+disp('PART 4:  Group-level ROC Demo');
+
+%create the ROC class obhect
 ROCtest=nirs.testing.ChannelStatsROC;
+%create the data simuator (we will use all the defaults here)
 ROCtest.simfunc=@()nirs.testing.simDataSet;  
+%Create the pipeline to test (we will use our default group level pipeline)
 ROCtest.pipeline=nirs.modules.default_modules.group_analysis;
+% Run the ROC test
 ROCtest=ROCtest.run(num_iter);
+% And show the results.
 ROCtest.draw;
 
   

@@ -140,7 +140,7 @@ classdef ImageStats
         stats = ftest( obj, m );
         stats = jointTest( obj );
         
-        draw( obj, vtype, vrange, thresh );
+        h=draw( obj, vtype, vrange, thresh );
         
         printAll( obj, vtype, vrange, thresh, folder, ext );
     end

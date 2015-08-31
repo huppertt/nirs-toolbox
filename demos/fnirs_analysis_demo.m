@@ -2,29 +2,35 @@ clear
 
 % change this to save results somewhere else
 root_dir = '/Users/thuppert/Desktop/tmp' ;
-mkdir(root_dir);
 
-%% download the dataset
-urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip', ...
-    [root_dir filesep 'demo_data.zip'])
-% This command will download the demo_data.zip file from the server.  This
-% step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow 
-% The file is about 90Mb in size.
 
-% unzip the data
-unzip([root_dir filesep 'demo_data.zip'],[root_dir filesep]);
-% This will unpack a folder called "data" containing two groups (G1 & G2).
-% A script "simulation.m" is included which was used to generate the data
-% (but is not intended to be run).  The data was simulated from a set of
-% experimental resting state NIRS data with simulated evoked responses
-% added to it to demostrate this analysis pipeline.
-
+if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
+    mkdir(root_dir);
+    disp('downloading sample data from bitbucket.org site');
+    %% download the dataset
+    urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip', ...
+        [root_dir filesep 'demo_data.zip'])
+    % This command will download the demo_data.zip file from the server.  This
+    % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
+    % The file is about 90Mb in size.
+    
+    % unzip the data
+    unzip([root_dir filesep 'demo_data.zip'],[root_dir filesep]);
+    % This will unpack a folder called "data" containing two groups (G1 & G2).
+    % A script "simulation.m" is included which was used to generate the data
+    % (but is not intended to be run).  The data was simulated from a set of
+    % experimental resting state NIRS data with simulated evoked responses
+    % added to it to demostrate this analysis pipeline.
+    
+else
+    disp(['Data found in: ' root_dir ': skipping download']);
+end
 
 %% load data
 % this function loads a whole directory of .nirs files. The second argument 
 % tells the function to use the first level of folder names to specify 
 % group id and to use the second for subject id.
-raw = nirs.io.loadDirectory([root_dir filesep 'data'], {'group', 'subject'});
+raw = nirs.io.loadDirectory([root_dir filesep 'demo_data' filesep 'data'], {'group', 'subject'});
 
 % The load directory function will load *.nirs data files based on hierarchical folder information.  
 % The second argument in the function describes how to interpret this hierarchical information.
@@ -149,6 +155,12 @@ demographics = nirs.createDemographicsTable(raw);
 %  disp(MyDictionary('Some Other Name')); % --> displays "2" to the screen.
 
 
+% Since there are 68 subjects in this data set, this analysis could take a
+% bit of time depending on your computer.  You are welcome to try to
+% analyze the whole data set, but let's prune out a bit so this runs a lot
+% faster
+raw = raw(1:4:end);
+% This will keep only every 4th subject
 
 
 %% preprocessing pipeline
@@ -217,7 +229,9 @@ j.listOfChanges = {
 % choose a new sampling rate that you choose a new sampling frequency such
 % that old_fs / new_fs is an integer (e.g. 20 Hz -> 5 Hz).
 j = nirs.modules.Resample( j );
-j.Fs = 5;  % Sets the new sample rate to 5Hz (was 10Hz)
+j.Fs = 2;  % Sets the new sample rate to 2Hz (was 10Hz).  Usuaully, I would leave the sample rate
+% at 4Hz or above, but for the purposes of allowing this demo to run
+% quickly, let's use 2Hz.
 
 % Many times you can have files excessive baselines before the start or at
 % the end of an experiment for various reasons.  Here we can trim the data
@@ -375,7 +389,7 @@ j = nirs.modules.AddDemographics();
 % demographics.  This can be programatically or simply read from a CSV file
 %
 % In the demo data, we provide a CSV file with demographics info.
-j.demoTable = readtable( [root_dir filesep 'data' filesep 'demographics.csv'] );
+j.demoTable = readtable( [root_dir filesep 'demo_data' filesep 'data' filesep 'demographics.csv'] );
 
 % We are going to match the subject column in the above table
 j.varToMatch = 'subject';  
@@ -501,6 +515,8 @@ ContrastStats = GroupStats.ttest(c);
 
 % Finally, let's save the figures as eps files for closer inspection and/or
 % making manuscript figures. Can also use tif or jpg.
+close all;  
+
 folder = [root_dir filesep 'figures'];
 ContrastStats.printAll('tstat', [-10 10], 'q < 0.05', folder, 'eps')
 % The printAll command also will work for the GroupStats and SubjStats
@@ -535,6 +551,7 @@ MeasList=[NaN 1; NaN 2; NaN 3];
 %This 2nd region is defined by all sources connected to detectors 1,2,3
 
 ROItable=nirs.util.roiAverage(ContrastStats,Region,{'region1','region2','region3'});
+disp(ROItable);
 
 % disp(ROItable)
 %          ROI                     Contrast                    Beta          SE         DF        T            p             q     
