@@ -37,9 +37,16 @@ function tbl = roiAverage( data, R, names )
         cnt=1;
         for idx=1:length(types)
             for idx2=1:length(R)
+                if(iscell(types))
                 RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
                     'VariableNames',{'type'})]);
                 NamesNew{cnt}=[names{idx2} ':' types{idx}];
+                else
+                    RNew{cnt}=ismember(link,[R{idx2} table(repmat([types(idx)],height(R{idx2}),1),...
+                    'VariableNames',{'type'})]);
+                NamesNew{cnt}=[names{idx2} ':' num2str(types(idx))];
+                end
+                
                 cnt=cnt+1;
             end
         end

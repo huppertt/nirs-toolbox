@@ -117,9 +117,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                [u, s, ~] = svd(S(i).covb, 'econ');
                W = diag(1./diag(sqrt(s))) * u';
                
+               
+               if obj.prior.iskey(S(i).demographics('subject'))
+                   key = S(i).demographics('subject');
+               else
+                   key = 'default';
+               end
                xx=[];
                for j=1:length(S(i).conditions)
-                    xx=blkdiag(xx, L(S(i).demographics('subject'))*V');
+                    xx=blkdiag(xx, L(key)*V');
                end
                X=[X; W*xx];    
             end
@@ -256,6 +262,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                                 error(['No forward model for subject: ' sname '.'])
                             end
                         else
+                            sname = demo.subject(j);
                             key = 'default';
                         end
                         if(strcmp(sname,tmp.subject(k)))
@@ -293,6 +300,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                                 error(['No forward model for subject: ' sname '.'])
                             end
                         else
+                            sname = demo.subject(j);
                             key = 'default';
                         end
                         if(strcmp(sname,tmp.subject(k)))
@@ -329,7 +337,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             %% check weights
             dWTW = sqrt(diag(W'*W));
             m = median(dWTW);
-            W(dWTW > 100*m,:) = 0;
+            
+            %W(dWTW > 100*m,:) = 0;
+            
+            lstBad=find(dWTW > 100*m);
+            W(lstBad,:)=[];
+            W(:,lstBad)=[];
+            X(lstBad,:)=[];
+            Z(lstBad,:)=[];
+            beta(lstBad,:)=[];
             
             %% Weight the model
             X    = W*X;

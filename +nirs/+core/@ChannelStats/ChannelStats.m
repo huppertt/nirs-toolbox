@@ -57,7 +57,7 @@ classdef ChannelStats
                 c = [];
             end
         end
-        
+                
         % t statistic calculation
         function tstat = get.tstat( obj )
             tstat = obj.beta ./ sqrt(diag(obj.covb));

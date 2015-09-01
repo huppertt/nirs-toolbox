@@ -14,7 +14,7 @@ end
 [~,~,V]=nirs.math.mysvd(Ls);
 
 tol=sum(abs(V),2);
-V(find(tol<max(tol)*1E-3),:)=0;
+V(find(tol<max(tol)*1E-6),:)=0;
 
 for i=1:size(L,1)
     for j=1:size(L,2)

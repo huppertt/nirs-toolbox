@@ -1,8 +1,8 @@
 classdef FIR
     
     properties
-        npoints = 10;
-        width   = 5;
+        nbins = 10;
+        binwidth   = 5;
     end
     
     methods
@@ -18,13 +18,13 @@ classdef FIR
             
             %on = [on( floor(obj.width/2)+1:end ); zeros(floor(obj.width/2),1)];
             
-            f = kron(eye(obj.npoints), ones(obj.width,1));
+            f = kron(eye(obj.nbins), ones(obj.binwidth,1));
             
             for i = 1:size(f,2)
                out(:,i) = filter(f(:,i), 1, on); 
             end
             
-            out =[zeros(floor(obj.width/2),size(out,2)); out(1:end-floor(obj.width/2),:)];
+            out =[zeros(floor(obj.binwidth/2),size(out,2)); out(1:end-floor(obj.binwidth/2),:)];
       
         end
         

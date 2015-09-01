@@ -1,3 +1,5 @@
+% This demo does not work yet.  Please don't use
+
 for i=1:4;
 [data(i),truth] = nirs.testing.simData;
 end

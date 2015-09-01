@@ -118,7 +118,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             beta = W*beta;
             
             %% fit the model
-            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern',repmat({'Isotropic'},nRE,1), ...
+            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
                     'FitMethod', 'ML');
             
            cnames = lm1.CoefficientNames(:);

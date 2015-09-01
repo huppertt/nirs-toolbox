@@ -32,7 +32,7 @@ for idx=1:length(conditions)
 end
 conditions=unique(conditions);    
 
-lenHRF=20;
+lenHRF=90;
 t=[0:1/Fs:(duration+lenHRF)*length(conditions)];
 
 stimulus=Dictionary();
@@ -50,18 +50,22 @@ Hbeta=X*beta;
 tstat=reshape(tbl.tstat,size(X,2),[]);
 Htstat=X*tstat;
 
+% Cut off all the zeros at the end
+[i,~]=find(X~=0);
+i=mod(i,(duration+lenHRF)*Fs);
+npts = min(max(i)+10,(duration+lenHRF)*Fs);
 
 HRF=nirs.core.Data();
 HRF.description=['HRF from basis: ' Stats.description];
 HRF.probe=Stats.probe;
-HRF.time=t(1:Fs*(duration+lenHRF));
+HRF.time=t(1:npts);
 
 [~,lst]=sortrows(HRF.probe.link,{'source','detector','type'});
 
 data=[];
 link=table;
 for idx=1:length(conditions)
-    lstT=[(idx-1)*(duration+lenHRF)*Fs+1:(idx)*(duration+lenHRF)*Fs];
+    lstT=[(idx-1)*(duration+lenHRF)*Fs+[1:npts]];
     data=[data Hbeta(lstT,lst) Htstat(lstT,lst)];
     type=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
     type2=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx} ':tstat' ]},height(HRF.probe.link),1));

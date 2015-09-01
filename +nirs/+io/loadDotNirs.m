@@ -55,6 +55,24 @@ function data = loadDotNirs( filenames )
                     
                  end
                  thisFile.stimulus=stims;
+            else
+                % Try to add from the "s" variable directly and use a
+                % defaut naming convention
+                 stims = Dictionary();
+                 for idx=1:size(d.s,2)
+                    s = nirs.design.StimulusEvents();
+                    d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
+                    s.name=['stim_channel' num2str(idx)];
+                    s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
+                    s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
+                    s.amp=ones(size(s.dur));
+                    if(~isempty(s.amp))
+                        stims(s.name)=s;
+                    end
+                    
+                 end
+                 thisFile.stimulus=stims;
+                
             end
 
             % demographics for group level
