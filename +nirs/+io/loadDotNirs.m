@@ -40,6 +40,21 @@ function data = loadDotNirs( filenames )
 
             if isfield(d,'StimDesign')
                 thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign );
+            elseif(isfield(d,'CondNames'))
+                % This will handle the HOMER-2 nirs format
+                 stims = Dictionary();
+                 for idx=1:length(d.CondNames)
+                    s = nirs.design.StimulusEvents();
+                    s.name=d.CondNames{idx};
+                    s.onset=d.t(find(diff([0; d.s(:,idx)])==1));
+                    s.dur=d.t(find(diff([0; d.s(:,idx)])==-1))-d.t(find(diff([0; d.s(:,idx)])==1));
+                    s.amp=ones(size(s.dur));
+                    if(~isempty(s.amp))
+                        stims(d.CondNames{idx})=s;
+                    end
+                    
+                 end
+                 thisFile.stimulus=stims;
             end
 
             % demographics for group level

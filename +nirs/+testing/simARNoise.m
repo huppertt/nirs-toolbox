@@ -1,14 +1,15 @@
-function data = simARNoise( probe, t, P)
-
-    if nargin < 3, P = 10; end
-    if nargin < 2, t = (0:1/10:300)'; end
-    if nargin < 1, probe = defaultProbe(); end
+function data = simARNoise( probe, t, P, sigma)
+    
+    if (nargin < 4 || isempty(sigma)), sigma=.33; end;
+    if (nargin < 3  || isempty(P)), P = 10; end
+    if (nargin < 2 || isempty(t)), t = (0:1/10:300)'; end
+    if (nargin < 1 || isempty(probe)), probe = defaultProbe(); end
     
     nchan = size(probe.link,1);
     
     % noise mean and spatial covariance
     mu = zeros(nchan,1);
-    S = toeplitz( [1 0.33*ones(1,nchan-1)] );
+    S = toeplitz( [1 sigma*ones(1,nchan-1)] );
     
     e = mvnrnd( mu, S, length(t) );
 

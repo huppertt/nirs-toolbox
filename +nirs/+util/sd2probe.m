@@ -25,7 +25,7 @@ function probe = sd2probe( SD )
         probe = nirs.core.Probe( SD.SrcPos*sc, SD.DetPos*sc, link );
         
         %If anchor infomation is present, add it
-        if(isfield(SD,'AnchorList'))
+        if(isfield(SD,'AnchorList') && ~isempty(SD.AnchorList))
             PosAll=[SD.SrcPos; SD.DetPos; SD.DummyPos];
             
             cnt=1;
@@ -55,11 +55,11 @@ function probe = sd2probe( SD )
             end
             
             
-            
             tbl=table(Names,Pos(:,1),Pos(:,2),Pos(:,3),Type,Units,...
                 'VariableNames',probe.optodes.Properties.VariableNames);
             
             probe.optodes=[probe.optodes; tbl];
+           
             
         end
         
