@@ -59,10 +59,13 @@ fwdFEM.prop  = prop;
 
 for idx=1:size(targetLoc,1)
     mask(:,idx)=[Amp(idx,1)*(sqrt(sum((mesh.nodes-...
-        ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx)); ...
+        ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx) &...
+        mesh.nodes(:,3)>15); ...
         Amp(idx,2)*(sqrt(sum((mesh.nodes-...
-        ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx))];
+        ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx) &...
+        mesh.nodes(:,3)>15)];
 end
+
 
 % to draw use:
 mesh.draw(mask(1:end/2,1))
@@ -128,22 +131,32 @@ j.basis=nirs.inverse.basis.identity(mesh);
 %j.basis=nirs.inverse.basis.gaussian(mesh,.1);
 % Now create the priors in the model
 
+lstBrain = find(mesh.nodes(:,3)>10);
+
 % This is the Minimum Norm estimate
-prior.hbo(:,1)=zeros(size(J.hbo,2),1);
-prior.hbr(:,1)=zeros(size(J.hbr,2),1);
+prior.hbo=nan(size(J.hbo,2),1);
+prior.hbr=nan(size(J.hbo,2),1);
+
+prior.hbo(lstBrain,1)=0;
+prior.hbr(lstBrain,1)=0;
+
 
 % We can also create multiple priors and let the ReML code figure out the
 % appropriate weighting
-prior2.hbo(:,1)=zeros(size(J.hbo,2),1);
-prior2.hbr(:,1)=zeros(size(J.hbr,2),1);
+prior2.hbo=nan(size(J.hbo,2),2);
+prior2.hbr=nan(size(J.hbo,2),2);
 
-prior2.hbo(:,2)=mask(1:end/2,2);
-prior2.hbr(:,2)=mask(end/2+1:end,2);
+prior2.hbo(lstBrain,1)=0;
+prior2.hbr(lstBrain,1)=0;
+
+prior2.hbo(lstBrain,2)=mask(lstBrain,2);
+prior2.hbr(lstBrain,2)=mask(end/2+lstBrain,2);
 
 
 % The fields and dimensions in in the prior need to match that of the Jacobian
+j.prior=Dictionary();
 j.prior('A')=prior;
-j.prior('B')=prior2;
+j.prior('B')=prior;
 % Prior is a dictionary and uses the names of the stimulus conditions in the model
 % You can also use "default" to use the same prior for all conditions.
 
