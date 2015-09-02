@@ -73,7 +73,11 @@ function [J, meas] = jacobian( obj, type )
         
         Jmua(i,:) = ( phi_src{iType(i)}(:,iSrc) .* phi_det{iType(i)}(iDet) ).';
     end
-        
+    Jmua = abs(Jmua);
+    Jmua = Jmua./(sum(Jmua,2)*ones(1,size(Jmua,2)));
+    Jmua = Jmua.*(data.paa(:,1)*ones(1,size(Jmua,2)));
+
+    
     if ~isSpectral
         J.mua = Jmua;
     else

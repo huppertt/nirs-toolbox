@@ -69,7 +69,7 @@ classdef SpectralProp
         
        %% Set Methods
        function obj = set.lambda( obj, lambda )
-          assert( isvector(lambda) && length(lambda) > 1 && all(lambda > 650) && all(lambda < 900) )
+          assert( isvector(lambda) && length(lambda) > 0 && all(lambda > 650) && all(lambda < 900) )
           obj.lambda = lambda;
        end
        

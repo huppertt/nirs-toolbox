@@ -44,9 +44,11 @@ if(dispflag)
     mesh.draw;
     hold on;
     s=scatter3(ProbePosSphere(:,1),ProbePosSphere(:,2),ProbePosSphere(:,3),'filled','r');
+    
 end
 
-
+[TR, TT] = icp(nodes',AnchorPos');
+ProbePosSphereReg=(TR*AnchorPos'+TT*ones(1,size(AnchorPos,1)))';
 
 errPrev=inf;
 for iter=1:10
@@ -72,16 +74,21 @@ for iter=1:10
     P1(any(isnan(P1),2),:)=[];
     
     Tform = P1\P2;
-    %Tform=Tform/norm(Tform);
+    %[Tform, TT] = icp(P2',P1');
+    
+    
+   % Tform=Tform/norm(Tform);
     ProbePosSphereReg=ProbePosSphere*Tform;
     [TR, TT] = icp(nodes',ProbePosSphereReg');
-    ProbePosSphereReg=(TR*ProbePosSphereReg'+TT*ones(1,size(ProbePosSphereReg,1)))';
-        
+   % ProbePosSphereReg=(TR*ProbePosSphereReg'+TT*ones(1,size(ProbePosSphereReg,1)))';
+     ProbePosSphereReg=(TR*ProbePosSphereReg')';
+%         
     if(dispflag)
+        s2=scatter3(AnchorPos(:,1),AnchorPos(:,2),AnchorPos(:,3),'filled','b');
         set(s,'XData',ProbePosSphereReg(:,1),'Ydata',ProbePosSphereReg(:,2),'zdata',ProbePosSphereReg(:,3));
     end
     ProbePosSphere=ProbePosSphereReg;
-    
+   
 end
 
     for idx=1:size(ProbePosSphereReg,1)
