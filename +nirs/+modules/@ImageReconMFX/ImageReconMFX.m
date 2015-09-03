@@ -35,7 +35,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
         
         function G = runThis( obj,S )
             
-            scale=20;
+            scale=length(S)*2;
             
             % demographics info
             demo = nirs.createDemographicsTable( S );
@@ -193,39 +193,54 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                             nVox=size(obj.basis.fwd,2);
                             Ltmp=[];
                             for j=1:length(types)
-                                if(strcmp(types{j},priortypes{typeIdx}))
+                             if(strcmp(types{j},priortypes{typeIdx}))
                                     Ltmp2=speye(nVox,nVox);
-                                else
+                             else
                                     Ltmp2=0*speye(nVox,nVox);
-                                end
-                                if(strcmp(types{j},'hbr'))
-                                    Ltmp2=-Ltmp2;
-                                end
+                             end
+                               
                                 Ltmp2=Ltmp2(LstInMask,:);
-                                Ltmp=horzcat(Ltmp,Ltmp2);
+                                Ltmp=blkdiag(Ltmp,Ltmp2);
                             end
+                            lst=[1:size(V,2)/length(types)]+size(V,2)/length(types)*(typeIdx-1);
+                         
+                            Ltmp=Ltmp*V;
                             
-                            [q,r]=qr(Ltmp*V,0);
-                            L(['prior_' priortypes{typeIdx}])=r/m;
+                            
+                            [q,r]=qr(Ltmp(:,lst),0);
+                            R=zeros(length(lst),size(Ltmp,2));
+                            R(:,lst)=r/m;
+                            L(['prior_' priortypes{typeIdx}])=R;
                             pp=[];
                             for j=1:length(types)
                                 if(strcmp(types{j},priortypes{typeIdx}))
-                                    id2=min(size(prior.(types{j}),2),id);
-                                    tmp=prior.(types{j})(:,id2);
-                                    tmp(find(isnan(tmp)))=0;
-                                    pp=[pp; obj.basis.inv(LstInMask,:)*tmp];
+                                    s=1;
+                                else
+                                    s=0;
                                 end
+                                id2=min(size(prior.(types{j}),2),id);
+                                tmp=prior.(types{j})(:,id2);
+                                tmp(find(isnan(tmp)))=0;
+                                pp=[pp; s*obj.basis.inv(LstInMask,:)*tmp];
                             end
                             b =[b; q'*pp/m];
-                            C = blkdiag(C,scale*m^-2*eye(size(q,2)));  % = q'*q
+                            C = blkdiag(C,scale*m^-2*eye(length(lst)));  % = q'*q
                         end
                         
+                        
+                        tbl=Sfake(idx).variables;
+                        typ=unique(tbl.type);
+                        [~,ilst]=ismember(tbl.type,typ);
+                        
+                        Sfake(idx).variables=tbl(find(ilst==1),:);
                         Sfake(idx).beta=b;
                         Sfake(idx).covb=C;
                         
-                        S=[S Sfake];
+                       
                     end
+                    
                 end
+                S=[S; Sfake];
             end
             demo = nirs.createDemographicsTable( S );
             
@@ -246,13 +261,16 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 % table of variables
                 
                 file_idx=repmat(i,size(S(i).beta,1),1);
-                
-                newvars=[table(file_idx) repmat(S(i).variables,size(S(i).beta,1)/height(S(i).variables),1) ...
+               
+                newvars=[table(file_idx) S(i).variables ...
                     repmat(demo(i,:), [size(S(i).beta,1) 1])];
                 newvars = nirs.util.filltable(newvars,vars,NaN);
+                
+                
                 vars = [vars; newvars];
                 
             end
+            
             
             [tmp, lst] = unique(table(vars.file_idx,vars.cond), 'rows', 'stable');
             tmp = vars(lst, :);
@@ -420,7 +438,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             
-            lstKeep = find(sum(X,1)~=0);
+            lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
                 warning('Some Src-Det pairs have zero fluence in the forward model');
             end
@@ -430,8 +448,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
 %                 'FitMethod', 'ReML');
 
 
-            lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern','diagonal', ...
-                'FitMethod', 'ReML');
+            
             
             CoefficientCovariance=lm2.CoefficientCovariance;
             
