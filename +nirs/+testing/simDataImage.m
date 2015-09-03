@@ -36,7 +36,7 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
         for idx=1:length(stim.keys)
             p=pos(randi(size(pos,1),1,1),:);
             d=sqrt(sum((fwdModel.mesh.nodes-ones(nVox,1)*p).^2,2));
-            lst=find(d<20 & d>5);
+            lst=find(d<20 & d>5 & fwdModel.mesh.nodes(:,3)>8);
             beta(lst,idx)=7;
         end
     end
@@ -47,6 +47,8 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
     else
         b = beta;
     end
+    b=b*20;
+   
     
     if nargin < 5 || isempty(basis)
         % default to canonical basis
@@ -72,7 +74,7 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
     Xhbr = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbr' );
     
     Yact = (J.hbo*b(1:end/2,:)*Xhbo'+J.hbr*b(1+end/2:end,:)*Xhbr');
-    
+   
     Y = Y+Yact';
     
     Y = exp( -bsxfun(@minus, Y, log(m)) );

@@ -60,10 +60,10 @@ fwdFEM.prop  = prop;
 for idx=1:size(targetLoc,1)
     mask(:,idx)=[Amp(idx,1)*(sqrt(sum((mesh.nodes-...
         ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx) &...
-        mesh.nodes(:,3)>15); ...
+        mesh.nodes(:,3)>10); ...
         Amp(idx,2)*(sqrt(sum((mesh.nodes-...
         ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx) &...
-        mesh.nodes(:,3)>15)];
+        mesh.nodes(:,3)>10)];
 end
 
 
@@ -119,7 +119,7 @@ j.mesh=mesh;
 % This is the same Wilkinson's notation used in the Mixed Effects and ANOVA
 % models.  In this case (since we only have a single subject in this demo),
 % let's just use a simple model to make an image per condition
-j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
+j.formula = 'beta ~ -1 + cond ';  % Simple fixed effects model
 
 % This is the basis set used in the image reconstruction.  The options are:
 %  nirs.inverse.basis.identity - an identity matrix
@@ -131,7 +131,7 @@ j.basis=nirs.inverse.basis.identity(mesh);
 %j.basis=nirs.inverse.basis.gaussian(mesh,.1);
 % Now create the priors in the model
 
-lstBrain = find(mesh.nodes(:,3)>10);
+lstBrain = find(mesh.nodes(:,3)>5);
 
 % This is the Minimum Norm estimate
 prior.hbo=nan(size(J.hbo,2),1);

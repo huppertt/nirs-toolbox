@@ -18,6 +18,9 @@ function [J, meas] = jacobian( obj, type )
     
     types = unique( obj.probe.link.type );
     
+    
+    
+    
     for i = 1:length( types )
         lst = obj.probe.link.type == types(i);
         [jac,data] = jacobian(mesh{i},obj.Fm);
@@ -31,7 +34,10 @@ function [J, meas] = jacobian( obj, type )
             Jmua(lst,:) = jac.complex;
         end
     end
-    Jmua=-Jmua;
+    
+    Jmua = abs(Jmua);
+    
+
     
     if ~isSpectral
         J.mua = Jmua;
