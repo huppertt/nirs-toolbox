@@ -99,6 +99,7 @@ j = nirs.modules.ImageReconMFX();
 %            mesh: []  - The reconstruction mesh
 %           probe: [1x1 Dictionary] - the probe (registered 3D version)
 %            name: 'Image Recon w/ Random Effects'
+%           mask:  a binary to mask the reconstruction volume 
 %         prevJob: []
 
 
@@ -131,26 +132,11 @@ j.basis=nirs.inverse.basis.identity(mesh);
 %j.basis=nirs.inverse.basis.gaussian(mesh,.1);
 % Now create the priors in the model
 
-lstBrain = find(mesh.nodes(:,3)>5);
 
+j.mask =(mesh.nodes(:,3)>5);
 % This is the Minimum Norm estimate
-prior.hbo=nan(size(J.hbo,2),1);
-prior.hbr=nan(size(J.hbo,2),1);
-
-prior.hbo(lstBrain,1)=0;
-prior.hbr(lstBrain,1)=0;
-
-
-% We can also create multiple priors and let the ReML code figure out the
-% appropriate weighting
-prior2.hbo=nan(size(J.hbo,2),2);
-prior2.hbr=nan(size(J.hbo,2),2);
-
-prior2.hbo(lstBrain,1)=0;
-prior2.hbr(lstBrain,1)=0;
-
-prior2.hbo(lstBrain,2)=mask(lstBrain,2);
-prior2.hbr(lstBrain,2)=mask(end/2+lstBrain,2);
+prior.hbo=zeros(size(J.hbo,2),1);
+prior.hbr=zeros(size(J.hbo,2),1);
 
 
 % The fields and dimensions in in the prior need to match that of the Jacobian

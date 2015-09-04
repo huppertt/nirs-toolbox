@@ -10,7 +10,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
         centerVars=false
         
         basis;  % Basis set from nirs.inverse.basis
-        
+        mask = [];   % Mask (e.g. cortical contraint)
         prior = Dictionary();  % The prior on the image; default = 0 (Min Norm Estimate)
         mesh;  % Reconstruction mesh (needed to create the ImageStats Class)
         probe = Dictionary();  % This is the probe for the Jacobian model.  These needs to match the jacobian
@@ -35,7 +35,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
         
         function G = runThis( obj,S )
             
-            scale=length(S)*2;
+            rescale=(10*length(nirs.getStimNames(S))*length(S));
             
             % demographics info
             demo = nirs.createDemographicsTable( S );
@@ -62,54 +62,85 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             
-            %Determine the mask from the NaN in the priors
-            j=[]; priortypes={};
-            for i=1:length(obj.prior.values)
-                f=fields(obj.prior.values{i});
-                priortypes={priortypes{:} f{:}};
-                for k=1:length(f)
-                    [jj,~]=find(~isnan(obj.prior.values{i}.(f{k})));
-                    j=[j; jj];
-                end
+            % Mask of the reconstruction volume
+            if(~isempty(obj.mask))
+               LstInMask=find(obj.mask);
+            else
+               LstInMask=1:size(obj.basis.fwd,1);
             end
-            LstInMask=unique(j);
-            priortypes=unique(priortypes);
-            nLstInMask=1:size(obj.basis.fwd,1);
-            nLstInMask(LstInMask)=[];
-            
+                        
             %% Wavelet ( or other tranform )
             W = obj.basis.fwd; % W = W(1:2562,:);
             
             %Let's make the forward models
             L = obj.jacobian;
+            Lfwdmodels=Dictionary();
+            Probes=Dictionary();
             
             for i = 1:L.count
                 key = L.keys{i};
                 J =L(key);
                 flds=fields(J);
-                Ltmp=[];
-                for j=1:length(flds)
-                    J.(flds{j})(:,nLstInMask)=0;
-                    Ltmp=[Ltmp J.(flds{j})*W];
-                    %                     LL{i,j}=J.(flds{j})*W;
-                    %                     LL{i,j}=LL{i,j}.*(abs(LL{i,j})>1E-12);
-                end
-                Ltmp=Ltmp.*(abs(Ltmp)>1E-12);
-                LL{i}=Ltmp;
-                nVox=size(W,2);
                 
+                if(~ismember(key,obj.probe.keys))
+                     Probes(key)=obj.probe('default');
+                else
+                     Probes(key)=obj.probe(key);
+                end
+                
+                for j=1:length(flds)
+                    Lfwdmodels([key ':' flds{j}])=J.(flds{j})(:,LstInMask).*(J.(flds{j})(:,LstInMask)>10*eps(1));
+                end
             end
             
             % Do a higher-order generalized SVD
-            [US,V]=nirs.math.hogSVD(LL);
+            [US,V]=nirs.math.hogSVD(Lfwdmodels.values);
             % [U1,U2...,V,S1,S2...]=gsvd(L1,L2,...);
             % L1 = U1*S1*V'
             % L2 = U2*S2*V'
             
-            % Create the new reduced dimension forward model
-            for i = 1:size(US,1)
-                L(L.keys{i})=US{i};
+            % Store back into the forward model
+            Lfwdmodels.values=US;
+            
+            
+            %Make sure the probe and data link match
+            for idx=1:length(S)
+                sname=S(idx).demographics('subject');
+                if(ismember(sname,Lfwdmodels.keys))
+                    key=sname;
+                else
+                    key='default';
+                end
+                thisprobe=Probes(key);
+                [ia,ib]=ismember(thisprobe.link,S(idx).probe.link,'rows');
+                ibAll=[];
+                for i=1:length(S(idx).conditions);
+                    ibAll=[ibAll; ib+(length(ib)*(i-1))];
+                end   
+                S(idx).variables=S(idx).variables(ibAll,:);
+                S(idx).beta=S(idx).beta(ibAll);
+                S(idx).covb=S(idx).covb(ibAll,ibAll);
+                S(idx).probe.link=S(idx).probe.link(ib,:);
+                
             end
+            
+            
+            %             
+%                probe=obj.probe(key2);
+%                     [lia,locb]=ismember(probe.link,S(id(k)).probe.link);
+%                     if(~all(lia))
+%                         error('Src-Det found in data but not in fwd model');
+%                     end
+%                     
+%                     if(isempty(strfind(key,'prior')))
+%                         llocal(locb,:)=X(k,i)*L(key);
+%                     else
+%                         llocal=X(k,i)*L(key);
+%                     end
+%                     
+            
+            
+            
             
             % FInd the initial noise weighting
             W=[];
@@ -125,6 +156,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             X=[];
             vars = table();
+            conds=unique(nirs.getStimNames(S));
             for i = 1:length(S)
                 [u, s, ~] = svd(S(i).covb, 'econ');
                 W = diag(1./diag(sqrt(s))) * u';
@@ -136,17 +168,25 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     key = 'default';
                 end
                 xx=[];
-                for j=1:length(S(i).conditions)
-                    xx=blkdiag(xx, L(key)*V');
-                end
-                X=[X; W*xx];
+                %for j=1:length(conds)
+                    xlocal=[];
+                    for fIdx=1:length(flds)
+                       xlocal=[xlocal W*Lfwdmodels([key ':' flds{fIdx}])*V'];
+                    end
+                    
+                    xx=blkdiag(xx, xlocal);
+               % end
+                X=[X; xx];
             end
-            
-            
+           
+            scale = norm(X)/m; 
+           
             for idx=1:size(X,2)
                 x=X(:,idx);
                 VarMDU(idx)=inv(x'*x+eps(1));
             end
+             VarMDU=repmat( VarMDU',length(conds),1);
+            
             % The MDU is the variance at each voxel (still in the basis
             % space here) of the estimated value assuming all the power came
             % from only this voxel.  This is similar to the Rao-Cramer lower bound
@@ -155,140 +195,119 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             % e.g. pval(typeII) = 2*tcdf(-abs(beta/sqrt(VarMDU+CovBeta)),dfe)
             
             
-            %Now, let's add the priors as virtual measurements
-            % This allows us to use ReML in the fitLME function
-            
-            
-            for idx=1:length(S);
-                S(idx).demographics('DataType')='real';
-            end
-            
-            nPriors=0;
-            for i=1:length(obj.prior.values)
-                f=fields(obj.prior.values{i});
-                for j=1:length(f)
-                    nPriors=max(nPriors,size(obj.prior.values{i}.(f{j}),2));
+            if(~isempty(obj.prior))
+                
+                %Now, let's add the priors as virtual measurements
+                % This allows us to use ReML in the fitLME function
+                for idx=1:length(S);
+                    S(idx).demographics('DataType')='real';
                 end
-            end
-            
-            Sfake=S;
-            for typeIdx=1:length(priortypes)
-                for id=1:nPriors
+                
+                nch=size(US{1},1);
+                for fIdx=1:length(flds)
+                    thisprobe=nirs.core.Probe;
+                    thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
                     
-                    for idx=1:length(Sfake)
-                        Sfake(idx).demographics('DataType')=['virtual' num2str(id)];
-                        Sfake(idx).demographics('subject')= ['prior_' priortypes{typeIdx}];
-                        
-                        b=[];
-                        C=[];
-                        for i=1:length(Sfake(idx).conditions)
-                            if ismember(Sfake(idx).conditions{i},obj.prior.keys )
-                                key = Sfake(idx).conditions{i};
-                            else
-                                key = 'default';
-                            end
-                            prior=obj.prior(key);
-                            types=fields(prior);
-                            
-                            nVox=size(obj.basis.fwd,2);
-                            Ltmp=[];
-                            for j=1:length(types)
-                             if(strcmp(types{j},priortypes{typeIdx}))
-                                    Ltmp2=speye(nVox,nVox);
-                             else
-                                    Ltmp2=0*speye(nVox,nVox);
-                             end
-                               
-                                Ltmp2=Ltmp2(LstInMask,:);
-                                Ltmp=blkdiag(Ltmp,Ltmp2);
-                            end
-                            lst=[1:size(V,2)/length(types)]+size(V,2)/length(types)*(typeIdx-1);
-                         
-                            Ltmp=Ltmp*V;
-                            
-                            
-                            [q,r]=qr(Ltmp(:,lst),0);
-                            R=zeros(length(lst),size(Ltmp,2));
-                            R(:,lst)=r/m;
-                            L(['prior_' priortypes{typeIdx}])=R;
-                            pp=[];
-                            for j=1:length(types)
-                                if(strcmp(types{j},priortypes{typeIdx}))
-                                    s=1;
-                                else
-                                    s=0;
-                                end
-                                id2=min(size(prior.(types{j}),2),id);
-                                tmp=prior.(types{j})(:,id2);
-                                tmp(find(isnan(tmp)))=0;
-                                pp=[pp; s*obj.basis.inv(LstInMask,:)*tmp];
-                            end
-                            b =[b; q'*pp/m];
-                            C = blkdiag(C,scale*m^-2*eye(length(lst)));  % = q'*q
-                        end
-                        
-                        
-                        tbl=Sfake(idx).variables;
-                        typ=unique(tbl.type);
-                        [~,ilst]=ismember(tbl.type,typ);
-                        
-                        Sfake(idx).variables=tbl(find(ilst==1),:);
-                        Sfake(idx).beta=b;
-                        Sfake(idx).covb=C;
-                        
-                       
+                    if(strcmp(flds{fIdx},'hbr'))
+                        Lfwdmodels(['prior:' flds{fIdx}])=-eye(size(US{1},2))*scale;
+                    else
+                        Lfwdmodels(['prior:' flds{fIdx}])=eye(size(US{1},2))*scale;
                     end
                     
+                    Probes(['prior:' flds{fIdx}])=thisprobe;
                 end
-                S=[S; Sfake];
-            end
-            demo = nirs.createDemographicsTable( S );
-            
-            %% loop through files
-            W = sparse([]);
-            b = [];
-            vars = table();
-            id=[];
-            for i = 1:length(S)
-                id =[id; repmat(i,length(S(i).conditions),1)];
-                % coefs
-                b = [b; S(i).beta];
+                Priors=nirs.core.ChannelStats;
+                cnt=1;
                 
-                % whitening transform
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                W = blkdiag(W, diag(1./diag(eps(1)+sqrt(s))) * u');
-                
-                % table of variables
-                
-                file_idx=repmat(i,size(S(i).beta,1),1);
-               
-                newvars=[table(file_idx) S(i).variables ...
-                    repmat(demo(i,:), [size(S(i).beta,1) 1])];
-                newvars = nirs.util.filltable(newvars,vars,NaN);
-                
-                
-                vars = [vars; newvars];
-                
-            end
-            
-            
-            [tmp, lst] = unique(table(vars.file_idx,vars.cond), 'rows', 'stable');
-            tmp = vars(lst, :);
-            
-            beta = randn(size(tmp,1), 1);
-            
-            if(~isempty(obj.prior))
+                for idx=1:length(S)
+                   
+                    
+                    variables = sortrows(S(idx).variables,{'cond'});
+                    conds=unique(variables.cond);
+                    
+                    variableLst = variables(find(ismember(variables.cond,conds{1})),:);
+                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
+                    
+                    for cIdx=1:length(conds)
+                        if(ismember(conds{cIdx},obj.prior.keys))
+                            key=conds{cIdx};
+                        else
+                            key='default';
+                        end
+                        thisprior = obj.prior(key);
+                        flds=fields(thisprior);
+                        for fIdx=1:length(flds)
+                            
+                            variableLst.cond=repmat({conds{cIdx}},height(variableLst),1);
+                            variableLst.type=repmat({flds{fIdx}},height(variableLst),1);
+                            for j=1:size(thisprior.(flds{fIdx}),2)
+                                
+                                Priors(cnt).demographics=S(idx).demographics;
+                                Priors(cnt).demographics('DataType')='prior';
+                                Priors(cnt).demographics('subject')='prior';
+                                Priors(cnt).beta=V'*thisprior.(flds{fIdx})(LstInMask,j);
+                                Priors(cnt).variables=variableLst;
+                                Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
+                                Priors(cnt).probe=S(idx).probe;
+                                cnt=cnt+1;
+                                
+                                
+                            end
+                        end
+                    end
+                  
+                    
+                end
+                S = [S Priors];
                 if(isempty(strfind(obj.formula,' + (1|DataType)')))
                     obj.formula=[obj.formula ' + (1|DataType)'];
                 end
             end
             
+            demo = nirs.createDemographicsTable( S );
+            
+            
+            
+            % Now create the data for the model
+            W = sparse([]);
+            b = [];
+            bLst=[];
+            vars = table();
+            tmpvars =table();
+            for i = 1:length(S)
+                % coefs
+                b = [b; S(i).beta];
+                bLst=[bLst; repmat(i,size(S(i).beta))];
+                % whitening transform
+                [u, s, ~] = svd(S(i).covb, 'econ');
+                W = blkdiag(W, diag(1./diag(eps(1)+sqrt(s))) * u');
+                
+                % table of variables
+                variables=S(i).variables;
+                conds=unique(variables.cond);
+                                
+                for cIdx=1:length(conds)
+                    variableLst = variables(find(ismember(variables.cond,conds{cIdx})),:);
+                    
+                    % Make sure we are concatinating like datatypes
+                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
+                    idx = repmat(i,height(variableLst),1);
+                    variableLst =[table(idx) variableLst repmat(demo(i,:),height(variableLst),1)];
+                    variableLst.DataType=strcat(variableLst.DataType, variableLst.type);
+                    vars = [vars; variableLst];
+                    tmpvars =[tmpvars; variableLst(1,:)];
+                end
+            end
+            
+            
+            beta = randn(height(tmpvars),1);                     
+                   
             nRE = length(strfind(obj.formula,'|'));
             
             %RUn a test to get the Fixed/Random matrices
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            lm1 = fitlme([table(beta) tmp], obj.formula,'FitMethod', 'reml', 'CovariancePattern', repmat({'Isotropic'},nRE,1), 'dummyVarCoding',obj.dummyCoding);
-            
+            lm1 = fitlme([table(beta) tmpvars], obj.formula,'FitMethod', 'reml', 'CovariancePattern', repmat({'Isotropic'},nRE,1), 'dummyVarCoding',obj.dummyCoding);
+       
             X = lm1.designMatrix('Fixed');
             Z = lm1.designMatrix('Random');
             
@@ -296,88 +315,45 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             XFull=[];
             ZFull=[];
             
-            for i=1:size(X,2)
-                Xx=[];
-                for k=1:size(X,1)
-                    if(ismember('subject',demo.Properties.VariableNames))
-                        sname = demo.subject(id(k));
-                        if L.iskey( sname{1} )
-                            key = sname{1};
-                        elseif L.iskey('default')
-                            key = 'default';
-                        else
-                            error(['No forward model for subject: ' sname '.'])
-                        end
-                    else
-                        sname = demo.subject(id(k));
-                        key = 'default';
-                    end
-                    if obj.probe.iskey( sname{1} )
-                        key2 = sname{1};
-                    else
-                        key2='default';
-                    end
-                    
-                    probe=obj.probe(key2);
-                    [lia,locb]=ismember(probe.link,S(id(k)).probe.link);
-                    if(~all(lia))
-                        error('Src-Det found in data but not in fwd model');
-                    end
-                    
-                    if(isempty(strfind(key,'prior')))
-                        llocal(locb,:)=X(k,i)*L(key);
-                    else
-                        llocal=X(k,i)*L(key);
-                    end
-                    
-                    Xx=vertcat(Xx,llocal);
-                    
+            for i=1:size(X,1)
+                Xlocal=[];
+                Zlocal=[];
+                
+                subname = tmpvars.subject{i};
+                
+                if(~ismember(subname,Lfwdmodels.keys))
+                    subname='default';
                 end
-                XFull=horzcat(XFull,Xx);
+                
+                
+                idx = tmpvars.idx(i);
+                variables = S(idx).variables;
+                thiscond = tmpvars.cond{i};
+                variables = variables(find(ismember(variables.cond,thiscond)),:); 
+                
+                Llocal =[];
+                for fIdx=1:length(flds)
+                        s=1;
+                    if(strcmp(tmpvars.subject{i},'prior') && ~strcmp(tmpvars.type{i},flds{fIdx}))
+                        s=0;
+                    end
+                   
+                    Llocal =[Llocal s*Lfwdmodels([subname ':' flds{fIdx}])];
+                end
+              
+                for j=1:size(X,2)
+                    Xlocal=[Xlocal X(i,j)*Llocal];
+                end              
+                for j=1:size(Z,2)
+                    Zlocal=[Zlocal Z(i,j)*ones(size(Llocal,1),1)];
+                end
+                XFull=[XFull; Xlocal];
+                ZFull=[ZFull; Zlocal];               
             end
             
-            XFull=XFull.*(abs(XFull)>1E-12);
             
-            llocal=[];
-            for i=1:size(Z,2)
-                Zz=[];
-                for k=1:size(Z,1)
-                    if(ismember('subject',demo.Properties.VariableNames))
-                        sname = demo.subject(id(k));
-                        if L.iskey( sname{1} )
-                            key = sname{1};
-                        elseif L.iskey('default')
-                            key = 'default';
-                        else
-                            error(['No forward model for subject: ' sname '.'])
-                        end
-                    else
-                        sname = demo.subject(id(k));
-                        key = 'default';
-                    end
-                    if obj.probe.iskey( sname{1} )
-                        key2 = sname{1};
-                    else
-                        key2='default';
-                    end
-                    
-                    probe=obj.probe(key2);
-                    [lia,locb]=ismember(probe.link,S(id(k)).probe.link);
-                    if(~all(lia))
-                        error('Src-Det found in data but not in fwd model');
-                    end
-                    if(isempty(strfind(key,'prior')))
-                        llocal(locb,:)=Z(k,i)*ones(size(L(key),1),1);
-                    else
-                        llocal=Z(k,i)*ones(size(L(key),1),1);
-                    end
-                    
-                    Zz=vertcat(Zz,llocal);
-                    
-                    
-                end
-                ZFull=horzcat(ZFull,Zz);
-            end
+            
+
             
             if(isempty(ZFull)), ZFull=zeros(size(XFull,1),0); end;
             X=XFull;
@@ -412,43 +388,29 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             %Now deal with the ReML covariace terms
             nRE=size(Z,2);
             PAT=false(nRE,nRE);
-            names=unique(demo.subject);
-            
-            
-            
-            for id=1:length(names)
-                if(~isempty(strfind(names{id},'prior')))
-                    PAT(id,id)=true;
-                    for id2=1:length(types)
-                        if(~isempty(strfind(names{id},types{id2})))
-                            na=names{id}(1:strfind(names{id},types{id2})-1);
-                            for id3=1:length(types)
-                                lst=find(ismember(names,[na types{id3}]));
-                                if(~isempty(lst))
-                                    PAT(id,lst)=true;
-                                    PAT(lst,id)=true;
-                                    
-                                end
-                            end
-                        end
-                    end
-                else
-                    PAT(id,id)=true;
+            names=unique(tmpvars.DataType);
+            lst=[];
+            for idx=1:length(names)
+                if(~isempty(strfind(names{idx},'prior')))
+                    lst=[lst idx];
                 end
+                PAT(idx,idx)=true;
             end
+            PAT(lst,lst)=true;
             
             
+                   
             lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
                 warning('Some Src-Det pairs have zero fluence in the forward model');
             end
             
 %             %% fit the model
-%             lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern',PAT, ...
-%                 'FitMethod', 'ReML');
+            lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern',PAT, ...
+                'FitMethod', 'ReML');
 
 
-            
+
             
             CoefficientCovariance=lm2.CoefficientCovariance;
             
@@ -460,33 +422,33 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             %Sort the betas
             cnames = lm1.CoefficientNames(:);
-            
-            iW=[];
-            for idx=1:length(types)
-                iW=blkdiag(iW,obj.basis.fwd);
-            end
+           
             cnames = lm1.CoefficientNames(:);
             
             %V=iW*V;
             Vall=[];
             iWall=[];
             for idx=1:length(cnames)
-                Vall=sparse(blkdiag(Vall,V));
-                iWall=sparse(blkdiag(iWall,iW));
+                for fIdx=1:length(flds)
+                    Vall=sparse(blkdiag(Vall,V));
+                    iWall=sparse(blkdiag(iWall,obj.basis.fwd(:,LstInMask)));
+                end
             end
             V=iWall*Vall;
-            G.beta=V(:,lstKeep)*lm2.Coefficients.Estimate;
+             G.beta=V*lm2.Coefficients.Estimate;
             [Uu,Su,Vu]=nirs.math.mysvd(CoefficientCovariance);
             
             G.covb_chol = V(:,lstKeep)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
             G.dfe        = lm2.DFE;
-            G.typeII_StdE = iWall*sqrt(VarMDU');
+            G.typeII_StdE = iWall*sqrt(VarMDU);
+            
+            nVox=size(obj.basis.fwd,1);
             
             tbl=[];
             for i=1:length(cnames)
-                for j=1:length(types)
+                for j=1:length(flds)
                     tbl=[tbl; table(arrayfun(@(x){x},[1:nVox]'),...
-                        repmat({types{j}},nVox,1),...
+                        repmat({flds{j}},nVox,1),...
                         repmat({cnames{i}},nVox,1),...
                         'VariableNames',{'VoxID','type','cond'})];
                 end

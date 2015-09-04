@@ -27,6 +27,10 @@ function data = loadDotNirs( filenames )
             else
                 error('Data length and time vector don''t match in size.')
             end
+            
+            if(~isfield(d.SD,'MeasList'))
+                d.SD.MeasList=d.ml;
+            end
 
             % time vector
             thisFile.time = d.t(:);
