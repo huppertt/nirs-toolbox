@@ -48,7 +48,7 @@ classdef ImageStats
         
         p               % (dependent) p-values of beta
         q               % (dependent) q-values of beta (false discovery rate)
-        p_typeII        % (dependent) typeII error p-values of beta
+        
     end
     
     methods
@@ -74,11 +74,17 @@ classdef ImageStats
           
         end
         
-        function p_typeII = get.p_typeII(obj)
-            se = sum(obj.covb_chol.^2,2);
-            beta=obj.beta;
-            t=beta./(sqrt(se+obj.typeII_StdE.^2));
-            p_typeII = 2*tcdf(-abs(t), obj.dfe);
+        function pwr = power(obj,s)
+            
+            if(nargin<20)
+                s='p<0.05';
+            end
+            
+            tcrit=obj.getCritT(s);
+            se=1/tcrit;
+            t=1./sqrt(se.^2+obj.typeII_StdE.^2);
+          
+            pwr = 1-2*tcdf(-abs(t), obj.dfe);
         
         end
         
@@ -140,9 +146,9 @@ classdef ImageStats
         stats = ftest( obj, m );
         stats = jointTest( obj );
         
-        h=draw( obj, vtype, vrange, thresh );
+        h=draw( obj, vtype, vrange, thresh, powerthresh );
         
-        printAll( obj, vtype, vrange, thresh, folder, ext );
+        printAll( obj, vtype, vrange, thresh, powerthresh, folder, ext );
     end
     
     methods (Access = protected)

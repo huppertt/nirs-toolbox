@@ -70,7 +70,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
                         
             %% Wavelet ( or other tranform )
-            W = obj.basis.fwd; % W = W(1:2562,:);
+            Basis = obj.basis.fwd; % W = W(1:2562,:);
             
             %Let's make the forward models
             L = obj.jacobian;
@@ -89,7 +89,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 end
                 
                 for j=1:length(flds)
-                    Lfwdmodels([key ':' flds{j}])=J.(flds{j})(:,LstInMask).*(J.(flds{j})(:,LstInMask)>10*eps(1));
+                    Lfwdmodels([key ':' flds{j}])=(J.(flds{j})(:,LstInMask).*(J.(flds{j})(:,LstInMask)>10*eps(1)))*Basis(LstInMask,:);
                 end
             end
             
@@ -168,25 +168,28 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     key = 'default';
                 end
                 xx=[];
-                %for j=1:length(conds)
+                
+                for j=1:length(conds)
                     xlocal=[];
                     for fIdx=1:length(flds)
-                       xlocal=[xlocal W*Lfwdmodels([key ':' flds{fIdx}])*V'];
+                        x2=Lfwdmodels([key ':' flds{fIdx}])*V';
+        
+                       xlocal=[xlocal x2];
                     end
                     
-                    xx=blkdiag(xx, xlocal);
-               % end
-                X=[X; xx];
+                    xx=blkdiag(xx,xlocal);
+                end
+                X=[X; W*xx];
             end
            
             scale = norm(X)/m; 
            
             for idx=1:size(X,2)
                 x=X(:,idx);
-                VarMDU(idx)=inv(x'*x+eps(1));
+                VarMDU(idx)=inv(x'*x+eps(1))/m^2;
             end
-             VarMDU=repmat( VarMDU',length(conds),1);
-            
+           
+              
             % The MDU is the variance at each voxel (still in the basis
             % space here) of the estimated value assuming all the power came
             % from only this voxel.  This is similar to the Rao-Cramer lower bound
@@ -245,7 +248,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                                 Priors(cnt).demographics=S(idx).demographics;
                                 Priors(cnt).demographics('DataType')='prior';
                                 Priors(cnt).demographics('subject')='prior';
-                                Priors(cnt).beta=V'*thisprior.(flds{fIdx})(LstInMask,j);
+                                Priors(cnt).beta=V'* Basis(LstInMask,:)'* thisprior.(flds{fIdx})(LstInMask,j);
                                 Priors(cnt).variables=variableLst;
                                 Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
                                 Priors(cnt).probe=S(idx).probe;
@@ -321,7 +324,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 subname = tmpvars.subject{i};
                 
-                if(~ismember(subname,Lfwdmodels.keys))
+                if(~ismember([subname ':' flds{1}],Lfwdmodels.keys))
                     subname='default';
                 end
                 
@@ -431,7 +434,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             for idx=1:length(cnames)
                 for fIdx=1:length(flds)
                     Vall=sparse(blkdiag(Vall,V));
-                    iWall=sparse(blkdiag(iWall,obj.basis.fwd(:,LstInMask)));
+                    iWall=sparse(blkdiag(iWall,obj.basis.fwd));
                 end
             end
             V=iWall*Vall;
@@ -440,7 +443,11 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             G.covb_chol = V(:,lstKeep)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
             G.dfe        = lm2.DFE;
-            G.typeII_StdE = iWall*sqrt(VarMDU);
+            
+            G.typeII_StdE=1/eps(1)*ones(size(iWall,1),1);
+            Lst=find(~all(iWall==0,2));
+            G.typeII_StdE(Lst) =iWall(Lst,:) * sqrt(VarMDU');
+            
             
             nVox=size(obj.basis.fwd,1);
             

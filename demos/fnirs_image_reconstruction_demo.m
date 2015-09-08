@@ -128,6 +128,7 @@ j.formula = 'beta ~ -1 + cond ';  % Simple fixed effects model
 %  nirs.inverse.basis.freesurfer_wavelet - The spherical wavelet model
 
 j.basis=nirs.inverse.basis.identity(mesh);
+j.basis = nirs.inverse.basis.gaussian(mesh,10);
 
 %j.basis=nirs.inverse.basis.gaussian(mesh,.1);
 % Now create the priors in the model
@@ -257,7 +258,7 @@ j.mesh=mesh;
 j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
 
 % Let's use the wavelet basis set
-j.basis=nirs.inverse.basis.freesurfer_wavelet(5);
+j.basis=nirs.inverse.basis.freesurfer_wavelet(4);
 
 %j.basis=nirs.inverse.basis.gaussian(mesh,.01);
 % Now create the priors in the model

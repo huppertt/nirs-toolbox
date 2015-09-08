@@ -1,4 +1,4 @@
-function h = draw( obj, vtype, vrange, thresh )
+function h = draw( obj, vtype, vrange, thresh ,powerthresh)
     %% draw - Draws channelwise values on a probe.
     % Args:
     %     vtype   - either 'beta' or 'tstat'
@@ -24,14 +24,14 @@ function h = draw( obj, vtype, vrange, thresh )
     % significance mask
     if nargin < 4
         mask = ones(size(values)) > 0;
-        thresh=[];
+        thresh='p<1';
         
     elseif isscalar(thresh)
         mask = abs(values) > thresh;
-        
+        thresh=['p<' num2str(2*tcdf(-abs(thresh), obj.dfe))];
     elseif isvector(thresh) && isnumeric(thresh)
         mask = values < thresh(1) | values > thresh(2);
-        
+        thresh=['p<' num2str(2*tcdf(-abs(thresh(2)), obj.dfe))]
     elseif isstr(thresh)
         % takes in string in form of 'p < 0.05' or 'q < 0.10'
         s = strtrim( strsplit( thresh, '<' ) );
@@ -39,6 +39,15 @@ function h = draw( obj, vtype, vrange, thresh )
         mask = obj.(s{1}) < str2double(s{2});
     end
 
+    if(nargin>=5)
+        pwr = obj.power(thresh);
+        s = strtrim( strsplit( powerthresh, '>' ) );
+        mask = mask.*(pwr > str2double(s{2}));
+    else
+        % Leave mask alone
+    end
+    
+    
     % meas types
     types = obj.variables.type;
 
@@ -81,7 +90,7 @@ function h = draw( obj, vtype, vrange, thresh )
             
             figure;
             h(end+1)=axes;
-            obj.mesh.draw(vals,vrange(2),thresh,cmap);
+            obj.mesh.draw(vals.*m,vrange(2),thresh,cmap);
             %c = colorbar; colormap(cmap); caxis(vrange);
 %             a = gca;
 %             

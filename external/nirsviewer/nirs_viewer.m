@@ -349,13 +349,15 @@ function uimenu_about_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+str=sprintf('%s\n%s\n%s','NIRS-Toolbox','Written by T. Huppert and J. Barker','2015 University of Pittsburgh');
+msgbox(str); 
 
 % --------------------------------------------------------------------
 function uimenu_helpwin_Callback(hObject, eventdata, handles)
 % hObject    handle to uimenu_helpwin (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-web('https://bitbucket.org/jeffx/nirs-toolbox/wiki/Home','-browser')
+web('https://bitbucket.org/huppertt/nirs-toolbox/wiki/Home','-browser')
 
 
 % --------------------------------------------------------------------
