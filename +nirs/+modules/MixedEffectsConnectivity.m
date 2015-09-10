@@ -31,6 +31,13 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             % demographics info
             demo = nirs.createDemographicsTable( S );
             
+            if(isempty(demo))
+                for idx=1:length(S)
+                    S(idx).demographics('fileIdx')=idx;
+                end
+                demo = nirs.createDemographicsTable( S );
+            end
+            
             % center numeric variables
             if obj.centerVars
                 n = demo.Properties.VariableNames;
@@ -79,7 +86,11 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
           %  Labels=strcat(repmat('Labels_',length(Labels),1),Labels);
             
             [n,m]=size(S(1).Grangers);
-            nConds=length(unique(vars.conditions));
+            if(ismember('conditions',vars.Properties.VariableNames))
+                nConds=length(unique(vars.conditions));
+            else
+                nConds=1;
+            end
             
            % lst=find(ismember(lmG.CoefficientNames,Labels));
             Gr=reshape(lmG.Coefficients.Estimate,n,m,nConds);

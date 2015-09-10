@@ -6,8 +6,25 @@ end
 
 pmax=4;
 
+Y =  noise.data;
+
+% remove any intrisic correlation
+[yf,f] = nirs.math.innovations(Y,pmax);
+
+truth = ((rand(n,n)+eye(n,n))>.95);
+
+Y2=zeros(size(yf));
+for i=1:n
+    for j=1:n
+        if(truth(i,j))
+            Y2(:,i)=Y2(:,i)+filter(1,f{randi(length(f),1,1)},yf(:,j));
+        end
+    end
+end
+
+
+
 data = noise;
-Y =  data.data;
 link = data.probe.link;
 
 channels = unique([noise.probe.link.source noise.probe.link.detector], 'rows');

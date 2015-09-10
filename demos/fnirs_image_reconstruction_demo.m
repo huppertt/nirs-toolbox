@@ -272,12 +272,8 @@ j.prior('default')=prior;
 ImageStats=j.run(SubjStats);
 
 % Mask the image at alpha<0.05 (typeI error) and power>.8 (typeII error)
-h=ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8');
+h=ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8','right');
 
-% Change the view
-arrayfun(@(h)view(h,90,0),h);  % Change view to the right
-arrayfun(@(h)camroll(h,-90),h); % rotate the image by 90degress
-arrayfun(@(h)axis(h,'off'),h); % Turn off the axis
 
 
 

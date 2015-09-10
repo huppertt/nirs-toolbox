@@ -1,11 +1,13 @@
-function h = draw( obj, vtype, vrange, thresh ,powerthresh)
+function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
     %% draw - Draws channelwise values on a probe.
     % Args:
     %     vtype   - either 'beta' or 'tstat'
     %     vrange  - range to display; either a scalar or vector with 2 elements
     %     thresh  - either a scalar such that values > thresh are significant or
     %               a string specifying statistical significance (e.g. 'p < 0.05')
-    % 
+    %     pwerthresh- (e.g. beta>.8) applies a mask based on type-II error
+    %     viewpt - viewing position {['frontal' -default],'left','right','posterior','superior','inferior'}
+    %
     % Examples:
     %     stats.draw( 'tstat', [-5 5], 'q < 0.1' )
     %     stats.draw( 'tstat', 5, 3 )
@@ -39,12 +41,15 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh)
         mask = obj.(s{1}) < str2double(s{2});
     end
 
-    if(nargin>=5)
+    if(nargin>=5) && ~isempty(powerthresh)
         pwr = obj.power(thresh);
         s = strtrim( strsplit( powerthresh, '>' ) );
         mask = mask.*(pwr > str2double(s{2}));
     else
         % Leave mask alone
+    end
+    if(nargin<6)
+        viewpt='frontal';
     end
     
     
@@ -66,6 +71,48 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh)
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
 
+    if(isa(viewpt, 'function_handle'))
+        viewfcn=viewpt;
+    else
+        switch(viewpt)
+            case('left')
+                viewfcn={@(h)view(h,-90,0); ...  % Change view to the left
+                    @(h)camroll(h,0); ... % rotate the image by 90degress
+                    @(h)delete(findobj('type','light','parent',h));...
+                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                    @(h)axis(h,'off')}; % Turn off the axis
+            case('right')
+                viewfcn={@(h)view(h,90,0); ...  % Change view to the right
+                    @(h)camroll(h,0); ... % rotate the image by 90degress
+                    @(h)delete(findobj('type','light','parent',h));...
+                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                    @(h)axis(h,'off')}; % Turn off the axis
+            case('posterior')
+                viewfcn={@(h)view(h,0,0); ...  % Change view to the left
+                    @(h)camroll(h,0); ... % rotate the image by 90degress
+                    @(h)delete(findobj('type','light','parent',h));...
+                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                    @(h)axis(h,'off')}; % Turn off the axis
+            case('superior')
+                viewfcn={@(h)view(h,0,90); ...  % Change view to the top
+                    @(h)camroll(h,0); ... % rotate the image by 180degress
+                    @(h)delete(findobj('type','light','parent',h));...
+                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                    @(h)axis(h,'off')}; % Turn off the axis
+            case('inferior')
+                viewfcn={@(h)view(h,0,-90); ...  % Change view to the left
+                    @(h)camroll(h,180); ... % rotate the image by 90degress
+                    @(h)delete(findobj('type','light','parent',h));...
+                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                    @(h)axis(h,'off')}; % Turn off the axis
+            otherwise
+                viewfcn={@(h)view(h,180,0); ...  % Change view to the left
+                    @(h)camroll(h,0); ... % rotate the image by 90degress
+                    @(h)delete(findobj('type','light','parent',h));...
+                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                    @(h)axis(h,'off')}; % Turn off the axis
+        end
+    end
     h=[];
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
@@ -102,6 +149,13 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh)
 %             set(a, 'Position', ap);
             
             title([utypes{iType} ' : ' uconds{iCond}], 'Interpreter','none')
+            
+            
+            
+            
         end
     end
+    
+ cellfun(@(f)arrayfun(f,h,'UniformOutput', false),viewfcn,'UniformOutput', false);
+
 end

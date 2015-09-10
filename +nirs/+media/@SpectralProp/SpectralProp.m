@@ -132,7 +132,7 @@ classdef SpectralProp
             mua = ext(:,1)*obj.hbo*1e-6 + ext(:,2)*obj.hbr*1e-6 + ...
                     ext(:,3)*obj.water + ext(:,4)*obj.lipid; % + ext(:,5)*obj.cytC;
                 
-            mua = mua';
+            mua = mua;
         end
         
         function mus = get.mus( obj )

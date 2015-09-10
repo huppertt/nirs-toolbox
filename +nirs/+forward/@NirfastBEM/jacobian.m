@@ -44,6 +44,7 @@ function [J, meas] = jacobian( obj, type )
     mesh = thisObj.getNirfastMeshes();
     
     % detectors
+    paa=zeros(height(obj.probe.link),1);
     for i = 1:length( types )
 
         lst = obj.probe.link.type == types(i);
@@ -58,6 +59,7 @@ function [J, meas] = jacobian( obj, type )
         
         d_det(lst) = thisD;
         phi_det{i} = data.phi;
+        paa(lst)=data.paa(:,1);
         
     end
     
@@ -75,7 +77,7 @@ function [J, meas] = jacobian( obj, type )
     end
     Jmua = abs(Jmua);
     Jmua = Jmua./(sum(Jmua,2)*ones(1,size(Jmua,2)));
-    Jmua = Jmua.*(data.paa(:,1)*ones(1,size(Jmua,2)));
+    Jmua = Jmua.*(paa*ones(1,size(Jmua,2)));
 
     
     if ~isSpectral

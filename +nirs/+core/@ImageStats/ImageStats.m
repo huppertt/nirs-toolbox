@@ -140,15 +140,16 @@ classdef ImageStats
             
             out.beta = obj.beta(idx);
             out.covb_chol = obj.covb_chol(idx, :);
+            out.typeII_StdE = obj.typeII_StdE(idx, :);
         end
         
         stats = ttest( obj, c, b );
         stats = ftest( obj, m );
         stats = jointTest( obj );
         
-        h=draw( obj, vtype, vrange, thresh, powerthresh );
+        h=draw( obj, vtype, vrange, thresh, powerthresh, viewpt );
         
-        printAll( obj, vtype, vrange, thresh, powerthresh, folder, ext );
+        printAll( obj, vtype, vrange, thresh, powerthresh,viewpt, folder, ext );
     end
     
     methods (Access = protected)

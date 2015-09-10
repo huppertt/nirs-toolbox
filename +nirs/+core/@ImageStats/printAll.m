@@ -1,4 +1,4 @@
-function printAll( obj, vtype, vrange, thresh, folder, ext )
+function printAll( obj, vtype, vrange, thresh, powerthrsh,viewfcn,folder, ext )
     %% PRINTALL - draws and saves figures to a folder
     % 
     % Args:
@@ -20,7 +20,7 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
     end
     
     for i = 1:length(obj.conditions)
-        obj.ttest(I(i,:)).draw(vtype, vrange, thresh);
+        obj.ttest(I(i,:)).draw(vtype, vrange, thresh,powerthrsh,viewfcn);
         for j = length(utypes):-1:1
             
             set(gcf, 'PaperPositionMode', 'auto')
@@ -35,7 +35,7 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
                 error('File extension not recognized.')
             end
             
-            fname = [obj.conditions{i} '_' utypes{j} '.' ext];
+            fname = ['ImageStats_' obj.conditions{i} '_' utypes{j} '.' ext];
             fname = [folder filesep strjoin(strsplit(fname, ':'), '__')];
             print(ptype, fname)
             

@@ -195,7 +195,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 x=X(:,idx);
                 VarMDU(idx)=inv(x'*x+eps(1))/m^2;
             end
-           VarMDU=repmat(VarMDU',length(unique(nirs.getStimNames(S))),1);
+           
            
               
             % The MDU is the variance at each voxel (still in the basis
@@ -416,10 +416,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 warning('Some Src-Det pairs have zero fluence in the forward model');
             end
             
+            X=sparse(X);
+            Z=sparse(Z);
+            
 %             %% fit the model
             lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern',PAT, ...
                 'FitMethod', 'ReML');
-
 
 
             
@@ -453,10 +455,17 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             G.dfe        = lm2.DFE;
             
-            G.typeII_StdE=1/eps(1)*ones(size(iWall,1),1);
-            Lst=find(~all(iWall==0,2));
-            G.typeII_StdE(Lst) =iWall(Lst,:) * sqrt(VarMDU);
+           fwd=[];
+           for idx=1:length(flds)
+               fwd=blkdiag(fwd,obj.basis.fwd);
+           end
             
+           G.typeII_StdE=1/eps(1)*ones(size(fwd,1),1);
+           Lst=find(~all(fwd==0,2));
+           G.typeII_StdE(Lst) =fwd(Lst,:) * sqrt(VarMDU');
+            
+           G.typeII_StdE=repmat(G.typeII_StdE,size(lm1.designMatrix('Fixed'),2),1);
+           
             
             nVox=size(obj.basis.fwd,1);
             

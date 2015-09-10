@@ -9,7 +9,7 @@ function S = ttest(obj, c, b)
     %     % tests the sum and difference of betas
     %     stats.ttest([1 1; 1 -1])
 
-    nchan = size(obj.probe.link,1);
+    nchan = length(obj.beta)/length(obj.conditions);
 
     % sort variables
     [~, icond] = sort(obj.conditions);
@@ -30,20 +30,23 @@ function S = ttest(obj, c, b)
     beta = bsxfun(@minus, C*obj.beta, b);
 
     % new covariance
-    co=C*obj.cov_chol;
-    covb = co*co';
-
+    covb=C*obj.covb_chol;
+  
     % output
     S = obj;
 
     S.beta  = beta;
-    S.covb  = covb;
-
+    S.covb_chol  = covb;
+    S.typeII_StdE = C*obj.typeII_StdE;
+    
     % new condition names
     cond = obj.transformNames(c);
     cond = repmat( cond(:), [nchan 1] );
 
-    link = repmat( obj.probe.link, [size(c,1) 1] );
-    link = sortrows(link, {'source', 'detector', 'type'});
-    S.variables = [link table(cond)];
+    var = obj.variables;
+    type=unique(var.cond);
+    lst=find(ismember(var.cond,type{1}));
+    var=var(lst,:);
+    var.cond=cond;
+    S.variables = var;
 end
