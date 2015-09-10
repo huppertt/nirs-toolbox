@@ -18,7 +18,7 @@ function out = jointTest( obj )
        covb=obj.covb_chol(m,:)*obj.covb_chol(m,:)';
        T2 = obj.beta(m)'*pinv(covb)*obj.beta(m);
        
-       n = obj.dfe;
+       n = obj.dfe/length(unique( obj.variables.type));
        k = sum(m);
        
        F(i,1) = (n-k+1) ./ k ./ n .* T2;

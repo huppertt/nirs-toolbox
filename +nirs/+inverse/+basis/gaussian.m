@@ -21,7 +21,7 @@ classdef gaussian
                 neighbors=5;
             end
             
-             n=size(mesh.nodes,1);
+            n=size(mesh.nodes,1);
             Mtx = zeros(n,n);
             for idx=1:size(mesh.faces,1)
                 Mtx(mesh.faces(idx,1),mesh.faces(idx,2))=1;

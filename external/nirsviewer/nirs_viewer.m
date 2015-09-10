@@ -58,6 +58,7 @@ handles=guihandles(findobj('tag','figure_nirsview'));
 
 
 %% Populate the filename/subject/group info
+warning('off','MATLAB:table:RowsAddedNewVars');
 
 table=nirs.createDemographicsTable(data);
 if(ismember('Group',table.Properties.VariableNames)); 

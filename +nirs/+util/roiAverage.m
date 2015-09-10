@@ -3,6 +3,18 @@ function tbl = roiAverage( data, R, names )
         names = {names};
     end
     
+    if(length(data)>1)
+        tbl=[];
+        for idx=1:length(data)
+            thistbl=nirs.util.roiAverage(data(idx),R,names);
+            description = {data(idx).description};
+            fileIdx=idx;
+            thistbl = [repmat(table(fileIdx,description),height(thistbl),1) thistbl];
+            tbl = [tbl; thistbl];
+        end
+        return
+    end
+    
      % sort probe
     link = data.probe.link;
     [link, ilink] = sortrows(link, {'type','source', 'detector'});

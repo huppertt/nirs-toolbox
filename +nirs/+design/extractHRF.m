@@ -15,9 +15,15 @@ if(nargin<3)
     duration=1/Fs;
 end
 
+if(~isa(basis,'Dictionary'))
+    b=Dictionary();
+    b('default')=basis;
+    basis=b;
+end
+
 if(length(Stats)>1)
     for idx=1:length(Stats)
-         HRF(idx) = extractHRF(Stats(idx),basis,duration,Fs);
+         HRF(idx) = nirs.design.extractHRF(Stats(idx),basis,duration,Fs);
     end
     return;
 end
@@ -85,7 +91,5 @@ for idx=1:length(conditions)
 end
 
 HRF.stimulus=stimulus;
-
-
 
 return

@@ -38,7 +38,6 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     assert( length(lst) > 1 )
                     
                     lambda = p.link.type(lst);
-                    
                     ext = nirs.media.getspectra( lambda );
                     
                     clist = [1 2]; % hbo and hbr; need to fix this

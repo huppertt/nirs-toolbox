@@ -186,7 +186,8 @@ j.jacobian('default')=J;
 j.probe('default')=noise.probe;
 j.mesh=mesh;  
 j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
-j.basis=nirs.inverse.basis.identity(mesh);
+j.basis=nirs.inverse.basis.gaussian(mesh,10,3);
+j.mask =(mesh.nodes(:,3)>5);
 
 % Let's use the simple MNE prior this time
 prior.hbo(:,1)=zeros(size(J.hbo,2),1);
@@ -270,7 +271,8 @@ j.prior('default')=prior;
 
 ImageStats=j.run(SubjStats);
 
-h=ImageStats.draw('tstat',[-5 5],'p<0.05');
+% Mask the image at alpha<0.05 (typeI error) and power>.8 (typeII error)
+h=ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8');
 
 % Change the view
 arrayfun(@(h)view(h,90,0),h);  % Change view to the right

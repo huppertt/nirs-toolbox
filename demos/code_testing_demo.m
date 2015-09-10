@@ -1,4 +1,4 @@
-%% This demo will illistrate how to use the two testing routines included in the nirs-toolbox
+%% This demo will show how to use the two testing routines included in the nirs-toolbox
 % Unity testing describes a set of tests/scripts to test the integretity of
 % the toolbox and its core data types.
 % Regression testing describes how to run sensitivity/specificity analysis
@@ -105,7 +105,7 @@ ROCtest=nirs.testing.ChannelStatsROC;
 % % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow 
 % % The file is about 90Mb in size.
 
-if(~exist(root_dir,'dir'))
+if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
     mkdir(root_dir);
     
     disp('downloading sample data from bitbucket site');

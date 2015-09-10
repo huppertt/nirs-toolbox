@@ -9,6 +9,21 @@ function S = ttest(obj, c, b, names)
     %     % tests the sum and difference of betas
     %     stats.ttest([1 1; 1 -1])
 
+     if(nargin<3)
+            b=[];
+     end
+     if(nargin<4)
+            names=[];
+     end
+    
+    if(length(obj)>1)
+        for idx=1:length(obj)
+            S(idx)=obj(idx).ttest(c,b,names);
+        end
+        return
+    end
+    
+    
     nchan = size(obj.probe.link,1);
 
     % sort variables
@@ -39,7 +54,7 @@ function S = ttest(obj, c, b, names)
     S.covb  = covb;
 
     % new condition names
-    if nargin < 4
+    if nargin < 4 || isempty(names)
         cond = obj.transformNames(c);
     else
         cond = names;

@@ -95,11 +95,11 @@ stimTable.FileIdx=NaN;  % If we set the FileIdx to NaN then it will apply to all
 % intact and changing every entry seperately.  If we left this as
 % FileIdx=1, then our change would only be applied to the first file
 
-stimTable.stim_channel1 .onset=NaN;  % Using NaN will keep the original timing.  Again, if we left the 
+stimTable.stim_channel1.onset=NaN;  % Using NaN will keep the original timing.  Again, if we left the 
 % values as real values (which in this case correspond to the first file),
 % then it will replace all the times (and potentially mess up files 2 and
 % beyond).  
-stimTable.stim_channel1 .dur=5; % But let's change the duration to 10s for all trials
+stimTable.stim_channel1.dur=5; % But let's change the duration to 10s for all trials
 
 
 % To implement the changes, we use the ChangeStimulusInfo job

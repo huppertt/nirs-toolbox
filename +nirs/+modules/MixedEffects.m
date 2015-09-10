@@ -53,8 +53,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 b = [b; S(i).beta];
                 
                 % whitening transform
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                 [u, s, ~] = svd(S(i).covb, 'econ');
+                 W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                
+%                L = chol(S(i).covb,'upper');
+%                W = blkdiag(W,pinv(L));
                 
                 % table of variables
                 file_idx = repmat(i, [size(S(i).beta,1) 1]);

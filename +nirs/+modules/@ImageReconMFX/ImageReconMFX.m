@@ -35,7 +35,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
         
         function G = runThis( obj,S )
             
-            rescale=(10*length(nirs.getStimNames(S))*length(S));
+            rescale=(10*length(unique(nirs.getStimNames(S)))*length(S));
             
             % demographics info
             demo = nirs.createDemographicsTable( S );
@@ -148,6 +148,10 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 [u, s, ~] = svd(S(i).covb, 'econ');
                 W = [W; diag(1./diag(sqrt(s))) * u'];
             end
+            lstBad=find(sum(abs(W),2)>100*median(sum(abs(W),2)));
+            W(lstBad,:)=[];
+            
+            
             dWTW = sqrt(diag(W'*W));
             m = median(dWTW);
             
@@ -156,8 +160,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             X=[];
             vars = table();
-            conds=unique(nirs.getStimNames(S));
+            
             for i = 1:length(S)
+                conds=unique(nirs.getStimNames(S(i)));
                 [u, s, ~] = svd(S(i).covb, 'econ');
                 W = diag(1./diag(sqrt(s))) * u';
                 
@@ -174,20 +179,23 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     for fIdx=1:length(flds)
                         x2=Lfwdmodels([key ':' flds{fIdx}])*V';
         
-                       xlocal=[xlocal x2];
+                       xlocal=[xlocal x2]; 
                     end
                     
-                    xx=blkdiag(xx,xlocal);
+                    xx=[xx; xlocal];
                 end
                 X=[X; W*xx];
             end
            
+            lstBad=find(sum(abs(X),2) > 100*median(sum(abs(X),2)));
+            X(lstBad,:)=[];
             scale = norm(X)/m; 
            
             for idx=1:size(X,2)
                 x=X(:,idx);
                 VarMDU(idx)=inv(x'*x+eps(1))/m^2;
             end
+           VarMDU=repmat(VarMDU',length(unique(nirs.getStimNames(S))),1);
            
               
             % The MDU is the variance at each voxel (still in the basis
@@ -442,11 +450,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             [Uu,Su,Vu]=nirs.math.mysvd(CoefficientCovariance);
             
             G.covb_chol = V(:,lstKeep)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
+            
             G.dfe        = lm2.DFE;
             
             G.typeII_StdE=1/eps(1)*ones(size(iWall,1),1);
             Lst=find(~all(iWall==0,2));
-            G.typeII_StdE(Lst) =iWall(Lst,:) * sqrt(VarMDU');
+            G.typeII_StdE(Lst) =iWall(Lst,:) * sqrt(VarMDU);
             
             
             nVox=size(obj.basis.fwd,1);

@@ -41,7 +41,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 probe = data(i).probe;
                 
                 % make sure data is in order
-                [probe.link, idx] = sortrows(probe.link, {'source', 'detector', 'type'});
+                [probe.link, idx] = sortrows(probe.link, {'type','source', 'detector'});
                 d = d(:, idx);
                 
                 % get experiment design
@@ -81,7 +81,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 S(i).description = data(i).description;
                 
                 S(i).demographics   = data(i).demographics;
-                S(i).probe          = data(i).probe;
+                S(i).probe          = probe;
                 
                 % print progress
                 obj.printProgress( i, length(data) )
