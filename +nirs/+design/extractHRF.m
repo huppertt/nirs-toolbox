@@ -11,7 +11,7 @@ function HRF = extractHRF(Stats,basis,duration,Fs)
 if(nargin<4)
     Fs = 4;
 end
-if(nargin<3)
+if(nargin<3 | isempty(duration))
     duration=1/Fs;
 end
 

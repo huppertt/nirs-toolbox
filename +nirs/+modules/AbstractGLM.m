@@ -45,7 +45,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
                 
         % check condition and issue warnings
         function checkCondition( X )
-            maxCond = 100; 
+            maxCond = 300; 
             if cond(X) > maxCond
                 warning(['High collinearity: cond(X) = ' num2str(cond(X)) '.'])
             end

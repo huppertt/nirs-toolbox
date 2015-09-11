@@ -7,80 +7,34 @@ end
 pmax=4;
 
 Y =  noise.data;
+m = mean(Y);
 
 % remove any intrisic correlation
 [yf,f] = nirs.math.innovations(Y,pmax);
 
-truth = ((rand(n,n)+eye(n,n))>.95);
+n=size(yf,2);
 
-Y2=zeros(size(yf));
+fract=.2;
+truth=zeros(n,n);
 for i=1:n
-    for j=1:n
-        if(truth(i,j))
-            Y2(:,i)=Y2(:,i)+filter(1,f{randi(length(f),1,1)},yf(:,j));
-        end
-    end
+    lst=randi(n,round(n*fract/4),1);
+    truth(lst,i)=1;
 end
 
-
-
-data = noise;
-link = data.probe.link;
-
-channels = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
-
-nchan=size(channels,1);
-truth = (rand(nchan)>.5);
-truth=max(truth,eye(nchan));
-
-ehbo = randn(length(noise.time),nchan);
-ehbr = randn(length(noise.time),nchan);
-hbo = zeros(length(noise.time),nchan);
-hbr = zeros(length(noise.time),nchan);
-
-
-for i=1:nchan
-    for j=1:nchan
-        if(truth(i,j))
-            a = flipud( cumsum( rand(pmax, 1) ) );
-            a = a / sum(a) * 0.99;
-            hbo(:,i)=hbo(:,i) + filter(1, [1; -a], ehbo(:,i));
-            hbr(:,i)=hbr(:,i) + filter(1, [1; -a], ehbr(:,i));
-        end
-    end
+x=randn(size(yf))*truth';
+x=x./(ones(size(x,1),1)*sqrt(var(x,[],1)));
+for i=1:n
+    Y(:,i)=filter(1,f{i},x(:,i));
 end
 
+Y=Y./(ones(size(Y,1),1)*(m.*sqrt(var(Y,[],1))));
 
-
-% optical density
-m = mean(Y);
-Y = bsxfun(@plus, -log(Y), log(m));
-
-mm = var(Y,[],1);
-
-for i = 1:size(channels, 1)
-    lst = find(link.source == channels(i,1) ...
-        & link.detector == channels(i,2));
-    
-    % extincion coefs
-    lambda = link.type(lst);
-    e = nirs.media.getspectra(lambda);
-    e = e(:,1:2);
-    
-    % sd distance
-    l = data.probe.distances(lst);
-    
-    % add to channels according to MBLL
-    for j = 1:length(lst)
-        Yact = (e(j,1)*l(j)*hbo(:,i) + e(j,2)*l(j)*hbr(:,i))*1E-6;
-        Y(:,lst(j)) = Y(:,lst(j)) + Yact;
-    end
-end
-
-Y = Y./(ones(length(noise.time),1)*(sqrt(var(Y,[],1))./mm));
+truth=(truth'*truth)>0;
 
 Y = exp( -bsxfun(@minus, Y, log(m)) );
 
 data.data = Y;
 data.stimulus('none') = nirs.design.StimulusEvents();
+
+
 end
