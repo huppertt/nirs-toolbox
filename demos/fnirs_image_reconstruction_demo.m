@@ -42,7 +42,7 @@ mesh.draw();
 % Let's put a target image in the mesh
 targetLoc=[20 0 10; -20 5 10];
 extent=[15 15];
-Amp=[10 -2; 10 -3];  % Amplitude of the two conditions x HbO2/Hb
+Amp=[10 -5; 10 -5];  % Amplitude of the two conditions x HbO2/Hb
 
 
 mesh.regions=ones(size(mesh.nodes,1),1);
@@ -68,7 +68,7 @@ end
 
 
 % to draw use:
-mesh.draw(mask(1:end/2,1))
+mesh.draw(mask(1:end/2,1));
 
 
 % Simulate some data using this defined mask
@@ -150,16 +150,19 @@ j.prior('B')=prior;
 
 ImageStats=j.run(SubjStats);
 
-ImageStats.draw('tstat',[-5 5],'p<0.05');
+ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8','superior');
+
 
 % For reference, let's show the truth image too.
 figure; 
-subplot(2,1,1);
-mesh.draw(truth(1:end/2,1))
-title('Truth- condition A');
-subplot(2,1,2);
-mesh.draw(truth(1:end/2,2))
-title('Truth- condition B');
+h=subplot(2,1,1);
+mesh.draw(truth(1:end/2,1));
+title('Truth- condition A (HbO2)');
+h(2)=subplot(2,1,2);
+mesh.draw(truth(1:end/2,2));
+title('Truth- condition B (HbO2)');
+
+
 
 
 %% Part 2.  ROC Testing

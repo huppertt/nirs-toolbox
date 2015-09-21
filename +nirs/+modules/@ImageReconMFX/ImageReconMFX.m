@@ -157,7 +157,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             %% Let's compute the minimum detectable unit on beta so we
             % can compute the spatial type-II error
-            
+           
             X=[];
             vars = table();
             
@@ -219,12 +219,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     thisprobe=nirs.core.Probe;
                     thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
                     
-                    if(strcmp(flds{fIdx},'hbr'))
-                        Lfwdmodels(['prior:' flds{fIdx}])=-eye(size(US{1},2))*scale;
-                    else
-                        Lfwdmodels(['prior:' flds{fIdx}])=eye(size(US{1},2))*scale;
-                    end
-                    
+                    Lfwdmodels(['prior:' flds{fIdx}])=eye(size(US{1},2))*scale;
                     Probes(['prior:' flds{fIdx}])=thisprobe;
                 end
                 Priors=nirs.core.ChannelStats;
@@ -258,7 +253,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                                 Priors(cnt).demographics('subject')='prior';
                                 Priors(cnt).beta=V'* Basis(LstInMask,:)'* thisprior.(flds{fIdx})(LstInMask,j);
                                 Priors(cnt).variables=variableLst;
+                                
                                 Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
+                                
                                 Priors(cnt).probe=S(idx).probe;
                                 cnt=cnt+1;
                                 
@@ -398,17 +395,19 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             %Now deal with the ReML covariace terms
             nRE=size(Z,2);
-            PAT=false(nRE,nRE);
+            PAT=zeros(nRE,nRE);
             names=unique(tmpvars.DataType);
             lst=[];
             for idx=1:length(names)
                 if(~isempty(strfind(names{idx},'prior')))
                     lst=[lst idx];
                 end
-                PAT(idx,idx)=true;
+               
             end
-            PAT(lst,lst)=true;
-            
+            PAT(lst,lst)=-1;
+            for idx=1:size(PAT,2)
+                PAT(idx,idx)=1;
+            end
             
                    
             lstKeep = find(sum(abs(X),1)~=0);
@@ -435,8 +434,11 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             %Sort the betas
             cnames = lm1.CoefficientNames(:);
-           
-            cnames = lm1.CoefficientNames(:);
+              
+           for idx=1:length(cnames); 
+               cnames{idx}=cnames{idx}(min(strfind(cnames{idx},'_'))+1:end); 
+               %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end; 
+           end;
             
             %V=iW*V;
             Vall=[];

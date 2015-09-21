@@ -19,7 +19,7 @@ classdef AbstractModule
         function out = run( obj, input )
             % if no prev job execute and return result
             if isempty( obj.prevJob )
-                out = obj.runThis( input );
+               out = obj.runThis( input );
                 
             % else execute prev job first
             else

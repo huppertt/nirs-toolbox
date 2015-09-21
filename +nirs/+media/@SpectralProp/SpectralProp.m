@@ -148,7 +148,7 @@ classdef SpectralProp
         end
         
         function kappa = get.kappa( obj )
-            kappa = 1./(3*obj.mua + 3*obj.musp);
+            kappa = 1./(3*obj.mua(:) + 3*obj.musp(:));
         end
         
         %% Dependent Set Methods

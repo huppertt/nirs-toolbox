@@ -17,7 +17,7 @@ function tbl = createStimlusTable( data )
         if(isprop(stim,'keys'))
             tbl(i).FileIdx = i;
             for j = 1:length(stim.keys)
-                tbl(i).(stim.keys{j}) = stim.values{j};
+                tbl(i).(strtrim(stim.keys{j})) = stim.values{j};
             end
             
         end

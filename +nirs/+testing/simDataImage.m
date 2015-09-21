@@ -43,7 +43,7 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
     
     if length(beta) == size(fwdModel.mesh.nodes,1)
         % oxy; deoxy
-        b = [beta; -beta/2];
+        b = [beta; -beta/4];
     else
         b = beta;
     end

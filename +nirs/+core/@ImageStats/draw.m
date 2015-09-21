@@ -24,7 +24,7 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
     end
 
     % significance mask
-    if nargin < 4
+    if nargin < 4 || isempty(thresh)
         mask = ones(size(values)) > 0;
         thresh='p<1';
         

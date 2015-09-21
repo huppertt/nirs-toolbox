@@ -118,6 +118,11 @@ classdef NirfastBEM
                 atlas.probe.DetPos=optpos_reg(1+size(atlas.probe.srcpos,1):...
                     size(atlas.probe.srcpos,1)+size(atlas.probe.detpos,1),:)/10;
                 atlas.probe.SrcPos=optpos_reg(1:size(atlas.probe.srcpos,1),:)/10;
+                
+                if(~isfield(atlas.probe,'lambda'))
+                    atlas.probe.lambda=[690 830];
+                end
+                
                 atlas.probe.Lambda=atlas.probe.lambda;
                 obj.probe = nirs.util.sd2probe(atlas.probe);
                 
