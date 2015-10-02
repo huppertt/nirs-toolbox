@@ -21,6 +21,7 @@ classdef SlabModel
             d = obj.probe.distances;
             w = obj.Fm*2*pi * 1e6;
 
+            alpha=1.5;
             for iLink = 1:size( obj.probe.link,1 )
                 iLambda = find(obj.prop.lambda==obj.probe.link.type(iLink));
                 k = obj.prop.kappa( iLambda );
@@ -32,7 +33,7 @@ classdef SlabModel
                 
              	G = 1 + d(iLink) * sqrt(2*mua/k) * Vp + d(iLink).^2 * mua/k * sqrt(1+(w/v/mua)^2);
                 
-                logAC(1,iLink) = - d(iLink) * sqrt(mua/2/k) * Vp - log(d(iLink)^3) + log(sqrt(G));
+                logAC(1,iLink) = - d(iLink) * sqrt(mua/2/k) * Vp - log(d(iLink)^alpha) + log(sqrt(G));
               
                 phi(1,iLink) = -d(iLink) * sqrt(mua/2/k) * Vm + atan(d(iLink)*sqrt(mua/2/k)*Vm/(1+d(iLink)*sqrt(mua/2/k)*Vp));
             end

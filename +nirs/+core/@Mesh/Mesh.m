@@ -38,6 +38,49 @@ classdef Mesh
             if nargin > 2, obj.elems = e; end
         end
         
+        function obj = addfiducials(obj,tbl)
+            % Code to add fiducial markers into the exisiting table
+            
+            % obj.fiducials.Draw(:)=false;
+            obj.fiducials=[obj.fiducials;...
+                [tbl table(repmat(true,height(tbl),1),...
+                'VariableNames',{'Draw'})]];
+        end
+        
+        function obj = reducemesh(obj,fract)
+            %This function reduces a mesh using the iso2mesh tools
+            
+             try
+                iso2meshver;
+                disp('Using Iso2Mesh.  Please cite:');
+                disp('Qianqian Fang and David Boas, "Tetrahedral mesh generation from volumetric binary')
+                disp('and gray-scale images," Proceedings of IEEE International Symposium on Biomedical ');
+                disp('Imaging 2009, pp. 1142-1145, 2009');
+                
+            catch
+               
+                disp('Please download the iso2mesh package from:');
+                disp('http://iso2mesh.sourceforge.net');
+                disp('and/or add to the matlab path');
+                 error('Cannot find Iso2Mesh on Matlab Path');
+                
+            end;
+            
+        if(~isempty(obj.faces)  & isempty(obj.elems))
+                % Surface mesh
+                [node,face]=meshresample(obj.nodes,obj.faces,fract);
+                obj.nodes=node;
+                obj.faces=face;
+        else
+                vol=elemvolume(obj.nodes,obj.elems);
+                [node,elem,face]=s2m(obj.nodes,obj.faces,fract,max(vol));
+                obj.nodes=node;
+                obj.faces=face(:,1:end-1);
+                obj.elems=elem(:,1:end-1);
+            end
+            
+        end
+        
         function h = draw( obj, values, vmax, thresh, cmap )
             %% draw - displays mesh
             % 
@@ -56,7 +99,7 @@ classdef Mesh
                 values=1*values;
             end
             
-          if isempty(obj.faces)
+          if ~isempty(obj.elems)
                h = nirs.util.plotmesh( obj.nodes, obj.elems, ...
                 	values, vmax, thresh, cmap );
             else

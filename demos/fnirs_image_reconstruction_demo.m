@@ -6,24 +6,30 @@ root_dir = '/Users/thuppert/Desktop/tmp' ;
 % TODO- number of iteractions for ROC curve demo
 num_iter = 10;  
 
-
+%% Create the forward model
 % First, lets set up the slab model for generating the forward model and the simulated data
-xrange=[-100:5:100];
-yrange=[-20:5:50];
-zrange=[0:5:20];
-
-[x, y, z] = ndgrid(xrange, yrange, zrange);
-n = [x(:) y(:) z(:)];
-
-% elements
-e = delaunay(x(:), y(:), z(:));
-
-% faces
-f = [e(:, 1:3); e(:,[1 2 4]); e(:, [1 3 4]); e(:, 2:4)];
-f = unique(sort(f,2), 'rows');
+Slab = nirs.core.Image;
+Slab.dim = [2 2 2];
+Slab.origin = [-100 -10 0];
+Slab.description = 'Slab model for FEM/BEM models';
+Slab.vol = ones(101,23,8);  % SLab from -100:2:100, -10:2:34, 0:2:14
 
 % This command will create a nirs.core.Mesh data type
-mesh = nirs.core.Mesh(n, f, e);
+% This requires iso2mesh to be installed.  
+% Cite:
+% Qianqian Fang and David Boas, "Tetrahedral mesh generation from volumetric binary
+% and gray-scale images," Proceedings of IEEE International Symposium on Biomedical 
+% Imaging 2009, pp. 1142-1145, 2009
+%               
+% http://iso2mesh.sourceforge.net
+%
+% If the code is not installed, you will get an error and instructions on
+% downloading from the next line.  Iso2Mesh is not distributed with the
+% nirs-toolbox and needs to be seperately downloaded
+      
+mesh = Slab.convertFEMmesh();   % This will convert the (binary) Image/Vol to a mesh 
+mesh = mesh.reducemesh(.2);  % This will resample the mesh using Iso2Mesh
+
 
 %% Now let's create the probe
 noise = nirs.testing.simARNoise();
@@ -56,7 +62,7 @@ fwdFEM.probe = probe;
 fwdFEM.prop  = prop;
 [J, meas_FEM_baseline] = fwdFEM.jacobian('spectral');
 
-
+mask=[];
 for idx=1:size(targetLoc,1)
     mask(:,idx)=[Amp(idx,1)*(sqrt(sum((mesh.nodes-...
         ones(size(mesh.nodes,1),1)*targetLoc(idx,:)).^2,2))<=extent(idx) &...
@@ -128,12 +134,10 @@ j.formula = 'beta ~ -1 + cond ';  % Simple fixed effects model
 %  nirs.inverse.basis.freesurfer_wavelet - The spherical wavelet model
 
 j.basis=nirs.inverse.basis.identity(mesh);
-j.basis = nirs.inverse.basis.gaussian(mesh,10);
+j.basis = nirs.inverse.basis.gaussian(mesh,20);
 
-%j.basis=nirs.inverse.basis.gaussian(mesh,.1);
+
 % Now create the priors in the model
-
-
 j.mask =(mesh.nodes(:,3)>5);
 % This is the Minimum Norm estimate
 prior.hbo=zeros(size(J.hbo,2),1);
@@ -150,7 +154,7 @@ j.prior('B')=prior;
 
 ImageStats=j.run(SubjStats);
 
-ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8','superior');
+ImageStats.draw('tstat',[-3 3],'p<0.05','beta>.8','superior');
 
 
 % For reference, let's show the truth image too.

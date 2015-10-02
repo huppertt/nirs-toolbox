@@ -16,7 +16,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         formula = 'beta ~ -1 + group:cond + (1|subject)';
         dummyCoding = 'full';
         centerVars = true;
-        include_diagnostics=true;
+        include_diagnostics=false;
         
     end
     
@@ -155,58 +155,25 @@ classdef MixedEffects < nirs.modules.AbstractModule
             if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
                 
-                FitModel = {};
-                PlotFitModel ={};
-                
-                try; G.variables.type=num2str(G.variables.type); end;
-                
-                names=strcat(G.variables.cond,repmat('_Src',height(G.variables),1),...
-                    num2str(G.variables.source),repmat(':Det',height(G.variables),1),...
-                    num2str(G.variables.detector),repmat('_Src',height(G.variables),1),...
-                    G.variables.type);
-                [newnames, wasMadeValid] = matlab.lang.makeValidName(['beta'; names]);
-                
-                
-                Lambda = eye(size(Z,2));
-                Iq=eye(size(Lambda,1));
-                [R,S] = chol(Lambda'*Z'*Z*Lambda + Iq);
-                Q1 = ((X'*Z*Lambda)*S) / R;
-                R1R1t = X'*X - Q1*Q1';
-                R1 = chol(R1R1t,'lower');
-                Xcorrected = (X'-inv(R1)*Q1*S'*Lambda'*Z')';
-                
-                ds=table2dataset(array2table([beta Xcorrected],'VariableNames',newnames));
-                
-                n=strcat(newnames,repmat(' + ',length(newnames),1));
-                n=[n{2:end}];
-                n(end-1:end)=[];
-                lm=fitlm(ds,['beta ~ ' n],'Intercept',false);
-                
-                
-                for idx=1:height(G.variables)
-                    PlotFitModel{idx}=@()plotlmvalid(lm,newnames{1+idx});
+                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+                [cn,~,lst2]=unique(vars.cond);
+               
+                for idx=1:max(lst)
+                    for idx2=1:max(lst2)
+                        ll=find(lst == idx & lst2==idx2);
+                        tmp = vars(ll, :);
+                        beta = b(ll);
+                        w=full(dWTW(ll));
+                        mdl{idx,idx2} = fitlm([table(beta) tmp], obj.formula,'weights',w,'intercept',false);
+                    end
                 end
-                PlotFitModel=PlotFitModel';
-                G.variables=[G.variables table(PlotFitModel)];
+                sd.Properties.VariableNames={'source','detector','type'};
+                Diagnostics = [sd array2table(mdl,'VariableNames',cn)];
+ 
             end
             
-            
-            
-            
-            
-            
+                        
         end
     end
     
-    
-end
-
-function h = plotlmvalid(lm,name)
-h=plotAdjustedResponse(lm,name);
-xd=get(h(1),'Xdata');
-yd=get(h(1),'Ydata');
-lst=find(abs(xd)<sqrt(eps(1)));
-xd(lst)=[];
-yd(lst)=[];
-set(h(1),'Xdata',xd,'YData',yd);
 end

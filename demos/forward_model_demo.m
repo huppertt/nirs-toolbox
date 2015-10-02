@@ -6,29 +6,33 @@
 
 %% NIRFAST FEM model demo
 % First, lets create a slab-model mesh
-% nodes
 
-xrange=[-100:5:100];
-yrange=[-100:5:100];
-zrange=[0:5:100];
-
-
-[x, y, z] = ndgrid(xrange, yrange, zrange);
-n = [x(:) y(:) z(:)];
-
-% elements
-e = delaunay(x(:), y(:), z(:));
-
-% faces
-f = [e(:, 1:3); e(:,[1 2 4]); e(:, [1 3 4]); e(:, 2:4)];
-f = unique(sort(f,2), 'rows');
+Slab = nirs.core.Image;
+Slab.dim = [5 5 5];
+Slab.origin = [-100 -100 0];
+Slab.description = 'Slab model for FEM/BEM models';
+Slab.vol = ones(41,41,11);  % SLab from -100:5:100, -100:5:100, 0:5:50
 
 % This command will create a nirs.core.Mesh data type
-mesh = nirs.core.Mesh(n, f, e);
+% This requires iso2mesh to be installed.  
+% Cite:
+% Qianqian Fang and David Boas, "Tetrahedral mesh generation from volumetric binary
+% and gray-scale images," Proceedings of IEEE International Symposium on Biomedical 
+% Imaging 2009, pp. 1142-1145, 2009
+%               
+% http://iso2mesh.sourceforge.net
+
+% If the code is not installed, you will get an error and instructions on
+% downloading from the next line.  Iso2Mesh is not distributed with the
+% nirs-toolbox and needs to be seperately downloaded
+      
+mesh = Slab.convertFEMmesh();   % This will convert the (binary) Image/Vol to a mesh 
+mesh = mesh.reducemesh(.2);  % This will resample the mesh using Iso2Mesh
+
 
 %The mesh can be drawn using the command
-figure;
-mesh.draw();
+% figure;
+% mesh.draw();
 
 
 % Next, let's create a probe for the simulation
@@ -72,7 +76,7 @@ lambda=unique(probe.link.type)';  %List of wavelengths from the probe
 prop{1} = nirs.media.tissues.brain(0.7, 50,lambda);
 
 % each node is region 1
-mesh.regions = ones(size(n,1), 1);
+mesh.regions = ones(size(mesh.nodes,1), 1);
 
 %If we had two regions, we would use
 %>> prop{2} = nirs.media.tissues.skin(lambda);
@@ -102,21 +106,8 @@ meas_FEM = fwdFEM.measurement();
 
 % Let's do the same thing using the NIRFAST-BEM model
 %% NIRFAST BEM model demo
-% First, lets create a slab-model mesh
-% nodes
-[x, y, z] = ndgrid(xrange, yrange, zrange);
-v=zeros(size(x));
-v(find(x==xrange(1)))=1;
-v(find(x==xrange(end)))=1;
-v(find(y==yrange(1)))=1;
-v(find(y==yrange(end)))=1;
-v(find(z==zrange(1)))=1;
-v(find(z==zrange(end)))=1;
-p=isosurface(x,y,z,v);
-
-
-% This command will create a nirs.core.Mesh data type
-mesh = nirs.core.Mesh(p.vertices,p.faces);
+mesh = Slab.convertBEMmesh();   % This will convert the (binary) Image/Vol to a surface mesh 
+mesh = mesh.reducemesh(.2);  % This will resample the mesh using Iso2Mesh
 
 fwdBEM = nirs.forward.NirfastBEM();
 fwdBEM.mesh  = mesh;
@@ -155,14 +146,7 @@ if(0)
     fwdMCX.probe=probe;
     fwdMCX.prop=prop;
     
-    % This model uses a segmented volume/image
-    IM=nirs.core.Image;
-    IM.vol=zeros(length(xrange),length(yrange),length(zrange));
-    IM.vol(2:end-1,2:end-1,2:end-1)=1;
-    IM.dim=[xrange(2)-xrange(1),zrange(2)-zrange(1),zrange(2)-zrange(1)];
-    IM.origin=[xrange(1) yrange(1) zrange(1)];
-    
-    fwdMCX.image=IM;
+    fwdMCX.image=Slab;
     fwdMCX.Fm=0;
     
     meas_Slab = fwdMCX.measurement();
@@ -180,16 +164,6 @@ Udc = 1./r.*exp(-r.*sqrt(mua./kappa));
 
 
 % Let's compare the models
-[~,iLambda]=ismember(probe.link.type,prop{1}.lambda);
-for idx=1:max(iLambda)
-    lst=find(iLambda==idx);
-    [~,j]=min(r(lst));
-    meas_BEM.data(lst)=meas_BEM.data(lst)./meas_BEM.data(lst(j));
-    meas_FEM.data(lst)=meas_FEM.data(lst)./meas_FEM.data(lst(j));
-    meas_Slab.data(lst)=meas_Slab.data(lst)./meas_Slab.data(lst(j));
-    Udc(lst)=Udc(lst)./Udc(lst(j));
-end
-
 
 figure; hold on;
 lst1=find(iLambda==1);  % First wavelength

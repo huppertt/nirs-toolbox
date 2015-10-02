@@ -19,19 +19,24 @@ function draw( obj, vtype, vrange, thresh )
         case('grangers')
             values=tbl.Grangers;
             pval = tbl.pvalue;
+            cmap=flipdim(colormap(autumn(2001)),1);
         case('grangers-f')
             values=tbl.F;
             pval = tbl.pvalue;
+             cmap=flipdim(colormap(autumn(2001)),1);
         case('pearsons')
             values=tbl.Pearsons;
             pval=tbl.pvalue_Pearsons;
+             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
         case('fischer-z')
             values=tbl.FisherZ;
             pval=tbl.pvale_pearson;
+             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
         otherwise
             warning('type not recognized: using Grangers');
              values=tbl.Grangers;
             pval = tbl.pvalue;
+             cmap=flipdim(colormap(autumn(2001)),1);
     end
     
     
@@ -79,7 +84,7 @@ function draw( obj, vtype, vrange, thresh )
     
     
     % colormap
-    [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+   
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
   
     f(1)=figure;

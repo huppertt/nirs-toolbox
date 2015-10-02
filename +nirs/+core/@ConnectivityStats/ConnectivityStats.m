@@ -80,6 +80,11 @@ classdef ConnectivityStats
         function out = table( obj )
             %% table - returns a table of the regression stats
             link=obj.probe.link;
+            
+            if(~iscellstr(link.type))
+                link.type=arrayfun(@(x){num2str(x)},link.type);
+            end
+            
             [i,j]=meshgrid(1:height(link),1:height(link));
            
             sourceFrom=link.source(i);

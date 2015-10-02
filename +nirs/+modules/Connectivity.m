@@ -2,12 +2,11 @@ classdef Connectivity < nirs.modules.AbstractModule
 %% CONNECTIVITY - Computes all-to-all connectivity model.
 % Outputs nirs.core.ConnStats object
 
-   
-    
+       
     methods
         function obj = Connectivity( prevJob )
            obj.name = 'Connectivity';
-           
+            
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -16,8 +15,8 @@ classdef Connectivity < nirs.modules.AbstractModule
         function connStats = runThis( obj, data )
             for i = 1:length(data)
                 pMax=round(4*data(i).Fs);
-                [G, F, df1, df2, p] = nirs.math.mvgc(data(i).data,pMax);
                 
+              [G, F, df1, df2, p] = nirs.math.mvgc(data(i).data,pMax);
                 %G=log(sqrt(F.*df1./df2+1))
 
                 

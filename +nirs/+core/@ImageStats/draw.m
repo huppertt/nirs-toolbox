@@ -49,7 +49,7 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
         % Leave mask alone
     end
     if(nargin<6)
-        viewpt='frontal';
+        viewpt={'frontal'};
     end
     
     
@@ -71,46 +71,53 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
 
-    if(isa(viewpt, 'function_handle'))
-        viewfcn=viewpt;
-    else
-        switch(viewpt)
-            case('left')
-                viewfcn={@(h)view(h,-90,0); ...  % Change view to the left
-                    @(h)camroll(h,0); ... % rotate the image by 90degress
-                    @(h)delete(findobj('type','light','parent',h));...
-                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
-                    @(h)axis(h,'off')}; % Turn off the axis
-            case('right')
-                viewfcn={@(h)view(h,90,0); ...  % Change view to the right
-                    @(h)camroll(h,0); ... % rotate the image by 90degress
-                    @(h)delete(findobj('type','light','parent',h));...
-                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
-                    @(h)axis(h,'off')}; % Turn off the axis
-            case('posterior')
-                viewfcn={@(h)view(h,0,0); ...  % Change view to the left
-                    @(h)camroll(h,0); ... % rotate the image by 90degress
-                    @(h)delete(findobj('type','light','parent',h));...
-                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
-                    @(h)axis(h,'off')}; % Turn off the axis
-            case('superior')
-                viewfcn={@(h)view(h,0,90); ...  % Change view to the top
-                    @(h)camroll(h,0); ... % rotate the image by 180degress
-                    @(h)delete(findobj('type','light','parent',h));...
-                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
-                    @(h)axis(h,'off')}; % Turn off the axis
-            case('inferior')
-                viewfcn={@(h)view(h,0,-90); ...  % Change view to the left
-                    @(h)camroll(h,180); ... % rotate the image by 90degress
-                    @(h)delete(findobj('type','light','parent',h));...
-                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
-                    @(h)axis(h,'off')}; % Turn off the axis
-            otherwise
-                viewfcn={@(h)view(h,180,0); ...  % Change view to the left
-                    @(h)camroll(h,0); ... % rotate the image by 90degress
-                    @(h)delete(findobj('type','light','parent',h));...
-                    @(h)light('parent',h,'position',get(h,'cameraPosition'));...
-                    @(h)axis(h,'off')}; % Turn off the axis
+    
+    if(~iscell(viewpt))
+        viewpt={viewpt};
+    end
+    
+    for i=1:length(viewpt)
+        if(isa(viewpt{i}, 'function_handle'))
+            viewfcn{i}=viewpt{i};
+        else
+            switch(viewpt{i})
+                case('left')
+                    viewfcn{i}={@(h)view(h,-90,0); ...  % Change view to the left
+                        @(h)camroll(h,0); ... % rotate the image by 90degress
+                        @(h)delete(findobj('type','light','parent',h));...
+                        @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                        @(h)axis(h,'off')}; % Turn off the axis
+                case('right')
+                    viewfcn{i}={@(h)view(h,90,0); ...  % Change view to the right
+                        @(h)camroll(h,0); ... % rotate the image by 90degress
+                        @(h)delete(findobj('type','light','parent',h));...
+                        @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                        @(h)axis(h,'off')}; % Turn off the axis
+                case('posterior')
+                    viewfcn{i}={@(h)view(h,0,0); ...  % Change view to the left
+                        @(h)camroll(h,0); ... % rotate the image by 90degress
+                        @(h)delete(findobj('type','light','parent',h));...
+                        @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                        @(h)axis(h,'off')}; % Turn off the axis
+                case('superior')
+                    viewfcn{i}={@(h)view(h,0,90); ...  % Change view to the top
+                        @(h)camroll(h,0); ... % rotate the image by 180degress
+                        @(h)delete(findobj('type','light','parent',h));...
+                        @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                        @(h)axis(h,'off')}; % Turn off the axis
+                case('inferior')
+                    viewfcn{i}={@(h)view(h,0,-90); ...  % Change view to the left
+                        @(h)camroll(h,180); ... % rotate the image by 90degress
+                        @(h)delete(findobj('type','light','parent',h));...
+                        @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                        @(h)axis(h,'off')}; % Turn off the axis
+                otherwise
+                    viewfcn{i}={@(h)view(h,180,0); ...  % Change view to the left
+                        @(h)camroll(h,0); ... % rotate the image by 90degress
+                        @(h)delete(findobj('type','light','parent',h));...
+                        @(h)light('parent',h,'position',get(h,'cameraPosition'));...
+                        @(h)axis(h,'off')}; % Turn off the axis
+            end
         end
     end
     h=[];

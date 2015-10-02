@@ -34,8 +34,10 @@ function mesh = getNirfastMeshes( obj )
         
         for j = 1:max(obj.mesh.regions)
             lst = obj.mesh.regions == j;
-            mesh{i}.mua(lst) = obj.prop{j}.mua(i)./(mesh{i}.support(lst)).^(1/3);
-            mesh{i}.kappa(lst) = obj.prop{j}.kappa(i).*(mesh{i}.support(lst)).^(1/3);
+             
+             mesh{i}.mua(lst) = obj.prop{j}.mua(i);
+            mesh{i}.kappa(lst) = obj.prop{j}.kappa(i);
+            
             mesh{i}.ri(lst) = obj.prop{j}.ri;
             mesh{i}.c(lst) = obj.prop{j}.v;
         end
