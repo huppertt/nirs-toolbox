@@ -83,13 +83,13 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
             switch(viewpt{i})
                 case('left')
                     viewfcn{i}={@(h)view(h,-90,0); ...  % Change view to the left
-                        @(h)camroll(h,0); ... % rotate the image by 90degress
+                        @(h)camroll(h,90); ... % rotate the image by 90degress
                         @(h)delete(findobj('type','light','parent',h));...
                         @(h)light('parent',h,'position',get(h,'cameraPosition'));...
                         @(h)axis(h,'off')}; % Turn off the axis
                 case('right')
                     viewfcn{i}={@(h)view(h,90,0); ...  % Change view to the right
-                        @(h)camroll(h,0); ... % rotate the image by 90degress
+                        @(h)camroll(h,-90); ... % rotate the image by 90degress
                         @(h)delete(findobj('type','light','parent',h));...
                         @(h)light('parent',h,'position',get(h,'cameraPosition'));...
                         @(h)axis(h,'off')}; % Turn off the axis
@@ -163,6 +163,35 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
         end
     end
     
- cellfun(@(f)arrayfun(f,h,'UniformOutput', false),viewfcn,'UniformOutput', false);
-
+    ff=figure('visible','off');
+    for j=1:length(viewfcn)
+        sp(j)=subplot(1,length(viewfcn),j);
+        colorbar('SouthOutside');
+    end
+    
+    for i=1:size(h,2)
+        f=figure(get(h(1,i),'parent'));
+        cb=colorbar;
+        
+        set(h(1,i),'position',get(sp(1),'Position'));
+         set(cb,'AxisLocation','in','Location','southoutside');
+        for j=2:length(viewfcn)
+            h(j,i)=axes('Position',get(sp(j),'Position'),'parent',f);
+            copyobj(get(h(1,i),'children'),h(j,i));
+            set(h(j,i),'clim',get(h(1,i),'clim'));
+            axes(h(j,i));
+            cb=colorbar('AxisLocation','in','Location','southoutside');
+            set(h(j,i),'position',get(sp(j),'Position'));
+            title(h(j,i),get(get(h(1,i),'title'),'string'),'Interpreter','none')
+        end
+        axis(h(:,i),'off');
+       set(f,'color','w');
+        
+    end
+    
+    close(ff);
+    
+    for idx=1:length(viewfcn)
+        cellfun(@(f)arrayfun(f,h(idx,:),'UniformOutput', false),viewfcn{idx},'UniformOutput', false);
+    end
 end
