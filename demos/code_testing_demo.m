@@ -4,8 +4,8 @@
 % Regression testing describes how to run sensitivity/specificity analysis
 % to compare the preformance of various code and options 
 
-% Durectory to download and unpack the demo data
-root_dir = '/Users/thuppert/Desktop/tmp' ;
+% Directory to download and unpack the demo data
+root_dir = '~/Desktop/tmp' ;
 % number of iterations to run in ROC tests (more = better; but longer run time)
 num_iter = 10;  
 

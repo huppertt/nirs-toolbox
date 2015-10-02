@@ -132,15 +132,17 @@ classdef SpectralProp
             mua = ext(:,1)*obj.hbo*1e-6 + ext(:,2)*obj.hbr*1e-6 + ...
                     ext(:,3)*obj.water + ext(:,4)*obj.lipid; % + ext(:,5)*obj.cytC;
                 
-            mua = mua;
+            mua = mua(:)';
         end
         
         function mus = get.mus( obj )
             mus = (obj.a * (obj.lambda/500).^-obj.b)/(1-obj.g);
+            mus=mus(:)';
         end
         
         function musp = get.musp( obj )
             musp = (obj.a * (obj.lambda/500).^-obj.b);
+            musp=musp(:)';
         end
         
         function v = get.v( obj )
@@ -148,7 +150,7 @@ classdef SpectralProp
         end
         
         function kappa = get.kappa( obj )
-            kappa = 1./(3*obj.mua(:) + 3*obj.musp(:));
+            kappa = 1./(3*obj.mua + 3*obj.musp);
         end
         
         %% Dependent Set Methods

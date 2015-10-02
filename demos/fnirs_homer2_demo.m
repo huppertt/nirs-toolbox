@@ -7,7 +7,7 @@
 
 clear 
 % change this to save results somewhere else
-root_dir = '/Users/thuppert/Desktop/tmp' ;
+root_dir = '~/Desktop/tmp' ;
 
 
 % Download the sample data from the HOMER-2 site
@@ -23,12 +23,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'SampleData'),'dir'))
     
     % unzip the data
     unzip([root_dir filesep 'demo_homer2.zip'],[root_dir filesep]);
-    % This will unpack a folder called "data" containing two groups (G1 & G2).
-    % A script "simulation.m" is included which was used to generate the data
-    % (but is not intended to be run).  The data was simulated from a set of
-    % experimental resting state NIRS data with simulated evoked responses
-    % added to it to demostrate this analysis pipeline.
-    
+       
 else
     disp(['Data found in: ' root_dir ': skipping download']);
 end
