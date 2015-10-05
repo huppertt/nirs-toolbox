@@ -23,7 +23,7 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
         obj.ttest(I(i,:)).draw(vtype, vrange, thresh);
         for j = length(utypes):-1:1
             f=findobj('name',[utypes{j} ' : ' obj.conditions{i}]);
-            figure(f);
+            figure(f(1));
             set(f, 'PaperPositionMode', 'auto')
             
             if strcmp(ext, 'eps')
