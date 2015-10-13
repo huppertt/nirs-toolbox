@@ -81,6 +81,10 @@ for idx=1:length(conditions)
 end
 HRF.probe.link=link;
 HRF.data=data;
+
+if(isempty(Stats.demographics))
+    Stats.demographics=Dictionary();
+end
 HRF.demographics=Stats.demographics;
 
 

@@ -22,8 +22,11 @@ lstCM=find(ismember(probe.optodes.Units,{'cm'}));
 ProbePos(lstCM,:)=ProbePos(lstCM,:)*10;
 
 %Place the probe on a sphere
-ProbePosSphere=[ProbePos(:,[1 2]) sign((HeadRadius.^2-sum(ProbePos(:,[1 2]).^2,2))).*real(sqrt(abs(HeadRadius.^2-sum(ProbePos(:,[1 2]).^2,2))))];
-
+x=ProbePos(:,1); x=x-mean(x);
+y=ProbePos(:,2); y=y-mean(y);
+theta = atan(x/HeadRadius);
+phi = atan(y/HeadRadius);
+[ProbePosSphere(:,1),ProbePosSphere(:,2),ProbePosSphere(:,3)]=sph2cart(theta,phi,HeadRadius*ones(size(x)));
 
 lstCommonInProbe=find(ismember(lower(NamesInProbe),lower(CommonNames)));
 for idx=1:length(lstCommonInProbe)
@@ -31,11 +34,16 @@ for idx=1:length(lstCommonInProbe)
 end
 
 AnchorPos=[mesh.fiducials.X(lstCommonInMesh) mesh.fiducials.Y(lstCommonInMesh) mesh.fiducials.Z(lstCommonInMesh)];
-AnchorPos=AnchorPos-ones(size(AnchorPos,1),1)*center;
 
 %Deal with the anchors verses the attractors 
 AnchorVectors=find(ismember(probe.optodes.Type(lstCommonInProbe),'FID-attractor'));
 Anchors=find(ismember(probe.optodes.Type(lstCommonInProbe),'FID-anchor'));
+
+% Initial registration
+T = ProbePosSphere(lstCommonInProbe,:)\AnchorPos;
+ProbePosSphere=ProbePosSphere*T;
+
+ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
 
 dispflag=true;
 if(dispflag)
@@ -43,67 +51,79 @@ if(dispflag)
     mesh.transparency=.2;
     mesh.draw;
     hold on;
-    s=scatter3(ProbePosSphere(:,1),ProbePosSphere(:,2),ProbePosSphere(:,3),'filled','r');
-    
+    s=scatter3(ProbePosSphere(:,1),ProbePosSphere(:,2),ProbePosSphere(:,3),'filled','r');    
 end
 
-[TR, TT] = icp(nodes',AnchorPos');
-ProbePosSphereReg=(TR*AnchorPos'+TT*ones(1,size(AnchorPos,1)))';
 
 errPrev=inf;
-for iter=1:10
+for iter=1:1
     ProbeAnchors=ProbePosSphere(lstCommonInProbe,:);
+ 
     P1=ProbeAnchors(Anchors,:);
     P2=AnchorPos(Anchors,:);
+    p1=ProbeAnchors(AnchorVectors,:);
+    p2=AnchorPos(AnchorVectors,:);
     
-    for i=1:length(Anchors)
-        p1pos=P1(i,:);
-        p2pos=P2(i,:);
-        for j=1:length(AnchorVectors)
-            p1v=ProbeAnchors(AnchorVectors(j),:)-p1pos;
-            p2v=AnchorPos(AnchorVectors(j),:)-p2pos;
+    for j=1:length(AnchorVectors)
+        k=dsearchn(P2(1:length(Anchors),:),p2(j,:));
+        p1v = P1(k,:)-p1(j,:);
+        p2v = P2(k,:)-p2(j,:);
+        if(norm(p1v)~=0 & norm(p2v)~=0)
             p1v=p1v/norm(p1v);
             p2v=p2v/norm(p2v);
-            P1=[P1; -p1v];
-            P2=[P2; -p2v];
-            
-            
+            P1=[P1; p1v-P1(k,:)];
+            P2=[P2; p2v-P2(k,:)];
         end
     end
-    P2(any(isnan(P1),2),:)=[];
-    P1(any(isnan(P1),2),:)=[];
+    Tform =P1\P2;
+     
+    ProbePosSphere=ProbePosSphere*Tform;
     
-    Tform = P1\P2;
-    %[Tform, TT] = icp(P2',P1');
-    
-    
-   % Tform=Tform/norm(Tform);
-    ProbePosSphereReg=ProbePosSphere*Tform;
-    [TR, TT] = icp(nodes',ProbePosSphereReg');
-   % ProbePosSphereReg=(TR*ProbePosSphereReg'+TT*ones(1,size(ProbePosSphereReg,1)))';
-     ProbePosSphereReg=(TR*ProbePosSphereReg')';
-%         
+    ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
+    ProbePosSphere = pushdistances(ProbePosSphere,squareform(pdist(ProbePos)));
+ 
     if(dispflag)
         s2=scatter3(AnchorPos(:,1),AnchorPos(:,2),AnchorPos(:,3),'filled','b');
-        set(s,'XData',ProbePosSphereReg(:,1),'Ydata',ProbePosSphereReg(:,2),'zdata',ProbePosSphereReg(:,3));
+        set(s,'XData',ProbePosSphere(:,1),'Ydata',ProbePosSphere(:,2),'zdata',ProbePosSphere(:,3));
+        pause(2)
     end
-    ProbePosSphere=ProbePosSphereReg;
-   
+     
 end
 
-    for idx=1:size(ProbePosSphereReg,1)
-        i=dsearchn(mesh.nodes, ProbePosSphereReg(idx,:));
-        ProbePosSphereReg(idx,:)=mesh.nodes(i,:)-center;
-    end
-
-
-ProbePosSphereReg=ProbePosSphereReg+ones(size(ProbePosSphereReg,1),1)*center;
-
 probeOut=probe;
-probeOut.optodes.X=ProbePosSphereReg(:,1);
-probeOut.optodes.Y=ProbePosSphereReg(:,2);
-probeOut.optodes.Z=ProbePosSphereReg(:,3);
+probeOut.optodes.X=ProbePosSphere(:,1);
+probeOut.optodes.Y=ProbePosSphere(:,2);
+probeOut.optodes.Z=ProbePosSphere(:,3);
 
 close;
+
+return
+
+
+function pos = pushdistances(pos,idealdist)
+
+mask=1*(idealdist(:)<45);
+
+dx=zeros(length(pos(:)),1);
+cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
+x=lsqnonlin(cost,dx);
+pos=pos+reshape(x,size(pos));
+
+return
+
+
+function pos = projectsurface(pos,surf)
+
+com = mean(surf,1);
+for idx=1:size(pos,1)
+    vec = pos(idx,:)-com;
+     c = [0:.1:2*norm(vec)];
+    vec=vec/norm(vec);
+    p=c'*vec+ones(length(c),1)*com;
+    [k,d]=dsearchn(surf,p);
+    [~,i]=min(d);
+    pos(idx,:)=p(i,:);
+end
+
 
 return

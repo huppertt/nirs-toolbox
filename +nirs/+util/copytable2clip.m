@@ -1,0 +1,37 @@
+function copytable2clip(tbl)
+% This function copys a table object to the clipboard
+
+DD={};
+flds = tbl.Properties.VariableNames;
+for i=1:length(flds)
+    DD{1,i}=flds{i};
+    DD{2,i}='-----------------';
+    
+    for j=1:height(tbl)
+        if(iscell(tbl.(flds{i})))
+            a=tbl.(flds{i}){j};
+        else
+            a=tbl.(flds{i})(j);
+        end
+        if(isnumeric(a))
+            a=num2str(a);
+        end
+        DD{2+j,i}=a;
+    end
+end
+
+
+S=[];
+for idx=1:size(DD,1)
+    for idx2=1:size(DD,2)
+        S=[S DD{idx,idx2}];
+        if(idx2~=size(DD,2))
+            S=[S char(9)];
+        else
+            S=[S char(10)];
+        end
+    end
+    
+end
+
+clipboard('copy',S);
