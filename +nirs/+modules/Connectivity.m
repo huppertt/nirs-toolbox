@@ -15,7 +15,7 @@ classdef Connectivity < nirs.modules.AbstractModule
         function connStats = runThis( obj, data )
             for i = 1:length(data)
                 pMax=round(4*data(i).Fs);
-                
+                pMax=4;
               [G, F, df1, df2, p] = nirs.math.mvgc(data(i).data,pMax);
                 %G=log(sqrt(F.*df1./df2+1))
 

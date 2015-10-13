@@ -83,7 +83,7 @@ function tbl = roiAverage( data, R, names )
     
     % loop over conditions
     varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p'};
-    tbl = table({},[],[],[],[],[],[], 'VariableNames', varnames);
+    tbl = table;
 
     for i = 1:length(uconds)
         lst = strcmp(vars.cond, uconds{i});
@@ -95,18 +95,45 @@ function tbl = roiAverage( data, R, names )
             c = zeros(size(b));
             c(R{j}) = 1/length(R{j});
             
+           
+            
             broi    = c'*b;
             se      = sqrt(c'*C*c);
             t       = broi / se;
             df      = data.dfe;
             p       = 2*tcdf(-abs(t),df);
             
+            
             tmp = cell2table({names{j}, uconds{i}, broi, se, df, t, p});
             tmp.Properties.VariableNames = varnames;
+            
+             if(ismember('model',vars.Properties.VariableNames))
+                % include the LinearModel (diagnotics) in the ROI
+                model = combineLinearModels(c,vars.model(lst));
+                tmp.model={model};
+             end
+            
             tbl = [tbl; tmp];
         end
     end
     
     q   = nirs.math.fdr( tbl.p );
     tbl = [tbl table(q)];
+end
+
+
+function mdl = combineLinearModels(c,models)
+
+tbl=table();
+w=[];
+
+for idx=1:length(models);
+    if(c(idx)~=0)
+        tbl=[tbl; models{idx}.Variables];
+        w=[w; c(idx)*models{idx}.ObservationInfo.Weights];
+    end
+end
+mdl=fitlm(tbl,models{1}.Formula,'dummyVarCoding','full','weights',w);
+
+
 end

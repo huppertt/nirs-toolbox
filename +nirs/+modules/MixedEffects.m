@@ -134,7 +134,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             cnames = lm1.CoefficientNames(:);
             for idx=1:length(cnames);
-                cnames{idx}=cnames{idx}(min(strfind(cnames{idx},'_'))+1:end);
+                cnames{idx}=cnames{idx}(max([0 min(strfind(cnames{idx},'_'))])+1:end);
                 %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end;
             end;
             cnames = repmat(cnames, [nchan 1]);
@@ -154,21 +154,25 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
+                yproj = beta - lm2.designMatrix('random')*lm2.randomEffects;
+                yproj=inv(W)*yproj;
                 
                 [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
-                [cn,~,lst2]=unique(vars.cond);
-               
-                for idx=1:max(lst)
-                    for idx2=1:max(lst2)
-                        ll=find(lst == idx & lst2==idx2);
+                
+                btest=[];
+                for idx=1:max(lst)                   
+                        ll=find(lst == idx);
                         tmp = vars(ll, :);
-                        beta = b(ll);
+                        beta = yproj(ll);
                         w=full(dWTW(ll));
-                        mdl{idx,idx2} = fitlm([table(beta) tmp], obj.formula,'weights',w,'intercept',false);
-                    end
+                        
+                        mdl{idx} = fitlm([table(beta) tmp], lm1.Formula.FELinearFormula, 'dummyVarCoding',...
+                            obj.dummyCoding,'weights',w.^2);
+                        btest=[btest; mdl{idx}.Coefficients.Estimate];
+                                
                 end
-                sd.Properties.VariableNames={'source','detector','type'};
-                Diagnostics = [sd array2table(mdl,'VariableNames',cn)];
+                mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
+                G.variables.model=mdl;
  
             end
             

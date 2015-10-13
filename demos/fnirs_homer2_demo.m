@@ -7,7 +7,7 @@
 
 clear 
 % change this to save results somewhere else
-root_dir = '/Users/thuppert/Desktop/tmp' ;
+root_dir = '/Users/lab/Desktop/tmp' ;
 
 
 % Download the sample data from the HOMER-2 site
@@ -143,7 +143,7 @@ SubjStats = j.run(rawChanged);
 % This funciton will create the HRF data from the basis set.  This function
 % also needs to know the duration of the event (default = impulse response)
 % and the sample rate.
-HRF = nirs.design.extractHRF(SubjStats,j.basis,5,rawChanged.Fs);
+HRF = nirs.design.extractHRF(SubjStats,j.basis,5,rawChanged(1).Fs);
 
 % This is a core.Data object so we can draw it (or load it in
 % nirs.viz.nirsviewer
@@ -152,6 +152,9 @@ HRF.draw();
 % To make a contast over some time window
 c = zeros(1,30);
 c(1,[8:16])=1;  % Set the contrast from 4s-8s (remember this the impulse response not the HRF per se). 
+
+% alternatively, you can specifiy contrast like this
+c = 'stim_channel1[8:16]';
 Contrast = SubjStats.ttest(c);
 
 Contrast.draw();

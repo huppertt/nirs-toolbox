@@ -10,7 +10,7 @@
 % needed for fNIRS).  
 
 truth=[];
-for i=1:20;
+for i=1:2;
     [data(i),truth] = nirs.testing.simData_connectivity([],truth);
 end
 

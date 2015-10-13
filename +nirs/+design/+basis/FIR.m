@@ -15,7 +15,7 @@ classdef FIR
 %             out = lagmatrix(s, 0:nlag);
 %             out(isnan(out)) = 0;
 
-            if(obj.isIRF)
+            if(~obj.isIRF)
                 on = diff([0; s]) > 0; 
             else
                 on = s;

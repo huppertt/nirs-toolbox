@@ -9,6 +9,9 @@ function S = ttest(obj, c, b, names)
     %     % tests the sum and difference of betas
     %     stats.ttest([1 1; 1 -1])
 
+
+    
+    
      if(nargin<3)
             b=[];
      end
@@ -16,6 +19,15 @@ function S = ttest(obj, c, b, names)
             names=[];
      end
     
+     if(isstr(c) || iscell(c) || iscellstr(c))
+         if(isstr(c)); c=cellstr(c); end;
+         if(isempty(names))
+             names=c;
+         end
+         c = nirs.design.contrastvector(c,obj.conditions);
+         
+     end
+     
     if(length(obj)>1)
         for idx=1:length(obj)
             S(idx)=obj(idx).ttest(c,b,names);
@@ -54,7 +66,7 @@ function S = ttest(obj, c, b, names)
     S.covb  = covb;
 
     % new condition names
-    if nargin < 4 || isempty(names)
+    if nargin < 4 && isempty(names)
         cond = obj.transformNames(c);
     else
         cond = names;
