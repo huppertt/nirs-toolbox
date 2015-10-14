@@ -29,6 +29,15 @@ end
 Labels=lower(strvcat(aalLabels.ROI.Nom_L));
 Idx=vertcat(aalLabels.ROI.ID);
 lst=find(ismember(Labels,lower(alllabels)));
+
+if(isempty(lst))
+    disp('region not found');
+    disp('use command:')
+    disp(' >> nirs.util.listAtlasRegions')
+    depth=[];
+    return
+end
+
 lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
 
 [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
@@ -47,6 +56,7 @@ if(nargout==0)
     dx=mean(diff(sort(xy(:,1))));
     dy=mean(diff(sort(xy(:,2))));
     [X,Y]=meshgrid(min(xy(:,1)):dx:max(xy(:,1)),min(xy(:,2)):dy:max(xy(:,2)));
+    warning('off','MATLAB:griddata:DuplicateDataPoints');
     IM = griddata(xy(:,1),xy(:,2),depth,X,Y,'cubic');
     
     h=imagesc(min(xy(:,1)):dx:max(xy(:,1)),min(xy(:,2)):dy:max(xy(:,2)),...
