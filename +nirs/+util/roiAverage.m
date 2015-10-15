@@ -133,7 +133,7 @@ for idx=1:length(models);
         w=[w; c(idx)*models{idx}.ObservationInfo.Weights];
     end
 end
-mdl=fitlm(tbl,models{1}.Formula,'dummyVarCoding','full','weights',w);
+mdl=fitlm(tbl,models{1}.Formula,'weights',w);
 
 
 end

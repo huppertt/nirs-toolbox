@@ -1,4 +1,4 @@
-function depth = depthmap(Pos,label);
+function depth = depthmap(label,Pos);
 
 if(~iscellstr(label))
     label=cellstr(label);
@@ -11,7 +11,7 @@ aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)*2-90;
 aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)*2-126;
 aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)*2-72;
 
-if(isempty(Pos))
+if(nargin<2 || isempty(Pos))
     fid=fopen(which('ext1020.sfp'),'r');
     marker=textscan(fid,'%s\t%d\t%d\t%d');
     fclose(fid);

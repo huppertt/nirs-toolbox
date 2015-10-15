@@ -166,8 +166,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         beta = yproj(ll);
                         w=full(dWTW(ll));
                         
-                        mdl{idx} = fitlm([table(beta) tmp], lm1.Formula.FELinearFormula, 'dummyVarCoding',...
-                            obj.dummyCoding,'weights',w.^2);
+                        mdl{idx} = fitlm([table(beta) tmp], lm1.Formula.FELinearFormula,'weights',w.^2);
                         btest=[btest; mdl{idx}.Coefficients.Estimate];
                                 
                 end
