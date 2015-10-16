@@ -24,7 +24,7 @@ classdef StimulusEvents
                 lst = time >= obj.onset(i) & time <= obj.onset(i)+obj.dur(i);
                 
                 % set them to correct amplitude
-                vec(lst) = obj.amp(i);
+                vec(lst) = vec(lst) + obj.amp(i);
             end
             
         end

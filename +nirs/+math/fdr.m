@@ -38,8 +38,9 @@ function q = fdr( p )
         pi0 = min(pi0, 1);
     end
     
-    q = p * m ./ (1:m)' * pi0;
-    
+     % p = (i/m)*Q
+    q = p*m./[1:m]'*pi0;
+        
     % put them back in the original order
     q(I) = q;
     
