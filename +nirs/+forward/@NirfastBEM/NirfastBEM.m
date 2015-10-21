@@ -36,7 +36,7 @@ classdef NirfastBEM
             for idx=1:length(obj.mesh)
                meshBEM.regions(cnt+[1:length(obj.mesh(idx).faces)],2)=idx;
                meshBEM.regions(cnt+[1:length(obj.mesh(idx).faces)],1)=idx-1;
-               cnt=length(obj.mesh(idx).faces);
+               cnt=cnt+length(obj.mesh(idx).faces);
             end
          
             
@@ -195,7 +195,8 @@ classdef NirfastBEM
             else
                 cnt=0;
                 for idx=1:length(obj.mesh)
-                    obj.mesh(idx).draw(values(cnt+[1:length(obj.mesh(idx).nodes)]),varargin{:});
+                    v=values(cnt+[1:length(obj.mesh(idx).nodes)]);
+                    obj.mesh(idx).draw(v,varargin{:});
                     hold on;
                     cnt=cnt+length(obj.mesh(idx).nodes);
                 end

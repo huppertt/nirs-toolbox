@@ -15,7 +15,8 @@ function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
         end
 
         if nargin < 4 || isempty(vmax)
-            vmax = ceil( max(abs(values)) );
+            lst=find(abs(values)~=Inf & ~isnan(values));
+            vmax = ceil( max(abs(values(lst))) );
         end
 
         if nargin < 6 || isempty(cmap)

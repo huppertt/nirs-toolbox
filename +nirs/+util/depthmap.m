@@ -79,6 +79,9 @@ if(nargout==0)
     line([10 0],[-headradius -headradius-10],'color','k');
     scatter([-15 15],[-headradius+5 -headradius+5],'filled','k','sizedata',120);
     set(gca,'YDir','reverse');
-    colorbar;
+    cb=colorbar;
     caxis([0 30])
+    l=get(cb,'TickLabels');
+    l{end}=['>' num2str(l{end})];
+    set(cb,'TickLabels',l);
 end

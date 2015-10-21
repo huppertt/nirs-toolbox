@@ -16,7 +16,7 @@ function S = ttest(obj, c, b, names)
             b=[];
      end
      if(nargin<4)
-            names=[];
+           names=[];
      end
     
      if(isstr(c) || iscell(c) || iscellstr(c))

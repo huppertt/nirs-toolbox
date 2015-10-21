@@ -1,7 +1,7 @@
 clear 
 
 % change this to save results somewhere else
-root_dir = '/Users/lab/Desktop/tmp' ;
+root_dir = '/Users/thuppert/Desktop/tmp' ;
 
 
 if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))

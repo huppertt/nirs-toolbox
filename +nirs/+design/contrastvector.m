@@ -53,10 +53,14 @@ names=unique(names);
 
 
 C = zeros(1,length(conditions));
+cond{1}(strfind(cond{1},' '))=[];
 
 for idx=1:length(cond)
     if(isempty(indices{idx}))
         lst=find(ismember(conditions,cond{idx}));
+        if(length(lst)==0)
+            warning(['unable to find name: ' cond{idx}]);
+        end
     else
         lst=[];
         for i=1:length(indices{idx})
@@ -64,10 +68,11 @@ for idx=1:length(cond)
             lst=[lst find(ismember(conditions,[cond{idx}...
                 '_' s(end-1:end)]))];
         end
+        if(length(lst)~=length(indices{idx}) || length(lst)==0)
+            warning(['unable to find name: ' cond{idx}]);
+        end
     end
-    if(length(lst)~=length(indices{idx}) || length(lst)==0)
-        warning(['unable to find name: ' cond{idx}]);
-    end
+   
     
     C(1,lst)=C(1,lst)+ones(1,length(lst))*multiplier{idx};
 end
