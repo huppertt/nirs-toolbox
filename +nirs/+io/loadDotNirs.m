@@ -92,7 +92,13 @@ function data = loadDotNirs( filenames )
         data(end+1) = thisFile.sorted();
             
         catch err
-            warning(err.message)
+            if(isempty(d.d))
+                 disp('Empty file found (skipping):');
+                 disp(filenames{iFile});
+            else
+                warning(err.message)
+            end
+            
         end
         
         

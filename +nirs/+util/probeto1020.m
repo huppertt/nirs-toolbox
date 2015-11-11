@@ -1,16 +1,8 @@
-function probeto1020(data)
+function probe1020=probeto1020(probe)
+
+probe1020=nirs.core.Probe1020;
 
 
-
-if(isa(data,class(nirs.core.ChannelStats)))
-    probe = data.probe;
-    im=data.tstat;
-elseif(isa(data,class(nirs.core.Probe)))
-    probe=data;
-    im=[];
-else
-    
-end
 
 % Get the 10-20 labels from the SPM template
 fid=fopen(which('ext1020.sfp'),'r');

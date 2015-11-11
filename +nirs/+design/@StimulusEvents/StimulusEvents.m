@@ -21,10 +21,10 @@ classdef StimulusEvents
             
             for i = 1:length( obj.onset )
                 % list of points for this onset
-                lst = time >= obj.onset(i) & time <= obj.onset(i)+obj.dur(i);
-                
+                lst = time >= obj.onset(i) & time < obj.onset(i)+obj.dur(i);
                 % set them to correct amplitude
                 vec(lst) = vec(lst) + obj.amp(i);
+                    
             end
             
         end

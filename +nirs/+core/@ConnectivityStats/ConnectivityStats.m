@@ -18,6 +18,7 @@ classdef ConnectivityStats
     %     table       - returns a table of all stats (minus full covariance)
   
     properties
+        type            % Correlation or Grangers
         description     % description of data (e.g. filename)      
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
@@ -32,9 +33,8 @@ classdef ConnectivityStats
     
     properties ( Dependent = true )
         Grangers    % Grangers
-        z_pearson   % Z-transfrom of Pearsons
-        p           % p-value on Grangers
-        p_pearson   % p-value for Pearsons
+        Z   % Z-transfrom of Pearsons
+        p           % p-value on Grangers or Pearsons
     end
     
     
@@ -55,24 +55,35 @@ classdef ConnectivityStats
         function obj = ZtoR(obj,Z)
             obj.Pearsons=tanh(Z);
         end
-         function z_pearson = get.z_pearson( obj )
-            z_pearson = .5*log((1+obj.Pearsons)./(1-obj.Pearsons));
+         function z = get.Z( obj )
+             if(strcmp(obj.type,'Correlation'))
+                z = .5*log((1+obj.Pearsons)./(1-obj.Pearsons));
+             else
+                 z=[];
+             end
          end
         
          
-        function p_pearson = get.p_pearson(obj)
-            t=obj.Pearsons./sqrt((1-obj.Pearsons.^2)/(max(obj.dfe2(:))-2));
-            p_pearson=2*tcdf(-abs(t),max(obj.dfe2(:)));
-        end
+        
         
         function p = get.p(obj)
-            p=fcdf(1./obj.Grangers_F, obj.dfe2, obj.dfe1);
-            p(find(isnan(p)))=1;
+         %   p=fcdf(1./obj.Grangers_F, obj.dfe2, obj.dfe1);
+            if(strcmp(obj.type,'Grangers'))
+                p=1-fcdf(obj.Grangers_F, obj.dfe2, obj.dfe1,'upper');
+                p(find(isnan(p)))=1;
+            else
+                t=obj.Pearsons./sqrt((1-obj.Pearsons.^2)/(max(obj.dfe2(:))-2));
+                p=2*tcdf(-abs(t),max(obj.dfe2(:)));
+            end
         end
         
         function Grangers = get.Grangers( obj )
-            Grangers=log(sqrt(obj.Grangers_F.*obj.dfe1./obj.dfe2+1));
-            Grangers(find(isnan(Grangers)))=0;
+            try
+                Grangers=log(sqrt(obj.Grangers_F.*obj.dfe1./obj.dfe2+1));
+                Grangers(find(isnan(Grangers)))=0;
+            catch
+                Grangers=[];
+            end
         end
         
        
@@ -95,13 +106,19 @@ classdef ConnectivityStats
             detectorTo=link.detector(j);
             typeTo=link.type(j);
             
-            out = table([sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
-                [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                obj.Grangers(:),obj.Grangers_F(:),obj.p(:),...
-                obj.Pearsons(:),obj.z_pearson(:),obj.p_pearson(:),...
-                'VariableNames',{'SourceOrigin','DetectorOrigin','TypeOrigin',...
-                'SourceDest','DetectorDest','TypeDest','Grangers','F','pvalue'...
-                'Pearsons','FisherZ','pvalue_Pearsons'});
+            if(strcmp(obj.type,'Grangers'))
+                out = table([sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+                    [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
+                    obj.Grangers(:),obj.Grangers_F(:),obj.p(:),...
+                    'VariableNames',{'SourceOrigin','DetectorOrigin','TypeOrigin',...
+                    'SourceDest','DetectorDest','TypeDest','Grangers','F','pvalue'});
+            else
+                out = table([sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+                    [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
+                    obj.Pearsons(:),obj.Z(:),obj.p(:),...
+                    'VariableNames',{'SourceOrigin','DetectorOrigin','TypeOrigin',...
+                    'SourceDest','DetectorDest','TypeDest','Pearsons','Z','pvalue'});
+            end
             
         end
         

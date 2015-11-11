@@ -1,7 +1,7 @@
 clear 
 
 % change this to save results somewhere else
-root_dir = '/Users/thuppert/Desktop/tmp' ;
+root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
 
 if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
@@ -462,6 +462,7 @@ j.dummyCoding = 'full';
 
 % We could also add demographics to the model, such as age, gender, etc.
 j.formula = 'beta ~ -1 + group:cond + age + (1|subject)';
+j.include_diagnostics=true;
 % In this case, I will have 5 images.  In addition to the 4 above, I will
 % also have a map of channels that are significantly explianed by the age
 % cofactor

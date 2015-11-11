@@ -21,8 +21,10 @@ for idx=1:length(utypes)
         
         aa=axes('parent',f,'units','normalized','position',[0 0 1 1]);
         l=data.probe.draw;
+        axis tight;
         axis(aa,'off')
         set(l,'color',[.85 .85 .85]);
+        set(gca,'Position',[0.1 0.1 .8 .8]);
         title(utypes{idx});
         
         for j=1:length(lst)

@@ -56,7 +56,7 @@ end
 
 
 errPrev=inf;
-for iter=1:1
+for iter=1:3
     ProbeAnchors=ProbePosSphere(lstCommonInProbe,:);
  
     P1=ProbeAnchors(Anchors,:);
@@ -81,7 +81,8 @@ for iter=1:1
     
     ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
     ProbePosSphere = pushdistances(ProbePosSphere,squareform(pdist(ProbePos)));
- 
+    ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
+    
     if(dispflag)
         s2=scatter3(AnchorPos(:,1),AnchorPos(:,2),AnchorPos(:,3),'filled','b');
         set(s,'XData',ProbePosSphere(:,1),'Ydata',ProbePosSphere(:,2),'zdata',ProbePosSphere(:,3));

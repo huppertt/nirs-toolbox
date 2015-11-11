@@ -33,7 +33,7 @@ classdef RenameStims < nirs.modules.AbstractModule
             
             % get all stim names across all files
             [names, idx] = nirs.getStimNames( data );
-            for i = 1:length(obj.listOfChanges)
+            for i = 1:size(obj.listOfChanges,1)
                 lst = strcmp(names, obj.listOfChanges{i,1});
                 names(lst) = repmat( (obj.listOfChanges(i,2)), [sum(lst) 1] );
             end

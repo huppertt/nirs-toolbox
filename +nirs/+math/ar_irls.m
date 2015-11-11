@@ -67,6 +67,11 @@ function stats = ar_irls( d,X,Pmax,tune )
     stats.w = zeros(nTime,nChan);       % save the weights
     stats.dfe = nTime - nCond;          % degrees of freedom
 
+%     
+%        yfiltered=[];
+%         weights=[];
+%         Xfiltered=[];
+    
     % loop through each channel
     for i = 1:nChan
         y = d(:,i);
@@ -118,8 +123,17 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.covb(:,:,i) = L*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
+        stats.sigma2(i)=S.mad_s^2;
+        stats.filter{i}=f;
+        
+%         yfiltered=[yfiltered; yf];
+%         weights=[weights; S.w];
+%         Xfiltered=sparse(blkdiag(Xfiltered,Xf));
         
     end   
+    
+   % diagnotics=fitglm(Xfiltered,yfiltered,'Weights',weights);
+   % diagnotics=fitlm(Xfiltered,yfiltered,'Weights',weights);
 end
 
 %%

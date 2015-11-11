@@ -39,7 +39,6 @@ if(isempty(lst))
 end
 
 lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
-
 [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
 
 if(nargout==0)

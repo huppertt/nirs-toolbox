@@ -26,10 +26,6 @@ classdef freesurfer_wavelet
              end
             obj.WlSynthesisMtx = W.WlSynthesisMtx; 
             
-   
-    
-    
-            
         end
         
         function out = get.fwd( obj)

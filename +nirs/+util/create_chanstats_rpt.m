@@ -56,6 +56,14 @@ end
 if(addtitle)
     rpt = RptgenML.CReport('Description','This is a report generated for the nirs.core.chanstats variable','DirectoryType','pwd');
     %set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
+    
+    if(length(Stats)==1)
+        set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');  % FOR PDF (in MacOS)
+        if(~isempty(filename))
+            set(rpt,'FilenameName',filename);
+        end
+    end
+    
 else
     rpt = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle',Stats.description);
    

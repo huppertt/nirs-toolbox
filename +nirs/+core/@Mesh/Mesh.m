@@ -95,6 +95,21 @@ classdef Mesh
             if nargin < 3, vmax     = []; end
             if nargin < 2, values   = []; end
             
+            if(length(obj)>1)
+                cnt=0;
+                for i=1:length(obj)
+                    if(~isempty(values))
+                        valuesi=values(cnt+[1:size(obj(i).nodes,1)]);
+                    else
+                        valuesi=[];
+                    end
+                    cnt=cnt+size(obj(i).nodes,1);
+                    h(i) = draw( obj(i), valuesi, vmax, thresh, cmap );
+                    hold on;
+                end
+                return
+            end
+            
             if(islogical(values));
                 values=1*values;
             end

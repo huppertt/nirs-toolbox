@@ -11,8 +11,15 @@ function draw( obj, vtype, vrange, thresh )
     %     stats.draw( 'Grangers', 5, 3 )
 
     % type is either beta or tstat
-    if nargin < 2, vtype = 'Grangers'; end
-
+    if nargin < 2;
+        if(strcmp(obj.type,'Grangers'));
+             vtype = 'Grangers'; 
+        else
+            vtype='pearsons';
+            
+        end
+    end
+    
     tbl=obj.table;
     
     switch(lower(vtype))
@@ -26,11 +33,11 @@ function draw( obj, vtype, vrange, thresh )
              cmap=flipdim(colormap(autumn(2001)),1);
         case('pearsons')
             values=tbl.Pearsons;
-            pval=tbl.pvalue_Pearsons;
+            pval=tbl.pvalue;
              [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
         case('fischer-z')
-            values=tbl.FisherZ;
-            pval=tbl.pvale_pearson;
+            values=tbl.Z;
+            pval=tbl.pvalue;
              [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
         otherwise
             warning('type not recognized: using Grangers');
