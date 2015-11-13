@@ -1,4 +1,4 @@
-function rpt = create_chanstats_rpt(Stats,filename,addtitle)
+function rpt = create_chanstats_rpt(Stats,filename,options)
 %This function will create a report object a chan stats variable.
 % If the length of Stats is greater then 1, then multiple report objects
 % will be returned plus a report object for generating the table of
@@ -7,15 +7,43 @@ function rpt = create_chanstats_rpt(Stats,filename,addtitle)
 % set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');  % FOR PDF (in MacOS)
 % set(rpt,'Stylesheet','html-MultiClearTitleTocLot');  % For multipage HTML with cover page
 
-
-if(~exist('addtitle'))
-    addtitle=true;
+if(nargin<2)
+    filename=[];
 end
+if(nargin<3)
+    options=[];
+end
+
+
+if(isempty(options));
+    options.type='pdf';
+    options.includetable=false;
+    options.addtitle=true;
+    options.drawoptions='p<0.05';
+end
+
+if(~isfield(options,'addtitle'))
+    options.addtitle=true;
+end
+if(~isfield(options,'type'))
+    options.type='pdf';
+end
+if(~isfield(options,'includetable'))
+    options.includetable=false;
+end
+
+if(~isfield(options,'drawoptions'))
+    options.drawoptions='p<0.05';
+end
+
 if(length(Stats)>1)
     rpt = RptgenML.CReport('Description','This is a report generated for the nirs.core.chanstats variable',...
         'FilenameName',filename,'FilenameType','other','DirectoryType','pwd');
-    set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
-    %set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
+    if(strcmp( options.type,'pdf'))
+        set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
+    else
+        set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
+    end
     
     cfr_titlepage = rptgen.cfr_titlepage;
     cfr_titlepage.Title='NIRS Analysis Report';  %TODO - add some info here
@@ -23,18 +51,17 @@ if(length(Stats)>1)
     setParent(cfr_titlepage,rpt);
     
     
-    
     for idx=1:length(Stats)
-       link{idx}=['stats' num2str(idx)];
-       cfr_link = rptgen.cfr_link('LinkID',link{idx},'LinkType','anchor');
-       section(idx) = nirs.util.create_chanstats_rpt(Stats(idx),[],0);
-       c=section(idx).getActiveHierarchicalChildren;
-       setParent(cfr_link,c(2));
-       setParent(section(idx),rpt);
-       cfr_link2(idx) = rptgen.cfr_link('LinkID',link{idx},'LinkText','show page');
+        link{idx}=['stats' num2str(idx)];
+        cfr_link = rptgen.cfr_link('LinkID',link{idx},'LinkType','anchor');
+        section(idx) = nirs.util.create_chanstats_rpt(Stats(idx),[],options);
+        c=section(idx).getActiveHierarchicalChildren;
+        setParent(cfr_link,c(2));
+        setParent(section(idx),rpt);
+        cfr_link2(idx) = rptgen.cfr_link('LinkID',link{idx},'LinkText','show page');
         
     end
- 
+    
     tbl=nirs.createDemographicsTable(Stats);
     tbl.link=cfr_link2';
     cfr_table=nirs.util.reporttable(tbl);
@@ -44,7 +71,7 @@ if(length(Stats)>1)
     setParent(sectionSumm,rpt);
     
     for idx=1:length(Stats)
-       setParent(section(idx),rpt); 
+        setParent(section(idx),rpt);
     end
     
     % Generate the table of contents page
@@ -53,7 +80,7 @@ end
 
 % Generate a report for this stats entry
 
-if(addtitle)
+if(options.addtitle)
     rpt = RptgenML.CReport('Description','This is a report generated for the nirs.core.chanstats variable','DirectoryType','pwd');
     %set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
     
@@ -66,7 +93,6 @@ if(addtitle)
     
 else
     rpt = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle',Stats.description);
-   
 end
 
 cfr_titlepage = rptgen.cfr_titlepage;
@@ -86,7 +112,7 @@ setParent(cfr_section1,rpt);
 
 %% Demographics section
 if(~isempty(Stats.demographics))
-       % Add the demographics table here
+    % Add the demographics table here
     tbl=nirs.createDemographicsTable(Stats);
     cfr_table=nirs.util.reporttable(tbl);
     
@@ -94,7 +120,7 @@ if(~isempty(Stats.demographics))
         cfr_section2 = rptgen.cfr_section('StyleName','rgChapterTitle',...
             'SectionTitle','Demographics');
         setParent( cfr_table, cfr_section2);
-            setParent(cfr_section2,cfr_section1);
+        setParent(cfr_section2,cfr_section1);
     else
         setParent( cfr_table, cfr_section1);
     end
@@ -102,15 +128,15 @@ if(~isempty(Stats.demographics))
     
 end
 
-
+str=options.drawoptions;
 fol=fullfile(getenv('TMPDIR'),['tmp' datestr(now,'dd_mmm_yyyy_HH_MM_SS')]);
-Stats.printAll('tstat',[-5 5],Stats.getCritT('p<0.05'),fol,'jpeg')
-caption = 'p<0.05';
+Stats.printAll('tstat',[-5 5],Stats.getCritT(str),fol,'jpeg')
+caption = str;
 
 %Let's create a table of file locations
 types=unique(Stats.probe.link.type);
 
-if(~iscell(types)); 
+if(~iscell(types));
     types=arrayfun(@(x)({[num2str(x)]}),types);
 end
 
@@ -127,9 +153,10 @@ for idx=1:length(Stats.conditions)
             'ViewportType','fixed',...
             'DocHorizAlign','center');
         cond=Stats.conditions{idx};
-        cond(strfind(cond,':'))='*';
+        if(~isempty(strfind(cond,':')))
+            cond=[cond(1:strfind(cond,':')-1) '__' cond(strfind(cond,':')+1:end)];
+        end
         ffile=dir(fullfile(fol,[cond '_' types{idx2} '.jpeg']));
-        
         X(idx2,idx).FileName=fullfile(fol,ffile.name);
         X(idx2,idx).Title=[Stats.conditions{idx}  types{idx2}];
         X(idx2,idx).Caption=caption;
@@ -159,7 +186,7 @@ end
 
 cfr_table=nirs.util.reporttable(tbl);
 
-if(addtitle)
+if(options.addtitle)
     cfr_section3 = rptgen.cfr_section('StyleName','rgChapterTitle',...
         'SectionTitle','Images');
     setParent( cfr_table, cfr_section3);
@@ -168,14 +195,21 @@ else
     setParent( cfr_table, cfr_section1);
 end
 
-
-%% Now add the stats as a table
-cfr_table=nirs.util.reporttable(sortrows(Stats.table,{'type','cond','source','detector'}));
-if(addtitle)
-    cfr_section4 = rptgen.cfr_section('StyleName','rgChapterTitle',...
-        'SectionTitle','Channel Statistics');
-    setParent( cfr_table, cfr_section4);
-    setParent(cfr_section4,cfr_section1);
-else
-    setParent( cfr_table, cfr_section1);
+if(options.includetable)
+    %% Now add the stats as a table
+    cfr_table=nirs.util.reporttable(sortrows(Stats.table,{'type','cond','source','detector'}));
+    if(options.addtitle)
+        cfr_section4 = rptgen.cfr_section('StyleName','rgChapterTitle',...
+            'SectionTitle','Channel Statistics');
+        setParent( cfr_table, cfr_section4);
+        setParent(cfr_section4,cfr_section1);
+    else
+        setParent( cfr_table, cfr_section1);
+    end
 end
+
+ if(strcmp( options.type,'pdf'))
+        set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
+    else
+        set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
+    end

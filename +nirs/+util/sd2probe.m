@@ -52,7 +52,6 @@ link  = table(iSrc,iDet, wl,'VariableNames',{'source','detector','type'});
 
 if(isfield(SD,'SpatialUnit') && strcmp(SD.SpatialUnit,'mm'))
     sc=1;
-    
 else
     sc=10;  %assume given in cm
     SD.SpatialUnit='cm';

@@ -116,8 +116,8 @@ classdef NirfastBEM
                 T = atlas.headsurf.T_2ras(1:3,1:3);
                 optpos_reg=(optpos_reg-ones(size(optpos_reg,1),1)*atlas.headsurf.T_2ras(1:3,4)')*T;
                 atlas.probe.DetPos=optpos_reg(1+size(atlas.probe.srcpos,1):...
-                    size(atlas.probe.srcpos,1)+size(atlas.probe.detpos,1),:)/10;
-                atlas.probe.SrcPos=optpos_reg(1:size(atlas.probe.srcpos,1),:)/10;
+                    size(atlas.probe.srcpos,1)+size(atlas.probe.detpos,1),:);
+                atlas.probe.SrcPos=optpos_reg(1:size(atlas.probe.srcpos,1),:);
                 
                 if(~isfield(atlas.probe,'lambda'))
                     atlas.probe.lambda=[690 830];
