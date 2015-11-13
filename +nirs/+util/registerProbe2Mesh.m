@@ -1,4 +1,9 @@
-function probeOut = registerProbe2Mesh(mesh,probe)
+function probeOut = registerProbe2Mesh(mesh,probe,dispflag)
+
+if(nargin<3)
+    dispflag=false;
+end
+
 % This function registers a probe with the fiducial points stored in a mesh
 
 % First make sure we have at least 3 common labels to use for registration
@@ -45,7 +50,6 @@ ProbePosSphere=ProbePosSphere*T;
 
 ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
 
-dispflag=true;
 if(dispflag)
     figure;
     mesh.transparency=.2;
@@ -56,7 +60,7 @@ end
 
 
 errPrev=inf;
-for iter=1:3
+for iter=1:1
     ProbeAnchors=ProbePosSphere(lstCommonInProbe,:);
  
     P1=ProbeAnchors(Anchors,:);

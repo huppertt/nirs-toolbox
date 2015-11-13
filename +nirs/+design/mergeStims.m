@@ -6,6 +6,12 @@ function out = mergeStims( stims, name )
     
     % loop through stims and concat onset, dur, amp
     for i = 1:length(stims)
+        
+        if(~isfield(stims{i},'amp'))
+            stims{i}.amp=ones(size(stims{i}.onset));
+        end
+        
+        
         onset   = [onset; stims{i}.onset(:)];
         dur     = [dur; stims{i}.dur(:)];
         amp     = [amp; stims{i}.amp(:)];

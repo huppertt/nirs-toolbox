@@ -4,22 +4,28 @@ classdef Probe1020 < nirs.core.Probe
     % landmarking
     
     properties
-        optodes_registered;   % Registered version of optodes 
+        optodes_registered;   % Registered version of optodes
         braindepth;  % depth of brain for modeling
         opticalproperties;  % optical properties for modeling
-        AP_distance;
-        LR_distance;
-        IS_distance;
-        labels;
-        pts1020;
-        defaultdrawfcn;
+        
+        defaultdrawfcn; % Drawing function to use
         
     end
     properties( Dependent = true )
-      
         headcircum;  % circumference of head  % make dependent
         AP_arclength; % Anterior-Posterior arc length
         LR_arclength; % Left-right arclength
+        
+    end
+    properties (Access = private)
+        zoom; % Flag to zoom in or show full 10-20 probe
+        
+        AP_distance;  % Distance from Oz to Fpz
+        LR_distance;  % Distance from LPA to RPA
+        IS_distance;  % Distance from center to Cz
+        labels;  % labels of 10-20 points
+        pts1020;  % 10-20 points
+        
     end
     
     methods
@@ -43,7 +49,6 @@ classdef Probe1020 < nirs.core.Probe
             obj.LR_distance=norm(pt(1,:)-pt(2,:));
             obj.IS_distance=norm(pt(3,:)-.5*(pt(1,:)-pt(2,:)));
             
-            
             obj.braindepth = 10;  % Fix and cite
             
             if(nargin>0)
@@ -59,17 +64,55 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         function l=draw(obj,varargin)
-            if(strcmp(obj.defaultdrawfcn,'draw1020'));
-                l=draw1020(obj,varargin{:});
-            elseif(strcmp(obj.defaultdrawfcn,'draw3d'));
-                l=draw3d(obj,varargin{:});
-            elseif(strcmp(obj.defaultdrawfcn,'draw1020interp'));
+            
+            if(~isempty(strfind(obj.defaultdrawfcn,'zoom')))
+                obj.zoom=true;
+            else
+                obj.zoom=false;
+            end
+            
+            if(~isempty(strfind(obj.defaultdrawfcn,'10-20 map')));
                 l=draw1020interp(obj,varargin{:});
+            elseif(~isempty(strfind(obj.defaultdrawfcn,'3D')));
+                l=draw3d(obj,varargin{:});
+            elseif(~isempty(strfind(obj.defaultdrawfcn,'10-20')));
+                l=draw1020(obj,varargin{:});
             else
                 l=draw@nirs.core.Probe(obj,varargin{:});
             end
-                
+            
         end
+        
+        function str = get.defaultdrawfcn(obj)
+            str = obj.defaultdrawfcn;
+        end
+        function obj = set.defaultdrawfcn(obj,str)
+            
+            if(nargin==1)
+                return
+            end
+            
+            allowed={'10-20','10-20 mercator projection map';...
+                '10-20 zoom', '10-20 mercator with restricted view';...
+                '10-20 map', '10-20 mercator with underlain image';...
+                '10-20 map zoom', '10-20 mercator with underlain image';...
+                '3D', '3D line drawing overlain on mesh';...
+                '2D', '2D probe layout'};
+            
+            if(~isempty(str))
+                idx=find(ismember(lower({allowed{:,1}}),lower(str)));
+            else
+                idx=[];
+            end
+            
+            if(~isempty(idx))
+                obj.defaultdrawfcn=allowed{idx,1};
+            else
+                disp('Here are the options for drawing configurations');
+                disp(allowed);
+            end
+        end
+        
         
         function obj=swap_reg(obj)
             op=obj.optodes;
@@ -113,20 +156,11 @@ classdef Probe1020 < nirs.core.Probe
             mesh(1).fiducials=fidtbl;
             mesh(1).transparency=.2;
             mesh(2).transparency=.1;
-             
+            
         end
         
-        function [x,y]=convert2d(obj,pts)
-            
-            %Clarke far-side general prospective azumuthal projection
-            r = -2.4;
-            R=sqrt(sum(pts.^2,2));
-            x=r*R.*(pts(:,1)./abs(pts(:,3)-r*R));
-            y=r*R.*(pts(:,2)./abs(pts(:,3)-r*R));
-            
-        end
         function h=draw3d(obj,colors, lineStyles, axis_handle)
-             link = unique( [obj.link.source obj.link.detector], 'rows' );
+            link = unique( [obj.link.source obj.link.detector], 'rows' );
             
             
             n = size(link, 1);
@@ -151,7 +185,7 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,1)=obj.optodes_registered.X;
             Pos(:,2)=obj.optodes_registered.Y;
             Pos(:,3)=obj.optodes_registered.Z;
-           
+            
             hold on;
             lstS=find(ismember(obj.optodes.Type,'Source'));
             scatter3(Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r')
@@ -188,13 +222,15 @@ classdef Probe1020 < nirs.core.Probe
             end
             
             h=draw1020(obj,[],[],axis_handle);
-           delete(h);
+            delete(h);
             lstS=find(ismember(obj.optodes.Type,'Source'));
             lstD=find(ismember(obj.optodes.Type,'Detector'));
             
-            Pos(:,1)=obj.optodes_registered.X;
-            Pos(:,2)=obj.optodes_registered.Y;
-            Pos(:,3)=obj.optodes_registered.Z;
+            lst=find(~ismember(obj.optodes_registered.Type,{'FID-anchor','FID-attractor'}));
+            Pos(:,1)=obj.optodes_registered.X(lst);
+            Pos(:,2)=obj.optodes_registered.Y(lst);
+            Pos(:,3)=obj.optodes_registered.Z(lst);
+            
             [x,y]=obj.convert2d(Pos);
             for i=1:size(link,1)
                 s=link(i,1);
@@ -206,14 +242,14 @@ classdef Probe1020 < nirs.core.Probe
             
             xlim=get(axis_handle,'XLim');
             ylim=get(axis_handle,'YLim');
-            [x,y]=meshgrid(xlim(1):xlim(2),ylim(1):ylim(2));
+            [x2,y2]=meshgrid(xlim(1):xlim(2),ylim(1):ylim(2));
             
             F = scatteredInterpolant(xylink(:,1),xylink(:,2),colors(:,1),'nearest','none');
-            cm(:,:,1)=reshape(F(x(:),y(:)),size(x));
+            cm(:,:,1)=reshape(F(x2(:),y2(:)),size(x2));
             F.Values=colors(:,2);
-            cm(:,:,2)=reshape(F(x(:),y(:)),size(x));
+            cm(:,:,2)=reshape(F(x2(:),y2(:)),size(x2));
             F.Values=colors(:,3);
-            cm(:,:,3)=reshape(F(x(:),y(:)),size(x));
+            cm(:,:,3)=reshape(F(x2(:),y2(:)),size(x2));
             
             
             k=dsearchn(colors,reshape(cm,[],3));
@@ -226,10 +262,18 @@ classdef Probe1020 < nirs.core.Probe
             cm(:,:,2)=mask.*cm(:,:,2);
             cm(:,:,3)=mask.*cm(:,:,3);
             
-            i=imagesc(x(:),y(:),cm);
+            i=imagesc(x2(:),y2(:),cm);
             h=draw1020(obj,[],[],axis_handle);
             set(h,'LineWidth',.1,'color',[.3 .3 .3]);
             set(i,'alphaData',~isnan(cm(:,:,1)));
+            
+            if(obj.zoom)
+                dx=(max(x)-min(x))/20;
+                dy=(max(y)-min(y))/20;
+                set(gca,'Xlim',[min(x)-dx max(x)+dx]);
+                set(gca,'Ylim',[min(y)-dy max(y)+dy]);
+            end
+            
         end
         
         function h=draw1020(obj,colors, lineStyles, axis_handle)
@@ -247,9 +291,9 @@ classdef Probe1020 < nirs.core.Probe
             end
             
             if nargin < 3 || isempty(lineStyles)
-                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 6}, [n 1]);
+                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 3}, [n 1]);
             elseif size(lineStyles, 1) == 1
-                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 6}, [n 1]);
+                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 3}, [n 1]);
             end
             
             if nargin < 4
@@ -263,10 +307,11 @@ classdef Probe1020 < nirs.core.Probe
             % Todo-  draw the probe too
             
             % Points from the probe
-            Pos(:,1)=obj.optodes_registered.X;
-            Pos(:,2)=obj.optodes_registered.Y;
-            Pos(:,3)=obj.optodes_registered.Z;
-            [x,y]=obj.convert2d(Pos);    
+            lst=find(~ismember(obj.optodes_registered.Type,{'FID-anchor','FID-attractor'}));
+            Pos(:,1)=obj.optodes_registered.X(lst);
+            Pos(:,2)=obj.optodes_registered.Y(lst);
+            Pos(:,3)=obj.optodes_registered.Z(lst);
+            [x,y]=obj.convert2d(Pos);
             
             lstS=find(ismember(obj.optodes.Type,'Source'));
             scatter(x(lstS),y(lstS),'filled','MarkerFaceColor','r')
@@ -297,6 +342,13 @@ classdef Probe1020 < nirs.core.Probe
             
             set(gca,'YDir','reverse');
             set(gcf,'color','w');
+            
+            if(obj.zoom)
+                dx=(max(x)-min(x))/20;
+                dy=(max(y)-min(y))/20;
+                set(gca,'Xlim',[min(x)-dx max(x)+dx]);
+                set(gca,'Ylim',[min(y)-dy max(y)+dy]);
+            end
         end
         
         function headcircum = get.headcircum(obj)
@@ -320,8 +372,15 @@ classdef Probe1020 < nirs.core.Probe
             
         end
         
-        
-        
+        function [x,y]=convert2d(obj,pts)
+            
+            %Clarke far-side general prospective azumuthal projection
+            r = -2.4;
+            R=sqrt(sum(pts.^2,2));
+            x=r*R.*(pts(:,1)./abs(pts(:,3)-r*R));
+            y=r*R.*(pts(:,2)./abs(pts(:,3)-r*R));
+            
+        end
         
         %draw1020image;  % Code to draw an image in 10-20space
         % makeimage;  % code to do simple image reconstruction in 10-20 space
