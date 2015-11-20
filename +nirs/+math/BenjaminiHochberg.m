@@ -1,15 +1,17 @@
-function imQ = BenjaminiHochberg(p,FDR)
+function q = BenjaminiHochberg(p)
 % Returns the Benjamini-Hochberg adjusted pvalues
 
 s = size(p);   
-[p, I] = sort(p(:));
+[p, I] = sort(p,'descend');
 
 % number of hypothesis tests
 m = length(p);
 
-imQ=[1:m]'/m*FDR;
+imQ=p.*m./[1:m]';
+imQ=min(imQ,1);
 
-imQ(I) = imQ;
-imQ = reshape(imQ, s);
+q=ones(s);
+q(I) = imQ;
+q = reshape(q, s);
 
 end

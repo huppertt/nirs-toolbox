@@ -47,7 +47,7 @@ lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
 
     figure;
     
-    if(nargin>1 || isempty(Probe))
+    if(nargin>1 && ~isempty(Probe))
         headradius =Probe.headcircum/(2*pi);
     else
         headradius = mean(sqrt(sum(Pos.^2,2)));
@@ -72,7 +72,7 @@ lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
     
     hold on;
     
-    if(nargin>1 || isempty(Probe))
+    if(nargin>1 && ~isempty(Probe))
         Probe.defaultdrawfcn='10-20';
         hold on;
         l=Probe.draw([.7 .7 .7],{'LineStyle', '-', 'LineWidth', 2},gca);

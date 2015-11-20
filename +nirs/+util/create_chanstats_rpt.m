@@ -50,7 +50,7 @@ if(length(Stats)>1)
     cfr_titlepage.Subtitle=['Analysis run on' datestr(now)];
     setParent(cfr_titlepage,rpt);
     
-    
+    options.addtitle=false;
     for idx=1:length(Stats)
         link{idx}=['stats' num2str(idx)];
         cfr_link = rptgen.cfr_link('LinkID',link{idx},'LinkType','anchor');
@@ -116,7 +116,7 @@ if(~isempty(Stats.demographics))
     tbl=nirs.createDemographicsTable(Stats);
     cfr_table=nirs.util.reporttable(tbl);
     
-    if(addtitle)
+    if(options.addtitle)
         cfr_section2 = rptgen.cfr_section('StyleName','rgChapterTitle',...
             'SectionTitle','Demographics');
         setParent( cfr_table, cfr_section2);
@@ -208,8 +208,10 @@ if(options.includetable)
     end
 end
 
+try
  if(strcmp( options.type,'pdf'))
         set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
     else
         set(rpt,'Stylesheet','html-MultiClearTitleTocLot');
-    end
+ end
+end
