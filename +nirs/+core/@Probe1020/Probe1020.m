@@ -30,20 +30,22 @@ classdef Probe1020 < nirs.core.Probe
     
     methods
         
-        function obj = Probe1020(probe)
+        function obj = Probe1020(probe,headsize)
             
-            fid=fopen(which('ext1020.sfp'),'r');
-            marker=textscan(fid,'%s\t%d\t%d\t%d');
-            fclose(fid);
-            obj.pts1020=double([marker{2} marker{3} marker{4}]);
-            obj.labels=marker{1};
+            if(nargin>1)
+                tbl=nirs.util.register_headsize(headsize);
+            else
+                tbl=nirs.util.list_1020pts('?');
+            end
+            obj.pts1020=[tbl.X tbl.Y tbl.Z];
+            obj.labels=tbl.Name;
             
             % Find the default arc lengths
-            pt(1,:)=obj.pts1020(find(ismember(obj.labels,'spmlpa')),:);
-            pt(2,:)=obj.pts1020(find(ismember(obj.labels,'spmrpa')),:);
-            pt(3,:)=obj.pts1020(find(ismember(obj.labels,'Cz')),:);
-            pt(4,:)=obj.pts1020(find(ismember(obj.labels,'spmnas')),:);
-            pt(5,:)=obj.pts1020(find(ismember(obj.labels,'Iz')),:);
+            pt(1,:)=obj.pts1020(find(ismember(lower(obj.labels),'lpa')),:);
+            pt(2,:)=obj.pts1020(find(ismember(lower(obj.labels),'rpa')),:);
+            pt(3,:)=obj.pts1020(find(ismember(lower(obj.labels),'cz')),:);
+            pt(4,:)=obj.pts1020(find(ismember(lower(obj.labels),'nas')),:);
+            pt(5,:)=obj.pts1020(find(ismember(lower(obj.labels),'iz')),:);
             
             obj.AP_distance=norm(pt(4,:)-pt(5,:));
             obj.LR_distance=norm(pt(1,:)-pt(2,:));
@@ -51,7 +53,7 @@ classdef Probe1020 < nirs.core.Probe
             
             obj.braindepth = 10;  % Fix and cite
             
-            if(nargin>0)
+            if(nargin>0 && ~isempty(probe))
                 obj=obj.registerprobe(probe);
                 lambda=unique(obj.optodes.type);
             else
@@ -62,8 +64,14 @@ classdef Probe1020 < nirs.core.Probe
             
             obj.defaultdrawfcn='draw1020';
         end
-        
-        function l=draw(obj,varargin)
+        function headsize=get_headsize(obj)
+            headsize=Dictionary();
+            headsize('lpa-cz-rpa')=obj.LR_arclength;
+            headsize('Iz-cz-nas')=obj.AP_arclength;
+            headsize('circumference')=obj.headcircum;
+            
+        end
+        function varargout=draw(obj,varargin)
             
             if(~isempty(strfind(obj.defaultdrawfcn,'zoom')))
                 obj.zoom=true;
@@ -74,13 +82,21 @@ classdef Probe1020 < nirs.core.Probe
             if(~isempty(strfind(obj.defaultdrawfcn,'10-20 map')));
                 l=draw1020interp(obj,varargin{:});
             elseif(~isempty(strfind(obj.defaultdrawfcn,'3D')));
+               
                 l=draw3d(obj,varargin{:});
+                if(~isempty(strfind(obj.defaultdrawfcn,'mesh')))
+                    mesh=obj.getmesh;
+                    mesh.draw;
+                 end
+                
             elseif(~isempty(strfind(obj.defaultdrawfcn,'10-20')));
                 l=draw1020(obj,varargin{:});
             else
                 l=draw@nirs.core.Probe(obj,varargin{:});
             end
-            
+            if(nargout>0)
+                varargout{1}=l;
+            end
         end
         
         function str = get.defaultdrawfcn(obj)
@@ -96,7 +112,8 @@ classdef Probe1020 < nirs.core.Probe
                 '10-20 zoom', '10-20 mercator with restricted view';...
                 '10-20 map', '10-20 mercator with underlain image';...
                 '10-20 map zoom', '10-20 mercator with underlain image';...
-                '3D', '3D line drawing overlain on mesh';...
+                '3D', '3D line drawing ';...
+                '3D mesh', '3D line drawing overlain on mesh';...
                 '2D', '2D probe layout'};
             
             if(~isempty(str))
@@ -107,7 +124,7 @@ classdef Probe1020 < nirs.core.Probe
             
             if(~isempty(idx))
                 obj.defaultdrawfcn=allowed{idx,1};
-            else
+            elseif(isempty(str) || strcmp(str,'?'))
                 disp('Here are the options for drawing configurations');
                 disp(allowed);
             end
@@ -125,7 +142,7 @@ classdef Probe1020 < nirs.core.Probe
             mesh(2) = nirs.util.spheremesh;
             mesh(3) = nirs.util.spheremesh;
             
-            pt(1,:)=obj.pts1020(find(ismember(obj.labels,'spmnas')),:);
+            pt(1,:)=obj.pts1020(find(ismember(obj.labels,'nas')),:);
             pt(2,:)=obj.pts1020(find(ismember(obj.labels,'Iz')),:);
             com=.5*sum(pt,1);
             
@@ -159,7 +176,7 @@ classdef Probe1020 < nirs.core.Probe
             
         end
         
-        function h=draw3d(obj,colors, lineStyles, axis_handle)
+        function varargout=draw3d(obj,colors, lineStyles, axis_handle)
             link = unique( [obj.link.source obj.link.detector], 'rows' );
             
             
@@ -200,9 +217,14 @@ classdef Probe1020 < nirs.core.Probe
             end
             
             axis equal;
+            
+            if(nargout>0)
+                varargout{1}=h;
+            end
+            
         end
         
-        function h=draw1020interp(obj,colors, lineStyles, axis_handle)
+        function varargout=draw1020interp(obj,colors, lineStyles, axis_handle)
             link = unique( [obj.link.source obj.link.detector], 'rows' );
             n = size(link, 1);
             if nargin < 2 || isempty(colors)
@@ -274,13 +296,19 @@ classdef Probe1020 < nirs.core.Probe
                 set(gca,'Ylim',[min(y)-dy max(y)+dy]);
             end
             
+            if(nargout>0)
+                varargout{1}=h;
+            end
         end
         
-        function h=draw1020(obj,colors, lineStyles, axis_handle)
+        function varargout=draw1020(obj,colors, lineStyles, axis_handle)
             % Code to draw the probe in 10-20 space
             
-            link = unique( [obj.link.source obj.link.detector], 'rows' );
-            
+            if(~isempty(obj.link))
+                link = unique( [obj.link.source obj.link.detector], 'rows' );
+            else
+                link=[];
+            end
             
             n = size(link, 1);
             
@@ -306,26 +334,29 @@ classdef Probe1020 < nirs.core.Probe
             
             % Todo-  draw the probe too
             
-            % Points from the probe
-            lst=find(~ismember(obj.optodes_registered.Type,{'FID-anchor','FID-attractor'}));
-            Pos(:,1)=obj.optodes_registered.X(lst);
-            Pos(:,2)=obj.optodes_registered.Y(lst);
-            Pos(:,3)=obj.optodes_registered.Z(lst);
-            [x,y]=obj.convert2d(Pos);
-            
-            lstS=find(ismember(obj.optodes.Type,'Source'));
-            scatter(x(lstS),y(lstS),'filled','MarkerFaceColor','r')
-            lstD=find(ismember(obj.optodes.Type,'Detector'));
-            scatter(x(lstD),y(lstD),'filled','MarkerFaceColor','b')
-            
-            for i=1:size(link,1)
-                s=link(i,1);
-                d=link(i,2);
-                h(i)=line(x([lstS(s) lstD(d)]),y([lstS(s) lstD(d)]),'Color', colors(i, :), lineStyles{i, :});
-                set(h(i),'UserData',[s d]);
+            if(~isempty(obj.optodes_registered))
+                % Points from the probe
+                lst=find(~ismember(obj.optodes_registered.Type,{'FID-anchor','FID-attractor'}));
+                Pos(:,1)=obj.optodes_registered.X(lst);
+                Pos(:,2)=obj.optodes_registered.Y(lst);
+                Pos(:,3)=obj.optodes_registered.Z(lst);
+                [x,y]=obj.convert2d(Pos);
+                
+                lstS=find(ismember(obj.optodes.Type,'Source'));
+                scatter(x(lstS),y(lstS),'filled','MarkerFaceColor','r')
+                lstD=find(ismember(obj.optodes.Type,'Detector'));
+                scatter(x(lstD),y(lstD),'filled','MarkerFaceColor','b')
+                
+                for i=1:size(link,1)
+                    s=link(i,1);
+                    d=link(i,2);
+                    h(i)=line(x([lstS(s) lstD(d)]),y([lstS(s) lstD(d)]),'Color', colors(i, :), lineStyles{i, :});
+                    set(h(i),'UserData',[s d]);
+                end
+                %%
+            else
+                h=[];
             end
-            %%
-            
             
             axis tight;
             axis equal;
@@ -349,6 +380,11 @@ classdef Probe1020 < nirs.core.Probe
                 set(gca,'Xlim',[min(x)-dx max(x)+dx]);
                 set(gca,'Ylim',[min(y)-dy max(y)+dy]);
             end
+            
+            if(nargout>0)
+                varargout{1}=h;
+            end
+            
         end
         
         function headcircum = get.headcircum(obj)

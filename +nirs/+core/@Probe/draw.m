@@ -1,4 +1,4 @@
-function h=draw( obj, colors, lineStyles, axis_handle )
+function varargout=draw( obj, colors, lineStyles, axis_handle )
     %% draw - Plots the probe geometry.
     % 
     % Args:
@@ -36,6 +36,11 @@ function h=draw( obj, colors, lineStyles, axis_handle )
     labelOptodes( axis_handle, s, d );
     
     rescaleAxes( axis_handle, s, d );
+    
+    if(nargout==1)
+        varargout{1}=h;
+    end
+    
 end
 
 function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)

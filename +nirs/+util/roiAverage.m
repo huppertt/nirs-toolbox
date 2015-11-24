@@ -1,7 +1,33 @@
 function tbl = roiAverage( data, R, names )
+
+
+
+if(~iscell(R) && isa(R,'table'))
+    if(any(ismember(R.Properties.VariableNames,'Name')))
+        % Table contains the Names for the ROI.
+        names=unique(R.Name);
+        sIdx=find(ismember(R.Properties.VariableNames,'source'));
+        dIdx=find(ismember(R.Properties.VariableNames,'detector'));
+        wIdx=find(ismember(R.Properties.VariableNames,'weight'));
+        
+        for idx=1:length(names)
+            lst=ismember(R.Name,names{idx});
+            RR{idx}=R(lst,[sIdx dIdx]);
+            if(~isempty(wIdx))
+                ContVect{idx}=R.weight(lst);   
+            end
+            
+        end
+        R=RR;
+    end
+end
+   
+    if(nargin<3 && ~exist('names'))
+        names=cellstr(num2str(1:length(R)));
+    end
     if ischar( names )
         names = {names};
-    end
+    end 
     
     if(length(data)>1)
         tbl=[];
@@ -50,28 +76,32 @@ function tbl = roiAverage( data, R, names )
         for idx=1:length(types)
             for idx2=1:length(R)
                 if(iscell(types))
-                RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
-                    'VariableNames',{'type'})]);
-                NamesNew{cnt}=[names{idx2} ':' types{idx}];
+                    RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
+                        'VariableNames',{'type'})]);
+                    NamesNew{cnt}=[names{idx2} ':' types{idx}];
                 else
                     RNew{cnt}=ismember(link,[R{idx2} table(repmat([types(idx)],height(R{idx2}),1),...
-                    'VariableNames',{'type'})]);
-                NamesNew{cnt}=[names{idx2} ':' num2str(types(idx))];
+                        'VariableNames',{'type'})]);
+                    NamesNew{cnt}=[names{idx2} ':' num2str(types(idx))];
                 end
                 
+                if(exist('ContVect'))
+                    ContVectNew{cnt}=ContVect{idx2};
+                end
                 cnt=cnt+1;
             end
         end
         R=RNew;
         names=NamesNew;
+        if(exist('ContVect'))
+            ContVect=ContVectNew;
+        end
+        
     end
     
    
     
-    % change ROIs to sorted indices
-    for i = 1:length(R)
-        R{i} = ilink(R{i});
-    end
+  
     
     % sort variables
     [vars, ivars] = sortrows(data.variables, {'cond', 'source', 'detector', 'type'});
@@ -85,6 +115,17 @@ function tbl = roiAverage( data, R, names )
     varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p'};
     tbl = table;
 
+    
+      % change ROIs to sorted indices
+    for i = 1:length(R)
+        R{i} = ilink(R{i});
+    end
+    if(~exist('ContVect'))
+         for i = 1:length(R)
+            ContVect{i} = 1/length(R{i});
+         end
+    end
+    
     for i = 1:length(uconds)
         lst = strcmp(vars.cond, uconds{i});
         b = beta(lst);
@@ -92,10 +133,9 @@ function tbl = roiAverage( data, R, names )
         
         for j = 1:length(R)
             % contrast vector
-            c = zeros(size(b));
-            c(R{j}) = 1/length(R{j});
-            
-           
+             c = zeros(size(b));
+             c(R{j}) = ContVect{j};
+          
             
             broi    = c'*b;
             se      = sqrt(c'*C*c);

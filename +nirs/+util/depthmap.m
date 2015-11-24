@@ -1,7 +1,11 @@
-function varargout = depthmap(label,Probe);
+function varargout = depthmap(label,headshape)
 
 if(nargin==0)
-    disp(nirs.util.listAtlasRegions)
+    if(nargout==0)
+        disp(nirs.util.listAtlasRegions)
+    else
+        varargout{1}=nirs.util.listAtlasRegions;
+    end
     return
 end
 
@@ -16,11 +20,27 @@ aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)*2-90;
 aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)*2-126;
 aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)*2-72;
 
-
-fid=fopen(which('ext1020.sfp'),'r');
-marker=textscan(fid,'%s\t%d\t%d\t%d');
-fclose(fid);
-Pos=double([marker{2} marker{3} marker{4}]);
+if(nargin>1)
+    if(isa(headshape,'nirs.core.Probe1020'))
+        probe1020=headshape;
+        headshape=probe1020.get_headsize;
+    else
+        probe1020=nirs.core.Probe1020([],headshape);
+    end
+    
+    tbl=nirs.util.list_1020pts('?');
+    Pos2=[tbl.X tbl.Y tbl.Z];
+    
+    tbl= nirs.util.register_headsize(headshape,tbl);
+    Pos=[tbl.X tbl.Y tbl.Z];
+    T=Pos2\Pos;
+    aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
+    
+else
+    probe1020=nirs.core.Probe1020;
+    tbl=nirs.util.list_1020pts('?');
+    Pos=[tbl.X tbl.Y tbl.Z];
+end
 
 alllabels=label;
 for idx=1:length(label)
@@ -32,8 +52,11 @@ end
 
 Labels=lower(strvcat(aalLabels.ROI.Nom_L));
 Idx=vertcat(aalLabels.ROI.ID);
-lst=find(ismember(Labels,lower(alllabels)));
-
+if(strcmp(label,'?') | strcmp(label,'*') | strcmp(label,'any'))
+    lst=[1:size(Labels,1)];
+else
+    lst=find(ismember(Labels,lower(alllabels)));
+end
 if(isempty(lst))
     disp('region not found');
     disp('use command:')
@@ -45,20 +68,53 @@ end
 lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
 [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
 
-    figure;
-    
-    if(nargin>1 && ~isempty(Probe))
-        headradius =Probe.headcircum/(2*pi);
+[~,regionIdx]=ismember(aal.BORDER_V(lstNodes(k)),Idx);
+region=cellstr(Labels(regionIdx,:));
+
+if(nargout>0)
+    if(~isempty(probe1020.optodes_registered))
+        
+        %Add the link points too (since these are more useful in labels)
+        ml=unique([probe1020.link.source probe1020.link.detector],'rows');
+        for id=1:size(ml)
+            sIdx=['0000' num2str(ml(id,1))];
+            sIdx=sIdx(end-3:end);
+            dIdx=['0000' num2str(ml(id,2))];
+            dIdx=dIdx(end-3:end);
+            Name{id,1}=['Source' sIdx ':Detector' dIdx]; 
+            X(id,1)=.5*(probe1020.swap_reg.srcPos(ml(id,1),1)+...
+                probe1020.swap_reg.detPos(ml(id,2),1));
+            Y(id,1)=.5*(probe1020.swap_reg.srcPos(ml(id,1),2)+...
+                probe1020.swap_reg.detPos(ml(id,2),2));
+            Z(id,1)=.5*(probe1020.swap_reg.srcPos(ml(id,1),3)+...
+                probe1020.swap_reg.detPos(ml(id,2),3));
+            Type{id,1}='Link';
+            Units{id,1}=probe1020.optodes_registered.Units{1};
+        end
+    	probe1020.optodes_registered=[probe1020.optodes_registered;...
+            table(Name,X,Y,Z,Type,Units)];
+        Pts=[probe1020.optodes_registered.X ...
+            probe1020.optodes_registered.Y probe1020.optodes_registered.Z];
+        
+        
+        [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pts);
+        
+        [~,regionIdx]=ismember(aal.BORDER_V(lstNodes(k)),Idx);
+        region=cellstr(Labels(regionIdx,:));
+        
+        depth=[probe1020.optodes_registered table(depth,region)];
     else
-        headradius = mean(sqrt(sum(Pos.^2,2)));
+        depth=[tbl table(depth,region)];
     end
     
-    %Clarke far-side general prospective azumuthal projection
-    r = -2.4;
-    R=sqrt(sum(Pos.^2,2));
-    xy(:,1)=r*R.*(Pos(:,1)./abs(Pos(:,3)-r*R));
-    xy(:,2)=r*R.*(Pos(:,2)./abs(Pos(:,3)-r*R));
+    varargout{1}=depth;
+    return;
+end
+
+    figure;
     
+    [xy(:,1),xy(:,2)]=probe1020.convert2d(Pos);
+    probe1020.draw1020([],[],gca);
     
     dx=mean(diff(sort(xy(:,1))));
     dy=mean(diff(sort(xy(:,2))));
@@ -71,38 +127,25 @@ lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
     set(h,'alphaData',1*(~isnan(IM)));
     
     hold on;
-    
-    if(nargin>1 && ~isempty(Probe))
-        Probe.defaultdrawfcn='10-20';
-        hold on;
-        l=Probe.draw([.7 .7 .7],{'LineStyle', '-', 'LineWidth', 2},gca);
-        [x,y]=Probe.convert2d(table2array(Probe.optodes_registered(:,2:4)));
-        k=dsearchn([X(:) Y(:)],[x y]);
-        depth=IM(k);
-    end
-    
+    l=probe1020.draw1020([],[],gca);
+    set(l,'LineStyle', '-', 'LineWidth', 2)
+   
     set(gcf,'color','w');
     
     
     
-    
-    for i=1:size(xy,1)
-        s(i)=scatter(xy(i,1),xy(i,2),'filled','MarkerFaceColor',[.8 .8 .8]);
-        set(s(i),'Userdata',marker{1}{i});
-        set(s(i),'ButtonDownFcn',@displabel);
-    end
+%     
+%     for i=1:size(xy,1)
+%         s(i)=scatter(xy(i,1),xy(i,2),'filled','MarkerFaceColor',[.8 .8 .8]);
+%         set(s(i),'Userdata',tbl.Name{i});
+%         set(s(i),'ButtonDownFcn',@displabel);
+%     end
+%     
     axis tight;
     axis equal;
     axis off;
     
-    % add a circle for the head
-    theta = linspace(0,2*pi);
-    plot(headradius*cos(theta),headradius*sin(theta),'k');
-    line([-10 0],[-headradius -headradius-10],'color','k');
-    line([10 0],[-headradius -headradius-10],'color','k');
-    scatter([-15 15],[-headradius -headradius],'filled','k','sizedata',120);
-    set(gca,'YDir','reverse');
-    cb=colorbar;
+    cb=colorbar('SouthOutside');
     caxis([0 30])
     l=get(cb,'TickLabels');
     l{end}=['>' num2str(l{end})];
@@ -110,9 +153,6 @@ lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
 
 
 
-if(nargout>0)
-    varargout{1}=depth;
-end
 end
 
 function displabel(varargin)

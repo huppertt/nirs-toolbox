@@ -106,12 +106,13 @@ return
 
 
 function pos = pushdistances(pos,idealdist)
-
+opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
+ 
 mask=1*(idealdist(:)<45);
 
 dx=zeros(length(pos(:)),1);
 cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
-x=lsqnonlin(cost,dx);
+x=lsqnonlin(cost,dx,[],[],opt);
 pos=pos+reshape(x,size(pos));
 
 return
