@@ -41,14 +41,7 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
         end
     end
     
-    if length(beta) == size(fwdModel.mesh.nodes,1)
-        % oxy; deoxy
-        b = [beta; -beta/4];
-    else
-        b = beta;
-    end
-    b=b*20;
-   
+    
     
     if nargin < 5 || isempty(basis)
         % default to canonical basis
@@ -69,6 +62,15 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
     Y = bsxfun(@plus, -log(Y), log(m));
     
     J = fwdModel.jacobian('spectral');
+    
+    
+    if length(beta) == size(J.hbo,2)
+        % oxy; deoxy
+        b = [beta; -beta/4];
+    else
+        b = beta;
+    end
+    
     
     Xhbo = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbo' );
     Xhbr = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbr' );

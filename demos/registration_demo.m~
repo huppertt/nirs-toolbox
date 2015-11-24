@@ -36,7 +36,7 @@ nirs.util.list_1020pts({'Cz','Fpz'})
 % forehead (FpZ)
 
 Name{1}='FpZ';
-xyz(1,:)=[0 0 0];
+xyz(1,:)=[0 -10 0];
 Type{1}='FID-anchor';  % This is an anchor point
 Units{1}='mm';
 
@@ -239,12 +239,11 @@ fwdBEM.draw;
 % This command will get the head shape from the mesh
 headshape=nirs.registration.getheadshape(fwdBEM.mesh(1));
 
-probe1020=probe1020.regsister_mesh2probe(fwdBEM.mesh);
-
-probe1020.defaultdrawfcn='3D mesh';
-probe1020.draw;
 
 
+
+% TODO
+% Chnage mesh in probe1020
 
 % module to batch registration
 

@@ -25,6 +25,7 @@ classdef Probe1020 < nirs.core.Probe
         IS_distance;  % Distance from center to Cz
         labels;  % labels of 10-20 points
         pts1020;  % 10-20 points
+        mesh;
         
     end
     
@@ -60,10 +61,44 @@ classdef Probe1020 < nirs.core.Probe
                 lambda=[808];
             end
             
+            obj=obj.set_mesh;
+            
             obj.opticalproperties = nirs.media.tissues.brain(0.7, 50,lambda);
             
             obj.defaultdrawfcn='draw1020';
         end
+        
+        function obj = regsister_mesh2probe(obj,mesh)
+            % This reshapes the mesh to fit the current probe
+
+            tbl=table(obj.labels,obj.pts1020(:,1),obj.pts1020(:,2),obj.pts1020(:,3),...
+                'VariableNames',{'Name','X','Y','Z'});
+                
+            T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
+            for idx=1:length(mesh)
+                n=mesh(idx).nodes;
+                n(:,4)=1;
+                n=n*T;
+                mesh(idx).nodes=n(:,1:3);
+                
+                if(~isempty(mesh(idx).fiducials))
+                    p=[mesh(idx).fiducials.X mesh(idx).fiducials.Y mesh(idx).fiducials.Z];
+                    p(:,4)=1;
+                    p=p*T;
+                    mesh(idx).fiducials.X=p(:,1);
+                    mesh(idx).fiducials.Y=p(:,2);
+                    mesh(idx).fiducials.Z=p(:,3);
+                    
+                    
+                end
+                
+            end
+            obj.mesh=mesh;
+            
+            
+        end
+        
+              
         function headsize=get_headsize(obj)
             headsize=Dictionary();
             headsize('lpa-cz-rpa')=obj.LR_arclength;
@@ -138,6 +173,10 @@ classdef Probe1020 < nirs.core.Probe
         end
         function mesh = getmesh(obj);
             % create the spherical mesh
+            mesh=obj.mesh;
+        end
+        
+        function obj=set_mesh(obj);
             mesh(1) = nirs.util.spheremesh;
             mesh(2) = nirs.util.spheremesh;
             mesh(3) = nirs.util.spheremesh;
@@ -173,6 +212,7 @@ classdef Probe1020 < nirs.core.Probe
             mesh(1).fiducials=fidtbl;
             mesh(1).transparency=.2;
             mesh(2).transparency=.1;
+            obj.mesh=mesh;
             
         end
         

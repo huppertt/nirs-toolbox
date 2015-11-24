@@ -118,7 +118,7 @@ classdef ChannelStats
             end
             
             [out.variables, idx] = sortrows(out.variables, colsToSortBy);
-            
+            out.probe.link = out.probe.link(idx,:); 
             out.beta = obj.beta(idx);
             out.covb = obj.covb(idx, idx);
         end

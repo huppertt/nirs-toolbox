@@ -83,13 +83,13 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
             switch(viewpt{i})
                 case('left')
                     viewfcn{i}={@(h)view(h,-90,0); ...  % Change view to the left
-                        @(h)camroll(h,90); ... % rotate the image by 90degress
+                        @(h)camroll(h,0); ... % rotate the image by 90degress
                         @(h)delete(findobj('type','light','parent',h));...
                         @(h)light('parent',h,'position',get(h,'cameraPosition'));...
                         @(h)axis(h,'off')}; % Turn off the axis
                 case('right')
                     viewfcn{i}={@(h)view(h,90,0); ...  % Change view to the right
-                        @(h)camroll(h,-90); ... % rotate the image by 90degress
+                        @(h)camroll(h,0); ... % rotate the image by 90degress
                         @(h)delete(findobj('type','light','parent',h));...
                         @(h)light('parent',h,'position',get(h,'cameraPosition'));...
                         @(h)axis(h,'off')}; % Turn off the axis

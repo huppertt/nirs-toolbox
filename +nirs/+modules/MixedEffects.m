@@ -57,8 +57,13 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 b = [b; S(i).beta];
                 
                 % whitening transform
+                
+
+                
                 [u, s, ~] = svd(S(i).covb, 'econ');
-                W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                W = blkdiag(W, pinv(s).^.5 * u');
+                
                 iW = blkdiag(iW, u*sqrt(s) );
                 
                 
@@ -122,8 +127,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             Z(lstBad,:)=[];
             beta(lstBad,:)=[];
             %% Weight the model
-            
-            
+                        
             X    = W*X;
             Z    = W*Z;
             beta = W*beta;
