@@ -30,6 +30,10 @@ end
 
 function probe = combineprobes(data)
 
+
+
+
+
 ndet=0;
 nsrc=0;
 link=[];
@@ -65,10 +69,50 @@ for i=1:length(data)
     nsrc=nsrc+size(data(i).probe.srcPos,1);
     
 end
-
+  
+    
 probe=data(1).probe;
 probe.optodes=optodes;
 probe.link=link;
+
+if(isa(data(1).probe,'nirs.core.Probe1020'))
+    warning('this will not work if the underlying probe mesh differ');
+    
+    optodes=[];
+    for i=1:length(data)
+        thislink=data(i).probe.link;
+        thislink.source=thislink.source+nsrc;
+        thislink.detector=thislink.detector+ndet;
+        
+        thisoptodes=data(i).probe.swap_reg.optodes;
+        for j=1:size(data(i).probe.swap_reg.detPos,1)
+            dI=['0000' num2str(j)];
+            dI=dI(end-3:end);
+            dI2=['0000' num2str(j+ndet)];
+            dI2=dI2(end-3:end);
+            
+            lst=find(ismember(thisoptodes.Name,['Detector-' dI]));
+            thisoptodes.Name{lst}=['Detector-' dI2];
+        end
+        
+        for j=1:size(data(i).probe.swap_reg.srcPos,1)
+            dI=['0000' num2str(j)];
+            dI=dI(end-3:end);
+            dI2=['0000' num2str(j+nsrc)];
+            dI2=dI2(end-3:end);
+            
+            lst=find(ismember(thisoptodes.Name,['Source-' dI]));
+            thisoptodes.Name{lst}=['Source-' dI2];
+        end
+        link=[link; thislink];
+        optodes=[optodes; thisoptodes];
+        ndet=ndet+size(data(i).probe.detPos,1);
+        nsrc=nsrc+size(data(i).probe.srcPos,1);
+        
+    end
+    probe.optodes_registered=optodes;    
+end
+
 
 end
 
@@ -93,6 +137,8 @@ function ChanStatsNew = synthetic_meas(ChanStats,NewProbe,FwdModel)
 %% Construct the forward model for the old and new probe
 
 if(nargin<3)
+    
+    if(~isa(NewProbe,'nirs.core.Probe1020'))
     % No forward model provided, then build the slab version
     minX = min(min(ChanStats.probe.optodes.X),min(NewProbe.optodes.X));
     maxX = max(max(ChanStats.probe.optodes.X),max(NewProbe.optodes.X));
@@ -105,7 +151,10 @@ if(nargin<3)
     
     mesh=nirs.core.Mesh;
     mesh.nodes=[X(:) Y(:) Z(:)];
-    
+    else
+        mesh=NewProbe.getmesh;
+        %mesh=mesh(end);
+    end
     lambda=unique(NewProbe.link.type);
     
     FwdModel=nirs.forward.ApproxSlab;
@@ -120,12 +169,20 @@ end
 ChanStats=sorted(ChanStats,{'type','source','detector','cond'});
 NewProbe.link=sortrows(NewProbe.link,{'type','source','detector'});
 
-
-FwdModel.probe=ChanStats.probe;
+ if(~isa(ChanStats.probe,'nirs.core.Probe1020'))
+     FwdModel.probe=ChanStats.probe;
+ else
+     FwdModel.probe=ChanStats.probe.swap_reg;
+ end
+ 
 [Lold]=FwdModel.jacobian;
 Lold=Lold.mua;
 
-FwdModel.probe=NewProbe;
+ if(~isa(NewProbe,'nirs.core.Probe1020'))
+     FwdModel.probe=NewProbe;
+ else
+     FwdModel.probe=NewProbe.swap_reg;
+ end
 [Lnew]=FwdModel.jacobian;
 Lnew=Lnew.mua;
 
@@ -173,7 +230,7 @@ elseif(isa(ChanStats,'nirs.core.ChannelStats'))
     
     ChanStatsNew.beta=H2*ChanStats.beta;
     covb=H2*ChanStats.covb*H2';
-    covb=covb+1E-3*max(diag(covb))*eye(size(covb));
+    covb=covb+1E-4*max(diag(covb))*eye(size(covb));
     
     c=(triu(covb,1)+tril(covb,-1)')/2;
     c=c+c'+diag(diag(covb));

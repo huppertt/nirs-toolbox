@@ -1,4 +1,4 @@
-function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
+function [data, truth, truthchan] = simDataImage(fwdModel, noise, stim, beta, basis )
 %SIMDATA Simulates NIRS data by adding a task to baseline noise.
 % 
 % Args:
@@ -85,5 +85,15 @@ function [data, truth] = simDataImage(fwdModel, noise, stim, beta, basis )
     data.stimulus = stim;
     
     truth=(b~=0);
+    t=[];
+    [un,~,j]=unique(link.type);
+    for i=1:length(un)
+        t(:,i)=max(abs(Yact(j==i,:)),[],2)/max(max(abs(Yact(j==i,:)),[],2));
+    end
+    t=any(t>.25,2);
+    truthchan=zeros(size(Y,2),1);
+    for i=1:length(un)
+        truthchan(j==i)=t;
+    end
     
    

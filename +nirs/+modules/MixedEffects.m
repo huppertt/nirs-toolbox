@@ -96,7 +96,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             beta = randn(size(tmp,1), 1);
             
             nRE=max(1,length(strfind(obj.formula,'|')));
-            
+            warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
             lm1 = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
                 obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
@@ -133,6 +133,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             beta = W*beta;
             
             %% fit the model
+            warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
             lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
                 'FitMethod', 'ML');
             
