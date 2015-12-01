@@ -95,6 +95,27 @@ for iter=1:1
      
 end
 
+P1=ProbeAnchors(Anchors,:);
+P2=AnchorPos(Anchors,:);
+p1=ProbeAnchors(AnchorVectors,:);
+p2=AnchorPos(AnchorVectors,:);
+
+for j=1:length(AnchorVectors)
+    k=dsearchn(P2(1:length(Anchors),:),p2(j,:));
+    p1v = P1(k,:)-p1(j,:);
+    p2v = P2(k,:)-p2(j,:);
+    if(norm(p1v)~=0 & norm(p2v)~=0)
+        p1v=p1v/norm(p1v);
+        p2v=p2v/norm(p2v);
+        P1=[P1; p1v-P1(k,:)];
+        P2=[P2; p2v-P2(k,:)];
+    end
+end
+Tform =P1\P2;
+
+ProbePosSphere=ProbePosSphere*Tform;
+ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);    
+    
 probeOut=probe;
 probeOut.optodes.X=ProbePosSphere(:,1);
 probeOut.optodes.Y=ProbePosSphere(:,2);

@@ -73,7 +73,7 @@ classdef Probe1020 < nirs.core.Probe
 
             tbl=table(obj.labels,obj.pts1020(:,1),obj.pts1020(:,2),obj.pts1020(:,3),...
                 'VariableNames',{'Name','X','Y','Z'});
-                
+            
             T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
             for idx=1:length(mesh)
                 n=mesh(idx).nodes;

@@ -47,6 +47,7 @@ function S = ttest(obj, c, b)
     type=unique(var.cond);
     lst=find(ismember(var.cond,type{1}));
     var=var(lst,:);
+    var=repmat(var,size(c,1),1);
     var.cond=cond;
     S.variables = var;
 end

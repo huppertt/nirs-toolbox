@@ -75,7 +75,7 @@ prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
 tbl=nirs.util.list_1020pts('?');
 Pos =[tbl.X tbl.Y tbl.Z];
 
-Pos = icbm_spm2tal(Pos);
+%Pos = icbm_tal2spm(Pos);
 
 [TR, TT] = icp(BEM(1).nodes',Pos');
 Pos=(TR*Pos'+TT*ones(1,size(Pos,1)))';

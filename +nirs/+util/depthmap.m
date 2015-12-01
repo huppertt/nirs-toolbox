@@ -19,6 +19,21 @@ aalLabels=load(which('ROI_MNI_V5_List.mat'));
 aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)*2-90;
 aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)*2-126;
 aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)*2-72;
+aal.BORDER_XYZ=icbm_spm2tal(aal.BORDER_XYZ')';
+
+aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)-2.5;
+aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)+17.5;
+aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)-20;
+
+T =[ 0.9964    0.0178    0.0173   -0.0000
+   -0.0169    0.9957   -0.0444   -0.0000
+   -0.0151    0.0429    1.0215    0.0000
+   -0.4232  -17.5022   11.6967    1.0000];
+
+
+aal.BORDER_XYZ(4,:)=1;
+aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
+aal.BORDER_XYZ=aal.BORDER_XYZ(1:3,:);
 
 if(nargin>1)
     if(isa(headshape,'nirs.core.Probe1020'))
@@ -88,6 +103,18 @@ if(nargout>0)
                 probe1020.swap_reg.detPos(ml(id,2),2));
             Z(id,1)=.5*(probe1020.swap_reg.srcPos(ml(id,1),3)+...
                 probe1020.swap_reg.detPos(ml(id,2),3));
+            
+            
+            %Correct for the curvature
+            r=.5*(norm(probe1020.swap_reg.srcPos(ml(id,1),:))+norm(probe1020.swap_reg.detPos(ml(id,2),:)));
+            theta=acos(dot(probe1020.swap_reg.srcPos(ml(id,1),:),probe1020.swap_reg.detPos(ml(id,2),:))/...
+                (norm(probe1020.swap_reg.srcPos(ml(id,1),:))*norm(probe1020.swap_reg.detPos(ml(id,2),:))));
+            d=r*(1-cos(theta/2));
+            n=norm([X(id,1) Y(id,1) Z(id,1)]);
+            X(id,1)=X(id,1)+d*X(id,1)/n;
+            Y(id,1)=Y(id,1)+d*Y(id,1)/n;
+            Z(id,1)=Z(id,1)+d*Z(id,1)/n;
+            
             Type{id,1}='Link';
             Units{id,1}=probe1020.optodes_registered.Units{1};
         end
