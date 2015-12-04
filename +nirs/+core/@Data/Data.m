@@ -87,7 +87,7 @@ classdef Data
             out.data = out.data(:,idx);
         end
         
-        function h=draw( obj, lstChannels )
+        function varargout=draw( obj, lstChannels )
             %% draw - Plots the probe geometry.
             % 
             % Args:
@@ -148,6 +148,11 @@ classdef Data
             else
                 ylim( [pmin pmax] );
             end
+            
+            if(nargout>0)
+                varargout{1}=h;
+            end
+            
         end
         
     end

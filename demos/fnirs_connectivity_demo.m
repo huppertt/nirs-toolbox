@@ -21,12 +21,14 @@ dOD=j.run(data);
 j = nirs.modules.Connectivity();
 ConnStats_Corr=j.run(dOD);
 j=nirs.modules.MixedEffectsConnectivity();
+j.formula='F ~ 1';
 GroupStats_Corr = j.run(ConnStats_Corr); 
 
 %This runs the robust multi-variate Grangers
 j = nirs.modules.Grangers();
 ConnStats_Grangers=j.run(dOD);
 j=nirs.modules.MixedEffectsConnectivity();
+j.formula='G ~ 1';
 GroupStats_Grangers = j.run(ConnStats_Grangers); 
 
 

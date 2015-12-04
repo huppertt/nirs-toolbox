@@ -57,7 +57,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                   fld='Z';
               end
             
-            D=zeros(length(S),n);
+            D=zeros(length(S),n*n);
             for i=1:length(S)
                 D(i,:)=real(S(i).(fld)(:));
             end
@@ -68,7 +68,8 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             formula=['corr ' formula(strfind(formula,'~'):end)];
             nRE=length(strfind(obj.formula,'|'));
             
-            for idx=1:n
+            Coef=[];
+            for idx=1:n*n
                 corr=D(:,idx);
                 vars=[demo table(corr)];
                 if(nRE>0)
@@ -77,6 +78,8 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 else
                     lm = fitlm(vars,formula, 'dummyVarCoding',obj.dummyCoding);    
                 end
+                [i,j]=ind2sub([n n],idx);
+                Coef(i,j,:)=lm.Coefficients.Estimate;
             end
             
 %             
@@ -129,7 +132,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             if(strcmp(G.type,'Grangers'))
                 [n,m]=size(S(1).Grangers);
                 % lst=find(ismember(lmG.CoefficientNames,Labels));
-                Gr=reshape(lm.Coefficients.Estimate,n,m,nConds);
+                Gr=Coef;
                 dfe1=S(1).dfe1; for idx=2:length(S); dfe1=dfe1+S(idx).dfe1; end;
                 dfe2=S(1).dfe2; for idx=2:length(S); dfe2=dfe2+S(idx).dfe2; end;
                 G.dfe2=dfe2/length(S);
@@ -137,7 +140,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 G=G.GtoF(Gr);
             else
                 [n,m]=size(S(1).Pearsons);
-                Z=reshape(lm.Coefficients.Estimate,n,m);
+                Z=Coef;
                 G.Pearsons=tanh(Z);
                 dfe2=S(1).dfe2; for idx=2:length(S); dfe2=dfe2+S(idx).dfe2; end;
                 G.dfe2=dfe2/length(S);
