@@ -1,4 +1,4 @@
-function draw( obj, vtype, vrange, thresh )
+function draw( obj, vtype, vrange, thresh)
     %% draw - Draws channelwise values on a probe.
     % Args:
     %     vtype   - either 'beta' or 'tstat'
@@ -21,8 +21,11 @@ function draw( obj, vtype, vrange, thresh )
         vrange  = vmax*[-1 1];
     end
 
-    % significance mask
-    if nargin < 4
+   
+
+    
+     % significance mask
+    if nargin < 4 
         mask = ones(size(values)) > 0;
         
     elseif isscalar(thresh)
@@ -37,7 +40,8 @@ function draw( obj, vtype, vrange, thresh )
         
         mask = obj.(s{1}) < str2double(s{2});
     end
-
+    
+    
     % meas types
     types = obj.variables.type;
 
@@ -83,6 +87,7 @@ function draw( obj, vtype, vrange, thresh )
                 end
             end
             
+          
             f=figure;
             set(f,'name',[utypes{iType} ' : ' uconds{iCond}]);
             obj.probe.draw(colors, lineStyles);

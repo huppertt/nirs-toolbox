@@ -1,4 +1,4 @@
-function HRF = extractHRF(Stats,basis,duration,Fs)
+function HRF = extractHRF(Stats,basis,duration,Fs,type)
 % This function returns the impulse response or HRF 
 % from a nirs.core.ChannelStats variable  
 %
@@ -7,6 +7,14 @@ function HRF = extractHRF(Stats,basis,duration,Fs)
 %     basis - the basis function used to compute the stats
 %     duration (optional) - convolves the IRF (default =1/Fs)
 %     Fs - the sample rate to use (default = 4Hz)
+
+if(nargin<5)
+    type={'hrf'};
+end
+
+if(~iscell(type))
+    type={type};
+end
 
 if(nargin<4)
     Fs = 4;
@@ -23,7 +31,7 @@ end
 
 if(length(Stats)>1)
     for idx=1:length(Stats)
-         HRF(idx) = nirs.design.extractHRF(Stats(idx),basis,duration,Fs);
+         HRF(idx) = nirs.design.extractHRF(Stats(idx),basis,duration,Fs,type);
     end
     return;
 end
@@ -32,9 +40,17 @@ end
 
 conditions=Stats.conditions;
 for idx=1:length(conditions)
-    str=strsplit(conditions{idx},'_');
+    l=strfind(conditions{idx},':');
+    if(isempty(l))
+        l=length(conditions{idx});
+    else
+        l=l-1;
+    end
+    
+    
+    str=strsplit(conditions{idx}(1:l),'_');
     str=strcat(str{1:max(1,length(str)-1)});
-    conditions{idx}=str;
+    conditions{idx}=[str conditions{idx}(l+1:end)];
 end
 conditions=unique(conditions);    
 
@@ -51,10 +67,29 @@ end
 tbl=Stats.table;
 tbl=sortrows(tbl,{'source','detector','type','cond'});
 
+cnames=tbl.cond(1:size(X,2));
+for i=1:length(cnames)
+     l=strfind(cnames{i},':');
+    if(isempty(l))
+        l=length(cnames{i});
+    else
+        l=l-1;
+    end
+    
+    
+    str=strsplit(cnames{i}(1:l),'_');
+    num=str{end};
+    str=strcat(str{1:max(1,length(str)-1)});
+    cnames{i}=[str cnames{i}(l+1:end) '_' num];
+end
+
+
+[i,lst]=ismember(names,cnames);
+
 beta=reshape(tbl.beta,size(X,2),[]);
-Hbeta=X*beta;
+Hbeta=X*beta(lst,:);
 tstat=reshape(tbl.tstat,size(X,2),[]);
-Htstat=X*tstat;
+Htstat=X*tstat(lst,:);
 
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
@@ -72,11 +107,21 @@ data=[];
 link=table;
 for idx=1:length(conditions)
     lstT=[(idx-1)*(duration+lenHRF)*Fs+[1:npts]];
-    data=[data Hbeta(lstT,lst) Htstat(lstT,lst)];
-    type=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
-    type2=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx} ':tstat' ]},height(HRF.probe.link),1));
-    linktmp=[HRF.probe.link; HRF.probe.link];
-    linktmp.type=vertcat(type,type2);
+    typ={};
+    typ2={};
+    if(ismember(lower(type),'hrf'))
+        data=[data Hbeta(lstT,lst) ];
+         typ=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
+    end
+    if(ismember(lower(type),'tstat'))
+        data=[data  Htstat(lstT,lst)];
+        typ2=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx} ':tstat' ]},height(HRF.probe.link),1));
+   
+    end
+    
+    
+    linktmp=repmat(HRF.probe.link,length(type),1);
+    linktmp.type=vertcat(typ,typ2);
     link=[link; linktmp];
 end
 HRF.probe.link=link;

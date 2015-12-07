@@ -5,7 +5,7 @@ if(nargin<2)
 end
 
 
-if(exist('MMC_Collins_Atlas_Mesh_Version_2L.mat')~=2)
+if(0) %exist('MMC_Collins_Atlas_Mesh_Version_2L.mat')~=2)
     disp('You need to download the MMC Colin atlas');
     disp('Go to:');
     disp('http://mcx.sourceforge.net/cgi-bin/index.cgi?MMC/Colin27AtlasMesh');

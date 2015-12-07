@@ -95,7 +95,19 @@ classdef Data
             
             % get data
             if nargin == 1
-                lstChannels = 1:size(obj.data,2);
+                lstChannels = 1:size(obj(1).data,2);
+            end
+            
+            if(length(obj)>1)
+                figure;
+                a=round(sqrt(length(obj)));
+                b=ceil(sqrt(length(obj)));
+                for i=1:length(obj)
+                    subplot(a,b,i);
+                    obj(i).draw(lstChannels);
+                    legend off;
+                end
+                return
             end
             
             t = obj.time;

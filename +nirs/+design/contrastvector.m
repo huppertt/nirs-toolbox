@@ -31,20 +31,28 @@ for i=1:length(S)
     end
     cond{i}=slocal(max([0 strfind(slocal,'-') strfind(slocal,'+') ...
         strfind(slocal,'*')])+1:end);
-    cond{i}=cond{i}(1:min([strfind(cond{i},'[')-1 length(cond{i})]));
+    cond{i}=[cond{i}(1:min([strfind(cond{i},'[')-1 length(cond{i})]))...
+        cond{i}(min([strfind(cond{i},']')+1 length(cond{i})]):end)];
     if(isempty(strfind(slocal,'[')))
         indices{i}=[];
     else
-        indices{i}=str2num(slocal(strfind(slocal,'['):end));
+        indices{i}=str2num(slocal(strfind(slocal,'['):strfind(slocal,']')));
     end
 end
 
 
 % Remove the numbering off of the stim condition names
 for i=1:length(conditions)
-    if(double(conditions{i}(end))>=48 & ...
-            double(conditions{i}(end))<=57) %  between 0-9
-            names{i}=conditions{i}(1:max(strfind(conditions{i},'_'))-1);
+    l=strfind(conditions{i},':');
+    if(isempty(l))
+        l=length(conditions);
+    else
+        l=l-1;
+    end
+    if(double(conditions{i}(l))>=48 & ...
+            double(conditions{i}(l))<=57) %  between 0-9
+            names{i}=[conditions{i}(1:max(strfind(conditions{i}(1:l),'_'))-1) ...
+                conditions{i}(max(strfind(conditions{i}(l:end),':'))+l-1:end)];
     else
         names{i}=conditions{i};
     end
@@ -64,9 +72,16 @@ for idx=1:length(cond)
     else
         lst=[];
         for i=1:length(indices{idx})
+            l=strfind(cond{idx},':');
+            if(isempty(l))
+                l=length(cond{idx});
+            else
+                l=l-1;
+            end
+            
             s=['00' num2str(indices{idx}(i))];
-            lst=[lst find(ismember(conditions,[cond{idx}...
-                '_' s(end-1:end)]))];
+            lst=[lst find(ismember(conditions,[cond{idx}(1:l)...
+                '_' s(end-1:end) cond{idx}(l+1:end)]))];
         end
         if(length(lst)~=length(indices{idx}) || length(lst)==0)
             warning(['unable to find name: ' cond{idx}]);

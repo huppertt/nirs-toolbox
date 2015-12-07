@@ -62,6 +62,7 @@ end
 % coding like this, but ...
 
 stim = d.stimulus(cond);
+stim.name=cond;
 newstim={};
 while(1)
     cnt=0;

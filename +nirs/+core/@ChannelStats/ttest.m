@@ -19,6 +19,14 @@ function S = ttest(obj, c, b, names)
            names=[];
      end
     
+     if(length(obj)>1)
+        for i=1:length(obj)
+            S(i)=obj(i).ttest(c, b, names);
+        end
+         return
+     end
+     
+     
      if(isstr(c) || iscell(c) || iscellstr(c))
          if(isstr(c)); c=cellstr(c); end;
          if(isempty(names))
