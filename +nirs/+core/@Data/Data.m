@@ -83,6 +83,12 @@ classdef Data
             if nargin < 2
                 colsToSortBy = {'source', 'detector', 'type'};
             end
+            if(length(obj)>1)
+                for idx=1:length(obj)
+                    out(idx)=sorted(obj(idx),colsToSortBy );
+                end
+                return
+            end
             [out.probe.link, idx] = sortrows(out.probe.link, colsToSortBy);
             out.data = out.data(:,idx);
         end
@@ -118,6 +124,7 @@ classdef Data
             for i = 1:length( obj.stimulus.keys )
                 s = [s obj.stimulus.values{i}.getStimVector( t )];
             end
+            
 
             % plots
             gca; hold on;
@@ -129,6 +136,7 @@ classdef Data
             
             % plot stim blocks if available
             if ~isempty(s) 
+                s=s./(ones(size(s,1),1)*mad(s));
                 % min/max of axes
                 pmin = dmin - 0.3*dsize;
                 pmax = dmax + 0.2*dsize;

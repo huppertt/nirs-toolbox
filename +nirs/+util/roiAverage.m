@@ -122,7 +122,7 @@ end
                ContVect{i} = 1/length(find(R{i}));
            end
        end
-       clear d;
+       clear d; cnt=1;
        for idx=1:length(types):length(R)
             
            c = zeros(size(data.data,2),length(types));
@@ -130,13 +130,14 @@ end
                 c(R{idx+i-1},i) = ContVect{idx+i-1};
                 c(:,i)=c(:,i)/sum(c(:,i));
            end
-           d(idx)=nirs.core.Data;
-           d(idx).description=['ROI average' namesOld{floor(idx/length(types))+1}];
-           d(idx).probe=nirs.core.Probe(NaN(1,3),NaN(1,3),table(repmat(1,length(types),1),...
+           d(cnt)=nirs.core.Data;
+           d(cnt).description=['ROI average' namesOld{floor(idx/length(types))+1}];
+           d(cnt).probe=nirs.core.Probe(NaN(1,3),NaN(1,3),table(repmat(1,length(types),1),...
                repmat(1,length(types),1),types,'VariableNames',{'source','detector','type'}));
-           d(idx).data = data.data*c;
-           d(idx).time=data.time;
-           d(idx).stimulus=data.stimulus;
+           d(cnt).data = data.data*c;
+           d(cnt).time=data.time;
+           d(cnt).stimulus=data.stimulus;
+           cnt=cnt+1;
        end
        tbl=d;
        

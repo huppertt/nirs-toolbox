@@ -32,7 +32,7 @@ for i=1:length(S)
     cond{i}=slocal(max([0 strfind(slocal,'-') strfind(slocal,'+') ...
         strfind(slocal,'*')])+1:end);
     cond{i}=[cond{i}(1:min([strfind(cond{i},'[')-1 length(cond{i})]))...
-        cond{i}(min([strfind(cond{i},']')+1 length(cond{i})]):end)];
+        cond{i}(min([strfind(cond{i},']')+1 length(cond{i})+1]):end)];
     if(isempty(strfind(slocal,'[')))
         indices{i}=[];
     else
@@ -45,7 +45,7 @@ end
 for i=1:length(conditions)
     l=strfind(conditions{i},':');
     if(isempty(l))
-        l=length(conditions);
+        l=length(conditions{i});
     else
         l=l-1;
     end
@@ -61,7 +61,7 @@ names=unique(names);
 
 
 C = zeros(1,length(conditions));
-cond{1}(strfind(cond{1},' '))=[];
+% cond{1}(strfind(cond{1},' '))=[];
 
 for idx=1:length(cond)
     if(isempty(indices{idx}))
