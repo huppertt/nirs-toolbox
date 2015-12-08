@@ -49,6 +49,7 @@ end
         return
     end
     
+    data=data.sorted;
      % sort probe
     link = data.probe.link;
     [link, ilink] = sortrows(link, {'type','source', 'detector'});

@@ -415,10 +415,10 @@ classdef Probe1020 < nirs.core.Probe
             set(gcf,'color','w');
             
             if(obj.zoom)
-                dx=(max(x)-min(x))/20;
-                dy=(max(y)-min(y))/20;
+                dx=(max(x)-min(x))/10;
+                dy=(max(y)-min(y))/10;
                 set(gca,'Xlim',[min(x)-dx max(x)+dx]);
-                set(gca,'Ylim',[min(y)-dy max(y)+dy]);
+                set(gca,'Ylim',[-headradius*1.13 max(y)+dy]);
             end
             
             if(nargout>0)
