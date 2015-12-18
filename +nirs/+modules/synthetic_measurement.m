@@ -200,6 +200,7 @@ for j=1:length(unique(i))
     lst2=find(ismember(NewProbe.link.type,c(j)));
     H=blkdiag(H,Lnew(lst2,:)*pinv(Lold(lst,:)));
 end
+H=H/norm(H);
 
 if(isa(ChanStats,'nirs.core.Data'))
     ChanStatsNew=ChanStats;
@@ -230,11 +231,11 @@ elseif(isa(ChanStats,'nirs.core.ChannelStats'))
     
     ChanStatsNew.beta=H2*ChanStats.beta;
     covb=H2*ChanStats.covb*H2';
-    covb=covb+1E-4*max(diag(covb))*eye(size(covb));
+    covb=covb+max(1E-4*max(diag(covb)),min(diag(ChanStats.covb)))*eye(size(covb));
     
     c=(triu(covb,1)+tril(covb,-1)')/2;
     c=c+c'+diag(diag(covb));
-    ChanStatsNew.covb=covb;
+    ChanStatsNew.covb=c;
     
     ChanStatsNew.variables=[ChanStatsNew.probe.link table(cond)];
     

@@ -117,6 +117,12 @@ classdef ChannelStats
                 colsToSortBy = {'source', 'detector', 'type', 'cond'};
             end
             
+            if(length(obj)>1)
+                for idx=1:length(obj)
+                    out(idx)=sorted(obj(idx),colsToSortBy);
+                end
+                return
+            end
             [out.variables, idx] = sortrows(out.variables, colsToSortBy);
             out.probe.link = sortrows(out.probe.link,{colsToSortBy{ismember(colsToSortBy,out.probe.link.Properties.VariableNames)}}); %out.probe.link(idx,:); 
             out.beta = obj.beta(idx);
