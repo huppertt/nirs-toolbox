@@ -88,6 +88,7 @@ for idx=1:length(cond)
         end
     end
    
-    
     C(1,lst)=C(1,lst)+ones(1,length(lst))*multiplier{idx};
 end
+
+return

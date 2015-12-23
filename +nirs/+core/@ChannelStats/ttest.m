@@ -34,6 +34,10 @@ function S = ttest(obj, c, b, names)
          end
          c = nirs.design.contrastvector(c,obj.conditions);
          
+         %Remove names that didn't exist in this file
+         lst=all(c==0,2);
+         c(lst,:)=[];
+         names={names{~lst}};
      end
      
     if(length(obj)>1)
