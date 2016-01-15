@@ -250,8 +250,6 @@ probe1020.draw;
 
 
 
-% module to batch registration
-
 
 
 

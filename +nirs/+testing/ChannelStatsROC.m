@@ -96,7 +96,8 @@ classdef ChannelStatsROC
         function obj = run(obj, iter)
             for i = 1:iter
                [data, truth] = obj.simfunc();
-               
+               [~,i]=sortrows(data.probe.link,{'type','source','detector'});
+               truth=truth(i);
                % pipeline stats
                
                T=[];
@@ -106,7 +107,7 @@ classdef ChannelStatsROC
                for i=1:length(obj.pipeline)
                    
                    stats = obj.pipeline(i).run(data);
-                   
+                   stats=sorted(stats,{'type','source','detector'});
                    % multivariate joint hypothesis testing
                    fstats = stats.jointTest();
                    
