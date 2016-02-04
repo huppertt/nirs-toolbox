@@ -122,6 +122,7 @@ classdef Probe1020 < nirs.core.Probe
                 if(~isempty(strfind(obj.defaultdrawfcn,'mesh')))
                     mesh=obj.getmesh;
                     mesh.draw;
+                    axis tight;
                  end
                 
             elseif(~isempty(strfind(obj.defaultdrawfcn,'10-20')));
@@ -370,7 +371,12 @@ classdef Probe1020 < nirs.core.Probe
             
             hold on;
             [x,y]=obj.convert2d(obj.pts1020);
-            scatter(x,y,'filled','MarkerFaceColor',[.8 .8 .8]);
+            dx=-x(find(ismember(obj.labels,'Cz')));
+            dy=-y(find(ismember(obj.labels,'Cz')));
+            scatter(x+dx,y+dy,'filled','MarkerFaceColor',[.8 .8 .8]);
+         
+            
+            
             
             % Todo-  draw the probe too
             
@@ -383,14 +389,14 @@ classdef Probe1020 < nirs.core.Probe
                 [x,y]=obj.convert2d(Pos);
                 
                 lstS=find(ismember(obj.optodes.Type,'Source'));
-                scatter(x(lstS),y(lstS),'filled','MarkerFaceColor','r')
+                scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r')
                 lstD=find(ismember(obj.optodes.Type,'Detector'));
-                scatter(x(lstD),y(lstD),'filled','MarkerFaceColor','b')
+                scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b')
                 
                 for i=1:size(link,1)
                     s=link(i,1);
                     d=link(i,2);
-                    h(i)=line(x([lstS(s) lstD(d)]),y([lstS(s) lstD(d)]),'Color', colors(i, :), lineStyles{i, :});
+                    h(i)=line(x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'Color', colors(i, :), lineStyles{i, :});
                     set(h(i),'UserData',[s d]);
                 end
                 %%
@@ -401,15 +407,73 @@ classdef Probe1020 < nirs.core.Probe
             axis tight;
             axis equal;
             axis off;
-            
+               [x,y]=obj.convert2d(obj.pts1020);
             headradius=obj.headcircum/(2*pi);
             
+           headradius=norm([x(find(ismember(obj.labels,'Fpz'))) y(find(ismember(obj.labels,'Fpz')))]-...
+                [x(find(ismember(obj.labels,'Cz'))) y(find(ismember(obj.labels,'Cz')))]);
+            
+%              headradius=norm(obj.pts1020(find(ismember(obj.labels,'Fpz')),1:2)-...
+%                  obj.pts1020(find(ismember(obj.labels,'Cz')),1:2));
+%             
             % add a circle for the head
             theta = linspace(0,2*pi);
+            plot(headradius*cos(theta),headradius*sin(theta),'color',[.4 .4 .4],'linestyle','--');
+            
+            headradius=norm([x(find(ismember(obj.labels,'nas'))) y(find(ismember(obj.labels,'nas')))]-...
+                [x(find(ismember(obj.labels,'Cz'))) y(find(ismember(obj.labels,'Cz')))]);
+            
             plot(headradius*cos(theta),headradius*sin(theta),'k');
+            plot([-headradius headradius],[0 0],'color',[.6 .6 .6],'linestyle','--')
+            plot([0 0],[-headradius headradius],'color',[.6 .6 .6],'linestyle','--')
+            
             line([-10 0],[-headradius -headradius-10],'color','k');
             line([10 0],[-headradius -headradius-10],'color','k');
             scatter([-15 15],[-headradius -headradius],'filled','k','sizedata',120);
+            
+            % Draw the central sulcus
+           
+            %lst={'CpZ','C3','C5-FC5'}
+            pts=[x(find(ismember(obj.labels,'CPz'))), x(find(ismember(obj.labels,'C3'))), ...
+                (x(find(ismember(obj.labels,'C5')))+x(find(ismember(obj.labels,'FC5'))))/2;...
+                y(find(ismember(obj.labels,'CPz'))), y(find(ismember(obj.labels,'C3'))), ...
+                (y(find(ismember(obj.labels,'C5')))+y(find(ismember(obj.labels,'FC5'))))/2]';
+            pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
+            xx=[min(pts(:,1)):.1:max(pts(:,1))];
+            p=polyfit(pts(:,1),pts(:,2),2);
+            plot(xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
+            
+            %lst2={'CpZ','C4','C6-FC6'}
+            pts=[x(find(ismember(obj.labels,'CPz'))), x(find(ismember(obj.labels,'C4'))), ...
+                (x(find(ismember(obj.labels,'C6')))+x(find(ismember(obj.labels,'FC6'))))/2;...
+                y(find(ismember(obj.labels,'CPz'))), y(find(ismember(obj.labels,'C4'))), ...
+                (y(find(ismember(obj.labels,'C6')))+y(find(ismember(obj.labels,'FC6'))))/2]';
+            pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
+            xx=[min(pts(:,1)):.1:max(pts(:,1))];
+            p=polyfit(pts(:,1),pts(:,2),2);
+            plot(xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
+            
+            % Add the insular sulcus
+           % lst={'FT9','FT7','C5','Cp5'}
+           
+             pts=[x(find(ismember(obj.labels,'FT9'))), x(find(ismember(obj.labels,'FT7'))), ...
+                  x(find(ismember(obj.labels,'C5'))), x(find(ismember(obj.labels,'CP5')));...
+                  y(find(ismember(obj.labels,'FT9'))), y(find(ismember(obj.labels,'FT7'))), ...
+                  y(find(ismember(obj.labels,'C5'))), y(find(ismember(obj.labels,'CP5')))]';
+            pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
+            yy=[min(pts(:,2)):.1:max(pts(:,2))];
+            p=polyfit(pts(:,2),pts(:,1),3);
+            plot(polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
+            
+            % lst={'FT10','FT8','C6','Cp6'}
+            pts=[x(find(ismember(obj.labels,'FT10'))), x(find(ismember(obj.labels,'FT8'))), ...
+                  x(find(ismember(obj.labels,'C6'))), x(find(ismember(obj.labels,'CP6')));...
+                  y(find(ismember(obj.labels,'FT10'))), y(find(ismember(obj.labels,'FT8'))), ...
+                  y(find(ismember(obj.labels,'C6'))), y(find(ismember(obj.labels,'CP6')))]';
+            pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
+            yy=[min(pts(:,2)):.1:max(pts(:,2))];
+            p=polyfit(pts(:,2),pts(:,1),3);
+            plot(polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
             
             set(gca,'YDir','reverse');
             set(gcf,'color','w');

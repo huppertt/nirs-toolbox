@@ -44,7 +44,7 @@ if(nargin>1)
     end
     
     tbl=nirs.util.list_1020pts('?');
-    Pos2=[tbl.X tbl.Y tbl.Z];
+     Pos2=[tbl.X tbl.Y tbl.Z];
     
     tbl= nirs.util.register_headsize(headshape,tbl);
     Pos=[tbl.X tbl.Y tbl.Z];
@@ -54,8 +54,12 @@ if(nargin>1)
 else
     probe1020=nirs.core.Probe1020;
     tbl=nirs.util.list_1020pts('?');
+   
+    
     Pos=[tbl.X tbl.Y tbl.Z];
 end
+
+
 
 alllabels=label;
 for idx=1:length(label)
@@ -139,6 +143,9 @@ if(nargout>0)
 end
 
     figure;
+    tbl2=nirs.util.list_1020pts('Cz');
+    [xx,yy]=probe1020.convert2d([tbl2.X tbl2.Y tbl2.Z]);
+    shiftx=-xx; shifty=-yy;
     
     [xy(:,1),xy(:,2)]=probe1020.convert2d(Pos);
     probe1020.draw1020([],[],gca);
@@ -149,7 +156,7 @@ end
     warning('off','MATLAB:griddata:DuplicateDataPoints');
     IM = griddata(xy(:,1),xy(:,2),depth,X,Y,'cubic');
     
-    h=imagesc(min(xy(:,1)):dx:max(xy(:,1)),min(xy(:,2)):dy:max(xy(:,2)),...
+    h=imagesc([min(xy(:,1)):dx:max(xy(:,1))]+shiftx,[min(xy(:,2)):dy:max(xy(:,2))]+shifty,...
         IM,[0 max(abs(IM(:)))]);
     set(h,'alphaData',1*(~isnan(IM)));
     

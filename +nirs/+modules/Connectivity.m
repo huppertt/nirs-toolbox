@@ -2,11 +2,13 @@ classdef Connectivity < nirs.modules.AbstractModule
 %% CONNECTIVITY - Computes all-to-all connectivity model.
 % Outputs nirs.core.ConnStats object
 
-    
+    properties
+        corrfcn;  % function to use to compute correlation (see +nirs/+sFC for options)
+    end
     methods
         function obj = Connectivity( prevJob )
            obj.name = 'Connectivity';
-          
+           obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'4xFs',true);  %default to use AR-whitened robust correlation
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -14,20 +16,16 @@ classdef Connectivity < nirs.modules.AbstractModule
         
         function connStats = runThis( obj, data )
             for i = 1:length(data)
-                pMax=data(i).Fs*4;
-                [yf,a]= nirs.math.innovations(data(i).data,pMax);
-                [rcorr,pcorr]=nirs.math.robust_corrcoef(yf);
-                dfe2=repmat(size(yf,1)-1,1,size(yf,2));
-                
-                connStats(i)=nirs.core.ConnectivityStats();
-                connStats(i).type = 'Correlation';
+                [r,p,dfe]=obj.corrfcn(data(i));
+               
+                connStats(i)=nirs.core.sFCStats();
+                connStats(i).type = obj.corrfcn;
                 connStats(i).description= ['Connectivity model of ' data(i).description];
                 connStats(i).probe=data(i).probe;
                 connStats(i).demographics=data(i).demographics;
-                connStats(i).Grangers_F=[];
-                connStats(i).dfe1=[];
-                connStats(i).dfe2=dfe2;
-                connStats(i).Pearsons=rcorr;
+     
+                connStats(i).dfe=dfe;
+                connStats(i).R=r;
                 
                 disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
             end

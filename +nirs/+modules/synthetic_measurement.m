@@ -147,7 +147,7 @@ if(nargin<3)
     maxY = max(max(ChanStats.probe.optodes.Y),max(NewProbe.optodes.Y));
     dY = (maxY-minY)/3;
     
-    [X,Y,Z]=meshgrid([minX-dX:dX/30:maxX+dX],[minY-dY:dY/30:maxY+dY],[-5 -10 -15]);
+    [X,Y,Z]=meshgrid([minX-dX:dX/30:maxX+dX],[minY-dY:dY/30:maxY+dY],[-10]);
     
     mesh=nirs.core.Mesh;
     mesh.nodes=[X(:) Y(:) Z(:)];
@@ -175,16 +175,16 @@ NewProbe.link=sortrows(NewProbe.link,{'type','source','detector'});
      FwdModel.probe=ChanStats.probe.swap_reg;
  end
  
-[Lold]=FwdModel.jacobian;
-Lold=Lold.mua;
+[Lold]=FwdModel.jacobian('spectral');
+Lold=[Lold.hbo Lold.hbr];
 
  if(~isa(NewProbe,'nirs.core.Probe1020'))
      FwdModel.probe=NewProbe;
  else
      FwdModel.probe=NewProbe.swap_reg;
  end
-[Lnew]=FwdModel.jacobian;
-Lnew=Lnew.mua;
+[Lnew]=FwdModel.jacobian('spectral');
+Lnew=[Lnew.hbo Lnew.hbr];
 
 %[Unew,Snew,Vnew]=nirs.math.mysvd(Lnew);
 % [Uold,Sold,Vold]=nirs.math.mysvd(Lold);
@@ -193,51 +193,50 @@ Lnew=Lnew.mua;
 % S=diag(s(lst));
 % H = Lnew*Vold(:,lst)*S*Uold(:,lst)';
 
-[c,~,i]=unique(ChanStats.probe.link.type);
-H=[];
-for j=1:length(unique(i))
-    lst=find(i==j);
-    lst2=find(ismember(NewProbe.link.type,c(j)));
-    H=blkdiag(H,Lnew(lst2,:)*pinv(Lold(lst,:)));
-end
-H=H/norm(H);
+% [c,~,i]=unique(ChanStats.probe.link.type);
+% H=[];
+% for j=1:length(unique(i))
+%     lst=find(i==j);
+%     lst2=find(ismember(NewProbe.link.type,c(j)));
+%     H=blkdiag(H,Lnew(lst2,:)*pinv(Lold(lst,:)));
+% end
+% H=H/norm(H);
 
 if(isa(ChanStats,'nirs.core.Data'))
-    ChanStatsNew=ChanStats;
-    ChanStatsNew.probe=NewProbe;
-    lam=.1;
-    [U,S,V]=nirs.math.mysvd(Lold);
-    H = Lnew*V*inv(S+eye(size(S))*lam)*U';
-    ChanStatsNew.data=(H*ChanStats.data')';
-elseif(isa(ChanStats,'nirs.core.ChannelStats'))
+%     ChanStatsNew=ChanStats;
+%     ChanStatsNew.probe=NewProbe;
+%     lam=.1;
+%     [U,S,V]=nirs.math.mysvd(Lold);
+%     H = Lnew*V*inv(S+eye(size(S))*lam)*U';
+%     ChanStatsNew.data=(H*ChanStats.data')';
+erorr('not supported data type');
+end
+
     ChanStatsNew=ChanStats;
     ChanStatsNew.probe=NewProbe;
     
     cond=ChanStats.conditions;
-    H2=[];
-    c={};
-    for id=1:length(cond)
-        H3=zeros(size(H,1)*length(cond),size(H,2)*length(cond));
-        lst=find(ismember(ChanStats.variables.cond,cond{id}));
-        H3((id-1)*size(H,1)+1:id*size(H,1),lst)=H;
-        H2=blkdiag(H2,H3);
-        c=[c; repmat({cond{id}},size(H,1),1)];
-    end
-    
     if(length(cond)>1)
         error('not fully tested')
     end
-    cond=c;
     
-    ChanStatsNew.beta=H2*ChanStats.beta;
-    covb=H2*ChanStats.covb*H2';
-    covb=covb+max(1E-4*max(diag(covb)),min(diag(ChanStats.covb)))*eye(size(covb));
-    
-    c=(triu(covb,1)+tril(covb,-1)')/2;
-    c=c+c'+diag(diag(covb));
-    ChanStatsNew.covb=c;
-    
+%     [u,s,~]=svd(ChanStats.covb,'econ');
+%     W = diag(1./diag(sqrt(s))) * u';
+    W=diag(1./sqrt(diag(ChanStats.covb)));
+
+    [US,V]=nirs.math.hogSVD({Lnew,Lold});
+    lambda=1E3;
+    H = US{1}*pinv(US{2}'*W'*W*US{2}+lambda*eye(size(US{1})))*W'*US{2}'*W;
+   for idx=1:32; H(idx,:)=H(idx,:)/norm(H(idx,:)); end;
+  
+    ChanStatsNew.beta=H*ChanStats.beta;
+    covb=H*ChanStats.covb*H';
+%     covb=covb+max(1E-4*max(diag(covb)),min(diag(ChanStats.covb)))*eye(size(covb));
+%     
+%     c=(triu(covb,1)+tril(covb,-1)')/2;
+%     c=c+c'+diag(diag(covb));
+    ChanStatsNew.covb=covb;
+    cond=repmat(cond,height(ChanStatsNew.probe.link),1);
     ChanStatsNew.variables=[ChanStatsNew.probe.link table(cond)];
     
-end
 end

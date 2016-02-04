@@ -18,7 +18,7 @@ function S = ttest(obj, c, b)
     c = c(:, icond);
     
     % full contrast matrix
-    C = kron(eye(nchan), c);
+    C = kron(speye(nchan,nchan), c);
 
     if nargin < 3
         b = zeros(size(C,1),1);

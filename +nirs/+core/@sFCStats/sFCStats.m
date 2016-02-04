@@ -1,5 +1,5 @@
-classdef ConnectivityStats
-    %% ConnectivitySTATS - Holds stats info for a connectivity model
+classdef sFCStats
+    %% sFC - Holds stats info for a connectivity model
     % 
     % Properties: 
     %     description  - description of data (e.g. filename)
@@ -35,8 +35,10 @@ classdef ConnectivityStats
     
     methods
       
-         function z = get.Z( obj )
-             Z = .5*log((1+obj.R)./(1-obj.R));
+         function Z = get.Z( obj )
+             Z = abs(.5*log((1+obj.R)./(1-obj.R))).*sign(obj.R);
+             Z(find(Z>6))=6;  % Fix the R=1 -> inf;  tanh(6) ~1 so cut there to keep the scale
+             Z(find(Z<-6))=-6;
          end
         
          function p = get.p(obj)
@@ -64,9 +66,9 @@ classdef ConnectivityStats
             
             out = table([sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                     [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                    obj.Pearsons(:),obj.Z(:),obj.p(:),...
+                    obj.R(:),obj.Z(:),obj.p(:),...
                     'VariableNames',{'SourceOrigin','DetectorOrigin','TypeOrigin',...
-                    'SourceDest','DetectorDest','TypeDest','Pearsons','Z','pvalue'});
+                    'SourceDest','DetectorDest','TypeDest','R','Z','pvalue'});
             
         end
         

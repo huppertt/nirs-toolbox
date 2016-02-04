@@ -13,7 +13,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
     %     j.dummyCoding = 'full';
     
     properties
-        formula = 'F ~ -1 + channel';
+        formula = 'F ~ 1';
         dummyCoding = 'full';
         centerVars = true;
     end
@@ -51,15 +51,15 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             % Let's do this per channel for now
             n=height(S(1).table);
             
-              if(strcmp(S(1).type,'Grangers'))
-                  fld='Grangers';
-              else
+              if(isa(S(1),'nirs.core.sFCStats'))
                   fld='Z';
+              else
+                  fld='Grangers';
               end
             
-            D=zeros(length(S),n*n);
+            D=zeros(length(S),n);
             for i=1:length(S)
-                D(i,:)=real(S(i).(fld)(:));
+                D(i,:)=real(S(i).(fld)(:))';
             end
             D(D==Inf)=1/eps(1);
             D(D==-Inf)=-1/eps(1);
@@ -69,7 +69,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             nRE=length(strfind(obj.formula,'|'));
             
             Coef=[];
-            for idx=1:n*n
+            for idx=1:n
                 corr=D(:,idx);
                 vars=[demo table(corr)];
                 if(nRE>0)
@@ -78,47 +78,17 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 else
                     lm = fitlm(vars,formula, 'dummyVarCoding',obj.dummyCoding);    
                 end
-                [i,j]=ind2sub([n n],idx);
+                [i,j]=ind2sub([sqrt(n) sqrt(n)],idx);
                 Coef(i,j,:)=lm.Coefficients.Estimate;
             end
             
-%             
-%             vars = table();
-%             for i = 1:length(S)
-%                 tbl=S(i).table;
-%                 tbl=[tbl repmat(demo(i,:),height(tbl),1)];
-%                 %tbl=sortrows(tbl,{'TypeOrigin','TypeDest'});
-%                 LabelsOrig=strcat(repmat('src',height(tbl),1),num2str(tbl.SourceOrigin),...
-%                     repmat('det',height(tbl),1), num2str(tbl.DetectorOrigin),tbl.TypeOrigin);
-%                 
-%                 LabelsDest=strcat(repmat('src',height(tbl),1),num2str(tbl.SourceDest),...
-%                     repmat('det',height(tbl),1), num2str(tbl.DetectorDest),tbl.TypeDest);
-%                 channel=strcat(LabelsOrig,repmat('_',height(tbl),1),LabelsDest);
-%                 vars=[vars; [table(channel) tbl]];
-%                 
-%             end
-%             
-%             nRE=length(strfind(obj.formula,'|'));
-%             formula=obj.formula;
-%             
-%             if(strcmp(S(1).type,'Grangers'))
-%                 
-%                 formula=['Grangers ' formula(strfind(formula,'~'):end)];
-%                 lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
-%                     'FitMethod', 'ML', 'CovariancePattern', repmat({'Diagonal'},nRE,1),...
-%                     'Verbose',true);
-%             else
-%                 
-%                 vars.Z(vars.Z==Inf)=1/eps(1);
-%                 vars.Z(vars.Z==-Inf)=-1/eps(1);
-%                 formula=['Z ' formula(strfind(formula,'~'):end)];
-%                 lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
-%                     'FitMethod', 'ML', 'CovariancePattern', repmat({'Diagonal'},nRE,1),...
-%                     'Verbose',true);
-%             end
-%             
+           
             %Now sort back out
-            G = nirs.core.ConnectivityStats();
+            if(isa(S(1),'nirs.core.sFCStats'))
+                G = nirs.core.sFCStats();
+            else
+                
+            end
             G.description = 'Group Level Connectivity';
             G.type=S(1).type;
             G.probe=S(1).probe;
@@ -129,7 +99,14 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             else
                 nConds=1;
             end
-            if(strcmp(G.type,'Grangers'))
+             if(isa(S(1),'nirs.core.sFCStats'))
+                [n,m]=size(S(1).R);
+                Z=Coef;
+                G.R=tanh(Z);
+                dfe=S(1).dfe; for idx=2:length(S); dfe=dfe+S(idx).dfe; end;
+                G.dfe=dfe/length(S);
+                
+            else
                 [n,m]=size(S(1).Grangers);
                 % lst=find(ismember(lmG.CoefficientNames,Labels));
                 Gr=Coef;
@@ -138,13 +115,6 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 G.dfe2=dfe2/length(S);
                 G.dfe1=dfe1/length(S);
                 G=G.GtoF(Gr);
-            else
-                [n,m]=size(S(1).Pearsons);
-                Z=Coef;
-                G.Pearsons=tanh(Z);
-                dfe2=S(1).dfe2; for idx=2:length(S); dfe2=dfe2+S(idx).dfe2; end;
-                G.dfe2=dfe2/length(S);
-                
             end
             
         end

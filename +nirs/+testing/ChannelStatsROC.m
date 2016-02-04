@@ -96,7 +96,7 @@ classdef ChannelStatsROC
         function obj = run(obj, iter)
             for i = 1:iter
                [data, truth] = obj.simfunc();
-               [~,i]=sortrows(data.probe.link,{'type','source','detector'});
+               [~,i]=sortrows(data(1).probe.link,{'type','source','detector'});
                truth=truth(i);
                % pipeline stats
                
