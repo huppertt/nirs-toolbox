@@ -20,7 +20,7 @@ classdef sFCStats
         description     % description of data (e.g. filename)      
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
-
+        conditions;
         % Results storage
         R               % correlation value (depends on model)
         dfe          	% degrees of freedom
@@ -42,8 +42,10 @@ classdef sFCStats
          end
         
          function p = get.p(obj)
-            t=obj.R./sqrt((1-obj.R.^2)/(max(obj.dfe(:))-2));
-            p=2*tcdf(-abs(t),max(obj.dfe(:)));
+             for idx=1:length(obj.conditions)
+                 t(:,:,idx)=obj.R(:,:,idx)./sqrt((1-obj.R(:,:,idx).^2)/(max(obj.dfe(idx))-2));
+                 p(:,:,idx)=2*tcdf(-abs(t),max(obj.dfe(idx)));
+             end
          end
         
         function out = table( obj )
@@ -63,13 +65,15 @@ classdef sFCStats
             sourceTo=link.source(j);
             detectorTo=link.detector(j);
             typeTo=link.type(j);
-            
-            out = table([sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+            out=table;
+            for i=1:length(obj.conditions)
+                cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
+                out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                     [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
                     obj.R(:),obj.Z(:),obj.p(:),...
-                    'VariableNames',{'SourceOrigin','DetectorOrigin','TypeOrigin',...
-                    'SourceDest','DetectorDest','TypeDest','R','Z','pvalue'});
-            
+                    'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
+                    'SourceDest','DetectorDest','TypeDest','R','Z','pvalue'})];
+            end
         end
         
         draw( obj, vtype, vrange, thresh );     

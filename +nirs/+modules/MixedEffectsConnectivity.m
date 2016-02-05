@@ -8,15 +8,15 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
     %
     % Example Formula:
     %     % this will calculate the group average for each condition
-    %     j = nirs.modules.MixedEffects();
-    %     j.formula = 'beta ~ -1 + group:cond + (1|subject)';
+    %     j = nirs.modules.MixedEffectsConnectivity();
+    %     j.formula = 'R ~ -1 + group:cond + (1|subject)';
     %     j.dummyCoding = 'full';
     
     properties
-        formula = 'F ~ 1';
+        formula = 'R ~ -1 + cond';
         dummyCoding = 'full';
         centerVars = true;
-    end
+      end
     
     methods
         function obj = MixedEffects( prevJob )
@@ -53,13 +53,21 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
               if(isa(S(1),'nirs.core.sFCStats'))
                   fld='Z';
+                  sym=true;
               else
-                  fld='Grangers';
+                  fld='F';
+                  sym=false;
               end
             
             D=zeros(length(S),n);
+            cond={};
+            cnt=1;
             for i=1:length(S)
-                D(i,:)=real(S(i).(fld)(:))';
+                for cIdx=1:length(S(i).conditions)
+                    D(cnt,:)=real(reshape(S(i).(fld)(:,:,cIdx),[],1))';
+                    cond{cnt,1}=S(i).conditions{cIdx};
+                    cnt=cnt+1;
+                end
             end
             D(D==Inf)=1/eps(1);
             D(D==-Inf)=-1/eps(1);
@@ -68,45 +76,80 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             formula=['corr ' formula(strfind(formula,'~'):end)];
             nRE=length(strfind(obj.formula,'|'));
             
-            Coef=[];
-            for idx=1:n
-                corr=D(:,idx);
-                vars=[demo table(corr)];
-                if(nRE>0)
-                    lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
-                        'FitMethod', 'ML');
-                else
-                    lm = fitlm(vars,formula, 'dummyVarCoding',obj.dummyCoding);    
-                end
-                [i,j]=ind2sub([sqrt(n) sqrt(n)],idx);
-                Coef(i,j,:)=lm.Coefficients.Estimate;
+            if(nRE>0)
+                warning('Random effects are currently not supported');
             end
             
+            corr=D(:,1);
+            vars=[demo table(corr,cond)];
+            warning('off','stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit');
+            
+            lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
+                'FitMethod', 'ML');
+            X = lm.designMatrix('Fixed');
+            Z = lm.designMatrix('Random');
+            
+            Coef = inv(X'*X)*X'*D;
+            Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
+            
+%             Coef=[]; cnt=0;
+%             for idx=lst
+%                 if(obj.verbose)
+%                    if(round(100*idx/n)>cnt)
+%                        disp([num2str(round(100*idx/n)) '% complete']);
+%                        cnt=cnt+5;
+%                    end
+%                 end
+%                 corr=D(:,idx);
+%                 vars=[demo table(corr)];
+%                 if(nRE>0)
+%                     lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
+%                         'FitMethod', 'ML');
+%                 else
+%                     lm = fitlm(vars,formula, 'dummyVarCoding',obj.dummyCoding);    
+%                 end
+%                 [i,j]=ind2sub([sqrt(size(D,2)) sqrt(size(D,2))],idx);
+%                 Coef(i,j,:)=lm.Coefficients.Estimate;
+%                 if(sym)
+%                     Coef(j,i,:)=lm.Coefficients.Estimate;
+%                 end
+%             end
+%             
            
             %Now sort back out
             if(isa(S(1),'nirs.core.sFCStats'))
                 G = nirs.core.sFCStats();
             else
-                
+                error('fix this');
             end
+            
+            CoefficientNames=lm.CoefficientNames;
+            for i=1:length(CoefficientNames) 
+                CoefficientNames{i}=CoefficientNames{i}(strfind(CoefficientNames{i},...
+                    'cond_')+length('cond_'):end); 
+            end;
+
             G.description = 'Group Level Connectivity';
             G.type=S(1).type;
             G.probe=S(1).probe;
+            G.conditions=CoefficientNames;
             
             %  Labels=strcat(repmat('Labels_',length(Labels),1),Labels);
-            if(ismember('conditions',vars.Properties.VariableNames))
-                nConds=length(unique(vars.conditions));
+            if(ismember('condition',vars.Properties.VariableNames))
+                nConds=length(unique(vars.condition));
+                error('fix this');
             else
                 nConds=1;
             end
-             if(isa(S(1),'nirs.core.sFCStats'))
+            if(isa(S(1),'nirs.core.sFCStats'))
                 [n,m]=size(S(1).R);
                 Z=Coef;
                 G.R=tanh(Z);
                 dfe=S(1).dfe; for idx=2:length(S); dfe=dfe+S(idx).dfe; end;
-                G.dfe=dfe/length(S);
+                G.dfe=repmat(dfe,length(CoefficientNames),1)/length(S);
                 
-            else
+             else
+                error('fix this part');
                 [n,m]=size(S(1).Grangers);
                 % lst=find(ismember(lmG.CoefficientNames,Labels));
                 Gr=Coef;

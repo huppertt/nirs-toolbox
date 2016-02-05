@@ -10,14 +10,14 @@ function [r,p] = wavelet_coher(Y,FS,freq,wname)
 %   waven-  wavelet name.  Default = real valued morlet
 
 
-if(nargin<5)
+if(nargin<4)
     %wname='db45';
     wname='morl';
 end
-if(nargin<3 || isempty(FS))
+if(nargin<2 || isempty(FS))
     FS=1;
 end
-if(nargin<4 || isempty(freq))
+if(nargin<3 || isempty(freq))
     freq = [Fs*2/length(Y) Fs/2];
 end
 
