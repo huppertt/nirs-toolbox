@@ -407,7 +407,7 @@ classdef Probe1020 < nirs.core.Probe
             axis tight;
             axis equal;
             axis off;
-               [x,y]=obj.convert2d(obj.pts1020);
+            [x,y]=obj.convert2d(obj.pts1020);
             headradius=obj.headcircum/(2*pi);
             
            headradius=norm([x(find(ismember(obj.labels,'Fpz'))) y(find(ismember(obj.labels,'Fpz')))]-...

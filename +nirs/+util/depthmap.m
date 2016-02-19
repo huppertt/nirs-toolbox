@@ -167,7 +167,7 @@ end
     set(gcf,'color','w');
     
     
-    
+%     
 %     
 %     for i=1:size(xy,1)
 %         s(i)=scatter(xy(i,1),xy(i,2),'filled','MarkerFaceColor',[.8 .8 .8]);

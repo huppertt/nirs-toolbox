@@ -84,7 +84,7 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                         data(i).beta = max(cc * abs(data(i).beta),0).*sign(data(i).beta);
                     end
                     
-                    data(i).covb = cc * data(i).covb * cc';
+                    data(i).covb = cc * data(i).covb * cc'+eye(size(cc,1))*1E-6;
 
                 end
                 

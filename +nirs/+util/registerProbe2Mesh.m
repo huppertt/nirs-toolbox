@@ -26,6 +26,17 @@ ProbePos=[probe.optodes.X probe.optodes.Y probe.optodes.Z];
 lstCM=find(ismember(probe.optodes.Units,{'cm'}));
 ProbePos(lstCM,:)=ProbePos(lstCM,:)*10;
 
+% Find symetric pairs;
+sym=zeros(size(ProbePos,1));
+for i=1:size(ProbePos,1)
+    for j=i:size(ProbePos,1)
+        if(norm(abs(ProbePos(i,:))-abs(ProbePos(j,:)))<5)
+        sym(i,j)=1;
+        sym(j,i)=1;
+        end
+    end
+end
+
 %Place the probe on a sphere
 x=ProbePos(:,1); x=x-mean(x);
 y=ProbePos(:,2); y=y-mean(y);
@@ -48,7 +59,8 @@ Anchors=find(ismember(probe.optodes.Type(lstCommonInProbe),'FID-anchor'));
 T = ProbePosSphere(lstCommonInProbe,:)\AnchorPos;
 ProbePosSphere=ProbePosSphere*T;
 
-ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
+ProbePosSphere=makesymetric(ProbePosSphere,sym);
+ProbePosSphere = projectsurface(ProbePosSphere(:,1:3),mesh.nodes);
 
 if(dispflag)
     figure;
@@ -82,9 +94,12 @@ for iter=1:1
     Tform =P1\P2;
      
     ProbePosSphere=ProbePosSphere*Tform;
-    
+    ProbePosSphere=makesymetric(ProbePosSphere,sym);
+
     ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
     ProbePosSphere = pushdistances(ProbePosSphere,squareform(pdist(ProbePos)));
+    ProbePosSphere=makesymetric(ProbePosSphere,sym);
+
     ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
     
     if(dispflag)
@@ -114,8 +129,14 @@ end
 Tform =P1\P2;
 
 ProbePosSphere=ProbePosSphere*Tform;
+ProbePosSphere=makesymetric(ProbePosSphere,sym);
+ 
 ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);    
     
+ProbePosSphere=makesymetric(ProbePosSphere,sym);
+ 
+ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);  
+
 probeOut=probe;
 probeOut.optodes.X=ProbePosSphere(:,1);
 probeOut.optodes.Y=ProbePosSphere(:,2);
@@ -152,5 +173,19 @@ for idx=1:size(pos,1)
     pos(idx,:)=p(i,:);
 end
 
+
+return
+
+
+function ProbePosSphere=makesymetric(ProbePosSphere,sym);
+
+for i=1:length(sym)
+    lst=find(sym(i,:));
+    p=mean(abs(ProbePosSphere(lst,:)),1);
+    for j=1:length(lst)
+        ProbePosSphere(lst(j),:)=p.*sign(ProbePosSphere(lst(j),:));
+    end
+
+end
 
 return
