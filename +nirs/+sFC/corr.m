@@ -4,7 +4,7 @@ if(nargin<2)
     robust_flag=true;
 end
 
-if(isa(data,'nirs.core.Data'))
+if(~isempty(strfind(class(data),'.core.Data')))
     data=data.data;
 end
 

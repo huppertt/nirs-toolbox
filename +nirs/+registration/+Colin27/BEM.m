@@ -22,12 +22,16 @@ end
 if(exist(fullfile(folder,'ColinBEM.mat'))==2 && ~force)
     load(fullfile(folder,'ColinBEM.mat'));
     
-    prop{1} = nirs.media.tissues.skin(lambda);
-    prop{2} = nirs.media.tissues.bone(lambda);
-    prop{3} = nirs.media.tissues.water(lambda);
-    prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
+    if(nargin>0)
+        prop{1} = nirs.media.tissues.skin(lambda);
+        prop{2} = nirs.media.tissues.bone(lambda);
+        prop{3} = nirs.media.tissues.water(lambda);
+        prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
+    else
+        prop={};
+    end
+        fwdBEM.prop  = prop;
     
-    fwdBEM.prop  = prop;
     return
 end
 
@@ -65,11 +69,14 @@ for idx=1:4
 end
 BEM(end).transparency=1;
 
-prop{1} = nirs.media.tissues.skin(lambda);
-prop{2} = nirs.media.tissues.bone(lambda);
-prop{3} = nirs.media.tissues.water(lambda);
-prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
-
+if(nargin>1)
+    prop{1} = nirs.media.tissues.skin(lambda);
+    prop{2} = nirs.media.tissues.bone(lambda);
+    prop{3} = nirs.media.tissues.water(lambda);
+    prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
+else
+    prop={};
+end
 
 
 tbl=nirs.util.list_1020pts('?');

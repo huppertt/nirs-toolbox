@@ -47,9 +47,8 @@ function S = ttest(obj, c, b, names)
         return
     end
     
-    
     nchan = size(obj.probe.link,1);
-
+    
     % sort variables
     [~, icond] = sort(obj.conditions);
     obj = obj.sorted();
@@ -86,8 +85,10 @@ function S = ttest(obj, c, b, names)
     
     cond = repmat( cond(:), [nchan 1] );
 
-    link = repmat( obj.probe.link, [size(c,1) 1] );
-    link = sortrows(link, {'source', 'detector', 'type'});
-    S.variables = [link table(cond)];
+    
+        link = repmat( obj.probe.link, [size(c,1) 1] );
+        link = sortrows(link, {'source', 'detector', 'type'});
+        S.variables = [link table(cond)];
+  
     S.description = 'T-test';
 end

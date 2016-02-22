@@ -13,15 +13,30 @@ for idx=1:size(d,2)
     W = min(W,wfun(d(:,idx)));
 end
 % Weight the whole model first to down-weight global motion artifacts
-d=diag(W)*d;
+d=spdiags(W,0,length(W),length(W))*d;
 
 % all pairwise combinations
 r=ones(size(d,2));
+n=size(d,2)^2;
+
+
+disp('Progress');
+str='  0';
+fprintf('%s %',str(end-2:end));
+
+
+
+cnt=1;
 for i=1:size(d,2)
     for j=1:size(d,2)
-       r(i,j)=robustfit(d(:,i),d(:,j),'bisquare',[],'off');        
+        str=['   ' num2str(round(100*cnt/n))];
+        fprintf('\b\b\b\b%s %',str(end-2:end));
+        warning('off','stats:statrobustfit:IterationLimit')
+       r(i,j)=robustfit(d(:,i),d(:,j),'bisquare',[],'off');     
+       cnt=cnt+1;
     end
 end
+disp('completed');
 
 % Section 2.3 Eqn 6
 % r = sqrt(b1*b2)

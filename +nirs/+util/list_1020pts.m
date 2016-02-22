@@ -23,8 +23,14 @@ X=XYZ(lst,1);
 Y=XYZ(lst,2);
 Z=XYZ(lst,3);
 
-Type=repmat({'10-20'},size(X));
+Type=repmat({'10-10'},size(X));
 Units=repmat({'mm'},size(X));
+
+for i=1:length(Name); 
+    if(length(Name{i})<4 & isempty(strfind(Name{i},'h')))
+        Type{i}='10-20';
+    end;
+end
 
 tbl=table(Name,X,Y,Z,Type,Units);
 

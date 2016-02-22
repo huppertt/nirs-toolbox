@@ -8,7 +8,7 @@ if(nargin<2 || isempty(modelorder))
     modelorder=4;
 end
 
-if(isa(data,'nirs.core.Data'))
+if(~isempty(strfind(class(data),'.core.Data')))
     Fs=data.Fs;
     data=data.data;
 else

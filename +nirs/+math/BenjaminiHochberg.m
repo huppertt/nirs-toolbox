@@ -1,8 +1,8 @@
 function q = BenjaminiHochberg(p)
 % Returns the Benjamini-Hochberg adjusted pvalues
-
+porig=p;
 s = size(p);   
-[p, I] = sort(p,'descend');
+[p, I] = sort(p,'ascend');
 
 % number of hypothesis tests
 m = length(p);

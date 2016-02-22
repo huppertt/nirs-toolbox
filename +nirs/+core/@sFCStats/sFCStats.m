@@ -9,12 +9,14 @@ classdef sFCStats
     %     Z            - Fisher Z-transform
     %     p            - p-values f
     %     dfe          - degrees of freedom
+    %
     %     
     %  Methods:
     %     
-    %     draw        - draws beta or tstat values on top of probe geometry
+    %     draw        - draws the correlation values
     %     table       - returns a table of all stats (minus full covariance)
-  
+    %     graph       - returns a graph object from the connectivity model
+    
     properties
         type            % connectivity model from +nirs/+sFC/
         description     % description of data (e.g. filename)      
@@ -30,6 +32,7 @@ classdef sFCStats
     properties ( Dependent = true )       
         p           % p-value (depends on model)
         Z           % Fisher-Z transform
+        q
     end
     
     
@@ -48,6 +51,14 @@ classdef sFCStats
              end
          end
         
+         function q = get.q(obj)
+            p=obj.p;
+            q=ones(size(p));
+            lst=find(p~=1);  
+            q(lst)=nirs.math.BenjaminiHochberg(p(lst));
+         end
+         
+         
         function out = table( obj )
             %% table - returns a table of the regression stats
             link=obj.probe.link;
@@ -76,9 +87,70 @@ classdef sFCStats
             end
         end
         
+        function grph=graph(obj,vtype,thresh)
+            % converts to a graph type object
+            
+            if(nargin<2)
+                vtype='Z';
+            end
+            if(nargin<3)
+                thresh='p<0.05';
+            end
+            if(~isempty(strfind(thresh,'p')))
+                stat='p';
+            else
+                stat='q';
+            end
+            thres=str2num(thresh(strfind(thresh,'<')+1:end));
+            
+            if(isempty(strfind(vtype,':')))
+                type=obj(1).probe.link.type(1);
+            else
+                type=vtype(strfind(vtype,':')+1:end);
+                vtype=vtype(1:strfind(vtype,':')-1);
+            end
+            
+            
+            for i=1:length(obj)
+                lst=find(ismember(obj(i).probe.link.type,type));
+                Adj=obj(i).(vtype);
+                Adj=(Adj.*(obj(i).(stat)<thres));
+                Adj=Adj.*(~eye(size(Adj)));
+                Adj=Adj(lst,lst);
+                grph(i)=nirs.core.Graph(Adj);
+                grph(i).description=obj(i).description;
+                grph(i).demographics=obj(i).demographics;
+                grph(i).probe=obj(i).probe;
+                
+                for k=1:length(lst)
+                    j=lst(k);
+                    Name=['Src-' num2str(obj(i).probe.link.source(j)) ...
+                        ':Det-' num2str(obj(i).probe.link.detector(j)) ...
+                        ' ' obj(i).probe.link.type{j}];
+                    X=.5*(obj(i).probe.srcPos(obj(i).probe.link.source(j),1)+...
+                        obj(i).probe.detPos(obj(i).probe.link.detector(j),1));
+                    Y=.5*(obj(i).probe.srcPos(obj(i).probe.link.source(j),2)+...
+                        obj(i).probe.detPos(obj(i).probe.link.detector(j),2));
+                    Z=.5*(obj(i).probe.srcPos(obj(i).probe.link.source(j),3)+...
+                        obj(i).probe.detPos(obj(i).probe.link.detector(j),3));
+                    grph(i).nodeInfo.label{k}=Name;
+                    grph(i).nodeInfo.X(k)=X;
+                    grph(i).nodeInfo.Y(k)=Y;
+                    grph(i).nodeInfo.Z(k)=Z;
+                end
+                
+                
+            end
+           
+            
+            
+            
+        end
+        
         draw( obj, vtype, vrange, thresh );     
 
     end
+    
     
     methods (Access = protected)
         newNames = transformNames( obj, T );

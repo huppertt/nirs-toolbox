@@ -14,8 +14,8 @@ if(~iscellstr(label))
 end
 label=lower(label);
 
-aal=load(which('ROI_MNI_V5_Border.mat'));
-aalLabels=load(which('ROI_MNI_V5_List.mat'));
+aal=load(which('ROI_MNI_V5_Border_modified.mat'));
+%aalLabels=load(which('ROI_MNI_V5_List.mat'));
 aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)*2-90;
 aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)*2-126;
 aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)*2-72;
@@ -34,6 +34,7 @@ T =[ 0.9964    0.0178    0.0173   -0.0000
 aal.BORDER_XYZ(4,:)=1;
 aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
 aal.BORDER_XYZ=aal.BORDER_XYZ(1:3,:);
+aal.ROI={aal.ROI{1} aal.ROI{2}}; 
 
 if(nargin>1)
     if(isa(headshape,'nirs.core.Probe1020'))
@@ -68,15 +69,28 @@ for idx=1:length(label)
     end
 end
 
-
-Labels=lower(strvcat(aalLabels.ROI.Nom_L));
-Idx=vertcat(aalLabels.ROI.ID);
-if(strcmp(label,'?') | strcmp(label,'*') | strcmp(label,'any'))
-    lst=[1:size(Labels,1)];
-else
-    lst=find(ismember(Labels,lower(alllabels)));
+for i=1:length(aal.ROI)
+    Labels{i}=lower(strvcat(aal.ROI{i}.Nom_L));
+    Idx{i}=vertcat(aal.ROI{i}.ID);
+    
+    if(any(strcmp(label,'?') | strcmp(label,'*') | strcmp(label,'any')))
+        lst{i}=[1:size(Labels{i},1)];
+    else
+        lst{i}=find(ismember(Labels{i},lower(alllabels)));
+    end
 end
-if(isempty(lst))
+
+lstNodes=[];
+
+% Add any MNI coordinates
+for i=1:length(label)
+    pt=sscanf(label{i},'[%d %d %d]')';
+    if(~isempty(pt))
+        lstNodes(end+1)=dsearchn(aal.BORDER_XYZ',pt);
+    end
+end
+
+if(isempty(lst) & isempty(lstNodes))
     disp('region not found');
     disp('use command:')
     disp(' >> nirs.util.listAtlasRegions')
@@ -84,11 +98,21 @@ if(isempty(lst))
     return
 end
 
-lstNodes=find(ismember(aal.BORDER_V,Idx(lst)));
-[k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
+for i=1:length(aal.ROI)
+    lstTemp=find(ismember(aal.BORDER_V(i,:),Idx{i}(lst{i})));
+    if(~isempty(lstTemp))
+        lstNodes=[lstNodes lstTemp];
+        [k,depth{i}] = dsearchn(aal.BORDER_XYZ(:,lstTemp)',Pos);
+        
+        [~,regionIdx]=ismember(aal.BORDER_V(i,lstTemp(k)),Idx{i});
+        region{i}=cellstr(Labels{i}(regionIdx,:));
+    else
+        region{i}={};
+        depth{i}=[];
+    end
+end
 
-[~,regionIdx]=ismember(aal.BORDER_V(lstNodes(k)),Idx);
-region=cellstr(Labels(regionIdx,:));
+
 
 if(nargout>0)
     if(~isempty(probe1020.optodes_registered))
@@ -135,7 +159,9 @@ if(nargout>0)
         
         depth=[probe1020.optodes_registered table(depth,region)];
     else
-        depth=[tbl table(depth,region)];
+        n=length(vertcat(depth{:}))/height(tbl);
+        tbl=repmat(tbl,n,1);
+        depth=[tbl table(vertcat(depth{:}),vertcat(region{:}),'VariableNames',{'depth','region'})];
     end
     
     varargout{1}=depth;
@@ -153,6 +179,7 @@ end
     dx=mean(diff(sort(xy(:,1))));
     dy=mean(diff(sort(xy(:,2))));
     [X,Y]=meshgrid(min(xy(:,1)):dx:max(xy(:,1)),min(xy(:,2)):dy:max(xy(:,2)));
+    depth=min(horzcat(depth{:}),[],2);
     warning('off','MATLAB:griddata:DuplicateDataPoints');
     IM = griddata(xy(:,1),xy(:,2),depth,X,Y,'cubic');
     
@@ -169,12 +196,22 @@ end
     
 %     
 %     
-%     for i=1:size(xy,1)
-%         s(i)=scatter(xy(i,1),xy(i,2),'filled','MarkerFaceColor',[.8 .8 .8]);
-%         set(s(i),'Userdata',tbl.Name{i});
-%         set(s(i),'ButtonDownFcn',@displabel);
-%     end
+
 %     
+    if(ismember('10-20',label) | ismember('10-10',label))
+        if(ismember('10-20',label))
+            lst=find(ismember(tbl.Type,'10-20'));
+        else
+            lst=1:height(tbl);
+        end
+        for i=1:length(lst)
+            s(i)=text(xy(lst(i),1)+shiftx,xy(lst(i),2)+shifty,tbl.Name{lst(i)});
+            %         set(s(i),'Userdata',tbl.Name{i});
+            %         set(s(i),'ButtonDownFcn',@displabel);
+        end
+        set(s,'HorizontalAlignment','center','VerticalAlignment','baseline')
+    end
+
     axis tight;
     axis equal;
     axis off;

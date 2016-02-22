@@ -1,0 +1,147 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>release_notes</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-01-17"><meta name="DC.source" content="release_notes.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Version 2016-16-01: Major update</a></li><li><a href="#2">Version 2015-25-01: Major update</a></li><li><a href="#3">Version 2014-04-05: Minor update</a></li></ul></div><h2>Version 2016-16-01: Major update<a name="1"></a></h2><p><b>New network models</b></p><div><ul><li>generative_model.m: Implements more than 10 generative network models.</li><li>evaluate_generative_model.m: Implements and evaluates the accuracy of more than 10 generative network models.</li><li>demo_generative_models_geometric.m and demo_generative_models_neighbors.m: Demonstrate the capabilities of the new generative model functions.</li></ul></div><p><b>New network measures</b></p><div><ul><li>clustering_coef_wu_sign.m: Multiple generalizations of the clustering coefficient for networks with positive and negative weights.</li><li>core_periphery_dir.m: Optimal core structure and core-ness statistic.</li><li>gateway_coef_sign.m: Gateway coefficient (a variant of the participation coefficient) for networks with positive and negative weights.</li><li>local_assortativity_sign.m: Local (nodal) assortativity for networks with positive and negative weights.</li><li>randmio_dir_signed.m: Random directed graph with preserved signed in- and out- degree distribution.</li></ul></div><p><b>Removed network measures</b></p><div><ul><li>modularity_louvain_und_sign.m, modularity_finetune_und_sign.m: This functionality is now provided by community_louvain.m.</li><li>modularity_probtune_und_sign.m: Similar functionality is provided by consensus_und.m</li></ul></div><p><b>Bug fixes and/or code improvements and/or documentation improvements</b></p><div><ul><li>charpath.m: Changed default behavior, such that infinitely long paths (i.e. paths between disconnected nodes) are now included in computations by default, but may be excluded manually.</li><li>community_louvain.m: Included generalization for negative weights, enforced binary network input for Potts-model Hamiltonian, streamlined code.</li><li>eigenvector_centrality_und.m: Ensured the use of leading eigenvector for computations of eigenvector centrality.</li><li>modularity_und.m, modularity_dir.m: Enforced single node moves during fine-tuning step.</li><li>null_model_und_sign.m and null_model_dir_sign.m: Fixed preservation of negative degrees in sparse networks with negative weights.</li><li>randmio_und_signed.m: Now allows unbiased exploration of all network configurations.</li><li>transitivity_bd.m, transitivity_wu.m, transitivity_wd.m: removed tests for absence of nodewise 3-cycles. Expanded documentation.</li><li>clustering_coef_wu.m, clustering_coef_wd.m: Expanded documentation.</li><li>motif3-m and motif4-m functions: Expanded documentation.</li><li>rich_club_wu.m, rich_club_wd.m. Expanded documentation.</li></ul></div><p><b>Cosmetic and MATLAB code analyzer (mlint) improvements to many other functions</b></p><h2>Version 2015-25-01: Major update<a name="2"></a></h2><p>Includes two new community-detection scripts and multiple improvements</p><div><ul><li>New community detection scripts: 1. community_louvain.m (supersedes modularity_louvain.m and modularity_finetune.m scripts); 2. link_communities.m.</li><li>added autofix flag to weight_conversion.m for fixing common weight problems.</li><li>other function improvements: participation_coef.m, charpath.m, reorder_mod.m.</li><li>bug fixes: modularity_finetune_und_sign.m, modularity_probtune_und_sign.m, threshold_proportional.m</li><li>changed help files: assortativity_wei.m, distance_wei.m</li></ul></div><h2>Version 2014-04-05: Minor update<a name="3"></a></h2><div><ul><li>consensus_und.m is now a self-contained function</li><li>headers in charpath.m and in threshold_proportional.m have been corrected</li></ul></div><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+
+%% Version 2016-16-01: Major update
+% *New network models*
+%
+% * generative_model.m: Implements more than 10 generative network models.
+% * evaluate_generative_model.m: Implements and evaluates the accuracy of
+% more than 10 generative network models.
+% * demo_generative_models_geometric.m and
+% demo_generative_models_neighbors.m: Demonstrate the capabilities of the 
+% new generative model functions.
+%
+% *New network measures*
+%
+% * clustering_coef_wu_sign.m: Multiple generalizations of the clustering
+% coefficient for networks with positive and negative weights.
+% * core_periphery_dir.m: Optimal core structure and core-ness statistic.
+% * gateway_coef_sign.m: Gateway coefficient (a variant of the
+% participation coefficient) for networks with positive and negative
+% weights.
+% * local_assortativity_sign.m: Local (nodal) assortativity for networks
+% with positive and negative weights.
+% * randmio_dir_signed.m: Random directed graph with preserved signed in-
+% and out- degree distribution.
+%
+% *Removed network measures*
+%
+% * modularity_louvain_und_sign.m, modularity_finetune_und_sign.m: This
+% functionality is now provided by community_louvain.m.
+% * modularity_probtune_und_sign.m: Similar functionality is provided by 
+% consensus_und.m
+%
+% *Bug fixes and/or code improvements and/or documentation improvements*
+% 
+% * charpath.m: Changed default behavior, such that infinitely long paths
+% (i.e. paths between disconnected nodes) are now included in computations
+% by default, but may be excluded manually.
+% * community_louvain.m: Included generalization for negative weights, 
+% enforced binary network input for Potts-model Hamiltonian, streamlined
+% code.
+% * eigenvector_centrality_und.m: Ensured the use of leading eigenvector
+% for computations of eigenvector centrality.
+% * modularity_und.m, modularity_dir.m: Enforced single node moves during
+% fine-tuning step.
+% * null_model_und_sign.m and null_model_dir_sign.m: Fixed preservation
+% of negative degrees in sparse networks with negative weights.
+% * randmio_und_signed.m: Now allows unbiased exploration of all network
+% configurations.
+% * transitivity_bd.m, transitivity_wu.m, transitivity_wd.m: removed tests
+% for absence of nodewise 3-cycles. Expanded documentation.
+% * clustering_coef_wu.m, clustering_coef_wd.m: Expanded documentation.
+% * motif3-m and motif4-m functions: Expanded documentation.
+% * rich_club_wu.m, rich_club_wd.m. Expanded documentation.
+% 
+% *Cosmetic and MATLAB code analyzer (mlint) improvements to many other functions*
+%
+%% Version 2015-25-01: Major update
+% Includes two new community-detection scripts and multiple improvements 
+% 
+% * New community detection scripts: 1. community_louvain.m (supersedes
+% modularity_louvain.m and modularity_finetune.m scripts); 2.
+% link_communities.m.
+% * added autofix flag to weight_conversion.m for fixing common weight
+% problems.
+% * other function improvements: participation_coef.m, charpath.m,
+% reorder_mod.m.
+% * bug fixes: modularity_finetune_und_sign.m,
+% modularity_probtune_und_sign.m, threshold_proportional.m 
+% * changed help files: assortativity_wei.m, distance_wei.m
+% 
+% 
+%% Version 2014-04-05: Minor update
+%
+% * consensus_und.m is now a self-contained function
+% * headers in charpath.m and in threshold_proportional.m have been corrected
+
+##### SOURCE END #####
+--></body></html>

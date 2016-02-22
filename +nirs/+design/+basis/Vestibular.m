@@ -57,7 +57,7 @@ classdef Vestibular
     methods ( Static )
         function h = getImpulseResponse( a1, b1, a2, b2, c, t,elongate )
             h = b1^a1*t.^(a1-1).*exp(-b1*t)/gamma(a1) - c*b2^a2*t.^(a2-1).*exp(-b2*t)/gamma(a2);
-            h=conv(h,ones(elongate,1));
+            h=conv(h,ones(fix(elongate),1));
             h=h(1:length(t));
             h = h / sum(h);
         end

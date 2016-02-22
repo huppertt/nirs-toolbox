@@ -296,6 +296,37 @@ ConnStats = job.run(hb(1:4));
 % You can draw the connectiivty maps by:
 ConnStats(1).draw('R',[-1 1],'p<0.05')
 
+% We can also convert the connectivity object into a weighted graph object
+Graph=ConnStats.graph('Z:hbo','p<0.005');
+
+% The graph objects wrap many of the tools in the ??? toolbox.  Currently
+% the model supports
+%   efficiency        weightededge      
+%   degrees           edge_betweenness  pagerank          
+
+% The commands return a new Graph structure with changed edge and/or node
+% properties.  E.g.
+PgRankGraph = Graph(1).pagerank;
+% The value goes into the nodeInfo and/or edgeInfo fields
+%PgRankGraph.nodeInfo =
+%            label             X        Y      Z      value  
+%     ___________________    _____    _____    _    _________
+% 
+%     'Src-1:Det-1 hbo'        -69       52    0     0.039249
+%     'Src-1:Det-2 hbo'        -96       53    0    0.0057876
+%     'Src-1:Det-6 hbo'        -88     52.5    0     0.048975
+%     'Src-2:Det-1 hbo'        -69     39.5    0     0.013839
+%     'Src-2:Det-2 hbo'        -96     40.5    0     0.014462
+%     'Src-2:Det-3 hbo'        -82     21.5    0     0.018952
+%     'Src-2:Det-6 hbo'        -88       40    0     0.030922
+%     'Src-3:Det-1 hbo'        -56     31.5    0     0.011109
+%     'Src-3:Det-3 hbo'        -69     13.5    0     0.017727
+    
+% You can call draw on the PgRankGraph variable or do it all in one step
+% like:
+Graph(1).pagerank.draw;
+
+
 % A reduced version of the Mixed effects group-level models 
 % can be used for the Connectivity Stats variables.  This supports mixed
 % effects analysis including cofactors (e.g. age or condition).  Currently
@@ -314,3 +345,90 @@ job = nirs.modules.MixedEffectsConnectivity();
 %         prevJob: []
 GroupConnStats = job.run(ConnStats);
 
+
+%% Example 4- Hyperscanning
+raw = nirs.io.loadDirectory([root_dir filesep 'demo_data' filesep 'data'], {'group', 'subject'});
+
+job=nirs.modules.Resample;
+job.Fs=1;  % go to 1Hz sample rate
+job=nirs.modules.OpticalDensity(job);
+job=nirs.modules.BeerLambertLaw(job);
+hb=job.run(raw);
+
+job = nirs.modules.Hyperscanning;
+
+% This module has the following fields
+%                corrfcn: @(data)nirs.sFC.ar_corr(data,'4xFs',true)
+%          divide_events: 0
+%     min_event_duration: 30
+%                   link: []
+%               symetric: 1
+%                   name: 'Hypercanning'
+%                prevJob: []
+
+% Most of these are the same as the Connectivity module except:
+%  link -  a table of corresponding files (see below)
+%  symetric - impose that the result is invariate to the defintion of subject A and B
+
+% Let's just do a simple example
+ScanA = [1 3 5 7]';  % The list of all the "A" files
+ScanB = [2 4 6 8]';  % The list of all the "B" files
+
+OffsetA = [0 0 0 0]';  % The time shift of the "A" files (in sec)
+OffsetB = [0 0 0 0]';  % The time shift of the "B" files (in sec)
+
+link = table(ScanA,ScanB,OffsetA,OffsetB);
+%     ScanA    ScanB    OffsetA    OffsetB
+%     _____    _____    _______    _______
+%     1        2        0          0      
+%     3        4        0          0      
+%     5        6        0          0      
+%     7        8        0          0  
+
+% This shows that files 1&2, 3&4, 5&6, 7&8 go together and are already
+% aligned.
+job.link=link;
+
+% Now, let's run two models and compare them
+job.corrfcn=@(data)nirs.sFC.corr(data,false);
+% This is the normal Correlation model
+HyperStats = job.run(hb);
+
+job.corrfcn=@(data)nirs.sFC.ar_corr(data,8,true)
+% This is the AR-whitened robust regression version
+HyperStats_AR = job.run(hb);
+% This will take about a minute per linked scan, but will be worth the
+% extra time
+
+%Let's look at the FDR 
+% Since these two files were randomly chosen from a dataset that was NOT
+% hyerscanning, we expect no connections
+
+FD=0; FD_AR=0;
+for i=1:length(HyperStats)
+    FD=nnz(1*(HyperStats(i).p<0.05))+FD;
+    FD_AR=nnz(1*(HyperStats_AR(i).p<0.05))+FD_AR;
+end
+cnt=140^2/2*length(HyperStats);  % This happens to be 140x140 in size (1/2 full)
+
+disp(['FDR for correlation model: ' num2str(FD/cnt*100) '%']);
+disp(['FDR for AR-Robust Correlation model: ' num2str(FD_AR/cnt*100) '%']);
+% Which in my case gave 
+%       FDR for correlation model: 56.1276%
+%       FDR for AR-Robust Correlation model: 5.5%
+
+% If you use the FDR corrected values it is (e.g. q<0.05)
+%   FDR for correlation model: 51.8418%
+%   FDR for AR-Robust Correlation model: 0.33673%
+
+% And we expected 5% (p<0.05) so we did terrible with correlation and
+% greate with the AR-robust model (as we had already knownn if you worked
+% through this example above);
+
+% Again, the results can be drawn like this:
+HyperStats_AR(1).graph('Z:hbo','q<0.05').draw
+
+HyperStats(1).graph('Z:hbo','q<0.05').draw
+% Obviously, there is a clear difference.  Remembering that there should
+% NOT be any correlation in this data, the results of the correlation model
+% are quite alarmingly bad.  

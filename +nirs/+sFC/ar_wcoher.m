@@ -1,6 +1,6 @@
 function [r,p,dfe]=ar_wcoher(data,modelorder,freq,wname,robust_flag)
 
-if(isa(data,'nirs.core.Data'))
+if(~isempty(strfind(class(data),'.core.Data')))
     Fs=data.Fs;
     data=data.data;
 else
