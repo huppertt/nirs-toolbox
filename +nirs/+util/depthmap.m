@@ -153,17 +153,21 @@ if(nargout>0)
         
         
         [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pts);
-        
-        [~,regionIdx]=ismember(aal.BORDER_V(lstNodes(k)),Idx);
-        region=cellstr(Labels(regionIdx,:));
-        
-        depth=[probe1020.optodes_registered table(depth,region)];
+        tbl=table;
+        for i=1:length(Labels)
+                [~,regionIdx]=ismember(aal.BORDER_V(i,lstNodes(k)),Idx{i});
+                region=cellstr(Labels{i}(regionIdx,:));
+                tbl=[tbl; [probe1020.optodes_registered table(depth,region)]];
+        end
+        depth=sortrows(tbl,{'Type','Name','region'});
     else
         n=length(vertcat(depth{:}))/height(tbl);
         tbl=repmat(tbl,n,1);
         depth=[tbl table(vertcat(depth{:}),vertcat(region{:}),'VariableNames',{'depth','region'})];
     end
-    
+    if(isempty(find(ismember(alllabels,{'?','*','any'}))))
+        depth=depth(ismember(depth.region,alllabels),:);
+    end
     varargout{1}=depth;
     return;
 end

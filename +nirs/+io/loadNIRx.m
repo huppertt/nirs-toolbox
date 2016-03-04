@@ -8,12 +8,20 @@ function raw = loadNIRx(folder)
 % <subjid>_probeInfo.mat - probe file
 % <subjid>.tpl -topology file  (data taken from config file)
 
+if(~isdir(folder))
+    folder=fileparts(folder);
+end
+
+
 
 file = dir(fullfile(folder,'*.hdr'));
+if(isempty(file)); raw=[]; return; end;
 info = parsehdr(fullfile(folder,file(1).name));
 
 %now read the probeInfo file and convert to a probe class
 file = dir(fullfile(folder,'*_probeInfo.mat'));
+if(isempty(file)); raw=[]; return; end;
+    
 load(fullfile(folder,file(1).name)); % --> probeInfo
 
 SrcPos = probeInfo.probes.coords_s2;
@@ -61,18 +69,19 @@ end
 raw.demographics=demo;
 
 % Now add stimulus info
-stimName = unique(info.Events(:,2));
-stimulus=Dictionary();
-for idx=1:length(stimName)
-    s = nirs.design.StimulusEvents();
-    s.name=['channel-' num2str(stimName(idx))];
-    s.onset=info.Events(find(info.Events(:,2)==stimName(idx)),1);
-    s.dur=ones(size(s.onset));
-    s.amp=ones(size(s.onset));
-    stimulus(s.name)=s;
+if(~isempty(info.Events))
+    stimName = unique(info.Events(:,2));
+    stimulus=Dictionary();
+    for idx=1:length(stimName)
+        s = nirs.design.StimulusEvents();
+        s.name=['channel-' num2str(stimName(idx))];
+        s.onset=info.Events(find(info.Events(:,2)==stimName(idx)),1);
+        s.dur=ones(size(s.onset));
+        s.amp=ones(size(s.onset));
+        stimulus(s.name)=s;
+    end
+    raw.stimulus=stimulus;
 end
-raw.stimulus=stimulus;
-
 
 %% Get the 10-20 fiducial points
 % Create the head mesh from the file

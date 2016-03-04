@@ -1,43 +1,58 @@
 function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
 
-    if nargin < 4, fileExt  = '.nirs'; end
-    if nargin < 3, loadFunc = @nirs.io.loadDotNirs; end
+if nargin < 4,
+    fileExt  = {'.nirs','.oxy3','.wl1'};
+end
+if nargin < 3,
+    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@nirs.io.loadNIRx};
+end
+
+if(~iscell(fileExt)); fileExt={fileExt}; end;
+if(~iscell(loadFunc)); loadFunct={loadFunc}; end;
+
+% remove trailing file separator
+if rootFolder(end) == filesep
+    rootFolder = rootFolder(1:end-1);
+end
+
+% default folder structure
+if nargin < 2
+    folderHierarchy = {'group','subject'};
+end
+
+% all files in subdirectory with correct extension
+data = nirs.core.Data.empty;
+for i=1:length(fileExt)
+    files = rdir([rootFolder filesep '**' filesep '*' fileExt{i}]);
     
-    % remove trailing file separator
-    if rootFolder(end) == filesep
-        rootFolder = rootFolder(1:end-1);
-    end
     
-    % default folder structure
-    if nargin < 2
-        folderHierarchy = {'group','subject'};
-    end
-    
-    % all files in subdirectory with correct extension
-    files = rdir([rootFolder filesep '**' filesep '*' fileExt]);
-    
-    data = nirs.core.Data.empty;
     for iFile = 1:length( files )
         
         % load using load function
-        tmp = loadFunc( files(iFile).name );
+        tmp = loadFunc{i}( files(iFile).name );
         
+        % NIRx data uses folders instead of files... back up one
+        if(~isempty(strfind(fileExt{i},'.wl')))
+            files(iFile).name=[fileparts(files(iFile).name) filesep];
+        end
         if ~isempty(tmp)
             data(end+1) = tmp;
-        end
-        
-        % split filename on separators
-        fsplit = strsplit( files(iFile).name, filesep );
-        rsplit = strsplit( rootFolder, filesep );
-
-        % put demographics variables based on folder names
-        demo = fsplit(length(rsplit)+1:end-1);
-
-        for iDemo = 1:length(folderHierarchy)
-            data(end).demographics(folderHierarchy{iDemo}) = demo{iDemo};
+            
+            
+            % split filename on separators
+            fsplit = strsplit( files(iFile).name, filesep );
+            rsplit = strsplit( rootFolder, filesep );
+            
+            % put demographics variables based on folder names
+            demo = fsplit(length(rsplit)+1:end-1);
+            
+            for iDemo = 1:min(length(folderHierarchy),length(demo))
+                data(end).demographics(folderHierarchy{iDemo}) = demo{iDemo};
+            end
         end
     end
-    
-    data = data';
+end
+
+data = data';
 end
 

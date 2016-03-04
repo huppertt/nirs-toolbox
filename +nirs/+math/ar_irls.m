@@ -125,7 +125,7 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.a{i} = a;
         stats.sigma2(i)=S.mad_s^2;
         stats.filter{i}=f;
-        
+        stats.R2=max(1-mad(yf-Xf*B)/mad(yf),0);
 %         yfiltered=[yfiltered; yf];
 %         weights=[weights; S.w];
 %         Xfiltered=sparse(blkdiag(Xfiltered,Xf));
