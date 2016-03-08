@@ -1,7 +1,7 @@
 %% Image reconstruction demo
 
 % TODO - directory to download the sample data into
-root_dir = '/Users/huppertt/Desktop/tmp' ;
+root_dir = '/Users/admin/Desktop/tmp' ;
 
 % TODO- number of iteractions for ROC curve demo
 num_iter = 10;  

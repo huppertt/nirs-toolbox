@@ -5,15 +5,11 @@ function [US,V]=hogSVD(L)
 % L1 = U1*S1*V'
 % L2 = U2*S2*V'
 
-Ls=[];
-for i=1:length(L)
-    flds=fields(L{i});
-    LL=abs(L{i}.(flds{1}))/normest(abs(L{i}.(flds{1})));
-    for j=2:length(flds)
-        LL=LL+abs(L{i}.(flds{j}))/normest(abs(L{i}.(flds{1})));
-        
+Ls=abs(L{1,1});
+for i=2:size(L,1)
+    for j=1:size(L,2)
+        Ls=Ls+abs(L{i,j});
     end
-    Ls=[Ls; LL];
 end
 
 [~,~,V]=nirs.math.mysvd(Ls);
@@ -22,14 +18,12 @@ end
 tol=sum(abs(V),2);
 V(find(tol<max(tol)*1E-6),:)=0;
 
-US={};
-for i=1:length(L)
-    US{i}=[];
-    flds=fields(L{i});
-    for j=1:length(flds)
-        US{i}=setfield(US{i},flds{j},L{i}.(flds{j})*V);
+for i=1:size(L,1)
+    for j=1:size(L,2)
+        US{i,j}=L{i,j}*V;
     end
 end
+
 
 % 
 % %deal with the trivial cases first

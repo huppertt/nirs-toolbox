@@ -12,8 +12,18 @@ function out = jointTest( obj )
     vars.VoxID=cellfun(@(x)(x),vars.VoxID);
     [~, uvars ,utests] = unique(vars, 'rows', 'stable');
     
+    disp('computing joint test')
+    
+    
+    disp('Progress');
+    str='  0';
+    fprintf('%s %%',str(end-2:end));
+
     % loop through pairs/conditions
-    for i = 1:max(utests)
+    nn=max(utests);
+    for i = 1:nn
+        str=['   ' num2str(round(100*i/nn))];
+        fprintf('\b\b\b\b\b%s %%',str(end-2:end));
        m = utests == i;
        covb=obj.covb_chol(m,:)*obj.covb_chol(m,:)';
        T2 = obj.beta(m)'*pinv(covb)*obj.beta(m);
@@ -25,6 +35,10 @@ function out = jointTest( obj )
        df1(i,1) = k;
        df2(i,1) = n-k+1;
     end
+   disp('completed');
+
+    
+    
     
     % output
     out = nirs.core.ImageFStats();

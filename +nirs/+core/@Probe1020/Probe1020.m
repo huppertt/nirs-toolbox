@@ -484,7 +484,7 @@ classdef Probe1020 < nirs.core.Probe
                 set(gca,'Xlim',[min(x)-dx max(x)+dx]);
                 set(gca,'Ylim',[-headradius*1.13 max(y)+dy]);
             end
-            
+            set(gca,'Xdir','reverse');
             if(nargout>0)
                 varargout{1}=h;
             end

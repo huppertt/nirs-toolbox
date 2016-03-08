@@ -144,7 +144,7 @@ classdef Probe
             
             set(gca,'YDir','reverse');
             set(gcf,'color','w');
-            
+            set(gca,'Xdir','reverse');
             axis off;
             if(nargout==1)
                 varargout{1}=h;

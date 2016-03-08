@@ -22,7 +22,7 @@ n=size(d,2)^2;
 
 disp('Progress');
 str='  0';
-fprintf('%s %',str(end-2:end));
+fprintf('%s %%',str(end-2:end));
 
 
 
@@ -30,7 +30,7 @@ cnt=1;
 for i=1:size(d,2)
     for j=1:size(d,2)
         str=['   ' num2str(round(100*cnt/n))];
-        fprintf('\b\b\b\b%s %',str(end-2:end));
+        fprintf('\b\b\b\b\b%s %%',str(end-2:end));
         warning('off','stats:statrobustfit:IterationLimit')
        r(i,j)=robustfit(d(:,i),d(:,j),'bisquare',[],'off');     
        cnt=cnt+1;

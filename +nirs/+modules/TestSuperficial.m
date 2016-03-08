@@ -4,8 +4,8 @@ classdef TestSuperficial < nirs.modules.AbstractModule
 %    
     properties
        braindepth = 10;  % depth of brain layer (in mm)
-       sigma = 20;  % Spatial smoothing for superficial layer
-       allow_flip=false;  % This prevents sign flips when the mean over all channels is non-zero.
+       sigma = 100;  % Spatial smoothing for superficial layer
+       allow_flip=true;  % This prevents sign flips when the mean over all channels is non-zero.
     end
     
     methods
@@ -84,7 +84,7 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                         data(i).beta = max(cc * abs(data(i).beta),0).*sign(data(i).beta);
                     end
                     
-                    data(i).covb = cc * data(i).covb * cc'+eye(size(cc,1))*1E-6;
+                    data(i).covb = cc * data(i).covb * cc'+eye(size(cc,1))*1E-12;
 
                 end
                 

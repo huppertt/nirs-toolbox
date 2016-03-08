@@ -18,7 +18,7 @@ if(nargin<2 || isempty(FS))
     FS=1;
 end
 if(nargin<3 || isempty(freq))
-    freq = [Fs*2/length(Y) Fs/2];
+    freq = [FS*2/length(Y) FS/2];
 end
 
 Y=Y-ones(size(Y,1),1)*mean(Y,1);
@@ -70,10 +70,11 @@ end
 disp('completed')
       
 
-dist=montecarlo(50,size(Y),scales,wname,flag_SMOOTH,NSW,NTW);
+dist=montecarlo(20,length(Y),scales,wname,flag_SMOOTH,NSW,NTW);
 Z=.5*log((1+r)./(1-r));
 Z=max(min(Z,8),-8); 
 p=1-dist.cdf(abs(Z));
+p=min(p+eye(size(p)),1);
 
 % 
 % % ????? how many DFE are in this model.  Its not the length(a)
@@ -90,7 +91,7 @@ function dist=montecarlo(niter,sizeY,scales,wname,flag_SMOOTH,NSW,NTW);
 
 cnt=1;  Znull=[];
 for iter=1:niter
-    Y=randn(sizeY);
+    Y=randn(sizeY,2);
     for i=1:size(Y,2)
         cfs_s1(:,:,i)    = cwt(Y(:,i),scales,wname);
         cfs_s10(:,:,i)   = cfs_s1(:,:,i);

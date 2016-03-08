@@ -87,10 +87,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 else
                      Probes(key)=obj.probe(key);
                 end
-                
+                l=[];
                 for j=1:length(flds)
-                    Lfwdmodels([key ':' flds{j}])=(J.(flds{j})(:,LstInMask).*(J.(flds{j})(:,LstInMask)>10*eps(1)))*Basis(LstInMask,:);
+                    l=setfield(l,flds{j},(J.(flds{j})(:,LstInMask).*(J.(flds{j})(:,LstInMask)>10*eps(1)))*...
+                        Basis(LstInMask,:));
                 end
+                Lfwdmodels(key)=l;
             end
             
             % Do a higher-order generalized SVD
@@ -167,17 +169,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 W = diag(1./diag(sqrt(s))) * u';
                 
                 
-                if obj.prior.iskey(S(i).demographics('subject'))
-                    key = S(i).demographics('subject');
-                else
-                    key = 'default';
-                end
+                key = S(i).demographics('subject');
+                
                 xx=[];
                 
                 for j=1:length(conds)
                     xlocal=[];
                     for fIdx=1:length(flds)
-                        x2=Lfwdmodels([key ':' flds{fIdx}])*V';
+                        L=Lfwdmodels(key);
+                        x2=L.(flds{fIdx})*V';
         
                        xlocal=[xlocal x2]; 
                     end
@@ -215,13 +215,14 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 end
                 
                 nch=size(US{1},1);
+                L=[];
                 for fIdx=1:length(flds)
                     thisprobe=nirs.core.Probe;
                     thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
-                    
-                    Lfwdmodels(['prior:' flds{fIdx}])=eye(size(US{1},2))*scale;
+                    L=setfield(L,flds{fIdx},eye(size(V,2))*scale);
                     Probes(['prior:' flds{fIdx}])=thisprobe;
                 end
+                Lfwdmodels('prior')=L;
                 Priors=nirs.core.ChannelStats;
                 cnt=1;
                 
@@ -298,7 +299,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     variableLst = variables(find(ismember(variables.cond,conds{cIdx})),:);
                     
                     % Make sure we are concatinating like datatypes
-                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
+                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){num2str(x)},variableLst.type); end;
                     idx = repmat(i,height(variableLst),1);
                     variableLst =[table(idx) variableLst repmat(demo(i,:),height(variableLst),1)];
                     variableLst.DataType=strcat(variableLst.DataType, variableLst.type);
@@ -329,9 +330,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 subname = tmpvars.subject{i};
                 
-                if(~ismember([subname ':' flds{1}],Lfwdmodels.keys))
-                    subname='default';
-                end
+            
                 
                 
                 idx = tmpvars.idx(i);
@@ -345,8 +344,8 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     if(strcmp(tmpvars.subject{i},'prior') && ~strcmp(tmpvars.type{i},flds{fIdx}))
                         s=0;
                     end
-                   
-                    Llocal =[Llocal s*Lfwdmodels([subname ':' flds{fIdx}])];
+                    l=Lfwdmodels(subname);
+                    Llocal =[Llocal s*l.(flds{fIdx})];
                 end
               
                 for j=1:size(X,2)
@@ -395,20 +394,11 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             %Now deal with the ReML covariace terms
             nRE=size(Z,2);
-            PAT=zeros(nRE,nRE);
+            PAT=eye(nRE,nRE);
             names=unique(tmpvars.DataType);
-            lst=[];
-            for idx=1:length(names)
-                if(~isempty(strfind(names{idx},'prior')))
-                    lst=[lst idx];
-                end
-               
-            end
+            lst=find(ismember(names,{'priorhbo','priorhbr'}));
             PAT(lst,lst)=-1;
-            for idx=1:size(PAT,2)
-                PAT(idx,idx)=1;
-            end
-            
+            for i=1:nRE; PAT(i,i)=1; end;
                    
             lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
@@ -461,9 +451,10 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
            for idx=1:length(flds)
                fwd=blkdiag(fwd,obj.basis.fwd);
            end
-            
+           fwd=sparse(fwd);
+           
            G.typeII_StdE=1/eps(1)*ones(size(fwd,1),1);
-           Lst=find(~all(fwd==0,2));
+           Lst=find(sum(abs(fwd),2)~=0);
            G.typeII_StdE(Lst) =fwd(Lst,:) * sqrt(VarMDU');
             
            G.typeII_StdE=repmat(G.typeII_StdE,size(lm1.designMatrix('Fixed'),2),1);
