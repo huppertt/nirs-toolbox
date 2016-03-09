@@ -24,7 +24,7 @@ fs=[.5 1 4 20];  % Let's try a few sample rates too
 
 % First, let's simulate some completely random data and see what happens when we
 % add correlations to it.
-
+clear P;
 for i=1:length(fs)
     for iter=1:num_iter
         
@@ -72,27 +72,7 @@ end
 % because the model order for the AR filter is too low and has been set at
 % a max of 20.  (BIC is used to select up to this order).
 
-% My results looked like (after about 1min of computing):
-% Results at sample rate: 0.5Hz
-%    "Neural Model" FDR = 5%  (p<0.05 expected)
-%    "Hemodynamic Model" FDR = 18%  (p<0.05 expected)
-%    AR-filtered "Hemodynamic" FDR = 6%  (p<0.05 expected)
-% -------------------------------
-% Results at sample rate: 1Hz
-%    "Neural Model" FDR = 2%  (p<0.05 expected)
-%    "Hemodynamic Model" FDR = 35%  (p<0.05 expected)
-%    AR-filtered "Hemodynamic" FDR = 2%  (p<0.05 expected)
-% -------------------------------
-% Results at sample rate: 4Hz
-%    "Neural Model" FDR = 5%  (p<0.05 expected)
-%    "Hemodynamic Model" FDR = 70%  (p<0.05 expected)
-%    AR-filtered "Hemodynamic" FDR = 4%  (p<0.05 expected)
-% -------------------------------
-% Results at sample rate: 20Hz
-%    "Neural Model" FDR = 3%  (p<0.05 expected)
-%    "Hemodynamic Model" FDR = 84%  (p<0.05 expected)
-%    AR-filtered "Hemodynamic" FDR = 43%  (p<0.05 expected)
-% -------------------------------
+
 
 
 %% Example 2.  Sensitivity-specifity
@@ -184,40 +164,42 @@ end
 % Display some info
 disp('For the normal correlation model @ p<0.05');
 disp(['   True positives rate: ' num2str(length(find(Ppos(:,1)<0.05))/num_iter)]);
-disp(['   False positives rate: ' num2str(length(find(Ppos(:,1)>0.05))/num_iter)]);
+disp(['   False negatives rate: ' num2str(length(find(Ppos(:,1)>0.05))/num_iter)]);
 disp(['   True negatives rate: ' num2str(length(find(Pneg(:,1)>0.05))/num_iter)]);
-disp(['   False negatives rate: ' num2str(length(find(Pneg(:,1)<0.05))/num_iter)]);
+disp(['   False positives rate: ' num2str(length(find(Pneg(:,1)<0.05))/num_iter)]);
 
 disp('For the AR-correlation model @ p<0.05');
 disp(['   True positives rate: ' num2str(length(find(Ppos(:,2)<0.05))/num_iter)]);
-disp(['   False positives rate: ' num2str(length(find(Ppos(:,2)>0.05))/num_iter)]);
+disp(['   False negatives rate: ' num2str(length(find(Ppos(:,2)>0.05))/num_iter)]);
 disp(['   True negatives rate: ' num2str(length(find(Pneg(:,2)>0.05))/num_iter)]);
-disp(['   False negatives rate: ' num2str(length(find(Pneg(:,2)<0.05))/num_iter)]);
+disp(['   False positives rate: ' num2str(length(find(Pneg(:,2)<0.05))/num_iter)]);
+
 
 
 disp('For the robust AR-correlation model @ p<0.05');
 disp(['   True positives rate: ' num2str(length(find(Ppos(:,3)<0.05))/num_iter)]);
-disp(['   False positives rate: ' num2str(length(find(Ppos(:,3)>0.05))/num_iter)]);
+disp(['   False negatives rate: ' num2str(length(find(Ppos(:,3)>0.05))/num_iter)]);
 disp(['   True negatives rate: ' num2str(length(find(Pneg(:,3)>0.05))/num_iter)]);
-disp(['   False negatives rate: ' num2str(length(find(Pneg(:,3)<0.05))/num_iter)]);
+disp(['   False positives rate: ' num2str(length(find(Pneg(:,3)<0.05))/num_iter)]);
+
 
 
 % I got:
 % For the normal correlation model @ p<0.05
 %    True positives rate: 0.55
-%    False positives rate: 0.45
-%    True negatives rate: 0.62
-%    False negatives rate: 0.38
+%    False negatives rate: 0.45
+%    True negatives rate: 0.54
+%    False positives rate: 0.46
 % For the AR-correlation model @ p<0.05
-%    True positives rate: 0.36
-%    False positives rate: 0.64
-%    True negatives rate: 0.85
-%    False negatives rate: 0.15
+%    True positives rate: 0.35
+%    False negatives rate: 0.65
+%    True negatives rate: 0.78
+%    False positives rate: 0.22
 % For the robust AR-correlation model @ p<0.05
-%    True positives rate: 0.3
-%    False positives rate: 0.7
-%    True negatives rate: 0.95
-%    False negatives rate: 0.05
+%    True positives rate: 0.24
+%    False negatives rate: 0.76
+%    True negatives rate: 0.96
+%    False positives rate: 0.04
 
 % Now plot the ROC curves
 figure;

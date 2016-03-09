@@ -1,10 +1,15 @@
-function [r,p]=robust_corrcoef(d);
+function [r,p]=robust_corrcoef(d,verbose);
 % This is a robust version of the corrcoef function
 % Based on Shevlyakov and Smirnov (2011). Robust Estimation of the
 % Correlation Coeficient: An Attempt of Survey.  Austrian J. of Statistics.
 %  40(1&2) pp. 147-156
 
-d=bsxfun(@minus,d,median(d,1));    
+
+if(nargin<2)
+    verbose=false;
+end
+
+d=bsxfun(@minus,d,median(d,1));
 d=bsxfun(@rdivide,d,sqrt(2)*mad(d,1,1));
 
 
@@ -19,25 +24,29 @@ d=spdiags(W,0,length(W),length(W))*d;
 r=ones(size(d,2));
 n=size(d,2)^2;
 
-
-disp('Progress');
-str='  0';
-fprintf('%s %%',str(end-2:end));
-
+if(verbose)
+    disp('Progress');
+    str='  0';
+    fprintf('%s %%',str(end-2:end));
+end
 
 
 cnt=1;
 for i=1:size(d,2)
     for j=1:size(d,2)
-        str=['   ' num2str(round(100*cnt/n))];
-        fprintf('\b\b\b\b\b%s %%',str(end-2:end));
+        if(verbose)
+            str=['   ' num2str(round(100*cnt/n))];
+            fprintf('\b\b\b\b\b%s %%',str(end-2:end));
+        end
         warning('off','stats:statrobustfit:IterationLimit')
-       r(i,j)=robustfit(d(:,i),d(:,j),'bisquare',[],'off');     
-       cnt=cnt+1;
+        
+        r(i,j)=robustfit(d(:,i),d(:,j),'bisquare',[],'off');
+        cnt=cnt+1;
     end
 end
-disp('completed');
-
+if(verbose)
+    disp('completed');
+end
 % Section 2.3 Eqn 6
 % r = sqrt(b1*b2)
 r=sign(r).*abs(sqrt(r.*r'));
@@ -53,10 +62,10 @@ end
 
 
 function w = wfun(r)
-    s = mad(r, 0) / 0.6745;
-    r = r/s/4.685;
-    
-    w = (1 - r.^2) .* (r < 1 & r > -1);
+s = mad(r, 0) / 0.6745;
+r = r/s/4.685;
+
+w = (1 - r.^2) .* (r < 1 & r > -1);
 end
 
 
@@ -66,7 +75,7 @@ function p = tpvalue(x,v)
 
 normcutoff = 1e7;
 if length(x)~=1 && length(v)==1
-   v = repmat(v,size(x));
+    v = repmat(v,size(x));
 end
 
 % Initialize P.

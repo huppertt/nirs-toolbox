@@ -5,7 +5,7 @@ if(nargin<3)
 end
 
 if(nargin<2 || isempty(modelorder))
-    modelorder=4;
+    modelorder=20;
 end
 
 if(~isempty(strfind(class(data),'.core.Data')))
