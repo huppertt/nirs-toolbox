@@ -36,8 +36,8 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                     TOI=zeros(size(data(i).data,1),height(link));
                     
                     for j=1:height(link)
-                        iHbO=find(ismember(data(1).probe.link(:,1:2),link(j,1:2)) & ismember(data(i).probe.link.type,'hbo'));
-                        iHbR=find(ismember(data(1).probe.link(:,1:2),link(j,1:2)) & ismember(data(i).probe.link.type,'hbr'));
+                        iHbO=find(ismember(data(i).probe.link(:,1:2),link(j,1:2)) & ismember(data(i).probe.link.type,'hbo'));
+                        iHbR=find(ismember(data(i).probe.link(:,1:2),link(j,1:2)) & ismember(data(i).probe.link.type,'hbr'));
                         HbO2=data(i).data(:,iHbO);
                         HbR=data(i).data(:,iHbR);
                         HbT(:,j)=HbO2+HbR;

@@ -29,6 +29,9 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
             end
             
             subjects = unique(demo.(obj.sortfield));
+            
+            if(~iscell(subjects)); for i=1:length(subjects); ss{i}=subjects(i); end; subjects=ss; end;
+            
             if(length(subjects)>1)
                 G = nirs.core.ChannelStats();
                 for i=1:length(subjects)
