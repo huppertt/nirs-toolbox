@@ -1,0 +1,844 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Kruskal tensors</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="D_ktensor_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Kruskal tensors</h1>
+         <introduction>
+            <p>Kruskal format is a decomposition of a tensor X as the sum of the outer products a the columns of matrices. For example, we
+               might write
+            </p>
+            <p><img vspace="5" hspace="5" src="D_ktensor_doc_eq45850.png"> </p>
+            <p>where a subscript denotes column index and a circle denotes outer product. In other words, the tensor X is built frm the columns
+               of the matrices A,B, and C. It's often helpful to explicitly specify a weight for each outer product, which we do here:
+            </p>
+            <p><img vspace="5" hspace="5" src="D_ktensor_doc_eq88653.png"> </p>
+            <p>The <tt>ktensor</tt> class stores the components of the tensor X and can perform many operations, e.g., <tt>ttm</tt>, without explicitly forming the tensor X.
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Kruskal tensor format via ktensor</a></li>
+               <li><a href="#3">Specifying weights in a ktensor</a></li>
+               <li><a href="#4">Creating a one-dimensional ktensor</a></li>
+               <li><a href="#5">Constituent parts of a ktensor</a></li>
+               <li><a href="#7">Creating a ktensor from its constituent parts</a></li>
+               <li><a href="#8">Creating an empty ktensor</a></li>
+               <li><a href="#9">Use full or tensor to convert a ktensor to a tensor</a></li>
+               <li><a href="#11">Use double to convert a ktensor to a multidimensional array</a></li>
+               <li><a href="#12">Use tendiag or sptendiag to convert a ktensor to a ttensor.</a></li>
+               <li><a href="#16">Use ndims and size for the dimensions of a ktensor</a></li>
+               <li><a href="#19">Subscripted reference for a ktensor</a></li>
+               <li><a href="#23">Subscripted assignment for a ktensor</a></li>
+               <li><a href="#26">Use end for the last array index.</a></li>
+               <li><a href="#29">Adding and subtracting ktensors</a></li>
+               <li><a href="#33">Basic operations with a ktensor</a></li>
+               <li><a href="#36">Use permute to reorder the modes of a ktensor</a></li>
+               <li><a href="#37">Use arrange to normalize the factors of a ktensor</a></li>
+               <li><a href="#39">Use fixsigns for sign indeterminacies in a ktensor</a></li>
+               <li><a href="#41">Use ktensor to store the 'skinny' SVD of a matrix</a></li>
+               <li><a href="#44">Displaying a ktensor</a></li>
+               <li><a href="#45">Displaying data</a></li>
+            </ul>
+         </div>
+         <h2>Kruskal tensor format via ktensor<a name="1"></a></h2>
+         <p>Kruskal format stores a tensor as a sum of rank-1 outer products. For example, consider a tensor of the following form.</p>
+         <p><img vspace="5" hspace="5" src="D_ktensor_doc_eq69229.png"> </p>
+         <p>This can be stored in Kruskal form as follows.</p><pre class="codeinput">rand(<span class="string">'state'</span>,0);
+A = rand(4,2); <span class="comment">%&lt;-- First column is a_1, second is a_2.</span>
+B = rand(3,2); <span class="comment">%&lt;-- Likewise for B.</span>
+C = rand(2,2); <span class="comment">%&lt;-- Likewise for C.</span>
+X = ktensor({A,B,C}) <span class="comment">%&lt;-- Create the ktensor.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 3 x 2
+	X.lambda = [ 1  1 ]
+	X.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	X.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	X.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><p>For Kruskal format, there can be any number of matrices, but every matrix must have the same number of columns. The number
+            of rows can vary.
+         </p><pre class="codeinput">Y = ktensor({rand(4,1),rand(2,1),rand(3,1)}) <span class="comment">%&lt;-- Another ktensor.</span>
+</pre><pre class="codeoutput">Y is a ktensor of size 4 x 2 x 3
+	Y.lambda = [ 1 ]
+	Y.U{1} = 
+		    0.4103
+		    0.8936
+		    0.0579
+		    0.3529
+	Y.U{2} = 
+		    0.8132
+		    0.0099
+	Y.U{3} = 
+		    0.1389
+		    0.2028
+		    0.1987
+</pre><h2>Specifying weights in a ktensor<a name="3"></a></h2>
+         <p>Weights for each rank-1 tensor can be specified by passing in a column vector.  For example,</p>
+         <p><img vspace="5" hspace="5" src="D_ktensor_doc_eq203872.png"> </p><pre class="codeinput">lambda = [5.0; 0.25]; <span class="comment">%&lt;-- Weights for each factor.</span>
+X = ktensor(lambda,{A,B,C}) <span class="comment">%&lt;-- Create the ktensor.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 3 x 2
+	X.lambda = [ 5        0.25 ]
+	X.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	X.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	X.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><h2>Creating a one-dimensional ktensor<a name="4"></a></h2><pre class="codeinput">Y = ktensor({rand(4,5)}) <span class="comment">%&lt;-- A one-dimensional ktensor.</span>
+</pre><pre class="codeoutput">Y is a ktensor of size 4
+	Y.lambda = [ 1  1  1  1  1 ]
+	Y.U{1} = 
+		    0.6038    0.7468    0.4186    0.6721    0.3795
+		    0.2722    0.4451    0.8462    0.8381    0.8318
+		    0.1988    0.9318    0.5252    0.0196    0.5028
+		    0.0153    0.4660    0.2026    0.6813    0.7095
+</pre><h2>Constituent parts of a ktensor<a name="5"></a></h2><pre class="codeinput">X.lambda <span class="comment">%&lt;-- Weights or multipliers.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    5.0000
+    0.2500
+
+</pre><pre class="codeinput">X.U <span class="comment">%&lt;-- Cell array of matrices.</span>
+</pre><pre class="codeoutput">
+ans = 
+
+    [4x2 double]    [3x2 double]    [2x2 double]
+
+</pre><h2>Creating a ktensor from its constituent parts<a name="7"></a></h2><pre class="codeinput">Y = ktensor(X.lambda,X.U) <span class="comment">%&lt;-- Recreate X.</span>
+</pre><pre class="codeoutput">Y is a ktensor of size 4 x 3 x 2
+	Y.lambda = [ 5        0.25 ]
+	Y.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	Y.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	Y.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><h2>Creating an empty ktensor<a name="8"></a></h2><pre class="codeinput">Z = ktensor <span class="comment">%&lt;-- Empty ktensor.</span>
+</pre><pre class="codeoutput">Z is a ktensor of size [empty tensor]
+	Z.lambda = [  ]
+</pre><h2>Use full or tensor to convert a ktensor to a tensor<a name="9"></a></h2><pre class="codeinput">full(X) <span class="comment">%&lt;-- Converts to a tensor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 4 x 3 x 2
+	ans(:,:,1) = 
+	    0.8529    0.5645    0.6692
+	    0.3085    0.2549    0.2569
+	    0.5239    0.3362    0.4080
+	    0.3552    0.1945    0.2668
+	ans(:,:,2) = 
+	    1.7450    1.0454    1.3370
+	    0.5235    0.3695    0.4175
+	    1.0940    0.6439    0.8348
+	    0.8131    0.4423    0.6098
+</pre><pre class="codeinput">tensor(X) <span class="comment">%&lt;-- Same as above.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 4 x 3 x 2
+	ans(:,:,1) = 
+	    0.8529    0.5645    0.6692
+	    0.3085    0.2549    0.2569
+	    0.5239    0.3362    0.4080
+	    0.3552    0.1945    0.2668
+	ans(:,:,2) = 
+	    1.7450    1.0454    1.3370
+	    0.5235    0.3695    0.4175
+	    1.0940    0.6439    0.8348
+	    0.8131    0.4423    0.6098
+</pre><h2>Use double to convert a ktensor to a multidimensional array<a name="11"></a></h2><pre class="codeinput">double(X) <span class="comment">%&lt;-- Converts to an array.</span>
+</pre><pre class="codeoutput">
+ans(:,:,1) =
+
+    0.8529    0.5645    0.6692
+    0.3085    0.2549    0.2569
+    0.5239    0.3362    0.4080
+    0.3552    0.1945    0.2668
+
+
+ans(:,:,2) =
+
+    1.7450    1.0454    1.3370
+    0.5235    0.3695    0.4175
+    1.0940    0.6439    0.8348
+    0.8131    0.4423    0.6098
+
+</pre><h2>Use tendiag or sptendiag to convert a ktensor to a ttensor.<a name="12"></a></h2>
+         <p>A ktensor can be regarded as a ttensor with a diagonal core.</p><pre class="codeinput">R = length(X.lambda);  <span class="comment">%&lt;-- Number of factors in X.</span>
+core = tendiag(X.lambda, repmat(R,1,ndims(X))); <span class="comment">%&lt;-- Create a diagonal core.</span>
+Y = ttensor(core, X.u) <span class="comment">%&lt;-- Assemble the ttensor.</span>
+</pre><pre class="codeoutput">Y is a ttensor of size 4 x 3 x 2
+	Y.core is a tensor of size 2 x 2 x 2
+		Y.core(:,:,1) = 
+	     5     0
+	     0     0
+		Y.core(:,:,2) = 
+	         0         0
+	         0    0.2500
+	Y.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	Y.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	Y.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><pre class="codeinput">norm(full(X)-full(Y)) <span class="comment">%&lt;-- They are the same.</span>
+</pre><pre class="codeoutput">
+ans =
+
+  3.8057e-016
+
+</pre><pre class="codeinput">core = sptendiag(X.lambda, repmat(R,1,ndims(X))); <span class="comment">%&lt;-- Sparse diagonal core.</span>
+Y = ttensor(core, X.u) <span class="comment">%&lt;-- Assemble the ttensor</span>
+</pre><pre class="codeoutput">Y is a ttensor of size 4 x 3 x 2
+	Y.core is a sparse tensor of size 2 x 2 x 2 with 2 nonzeros
+	(1,1,1)	5
+	(2,2,2)	0.25
+	Y.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	Y.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	Y.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><pre class="codeinput">norm(full(X)-full(Y)) <span class="comment">%&lt;-- They are the same.</span>
+</pre><pre class="codeoutput">
+ans =
+
+  3.8057e-016
+
+</pre><h2>Use ndims and size for the dimensions of a ktensor<a name="16"></a></h2><pre class="codeinput">ndims(X) <span class="comment">%&lt;-- Number of dimensions.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3
+
+</pre><pre class="codeinput">size(X) <span class="comment">%&lt;-- Row vector of the sizes.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     4     3     2
+
+</pre><pre class="codeinput">size(X,2) <span class="comment">%&lt;-- Size of the 2nd mode.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3
+
+</pre><h2>Subscripted reference for a ktensor<a name="19"></a></h2><pre class="codeinput">X(1,1,1) <span class="comment">%&lt;-- Assemble the (1,1,1) element (requires computation).</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.8529
+
+</pre><pre class="codeinput">X.lambda(2) <span class="comment">%&lt;-- Weight of 2nd factor.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.2500
+
+</pre><pre class="codeinput">X.U{2} <span class="comment">%&lt;-- Extract a matrix.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.8214    0.7919
+    0.4447    0.9218
+    0.6154    0.7382
+
+</pre><pre class="codeinput">X{2} <span class="comment">%&lt;-- Same as above.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.8214    0.7919
+    0.4447    0.9218
+    0.6154    0.7382
+
+</pre><h2>Subscripted assignment for a ktensor<a name="23"></a></h2><pre class="codeinput">X.lambda = ones(size(X.lambda)) <span class="comment">%&lt;-- Insert new multipliers.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 3 x 2
+	X.lambda = [ 1  1 ]
+	X.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	X.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	X.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><pre class="codeinput">X.lambda(1) = 7 <span class="comment">%&lt;-- Change a single element of lambda.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 3 x 2
+	X.lambda = [ 7  1 ]
+	X.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	X.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	X.U{3} = 
+		    0.1763    0.9355
+		    0.4057    0.9169
+</pre><pre class="codeinput">X{3}(1:2,1) = [1;1] <span class="comment">%&lt;-- Change the matrix for mode 3.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 3 x 2
+	X.lambda = [ 7  1 ]
+	X.U{1} = 
+		    0.9501    0.8913
+		    0.2311    0.7621
+		    0.6068    0.4565
+		    0.4860    0.0185
+	X.U{2} = 
+		    0.8214    0.7919
+		    0.4447    0.9218
+		    0.6154    0.7382
+	X.U{3} = 
+		    1.0000    0.9355
+		    1.0000    0.9169
+</pre><h2>Use end for the last array index.<a name="26"></a></h2><pre class="codeinput">X(3:end,1,1)  <span class="comment">%&lt;-- Calculated X(3,1,1) and X((4,1,1).</span>
+</pre><pre class="codeoutput">
+ans =
+
+    3.8274
+    2.8080
+
+</pre><pre class="codeinput">X(1,1,1:end-1)  <span class="comment">%&lt;-- Calculates X(1,1,1).</span>
+</pre><pre class="codeoutput">
+ans =
+
+    6.1234
+
+</pre><pre class="codeinput">X{end}  <span class="comment">%&lt;-- Or use inside of curly braces. This is X{3}.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    1.0000    0.9355
+    1.0000    0.9169
+
+</pre><h2>Adding and subtracting ktensors<a name="29"></a></h2>
+         <p>Adding two ktensors is the same as concatenating the matrices</p><pre class="codeinput">X = ktensor({rand(4,2),rand(2,2),rand(3,2)}) <span class="comment">%&lt;-- Data.</span>
+Y = ktensor({rand(4,2),rand(2,2),rand(3,2)}) <span class="comment">%&lt;-- More data.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 2 x 3
+	X.lambda = [ 1  1 ]
+	X.U{1} = 
+		    0.4289    0.6822
+		    0.3046    0.3028
+		    0.1897    0.5417
+		    0.1934    0.1509
+	X.U{2} = 
+		    0.6979    0.8600
+		    0.3784    0.8537
+	X.U{3} = 
+		    0.5936    0.8216
+		    0.4966    0.6449
+		    0.8998    0.8180
+Y is a ktensor of size 4 x 2 x 3
+	Y.lambda = [ 1  1 ]
+	Y.U{1} = 
+		    0.6602    0.5341
+		    0.3420    0.7271
+		    0.2897    0.3093
+		    0.3412    0.8385
+	Y.U{2} = 
+		    0.5681    0.7027
+		    0.3704    0.5466
+	Y.U{3} = 
+		    0.4449    0.7948
+		    0.6946    0.9568
+		    0.6213    0.5226
+</pre><pre class="codeinput">Z = X + Y <span class="comment">%&lt;-- Concatenates the factor matrices.</span>
+</pre><pre class="codeoutput">Z is a ktensor of size 4 x 2 x 3
+	Z.lambda = [ 1  1  1  1 ]
+	Z.U{1} = 
+		    0.4289    0.6822    0.6602    0.5341
+		    0.3046    0.3028    0.3420    0.7271
+		    0.1897    0.5417    0.2897    0.3093
+		    0.1934    0.1509    0.3412    0.8385
+	Z.U{2} = 
+		    0.6979    0.8600    0.5681    0.7027
+		    0.3784    0.8537    0.3704    0.5466
+	Z.U{3} = 
+		    0.5936    0.8216    0.4449    0.7948
+		    0.4966    0.6449    0.6946    0.9568
+		    0.8998    0.8180    0.6213    0.5226
+</pre><pre class="codeinput">Z = X - Y <span class="comment">%&lt;-- Concatenates as with plus, but changes the weights.</span>
+</pre><pre class="codeoutput">Z is a ktensor of size 4 x 2 x 3
+	Z.lambda = [ 1  1 -1 -1 ]
+	Z.U{1} = 
+		    0.4289    0.6822    0.6602    0.5341
+		    0.3046    0.3028    0.3420    0.7271
+		    0.1897    0.5417    0.2897    0.3093
+		    0.1934    0.1509    0.3412    0.8385
+	Z.U{2} = 
+		    0.6979    0.8600    0.5681    0.7027
+		    0.3784    0.8537    0.3704    0.5466
+	Z.U{3} = 
+		    0.5936    0.8216    0.4449    0.7948
+		    0.4966    0.6449    0.6946    0.9568
+		    0.8998    0.8180    0.6213    0.5226
+</pre><pre class="codeinput">norm( full(Z) - (full(X)-full(Y)) ) <span class="comment">%&lt;-- Should be zero.</span>
+</pre><pre class="codeoutput">
+ans =
+
+  1.7110e-016
+
+</pre><h2>Basic operations with a ktensor<a name="33"></a></h2><pre class="codeinput">+X <span class="comment">%&lt;-- Calls uplus.</span>
+</pre><pre class="codeoutput">ans is a ktensor of size 4 x 2 x 3
+	ans.lambda = [ 1  1 ]
+	ans.U{1} = 
+		    0.4289    0.6822
+		    0.3046    0.3028
+		    0.1897    0.5417
+		    0.1934    0.1509
+	ans.U{2} = 
+		    0.6979    0.8600
+		    0.3784    0.8537
+	ans.U{3} = 
+		    0.5936    0.8216
+		    0.4966    0.6449
+		    0.8998    0.8180
+</pre><pre class="codeinput">-X <span class="comment">%&lt;-- Calls uminus.</span>
+</pre><pre class="codeoutput">ans is a ktensor of size 4 x 2 x 3
+	ans.lambda = [ -1 -1 ]
+	ans.U{1} = 
+		    0.4289    0.6822
+		    0.3046    0.3028
+		    0.1897    0.5417
+		    0.1934    0.1509
+	ans.U{2} = 
+		    0.6979    0.8600
+		    0.3784    0.8537
+	ans.U{3} = 
+		    0.5936    0.8216
+		    0.4966    0.6449
+		    0.8998    0.8180
+</pre><pre class="codeinput">5*X <span class="comment">%&lt;-- Calls mtimes.</span>
+</pre><pre class="codeoutput">ans is a ktensor of size 4 x 2 x 3
+	ans.lambda = [ 5  5 ]
+	ans.U{1} = 
+		    0.4289    0.6822
+		    0.3046    0.3028
+		    0.1897    0.5417
+		    0.1934    0.1509
+	ans.U{2} = 
+		    0.6979    0.8600
+		    0.3784    0.8537
+	ans.U{3} = 
+		    0.5936    0.8216
+		    0.4966    0.6449
+		    0.8998    0.8180
+</pre><h2>Use permute to reorder the modes of a ktensor<a name="36"></a></h2><pre class="codeinput">permute(X,[2 3 1]) <span class="comment">%&lt;-- Reorders modes of X</span>
+</pre><pre class="codeoutput">ans is a ktensor of size 2 x 3 x 4
+	ans.lambda = [ 1  1 ]
+	ans.U{1} = 
+		    0.6979    0.8600
+		    0.3784    0.8537
+	ans.U{2} = 
+		    0.5936    0.8216
+		    0.4966    0.6449
+		    0.8998    0.8180
+	ans.U{3} = 
+		    0.4289    0.6822
+		    0.3046    0.3028
+		    0.1897    0.5417
+		    0.1934    0.1509
+</pre><h2>Use arrange to normalize the factors of a ktensor<a name="37"></a></h2>
+         <p>The function <tt>arrange</tt> normalizes the columns of the factors and then arranges the rank-one pieces in decreasing order of size.
+         </p><pre class="codeinput">X = ktensor({rand(3,2),rand(4,2),rand(2,2)})  <span class="comment">% &lt;-- Unit weights.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 3 x 4 x 2
+	X.lambda = [ 1  1 ]
+	X.U{1} = 
+		    0.8801    0.2714
+		    0.1730    0.2523
+		    0.9797    0.8757
+	X.U{2} = 
+		    0.7373    0.1991
+		    0.1365    0.2987
+		    0.0118    0.6614
+		    0.8939    0.2844
+	X.U{3} = 
+		    0.4692    0.9883
+		    0.0648    0.5828
+</pre><pre class="codeinput">arrange(X) <span class="comment">%&lt;-- Normalized a rearranged.</span>
+</pre><pre class="codeoutput">ans is a ktensor of size 3 x 4 x 2
+	ans.lambda = [ 0.87781     0.73416 ]
+	ans.U{1} = 
+		    0.2855    0.6626
+		    0.2653    0.1302
+		    0.9209    0.7376
+	ans.U{2} = 
+		    0.2475    0.6319
+		    0.3713    0.1170
+		    0.8221    0.0101
+		    0.3535    0.7661
+	ans.U{3} = 
+		    0.8614    0.9906
+		    0.5079    0.1368
+</pre><h2>Use fixsigns for sign indeterminacies in a ktensor<a name="39"></a></h2>
+         <p>The largest magnitude entry for each factor is changed to be positive provided that we can flip the signs of <i>pairs</i> of vectors in that rank-1 component.
+         </p><pre class="codeinput">Y = X;
+Y.u{1}(:,1) = -Y.u{1}(:,1);  <span class="comment">% switch the sign on a pair of columns</span>
+Y.u{2}(:,1) = -Y.u{2}(:,1)
+</pre><pre class="codeoutput">Y is a ktensor of size 3 x 4 x 2
+	Y.lambda = [ 1  1 ]
+	Y.U{1} = 
+		   -0.8801    0.2714
+		   -0.1730    0.2523
+		   -0.9797    0.8757
+	Y.U{2} = 
+		   -0.7373    0.1991
+		   -0.1365    0.2987
+		   -0.0118    0.6614
+		   -0.8939    0.2844
+	Y.U{3} = 
+		    0.4692    0.9883
+		    0.0648    0.5828
+</pre><pre class="codeinput">fixsigns(Y)
+</pre><pre class="codeoutput">ans is a ktensor of size 3 x 4 x 2
+	ans.lambda = [ 1  1 ]
+	ans.U{1} = 
+		    0.8801    0.2714
+		    0.1730    0.2523
+		    0.9797    0.8757
+	ans.U{2} = 
+		    0.7373    0.1991
+		    0.1365    0.2987
+		    0.0118    0.6614
+		    0.8939    0.2844
+	ans.U{3} = 
+		    0.4692    0.9883
+		    0.0648    0.5828
+</pre><h2>Use ktensor to store the 'skinny' SVD of a matrix<a name="41"></a></h2><pre class="codeinput">A = rand(4,3) <span class="comment">%&lt;-- A random matrix.</span>
+</pre><pre class="codeoutput">
+A =
+
+    0.4235    0.2259    0.6405
+    0.5155    0.5798    0.2091
+    0.3340    0.7604    0.3798
+    0.4329    0.5298    0.7833
+
+</pre><pre class="codeinput">[U,S,V] = svd(A,0); <span class="comment">%&lt;-- Compute the SVD.</span>
+X = ktensor(diag(S),{U,V}) <span class="comment">%&lt;-- Store the SVD as a ktensor.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 4 x 3
+	X.lambda = [ 1.7002     0.50951     0.22772 ]
+	X.U{1} = 
+		   -0.4346   -0.5816    0.3635
+		   -0.4365    0.5184    0.6947
+		   -0.5109    0.4983   -0.5366
+		   -0.5996   -0.3804   -0.3120
+	X.U{2} = 
+		   -0.4937    0.0444    0.8685
+		   -0.6220    0.6800   -0.3883
+		   -0.6078   -0.7319   -0.3080
+</pre><pre class="codeinput">double(X) <span class="comment">%&lt;-- Reassemble the original matrix.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.4235    0.2259    0.6405
+    0.5155    0.5798    0.2091
+    0.3340    0.7604    0.3798
+    0.4329    0.5298    0.7833
+
+</pre><h2>Displaying a ktensor<a name="44"></a></h2><pre class="codeinput">disp(X) <span class="comment">%&lt;-- Displays the vector lambda and each factor matrix.</span>
+</pre><pre class="codeoutput">ans is a ktensor of size 4 x 3
+	ans.lambda = [ 1.7002     0.50951     0.22772 ]
+	ans.U{1} = 
+		   -0.4346   -0.5816    0.3635
+		   -0.4365    0.5184    0.6947
+		   -0.5109    0.4983   -0.5366
+		   -0.5996   -0.3804   -0.3120
+	ans.U{2} = 
+		   -0.4937    0.0444    0.8685
+		   -0.6220    0.6800   -0.3883
+		   -0.6078   -0.7319   -0.3080
+</pre><h2>Displaying data<a name="45"></a></h2>
+         <p>The <tt>datadisp</tt> function allows the user to associate meaning to the modes and display those modes with the most meaning (i.e., corresponding
+            to the largest values).
+         </p><pre class="codeinput">X = ktensor({[0.8 0.1 1e-10]',[1e-5 2 3 1e-4]',[0.5 0.5]'}); <span class="comment">%&lt;-- Create tensor.</span>
+X = arrange(X) <span class="comment">%&lt;-- Normalize the factors.</span>
+</pre><pre class="codeoutput">X is a ktensor of size 3 x 4 x 2
+	X.lambda = [ 2.0555 ]
+	X.U{1} = 
+		    0.9923
+		    0.1240
+		    0.0000
+	X.U{2} = 
+		    0.0000
+		    0.5547
+		    0.8321
+		    0.0000
+	X.U{3} = 
+		    0.7071
+		    0.7071
+</pre><pre class="codeinput">labelsDim1 = {<span class="string">'one'</span>,<span class="string">'two'</span>,<span class="string">'three'</span>}; <span class="comment">%&lt;-- Labels for mode 1.</span>
+labelsDim2 = {<span class="string">'A'</span>,<span class="string">'B'</span>,<span class="string">'C'</span>,<span class="string">'D'</span>}; <span class="comment">%&lt;-- Labels for mode 2.</span>
+labelsDim3 = {<span class="string">'on'</span>,<span class="string">'off'</span>}; <span class="comment">%&lt;-- Labels for mode 3.</span>
+datadisp(X,{labelsDim1,labelsDim2,labelsDim3}) <span class="comment">%&lt;-- Display.</span>
+</pre><pre class="codeoutput">
+======== Group 1 ========
+
+Weight = 2.055480
+Score      Id   Name
+ 0.9922779     1 one
+ 0.1240347     2 two
+Score      Id   Name
+ 0.8320503     3 C
+ 0.5547002     2 B
+2.774e-005     4 D
+2.774e-006     1 A
+Score      Id   Name
+ 0.7071068     1 on
+ 0.7071068     2 off
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Kruskal tensors
+% Kruskal format is a decomposition of a tensor X as the sum of the outer
+% products a the columns of matrices. For example, we might write
+% 
+% $${\mathcal X} = \sum_r a_r \circ b_r \circ c_r$$
+% 
+% where a subscript denotes column index and a circle denotes outer
+% product. In other words, the tensor X is built frm the columns of the
+% matrices A,B, and C. It's often helpful to explicitly specify a weight
+% for each outer product, which we do here:
+% 
+% $${\mathcal X} = \sum_r \lambda_r \; a_r \circ b_r \circ c_r$$
+% 
+% The |ktensor| class stores the components of the tensor X and can perform
+% many operations, e.g., |ttm|, without explicitly forming the tensor X. 
+
+%% Kruskal tensor format via ktensor
+% Kruskal format stores a tensor as a sum of rank-1 outer products. For
+% example, consider a tensor of the following form.
+%  
+% $$X = a_1 \circ b_1 \circ c_1 + a_2 \circ b_2 \circ c_2$$
+% 
+% This can be stored in Kruskal form as follows.
+rand('state',0);
+A = rand(4,2); %<REPLACE_WITH_DASH_DASH First column is a_1, second is a_2.
+B = rand(3,2); %<REPLACE_WITH_DASH_DASH Likewise for B.
+C = rand(2,2); %<REPLACE_WITH_DASH_DASH Likewise for C.
+X = ktensor({A,B,C}) %<REPLACE_WITH_DASH_DASH Create the ktensor.
+%%
+% For Kruskal format, there can be any number of matrices, but every matrix
+% must have the same number of columns. The number of rows can vary.
+Y = ktensor({rand(4,1),rand(2,1),rand(3,1)}) %<REPLACE_WITH_DASH_DASH Another ktensor.
+%% Specifying weights in a ktensor
+% Weights for each rank-1 tensor can be specified by passing in a 
+% column vector.  For example, 
+%  
+% $$X = \lambda_1 \; a_1 \circ b_1 \circ c_1 + \lambda_2 \; a_2 \circ b_2 \circ c_2$$
+% 
+lambda = [5.0; 0.25]; %<REPLACE_WITH_DASH_DASH Weights for each factor.
+X = ktensor(lambda,{A,B,C}) %<REPLACE_WITH_DASH_DASH Create the ktensor.
+%% Creating a one-dimensional ktensor
+Y = ktensor({rand(4,5)}) %<REPLACE_WITH_DASH_DASH A one-dimensional ktensor.
+%% Constituent parts of a ktensor
+X.lambda %<REPLACE_WITH_DASH_DASH Weights or multipliers.
+%%
+X.U %<REPLACE_WITH_DASH_DASH Cell array of matrices.
+%% Creating a ktensor from its constituent parts
+Y = ktensor(X.lambda,X.U) %<REPLACE_WITH_DASH_DASH Recreate X.
+%% Creating an empty ktensor
+Z = ktensor %<REPLACE_WITH_DASH_DASH Empty ktensor.
+%% Use full or tensor to convert a ktensor to a tensor
+full(X) %<REPLACE_WITH_DASH_DASH Converts to a tensor. 
+%% 
+tensor(X) %<REPLACE_WITH_DASH_DASH Same as above.
+%% Use double to convert a ktensor to a multidimensional array
+double(X) %<REPLACE_WITH_DASH_DASH Converts to an array.
+%% Use tendiag or sptendiag to convert a ktensor to a ttensor.
+% A ktensor can be regarded as a ttensor with a diagonal core.
+R = length(X.lambda);  %<REPLACE_WITH_DASH_DASH Number of factors in X.
+core = tendiag(X.lambda, repmat(R,1,ndims(X))); %<REPLACE_WITH_DASH_DASH Create a diagonal core.
+Y = ttensor(core, X.u) %<REPLACE_WITH_DASH_DASH Assemble the ttensor.
+%%
+norm(full(X)-full(Y)) %<REPLACE_WITH_DASH_DASH They are the same.
+%% 
+core = sptendiag(X.lambda, repmat(R,1,ndims(X))); %<REPLACE_WITH_DASH_DASH Sparse diagonal core.
+Y = ttensor(core, X.u) %<REPLACE_WITH_DASH_DASH Assemble the ttensor
+%%
+norm(full(X)-full(Y)) %<REPLACE_WITH_DASH_DASH They are the same.
+%% Use ndims and size for the dimensions of a ktensor
+ndims(X) %<REPLACE_WITH_DASH_DASH Number of dimensions.
+%%
+size(X) %<REPLACE_WITH_DASH_DASH Row vector of the sizes.
+%%
+size(X,2) %<REPLACE_WITH_DASH_DASH Size of the 2nd mode.
+%% Subscripted reference for a ktensor
+X(1,1,1) %<REPLACE_WITH_DASH_DASH Assemble the (1,1,1) element (requires computation).
+%%
+X.lambda(2) %<REPLACE_WITH_DASH_DASH Weight of 2nd factor.
+%%
+X.U{2} %<REPLACE_WITH_DASH_DASH Extract a matrix.
+%%
+X{2} %<REPLACE_WITH_DASH_DASH Same as above.
+%% Subscripted assignment for a ktensor
+X.lambda = ones(size(X.lambda)) %<REPLACE_WITH_DASH_DASH Insert new multipliers.
+%%
+X.lambda(1) = 7 %<REPLACE_WITH_DASH_DASH Change a single element of lambda.
+%%
+X{3}(1:2,1) = [1;1] %<REPLACE_WITH_DASH_DASH Change the matrix for mode 3.
+%% Use end for the last array index.
+X(3:end,1,1)  %<REPLACE_WITH_DASH_DASH Calculated X(3,1,1) and X((4,1,1).
+%%
+X(1,1,1:end-1)  %<REPLACE_WITH_DASH_DASH Calculates X(1,1,1).
+%%
+X{end}  %<REPLACE_WITH_DASH_DASH Or use inside of curly braces. This is X{3}.
+%% Adding and subtracting ktensors
+% Adding two ktensors is the same as concatenating the matrices
+X = ktensor({rand(4,2),rand(2,2),rand(3,2)}) %<REPLACE_WITH_DASH_DASH Data.
+Y = ktensor({rand(4,2),rand(2,2),rand(3,2)}) %<REPLACE_WITH_DASH_DASH More data.
+%%
+Z = X + Y %<REPLACE_WITH_DASH_DASH Concatenates the factor matrices.
+%%
+Z = X - Y %<REPLACE_WITH_DASH_DASH Concatenates as with plus, but changes the weights.
+%%
+norm( full(Z) - (full(X)-full(Y)) ) %<REPLACE_WITH_DASH_DASH Should be zero.
+%% Basic operations with a ktensor
++X %<REPLACE_WITH_DASH_DASH Calls uplus.
+%%
+-X %<REPLACE_WITH_DASH_DASH Calls uminus.
+%%
+5*X %<REPLACE_WITH_DASH_DASH Calls mtimes.
+%% Use permute to reorder the modes of a ktensor
+permute(X,[2 3 1]) %<REPLACE_WITH_DASH_DASH Reorders modes of X
+%% Use arrange to normalize the factors of a ktensor
+% The function |arrange| normalizes the columns of the factors and then
+% arranges the rank-one pieces in decreasing order of size.
+X = ktensor({rand(3,2),rand(4,2),rand(2,2)})  % <REPLACE_WITH_DASH_DASH Unit weights.
+%%
+arrange(X) %<REPLACE_WITH_DASH_DASH Normalized a rearranged.
+%% Use fixsigns for sign indeterminacies in a ktensor
+% The largest magnitude entry for each factor is changed to be
+% positive provided that we can flip the signs of _pairs_ of vectors in
+% that rank-1 component.
+Y = X;
+Y.u{1}(:,1) = -Y.u{1}(:,1);  % switch the sign on a pair of columns
+Y.u{2}(:,1) = -Y.u{2}(:,1)
+%%
+fixsigns(Y)
+%% Use ktensor to store the 'skinny' SVD of a matrix
+A = rand(4,3) %<REPLACE_WITH_DASH_DASH A random matrix.
+%%
+[U,S,V] = svd(A,0); %<REPLACE_WITH_DASH_DASH Compute the SVD.
+X = ktensor(diag(S),{U,V}) %<REPLACE_WITH_DASH_DASH Store the SVD as a ktensor.
+%%
+double(X) %<REPLACE_WITH_DASH_DASH Reassemble the original matrix.
+%% Displaying a ktensor
+disp(X) %<REPLACE_WITH_DASH_DASH Displays the vector lambda and each factor matrix.
+%% Displaying data
+% The |datadisp| function allows the user to associate meaning to the modes
+% and display those modes with the most meaning (i.e., corresponding to the
+% largest values). 
+X = ktensor({[0.8 0.1 1e-10]',[1e-5 2 3 1e-4]',[0.5 0.5]'}); %<REPLACE_WITH_DASH_DASH Create tensor.
+X = arrange(X) %<REPLACE_WITH_DASH_DASH Normalize the factors.
+%%
+labelsDim1 = {'one','two','three'}; %<REPLACE_WITH_DASH_DASH Labels for mode 1.
+labelsDim2 = {'A','B','C','D'}; %<REPLACE_WITH_DASH_DASH Labels for mode 2.
+labelsDim3 = {'on','off'}; %<REPLACE_WITH_DASH_DASH Labels for mode 3.
+datadisp(X,{labelsDim1,labelsDim2,labelsDim3}) %<REPLACE_WITH_DASH_DASH Display.
+##### SOURCE END #####
+-->
+   </body>
+</html>
