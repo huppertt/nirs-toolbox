@@ -39,13 +39,17 @@ link=table(repmat(s,length(info.Wavelengths),1),...
 probe = nirs.core.Probe(SrcPos,DetPos,link);
 
 % Not sure why the units on the 2D probe in the NIRx file are so off
-scale=mean(info.ChanDis(:)./probe.distances(1:end/2));
+scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
 probe.optodes.X=scale*probe.optodes.X;
 probe.optodes.Y=scale*probe.optodes.Y;
 probe.optodes.Z=scale*probe.optodes.Z;
 
 %% Now, let's get the data
 raw = nirs.core.Data();
+
+
+
+
 
 lst=find(ismember(info.SDkey(:,2:3),[probe.link.source probe.link.detector],'rows'));
 for idx=1:length(info.Wavelengths)
@@ -68,13 +72,22 @@ for idx=1:length(flds)
 end
 raw.demographics=demo;
 
+% There is a slight error in the NIRx files for hyperscanning that I am
+% going to exploit to add this info.  For hyperscanning files, the
+% info.S_D_Mask covers only 1 subject but the info.SD_Key field is the full
+% (both subjects) length.  
+if(length(info.ChanDis)==length(s)*2)
+    raw.demographics('hyperscan')=info.FileName;  
+end
+
+
 % Now add stimulus info
 if(~isempty(info.Events))
     stimName = unique(info.Events(:,2));
     stimulus=Dictionary();
     for idx=1:length(stimName)
         s = nirs.design.StimulusEvents();
-        s.name=['channel-' num2str(stimName(idx))];
+        s.name=['channel_' num2str(stimName(idx))];
         s.onset=info.Events(find(info.Events(:,2)==stimName(idx)),1);
         s.dur=ones(size(s.onset));
         s.amp=ones(size(s.onset));

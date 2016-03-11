@@ -23,6 +23,37 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         
         function connStats = runThis( obj, data )
             
+            
+            if(isempty(obj.link))
+                % NIRx files have a hyperscan variable upon loading that I
+                % can use here
+                if(ismember('hyperscan',nirs.createDemographicsTable(data).Properties.VariableNames))
+                    hyperscanfiles=nirs.createDemographicsTable(data).hyperscan;
+                    
+                    for i=1:length(hyperscanfiles); if(isempty(hyperscanfiles{i})); hyperscanfiles{i}=''; end; end;
+                    uniquefiles=unique(cellstr(vertcat(hyperscanfiles{:})));
+                    [ia,ib]=ismember(hyperscanfiles,uniquefiles);
+                    
+                    for i=1:length(uniquefiles)
+                        lst=find(ib==i);
+                        ScanA(i,1)=lst(1);
+                        ScanB(i,1)=lst(2);
+                    end
+                    
+                    OffsetA = zeros(size(ScanA));  % The time shift of the "A" files (in sec)
+                    OffsetB = zeros(size(ScanB));  % The time shift of the "B" files (in sec)
+                    
+                    link = table(ScanA,ScanB,OffsetA,OffsetB);
+                    obj.link=link;
+                else
+                    warning('link variable must be specified');
+                    connStats=nirs.core.sFCStats();
+                    return
+                end
+            end
+            
+            
+            
             for i=1:height(obj.link)
                 idxA = obj.link.ScanA(i);
                 idxB = obj.link.ScanB(i);
@@ -33,7 +64,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 timeB = data(idxB).time+obj.link.OffsetB(i);
                 
                 % Make sure we are using the same time base
-                time=[max(timeA(1),timeB(1)):1/data(1).Fs:min(timeA(end),timeB(end))];
+                time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))];
                 for id=1:size(dataA,2)
                     dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
                     dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
