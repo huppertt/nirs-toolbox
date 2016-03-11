@@ -28,10 +28,10 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                 return
             end
             
-            subjects = unique(demo.(obj.sortfield));
-            
-            if(~iscell(subjects)); for i=1:length(subjects); ss{i}=subjects(i); end; subjects=ss; end;
-            
+            subjects = demo.(obj.sortfield);
+            if(ischar(subjects)); subjects=cellstr(subjects); end;
+            subjects = unique(subjects);
+           
             if(length(subjects)>1)
                 G = nirs.core.ChannelStats();
                 for i=1:length(subjects)
@@ -40,7 +40,13 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                 end
                 return
             end
-                       
+                    
+            % Return if there is nothing to average
+            if(height(demo)==1)
+                G=S;
+                return;
+            end
+            
             % preallocate group stats
             G = nirs.core.ChannelStats();
             
