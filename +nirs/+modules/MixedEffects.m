@@ -162,9 +162,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 yproj = beta - lm2.designMatrix('random')*lm2.randomEffects;
                 yproj=inv(W)*yproj;
                 
-                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
-                
-                btest=[];
+                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type,vars.cond), 'rows', 'stable');
+                if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
+                btest=[]; models=cell(height(G.variables),1);
                 for idx=1:max(lst)                   
                         ll=find(lst == idx);
                         tmp = vars(ll, :);
@@ -174,11 +174,18 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         mdl{idx} = fitlm([table(beta) tmp], lm1.Formula.FELinearFormula,'weights',w.^2,...
                             'dummyVarCoding','full');
                        
-                        btest=[btest; mdl{idx}.Coefficients.Estimate];
-                                
+                       btest=[btest; mdl{idx}.Coefficients.Estimate];
+                       
+                        for j=1:length(mdl{idx}.CoefficientNames)
+                            cc=mdl{idx}.CoefficientNames{j};
+                            cc=cc(strfind(cc,'cond_')+length('cond_'):end);
+                            id=find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)) & ...
+                                ismember(G.variables.detector,sd.Var2(idx)) & ismember(G.variables.type,sd.Var3{idx}));
+                           models{id}=mdl{idx};
+                       end
                 end
-                mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
-                G.variables.model=mdl;
+                %mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
+                G.variables.model=models;
  
             end
             

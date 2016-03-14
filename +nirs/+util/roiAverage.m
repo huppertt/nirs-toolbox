@@ -223,6 +223,16 @@ else
                 % include the LinearModel (diagnotics) in the ROI
                 model = combineLinearModels(c,vars.model(lst));
                 tmp.model={model};
+                t=model.Coefficients;
+                l=find(ismember(t.Properties.RowNames,['cond_' tmp.Contrast{1}]));
+                
+                % Use the values from the table instead
+                tmp.Beta=t.Estimate(l);
+                tmp.SE=t.SE(l);
+                tmp.T=t.tStat(l);
+                tmp.p=t.pValue(l);
+                tmp.DF=model.DFE;
+                
             end
             
             tbl = [tbl; tmp];
@@ -247,7 +257,7 @@ for idx=1:length(models);
         w=[w; c(idx)*models{idx}.ObservationInfo.Weights];
     end
 end
-mdl=fitlm(tbl,models{1}.Formula,'weights',w);
+mdl=fitlm(tbl,models{1}.Formula,'weights',w,'dummyVarCoding','full');
 
 
 end

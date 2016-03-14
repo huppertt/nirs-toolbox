@@ -148,7 +148,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             W=[];
             for i = 1:length(S)
                 [u, s, ~] = svd(S(i).covb, 'econ');
-                W = [W; diag(1./diag(sqrt(s))) * u'];
+                W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
             end
             lstBad=find(sum(abs(W),2)>100*median(sum(abs(W),2)));
             W(lstBad,:)=[];
@@ -170,6 +170,10 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 
                 key = S(i).demographics('subject');
+                if(~Lfwdmodels.iskey(key))
+                    key='default';
+                end
+                
                 
                 xx=[];
                 
@@ -329,7 +333,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Zlocal=[];
                 
                 subname = tmpvars.subject{i};
-                
+                if(~Lfwdmodels.iskey(subname))
+                    subname='default';
+                end
             
                 
                 

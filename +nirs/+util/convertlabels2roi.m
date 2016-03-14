@@ -1,8 +1,12 @@
-function R = convertlabels2roi(probe1020)
+function R = convertlabels2roi(probe1020,regions)
 % This function uses the registration of a probe to define the set of
 % region labels and the weight for each label
 
-d=nirs.util.depthmap('?',probe1020);
+if(nargin<2)
+    regions='?';
+end
+    
+d=nirs.util.depthmap(regions,probe1020);
 regions=unique(d.region(ismember(d.Type,'Link')));
 
 for id=1:length(regions)
