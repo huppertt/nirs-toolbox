@@ -116,10 +116,19 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             %% check weights
             dWTW = sqrt(diag(W'*W));
-            m = median(dWTW);
             
-            %W(dWTW > 100*m,:) = 0;
-            lstBad=find(dWTW > 100*m);
+            % Edit made 3/20/16-  Treat each modality seperately.  This
+            % avoids issues with mixed data storage (e.g. StO2,Hb, CMRO2)
+            % etc.
+            utypes=unique(vars.type);
+            lstBad=[];
+            for iT=1:length(utypes)
+                lst=ismember(vars.type,utypes{iT});
+                m = median(dWTW(lst));
+                
+                %W(dWTW > 100*m,:) = 0;
+                lstBad=[lstBad; find(dWTW(lst) > 100*m)];
+            end
             
             W(lstBad,:)=[];
             W(:,lstBad)=[];

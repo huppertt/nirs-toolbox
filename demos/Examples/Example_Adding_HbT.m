@@ -14,8 +14,6 @@ hb=job.run(raw);
 % Run the first level stats model
 job=nirs.modules.AR_IRLS;
 SubjStats = job.run(hb);
-% This will result in 4 files
-
 
 % We can also add total-Hb (and oxygen saturation) to the models
 % There are two options for this:

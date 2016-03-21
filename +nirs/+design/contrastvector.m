@@ -11,6 +11,11 @@ if(iscellstr(str) | iscell(str))
     return;
 end
 
+% take care of the simple case
+if(ismember(str,conditions))
+    C=1*ismember(conditions,str)';
+    return;
+end
 
 %Parse the str
 lst=sort([1 strfind(str,'-') strfind(str,'+') length(str)+1]);

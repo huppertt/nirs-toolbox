@@ -14,6 +14,38 @@ function C = roi_math(A,op,B)
 MAXSRC=64;
 MAXDET=64;
 
+if(iscell(A))
+    a=table;
+    
+    for i=1:length(A)
+        if(~ismember(A{i}.Properties.VariableNames,'Name') & ismember(A{i}.Properties.VariableNames,'name'))
+            A{i}.Name=A{i}.name;
+            A{i}.name=[];
+        end
+        if(~ismember(A{i}.Properties.VariableNames,'Name'))
+            A{i}.Name=repmat({['A[' num2str(i) ']']},height(A{i}),1);
+        end
+
+        a=[a; A{i}];
+    end
+    A=a;
+end
+if(iscell(B))
+    b=table;
+    for i=1:length(B)
+          if(~ismember(B{i}.Properties.VariableNames,'Name') & ismember(B{i}.Properties.VariableNames,'name'))
+            B{i}.Name=B{i}.name;
+            B{i}.name=[];
+        end
+        if(~ismember(B{i}.Properties.VariableNames,'Name'))
+            B{i}.Name=repmat({['B[' num2str(i) ']']},height(B{i}),1);
+        end
+        b=[b; B{i}];
+    end
+    B=b;
+end
+
+
 switch(op)
     case('-')
         fcn=@(a,b)minus(a,b);
@@ -49,13 +81,31 @@ end
 
 if(~ismember(A.Properties.VariableNames,'weight'))
     A.weight=ones(height(A),1);
-    A.Name=repmat({'A'},height(A),1);
-end
+  end
 
 if(~ismember(B.Properties.VariableNames,'weight'))
     B.weight=ones(height(B),1);
+end
+
+
+if(~ismember(A.Properties.VariableNames,'Name') & ismember(A.Properties.VariableNames,'name'))
+    A.Name=A.name;
+    A.name=[];
+end
+
+if(~ismember(B.Properties.VariableNames,'Name') & ismember(B.Properties.VariableNames,'name'))
+    B.Name=B.name;
+    B.name=[];
+end
+
+if(~ismember(A.Properties.VariableNames,'Name'))
+    A.Name=repmat({'A'},height(A),1);
+end
+
+if(~ismember(B.Properties.VariableNames,'Name'))
     B.Name=repmat({'B'},height(B),1);
 end
+
 
 % Deal with NaN's
 if(~isempty(find(isnan(B.source))))
