@@ -1,77 +1,109 @@
 function tbl = roiAverage( data, R, names )
 
-if(~iscell(R) && isa(R,'table'))
-    if(any(ismember(R.Properties.VariableNames,'Name')))
-        % Table contains the Names for the ROI.
-        names=unique(R.Name);
-        sIdx=find(ismember(R.Properties.VariableNames,'source'));
-        dIdx=find(ismember(R.Properties.VariableNames,'detector'));
-        wIdx=find(ismember(R.Properties.VariableNames,'weight'));
-        
-        for i=1:height(R)
-            if(isnan(R.source(i)) & isnan(R.detector(i)))
-                [source,detector]=meshgrid(1:size(data.probe.srcPos,1),...
-                    1:size(data.probe.detPos,1));
-                source=source(:); detector=detector(:);
-                weight=repmat(R.weight(i),size(source));
-                Name=repmat({R.Name{i}},size(source));
-                
-                R=[R; table(source,detector,weight,Name)];
-            elseif(isnan(R.source(i)))
-                [source,detector]=meshgrid(1:size(data.probe.srcPos,1),...
-                    R.detector(i));
-                source=source(:); detector=detector(:);
-                weight=repmat(R.weight(i),size(source));
-                Name=repmat({R.Name{i}},size(source));
-                
-                R=[R; table(source,detector,weight,Name)];
-                
-            elseif(isnan(R.detector(i)))
-                [source,detector]=meshgrid(R.source(i),...
-                    1:size(data.probe.detPos,1));
-                source=source(:); detector=detector(:);
-                weight=repmat(R.weight(i),size(source));
-                Name=repmat({R.Name{i}},size(source));
-                
-                R=[R; table(source,detector,weight,Name)];
-            end
-            
-        end
-        lst=~ismember([R.source R.detector],[data.probe.link.source data.probe.link.detector],'rows');
-        R(lst,:)=[];
-        R=unique(R);
-        
-        for idx=1:length(names)
-            lst=ismember(R.Name,names{idx});
-            RR{idx}=R(lst,[sIdx dIdx]);
-            if(~isempty(wIdx))
-                ContVect{idx}=R.weight(lst);
-            end
-            
-        end
-        R=RR;
-    end
-    
-end
+if(~iscell(R)); R={R}; end;
 
 if(nargin<3 && ~exist('names'))
-    names=cellstr(num2str(1:length(R)));
+    for i=1:length(R)
+        names{i}=num2str(i);
+    end
 end
 if ischar( names )
     names = {names};
 end
+
+
+%First deal with the NaN values;
+data=data.sorted;
+% sort probe
+link = data(1).probe.link;
+[link, ilink] = sortrows(link, {'type','source', 'detector'});
+
+allSrc=unique(link.source);
+allDet=unique(link.detector);
+
+Rall={}; namesAll={};
+cnt=1;
+for idx=1:length(R)
+    if(~ismember('weight',R{idx}.Properties.VariableNames))    
+        R{idx}.weight=ones(height(R{idx}),1);
+    end
+    if(~ismember('Name',R{idx}.Properties.VariableNames) & ismember('name',R{idx}.Properties.VariableNames))    
+        R{idx}.Name=R{idx}.name;
+        R{idx}.name=[];
+    end
+    if(~ismember('Name',R{idx}.Properties.VariableNames))    
+        R{idx}.Name=repmat({names{idx}},height(R{idx}),1);
+    end
+    
+    % Deal with any NaN's    
+    if(any(all([isnan(R{idx}.detector) isnan(R{idx}.source)],2)))
+        [s,d]=meshgrid(allSrc,allDet);
+        R{idx}=[R{idx}; table(s(:),d(:),'VariableNames',{'source','detector'})];
+    end
+    
+    
+    src=R{idx}.source(isnan(R{idx}.detector));
+    weight=R{idx}.weight(isnan(R{idx}.detector));
+    Name=R{idx}.Name(isnan(R{idx}.detector));
+    
+    if(length(src)>0)
+        R{idx}=[R{idx}; table(kron(src,ones(length(allDet),1)),...
+            kron(ones(length(src),1),allDet),kron(weight,ones(length(allDet),1)),...
+            reshape(repmat(Name',length(allDet),1),[],1),...
+            'VariableNames',{'source','detector','weight','Name'})];
+    end
+    
+    det=R{idx}.detector(isnan(R{idx}.source));
+    weight=R{idx}.weight(isnan(R{idx}.source));
+    Name=R{idx}.Name(isnan(R{idx}.source));
+    if(length(det)>0)
+      
+        
+        R{idx}=[R{idx}; table(kron(ones(length(det),1),allSrc),...
+            kron(ones(length(allSrc),1),det),kron(ones(length(allSrc),1),weight),...
+            reshape(repmat(Name',length(allSrc),1),[],1),...
+            'VariableNames',{'source','detector','weight','Name'})];
+    end
+    
+    R{idx}((isnan(R{idx}.source) | isnan(R{idx}.detector)),:)=[];
+    
+
+    % Table contains the Names for the ROI.
+    names2=unique(R{idx}.Name);
+    sIdx=find(ismember(R{idx}.Properties.VariableNames,'source'));
+    dIdx=find(ismember(R{idx}.Properties.VariableNames,'detector'));
+    wIdx=find(ismember(R{idx}.Properties.VariableNames,'weight'));
+    
+    
+    lst=~ismember([R{idx}.source R{idx}.detector],[link.source link.detector],'rows');
+    R{idx}(lst,:)=[];
+    R{idx}=unique(R{idx});
+    
+    for idx2=1:length(names2)
+        lst=ismember(R{idx}.Name,names2{idx2});
+        Rall{cnt}=R{idx}(lst,[sIdx dIdx]);
+        namesAll{cnt}=names2{idx2};
+        if(~isempty(wIdx))
+            ContVect{cnt}=R{idx}.weight(lst);
+        end
+        cnt=cnt+1;
+    end
+   
+end
+R=Rall;
+names=namesAll;
 
 if(length(data)>1)
     if(isa(data,'nirs.core.Data'))
         tbl=nirs.core.Data;
         tbl(1)=[];
         for idx=1:length(data)
-            tbl=[tbl; nirs.util.roiAverage(data(idx),R,names)'];
+            tbl=[tbl; nirs.util.roiAverage(data(idx),R)'];
         end
     else
         tbl=[];
         for idx=1:length(data)
-            thistbl=nirs.util.roiAverage(data(idx),R,names);
+            thistbl=nirs.util.roiAverage(data(idx),R);
             description = {data(idx).description};
             fileIdx=idx;
             thistbl = [repmat(table(fileIdx,description),height(thistbl),1) thistbl];
@@ -81,39 +113,10 @@ if(length(data)>1)
     return
 end
 
-data=data.sorted;
-% sort probe
-link = data.probe.link;
-[link, ilink] = sortrows(link, {'type','source', 'detector'});
 
-if(isa(R{1},'table'))
-    
-    %First deal with the NaN values;
-    allSrc=unique(link.source);
-    allDet=unique(link.detector);
-    
-    for idx=1:length(R)
-        if(any(all([isnan(R{idx}.detector) isnan(R{idx}.source)],2)))
-            [s,d]=meshgrid(allSrc,allDet);
-            R{idx}=[R{idx}; table(s(:),d(:),'VariableNames',{'source','detector'})];
-        end
-        
-        
-        src=R{idx}.source(isnan(R{idx}.detector));
-        if(length(src)>0)
-            R{idx}=[R{idx}; table(kron(src,ones(length(allDet),1)),...
-                kron(ones(length(src),1),allDet),'VariableNames',{'source','detector'})];
-        end
-        
-        det=R{idx}.detector(isnan(R{idx}.source));
-        if(length(det)>0)
-            R{idx}=[R{idx}; table(kron(ones(length(det),1),allSrc),...
-                kron(ones(length(allSrc),1),det),'VariableNames',{'source','detector'})];
-        end
-        
-    end
-    
-    
+
+
+
     % The region definition is a table, parse it to the contrast vector
     types=unique(link.type);
     
@@ -141,11 +144,8 @@ if(isa(R{1},'table'))
     R=RNew;
     namesOld=names;
     names=NamesNew;
-    if(exist('ContVect'))
-        ContVect=ContVectNew;
-    end
+    ContVect=ContVectNew;
     
-end
 
 if(isa(data,'nirs.core.Data'))
     data=data.sorted({'type','source','detector'});
@@ -208,7 +208,7 @@ else
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
             
-            
+           
             broi    = c'*b;
             se      = sqrt(c'*C*c);
             t       = broi / se;
@@ -242,6 +242,8 @@ else
     q   = nirs.math.fdr( tbl.p );
     tbl = [tbl table(q)];
 end
+
+
 end
 
 
@@ -250,14 +252,17 @@ function mdl = combineLinearModels(c,models)
 
 tbl=table();
 w=[];
+c=c/rms(c);
 
 for idx=1:length(models);
     if(c(idx)~=0)
-        tbl=[tbl; models{idx}.Variables];
-        w=[w; c(idx)*models{idx}.ObservationInfo.Weights];
+        thistbl=models{idx}.Variables;
+        thistbl.beta=thistbl.beta*c(idx);
+        tbl=[tbl; thistbl];
+        w=[w; models{idx}.ObservationInfo.Weights];
     end
 end
-mdl=fitlm(tbl,models{1}.Formula,'weights',w,'dummyVarCoding','full');
+mdl=fitlm(tbl,models{1}.Formula,'weights',max(w,eps(1)),'dummyVarCoding','full');
 
 
 end
