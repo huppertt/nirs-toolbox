@@ -146,7 +146,7 @@ for cIdx=1:length(obj.conditions)
                 Y=[posOrig(:,2) posDest(:,2)];
                 Z=[posOrig(:,3) posDest(:,3)];
                 
-                figure(f(1));
+                figure(f(cIdx));
                 subplot(length(utypesOrigin),length(utypesDest),cnt);
                 
                 h2=[];

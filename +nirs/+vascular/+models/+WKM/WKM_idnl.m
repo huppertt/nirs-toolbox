@@ -1,6 +1,5 @@
 function nlgr = WKM_idnl(param)
 
-
 a0=param.gain_flowind;
 a1=param.tau_autoreg;
 a2 = param.tau_flowind; % 1/tauf

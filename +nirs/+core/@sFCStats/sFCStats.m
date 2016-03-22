@@ -47,7 +47,7 @@ classdef sFCStats
          function p = get.p(obj)
              for idx=1:length(obj.conditions)
                  t(:,:,idx)=obj.R(:,:,idx)./sqrt((1-obj.R(:,:,idx).^2)/(max(obj.dfe(idx))-2));
-                 p(:,:,idx)=2*tcdf(-abs(t),max(obj.dfe(idx)));
+                 p(:,:,idx)=2*tcdf(-abs(t(:,:,idx)),max(obj.dfe(idx)));
              end
          end
         
@@ -81,7 +81,7 @@ classdef sFCStats
                 cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
                 out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                     [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                    obj.R(:),obj.Z(:),obj.p(:),...
+                    reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),...
                     'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
                     'SourceDest','DetectorDest','TypeDest','R','Z','pvalue'})];
             end

@@ -4,18 +4,15 @@ classdef CalculateCMRO2 < nirs.modules.AbstractModule
     %
     
     properties
-        HbT_baseline=50; % baseline uM HbT
-        E0=.4;
-        tau=3;
-        alpha=.4;
+       model;
         
-      
     end
     
     methods
         
         function obj = CalculateCMRO2( prevJob )
             obj.name = 'Add CMRO2 and CBF to data using a Kalman filter';
+            obj.model=@WKM_idnl_vs2;
             if nargin > 0
                 obj.prevJob = prevJob;
             end
@@ -27,9 +24,10 @@ classdef CalculateCMRO2 < nirs.modules.AbstractModule
                 return
             end
             
-            nlgr =WKM_idnl(obj.HbT_baseline,obj.E0,obj.tau,obj.alpha);
+            nlgr =feval(obj.model);
             
             for i = 1:length(data)
+                disp([num2str(i) ' of ' num2str(length(data))]);
                 %Time series models
                 link=data(i).probe.link;
                 link=link(ismember(link.type,'hbo'),:);
@@ -37,17 +35,19 @@ classdef CalculateCMRO2 < nirs.modules.AbstractModule
                 CBF=zeros(size(data(i).data,1),height(link));
                 
                 for j=1:height(link)
+                    fprintf(1,'.')
                     iHbO=find(ismember(data(i).probe.link(:,1:2),link(j,1:2)) & ismember(data(i).probe.link.type,'hbo'));
                     iHbR=find(ismember(data(i).probe.link(:,1:2),link(j,1:2)) & ismember(data(i).probe.link.type,'hbr'));
                     HbO2=data(i).data(:,iHbO);
                     HbR=data(i).data(:,iHbR);
                     
-                    d=iddata([HbO2,HbR],[],1./data(i).Fs,'OutPutName',{'HbO2','HbR'});
-                    
-                    [CMRO2(:,j),CBF(:,j)]=kalman_fit(nlgr,d);
-                    CMRO2(:,j)=CMRO2(:,j)*100;% convert to % signal change so the scale is closer to the HB signals
-                    CBF(:,j)=CBF(:,j)*100;
+                    %static version
+                    [CMRO2(:,j),CBF(:,j)]=WKM_static(data.time,HbO2,HbR,3,.38,100,.4);
+                    %dynamic version
+                 %   d=iddata([HbO2,HbR],[],1./data(i).Fs,'OutPutName',{'HbO2','HbR'});
+                 %   [CMRO2(:,j),CBF(:,j)]=kalman_fit(nlgr,d);
                 end
+                fprintf(1,'  Done \r')
                 linkCMRO2=link;
                 linkCMRO2.type=repmat({'CMRO2'},height(link),1);
                 linkCBF=link;

@@ -1,4 +1,4 @@
-function [CMRO2,CBF]=kalman_fit(nlgr,data)
+function [states,yhat]=extended_kalman_fit(nlgr,data)
    
 t=get(data,'SamplingInstants');
 dt=get(data,'Ts');
@@ -76,36 +76,13 @@ for i=ntps-1:-1:1
 end
 
 for idx=1:length(nlgr.InitialStates)
-    StateNames{idx}=nlgr.InitialStates(idx).Name;
+    states(idx).name=nlgr.InitialStates(idx).Name;
+    states(idx).data=x(i,:)';
 end
 
-i=find(ismember(StateNames,'CBF'));
-CBF=x(i,:);
-
-i=find(ismember(StateNames,'OEF'));
-if(~isempty(i))
-    CMRO2=x(i,:).*CBF;
-else
-    i=find(ismember(StateNames,'q'));
-    i2=find(ismember(StateNames,'CBV'));
-    CMRO2=x(i,:)./x(i2,:).*CBF;
+for i=1:ntps
+    [~, yhat(:,i)] = feval(fileName,t, x(:,i),u(:,i), param{:});
 end
-
-CBF=CBF-1;
-CMRO2=CMRO2-1;
-
-
-i=find(ismember(StateNames,'q'));
-i2=find(ismember(StateNames,'CBV'));
-
-E0=nlgr.Parameters(end-1).Value;
-HbT0=nlgr.Parameters(end).Value;
-
-yhat=[];
-yhat(1,:)=(x(i2,:)-1)*HbT0-(x(i,:)-1)*HbT0*E0;  %HbO2
-yhat(2,:)=(x(i,:)-1)*HbT0*E0;  % Hb
-
-yhat=yhat';
 
 return;
 
