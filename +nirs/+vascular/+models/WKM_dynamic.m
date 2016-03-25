@@ -1,14 +1,15 @@
-classdef  WKM_difflimit < nirs.vascular.models.AbstractVascularModel
+classdef  WKM_dynamic < nirs.vascular.models.AbstractVascularModel
      % State space model of the hemodynamic balloon model.  Modified from
             % Neuroimage. 2004 Feb;21(2):547-67.
             % A state-space model of the hemodynamic approach: nonlinear filtering of BOLD signals.
             % Riera JJ1, Watanabe J, Kazuki I, Naoki M, Aubert E, Ozaki T, Kawashima R.
          
     methods
-        function obj = WKM_difflimit(varargin)
+        function obj = WKM_dynamic(varargin)
             
-            obj.description = 'O2 diffusion limited model';
-            obj.states={'Flow Inducing','CBF','CBV','q','OEF','CMRO2'};  % This needs to match the model
+            obj.description = 'Flow/Metabolism model';
+            obj.states={'flow-inducing','CMRO2-inducing','CBF','CMRO2','CBV','OEF','q'}
+              % This needs to match the model
             
             obj.parameters(1).name='tau_autoreg';
             obj.parameters(1).value= 3;
@@ -45,13 +46,24 @@ classdef  WKM_difflimit < nirs.vascular.models.AbstractVascularModel
             obj.parameters(7).fixed= false;
             obj.parameters(7).range= [-Inf Inf];
             
+            obj.parameters(8).name='gain_cmro2';
+            obj.parameters(8).value= 1;
+            obj.parameters(8).fixed= false;
+            obj.parameters(8).range= [-Inf Inf];
+            
+            obj.parameters(9).name='tau_cmro2';
+            obj.parameters(9).value= 2;
+            obj.parameters(9).fixed= false;
+            obj.parameters(9).range= [1 4];
+            
             obj.outputNames={'CMRO2','CBF'};
             
         end
         
         function nlgr= model(obj)
             
-            paramorder={'gain_flowind','tau_autoreg','tau_flowind',...
+            paramorder={'gain_cmro2','tau_cmro2','gain_flowind',...
+                'tau_autoreg','tau_flowind',...
                 'tau','alpha','E0','HbT0'};
             
             for i=1:length(paramorder)
@@ -62,15 +74,15 @@ classdef  WKM_difflimit < nirs.vascular.models.AbstractVascularModel
                 pValuesFixed{i}=obj.parameters(id).fixed;
             end
             
-            FileName      = @nirs.vascular.models.WKM.WKM_diffusion_limited;   % File describing the WKM model structure.
-            Order         = [2 1 6];   % Model orders [ny nu nx].
+            FileName      = @nirs.vascular.models.WKM.WKM_dyn;   % File describing the WKM model structure.
+            Order         = [2 2 7];   % Model orders [ny nu nx].
             Parameters    = pValues;   % Initial parameters. Np = 7.
-            InitialStates = [0; 1;1;1;1;1];   % Initial initial states.
+            InitialStates = [0; 0;1;1;1;1;1];   % Initial initial states.
             Ts            = 0;           % Time-continuous system.
             nlgr = idnlgrey(FileName, Order, Parameters, InitialStates, Ts, ...
                 'Name', 'Windkessel model');
             
-            set(nlgr, 'InputName', {'flow-inducing'}, 'InputUnit', {'%'},...
+            set(nlgr, 'InputName', {'flow-inducing','CMRO2-inducing'}, 'InputUnit', {'%','%'},...
                 'OutputName', {'HbO2', 'HbR'}, ...
                 'OutputUnit', {'uM', 'uM'},                         ...
                 'TimeUnit', 's');

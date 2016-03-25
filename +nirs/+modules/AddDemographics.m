@@ -28,11 +28,19 @@ classdef AddDemographics < nirs.modules.AbstractModule
                 
             for i = 1:length(data)
 
+                
+                % Make this case-insensitive
+                varToMatchA=obj.demoTable.Properties.VariableNames{find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch)))};
+                
+                
                 % row idx of demo table
-                idx = find( strcmpi( obj.demoTable.(obj.varToMatch), ...
+                idx = find( strcmpi( obj.demoTable.(varToMatchA), ...
                     data(i).demographics(obj.varToMatch) ) );
                 
-                
+                if(isempty(idx))
+                    error(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
+                end
+                    
                 % add demo info from row
                 for j = 1:length(lst)
                     key = colNames{lst(j)};

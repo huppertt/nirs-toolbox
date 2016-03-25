@@ -77,7 +77,7 @@ end
 
 for idx=1:length(nlgr.InitialStates)
     states(idx).name=nlgr.InitialStates(idx).Name;
-    states(idx).data=x(i,:)';
+    states(idx).data=x(idx,:)';
 end
 
 for i=1:ntps

@@ -5,7 +5,6 @@
 % Riera JJ1, Watanabe J, Kazuki I, Naoki M, Aubert E, Ozaki T, Kawashima R.
 
 Fs=10;
-nlgr = WKM_idnl_vs2;
 
 % Generate a response model
 ntps=2000;
@@ -22,33 +21,24 @@ end
 % This simulates the HbO/Hb data
 u=iddata([],u,1/Fs);
 set(u,'InputName', {'flow-inducing','CMRO2-inducing'}, 'InputUnit', {'%','%'}); 
-opt = simOptions('InitialCondition',cell2mat(getinit(nlgr)));
-data=sim(nlgr,u,opt); 
 
-% RUn the fitting model
-[CMRO2,CBF]=kalman_fit(nlgr,data);
+m=nirs.vascular.models.WKM_dynamic;
+data=m.sim(u); 
+
+% The order is set by m.outputNames
+[cmro2,cbf]=m.StateEstimate(data);
 
 
-Fs=10;
-nlgr = WKM_idnl;
 
-ntps=2000;
-u=zeros(ntps+1,1);
-for i=200:600:ntps
-    u(i+[1:100],1)=.1; 
-   end
-% u is the flow inducing signal.  
-% This is an diffusion limited model of CMRO2 (e.g. Buxton 1998).  For now,
-% there are only one input
-
-% This simulates the HbO/Hb data
-u=iddata([],u,1/Fs);
+% The diffusion limited model only takes flow-inducing signal
+u=iddata([],u(:,1),1/Fs);
 set(u,'InputName', {'flow-inducing'}, 'InputUnit', {'%'}); 
-opt = simOptions('InitialCondition',cell2mat(getinit(nlgr)));
-data=sim(nlgr,u,opt); 
 
-% RUn the fitting model
-[CMRO2,CBF]=kalman_fit(nlgr,data);
+m=nirs.vascular.models.WKM_difflimit;
+data=m.sim(u); 
+
+[cbf,cmro2]=m.StateEstimate(data);
+
 
 
 % In the toolbox

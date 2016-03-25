@@ -1,4 +1,4 @@
-function [dx, y,varargout] = WKM_m(t, x, u, a0,a1,a2,a3,a4,a5,a6, varargin)
+function [dx, y,varargout] = WKM_diffusion_limited(t, x, u, a0,a1,a2,a3,a4,a5,a6, varargin)
 % State space model of the hemodynamic balloon model.  Modified from
 % Neuroimage. 2004 Feb;21(2):547-67.
 % A state-space model of the hemodynamic approach: nonlinear filtering of BOLD signals.
@@ -27,9 +27,10 @@ dx(3,1) = 1/a3*(x(2)-x(3)^(1/a4));  % CBV
 dx(4,1) = 1/a3*(x(2)/a5*(1-(1-a5)^(1/x(2)))-x(4)*x(3)^((1-a5)/a5)); % q
 
 % OEF = q/v
-dx(5,1) = (x(3)*dx(4)-x(4)*dx(3))/x(3)^2;  %TODO - for now
-% CMRO2 = OEF*CBF
-dx(6,1) = x(5)*dx(2)+x(2)*dx(5);
+dx(5,1) = (1-(1-a5)^(1/x(2));  
+
+% CMRO2 = q/v*CBF
+dx(6,1) = dx(5)*x(2)+dx(2)*x(5);
 
 % Measurement
 y(1,1)=(x(3)-1)*a6-(x(4)-1)*a5*a6;  %HbO2
@@ -47,14 +48,17 @@ if(nargout>2)
     Jx(4,2)=1/(a3*a5)*(1-(1-a5)^(1/x(2))+log(1-a5)*(1-a5)^(1/x(2))/x(2));
     Jx(4,3)=-(1-a4)*x(4)*x(3)^((1-2*a4)/a4)/(a3*a4);
     Jx(4,4)=-x(3)^((1-a4)/a4)/a3;
-    %
+    
+    % OEF = (1-(1-a5)^(1/f)
     Jx(5,3)=-x(4)/x(3)^2;
-    Jx(5,4)=1/v(3);
-    Jx(6,2)=x(5);
-    Jx(6,5)=x(2);
-    
-    
-    Jx=Jx+eye(4);
+    Jx(5,4)=1/x(3);
+   
+    % CMRO2 = f*OEF
+    Jx(6,2)=x(4)/x(3);
+    Jx(6,4)=x(2)/x(3);
+    Jx(6,3)=-x(2)*x(4)/x(3)^2;
+
+    Jx=Jx+eye(6);
     varargout{1}=Jx;
 end
 dY_dx=zeros(2,6);

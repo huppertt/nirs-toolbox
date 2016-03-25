@@ -8,7 +8,7 @@ classdef  WKM_difflimit < nirs.vascular.models.AbstractVascularModel
         function obj = WKM_difflimit(varargin)
             
             obj.description = 'O2 diffusion limited model';
-            obj.states={'Flow Inducing','CBF','CBV','q','OEF','CMRO2'};  % This needs to match the model
+            obj.states={'Flow Inducing','CBF','CBV','q','OEF',};
             
             obj.parameters(1).name='tau_autoreg';
             obj.parameters(1).value= 3;
