@@ -103,6 +103,15 @@ classdef Data
             if nargin == 1
                 lstChannels = 1:size(obj(1).data,2);
             end
+            if(isempty(lstChannels))
+                % draw a plot, but then turn it off to only show the stim
+                % marks
+                lstChannels=1;
+                showplot=false;
+            else
+                showplot=true;
+            end
+            
             
             if(length(obj)>1)
                 figure;
@@ -158,7 +167,7 @@ classdef Data
             
             % plot data
             h=plot( t, d );
-            
+        
             xlabel( 'seconds' );
             
             % axes limits
@@ -167,6 +176,10 @@ classdef Data
                 ylim(pmin + [-1 1]);
             else
                 ylim( [pmin pmax] );
+            end
+            
+            if(~showplot)
+                set(h,'visible','off');
             end
             
             if(nargout>0)

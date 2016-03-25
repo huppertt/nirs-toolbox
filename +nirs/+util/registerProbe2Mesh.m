@@ -168,7 +168,9 @@ for idx=1:size(pos,1)
      c = [0:.1:2*norm(vec)];
     vec=vec/norm(vec);
     p=c'*vec+ones(length(c),1)*com;
-    [k,d]=dsearchn(surf,p);
+    [k]=dsearchn(surf,p);
+    d=sqrt(sum((surf(k,:)-p).^2,2));
+    
     [~,i]=min(d);
     pos(idx,:)=p(i,:);
 end
