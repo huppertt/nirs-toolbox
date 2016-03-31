@@ -94,7 +94,7 @@ Htstat=X*tstat(lst,:);
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
 i=mod(i,(duration+lenHRF)*Fs);
-npts = min(max(i)+10,(duration+lenHRF)*Fs);
+npts = fix(min(max(i)+10,(duration+lenHRF)*Fs));
 
 HRF=nirs.core.Data();
 HRF.description=['HRF from basis: ' Stats.description];
@@ -106,7 +106,7 @@ HRF.time=t(1:npts);
 data=[];
 link=table;
 for idx=1:length(conditions)
-    lstT=[(idx-1)*(duration+lenHRF)*Fs+[1:npts]];
+    lstT=fix([(idx-1)*(duration+lenHRF)*Fs+[1:npts]]);
     typ={};
     typ2={};
     if(ismember(lower(type),'hrf'))
@@ -118,12 +118,20 @@ for idx=1:length(conditions)
         typ2=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx} ':tstat' ]},height(HRF.probe.link),1));
    
     end
-    
-    
+        
     linktmp=repmat(HRF.probe.link,length(type),1);
     linktmp.type=vertcat(typ,typ2);
     link=[link; linktmp];
 end
+
+n=height(tbl)/length(HRF.probe.link.type);
+link=tbl(1:n:end,1:4);
+for i=1:height(link)
+    link.cond{i}=link.cond{i}(1:max(strfind(link.cond{i},'_'))-1);
+end
+link.type=strcat(link.type,repmat({':'},height(link),1),link.cond);
+link.cond=[];
+
 HRF.probe.link=link;
 HRF.data=data;
 

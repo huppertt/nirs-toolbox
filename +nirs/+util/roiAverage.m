@@ -123,8 +123,9 @@ end
     RNew=cell(length(R)*length(types),1);
     NamesNew=cell(length(R)*length(types),1);
     cnt=1;
+     for idx2=1:length(R)
     for idx=1:length(types)
-        for idx2=1:length(R)
+       
             if(iscell(types))
                 RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
                     'VariableNames',{'type'})]);
