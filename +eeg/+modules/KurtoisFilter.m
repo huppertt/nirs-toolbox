@@ -3,7 +3,9 @@ classdef KurtoisFilter < nirs.modules.AbstractModule
 %
 % Options:
 %     ncomp - % number of components to remove
-
+    properties
+        model = 'PCA'; % use ICA or PCA
+    end
     methods
 
         function obj = KurtoisFilter( prevJob )
@@ -24,12 +26,19 @@ classdef KurtoisFilter < nirs.modules.AbstractModule
                 m = mean(d,1);
                 d = bsxfun(@minus, d, m);
                 
-                % svd
-                [u, s, v] = svd(d,'econ');
-                s = diag(s);
-                
+                if(strcmp(obj.model,'PCA'))
+                    % svd
+                    [u, s, v] = svd(d,'econ');
+                    s = diag(s);
+                elseif(strcmp(obj.model,'ICA'))
+                    [u,v,~]=fastica(d','approach', 'symm', 'g', 'tanh', 'verbose', 'off', 'displayMode', 'off','stabilization','on');
+                    u=u';
+                    s=ones(size(u,2),1);
+                else
+                    error('unrecognized model [ICA or PCA]');
+                end
                 % first pass remove spikes
-                k=kurtosis(u,[],1)';
+                k=kurtosis(u,0,1)';
                 w = mad(k, 0) / 0.6745;
                 k = k/w/4.685;
                 

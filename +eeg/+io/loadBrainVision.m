@@ -22,8 +22,14 @@ data.description=which(filename);
 
 data.probe=eeg.core.Probe({hdr.label{1:31}});
 
-stim=findstim(aux,hdr.fs,data.time);
+if(exist([strtok(filename,'.') '.mat']))
+    load([strtok(filename,'.') '.mat']);
+    stim=nirs.util.convertStimDesignStruct(StimDesign);
+else
+    stim=findstim(aux,hdr.fs,data.time);
+end
 data.stimulus=stim;
+data.description=filename;
 end
 
 function stim = findstim(aux,fs,t)

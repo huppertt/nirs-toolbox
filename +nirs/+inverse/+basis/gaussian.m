@@ -23,15 +23,23 @@ classdef gaussian
             
             n=size(mesh.nodes,1);
             Mtx = zeros(n,n);
-            for idx=1:size(mesh.faces,1)
-                Mtx(mesh.faces(idx,1),mesh.faces(idx,2))=1;
-                Mtx(mesh.faces(idx,1),mesh.faces(idx,3))=1;
-                Mtx(mesh.faces(idx,2),mesh.faces(idx,3))=1;
-                
-                Mtx(mesh.faces(idx,2),mesh.faces(idx,1))=1;
-                Mtx(mesh.faces(idx,3),mesh.faces(idx,1))=1;
-                Mtx(mesh.faces(idx,3),mesh.faces(idx,2))=1;
-            end
+            i=[mesh.faces(:,1); mesh.faces(:,1); mesh.faces(:,2); mesh.faces(:,2);...
+                mesh.faces(:,3); mesh.faces(:,3)];
+            j=[mesh.faces(:,2); mesh.faces(:,3); mesh.faces(:,3); mesh.faces(:,1);...
+                mesh.faces(:,1); mesh.faces(:,2)];
+            
+            Mtx(sub2ind([n n],i,j))=1;
+            Mtx=sparse(Mtx);
+%             
+%             for idx=1:size(mesh.faces,1)
+%                 Mtx(mesh.faces(idx,1),mesh.faces(idx,2))=1;
+%                 Mtx(mesh.faces(idx,1),mesh.faces(idx,3))=1;
+%                 Mtx(mesh.faces(idx,2),mesh.faces(idx,3))=1;
+%                 
+%                 Mtx(mesh.faces(idx,2),mesh.faces(idx,1))=1;
+%                 Mtx(mesh.faces(idx,3),mesh.faces(idx,1))=1;
+%                 Mtx(mesh.faces(idx,3),mesh.faces(idx,2))=1;
+%             end
             for idx=2:neighbors
                 Mtx =(Mtx*Mtx>0)*1;
             end

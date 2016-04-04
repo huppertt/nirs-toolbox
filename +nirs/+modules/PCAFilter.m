@@ -32,8 +32,20 @@ classdef PCAFilter < nirs.modules.AbstractModule
                 [u, s, v] = svd(d,'econ');
                 s = diag(s);
                 
+                if(obj.ncomp>0 & obj.ncomp<1)
+                    % if fraction, then remove that % of the noise
+                    n=max(cumsum(s)/sum(s)<=obj.ncomp);
+                    disp(['Removing first ' num2str(n) ' components (' num2str(cumsum(s(1:n))/sum(s)*100) '%)']);
+                    
+                    if(n==0)
+                        disp(['     lowest component = ' num2str(cumsum(s(1))/sum(s)*100) '%)']);
+                    end
+                else
+                    n=obj.ncomp;
+                end
+                
                 % remove n components
-                s(1:obj.ncomp) = 0;
+                s(1:n) = 0;
                 d = u*diag(s)*v';
                 
                 % add mean back

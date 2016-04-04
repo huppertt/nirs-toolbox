@@ -30,7 +30,7 @@ classdef Resample < nirs.modules.AbstractModule
                     
                     
                     if(length(t)<10000)
-                        N = floor(t(end) * obj.Fs);
+                        N = floor((t(end)-t(1)) * obj.Fs);
                         new_t = t(1) + (0:N-1)' / obj.Fs;
                         
                         % anti-aliasing filter

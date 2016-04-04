@@ -170,6 +170,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 
                 key = S(i).demographics('subject');
+                if(~ismember(key,Lfwdmodels.keys))
+                   key='default';
+                end
                 
                 xx=[];
                 
@@ -331,7 +334,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Zlocal=[];
                 
                 subname = tmpvars.subject{i};
-                
+                if(~ismember(subname,Lfwdmodels.keys))
+                  subname='default';
+                end
             
                 
                 

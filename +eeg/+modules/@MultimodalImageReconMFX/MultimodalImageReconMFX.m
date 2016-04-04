@@ -162,7 +162,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 if(ismember(sname,Lfwdmodels.keys))
                     key=sname;
                 else
-                    key='default';
+                    key=['default:' S(idx).demographics('modality')];
                 end
                 thisprobe=Probes(key);
                 [ia,ib]=ismember(thisprobe.link,S(idx).probe.link,'rows');
@@ -218,7 +218,9 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 
                 
                 key = S(i).demographics('subject');
-                
+                if(~ismember(key,Lfwdmodels.keys))
+                    key=['default:' S(i).demographics('modality')];
+                end
                 xx=[];
                 
                 for j=1:length(conds)
@@ -240,7 +242,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 X=[X; W*xx];
             end
            
-            lstBad=find(sum(abs(X),2) > 100*median(sum(abs(X),2)));
+            lstBad=[]; %find(sum(abs(X),2) > 100*median(sum(abs(X),2)));
             X(lstBad,:)=[];
             
             n=size(X,2)/length(m);
@@ -408,7 +410,11 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 
                 subname = tmpvars.subject{i};
                 
-            
+                if(ismember(subname,Lfwdmodels.keys))
+                    subname=subname;
+                else
+                   subname=['default:' tmpvars.modality{i}];
+                end
                 
                 
                 idx = tmpvars.idx(i);
@@ -462,8 +468,16 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             m = median(dWTW);
             
             %W(dWTW > 100*m,:) = 0;
+             utypes=unique(vars.type);
+            lstBad=[];
+            for iT=1:length(utypes)
+                lst=ismember(vars.type,utypes{iT});
+                m = median(dWTW(lst));
+                
+                %W(dWTW > 100*m,:) = 0;
+                lstBad=[lstBad; find(dWTW(lst) > 100*m)];
+            end
             
-            lstBad=find(dWTW > 100*m);
             W(lstBad,:)=[];
             W(:,lstBad)=[];
             X(lstBad,:)=[];
