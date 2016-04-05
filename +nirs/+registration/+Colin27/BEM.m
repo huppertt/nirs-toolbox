@@ -54,6 +54,15 @@ load MMC_Collins_Atlas_Mesh_Version_2L.mat
 
 node = node-ones(size(node,1),1)*mean(node,1);
 
+T =[ 0.9964    0.0178    0.0173   -0.0000
+   -0.0169    0.9957   -0.0444   -0.0000
+   -0.0151    0.0429    1.0215    0.0000
+   -0.4232  -17.5022   11.6967    1.0000];
+node(:,4)=1;
+node=node*T;
+node=node(:,1:3);
+
+
 for idx=1:4
     elem_local = elem(find(elem(:,5)==idx),1:4);
     face_local = face(find(face(:,4)==idx),1:3);

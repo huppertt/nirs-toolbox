@@ -77,7 +77,7 @@ classdef Data
             %% returns sorted channels of data by column in probe.link
             out = obj;
             if nargin < 2
-                colsToSortBy = {'source', 'detector', 'type'};
+                colsToSortBy = {'electrode', 'type'};
             end
             if(length(obj)>1)
                 for idx=1:length(obj)

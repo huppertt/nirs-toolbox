@@ -8,6 +8,13 @@ XYZ(:,1)=double(marker{2});
 XYZ(:,2)=double(marker{3});
 XYZ(:,3)=double(marker{4});
 
+XYZ(:,4)=1;
+T =[ 0.9964    0.0178    0.0173   -0.0000
+   -0.0169    0.9957   -0.0444   -0.0000
+   -0.0151    0.0429    1.0215    0.0000
+   -0.4232  -17.5022   11.6967    1.0000];
+XYZ=XYZ*inv(T);
+
 marker{1}(ismember(marker{1},'spmlpa'))=cellstr('lpa');
 marker{1}(ismember(marker{1},'spmrpa'))=cellstr('rpa');
 marker{1}(ismember(marker{1},'spmnas'))=cellstr('nas');

@@ -21,7 +21,7 @@ function data = simARNoise( probe, t, P, sigma)
     
     % output
     data = eeg.core.Data();
-    data.data   = 100 * exp( - e * 5e-3 );
+    data.data   = e * 5e-3;
     data.probe  = probe;
     data.time   = t;
   
