@@ -24,6 +24,7 @@ allDet=unique(link.detector);
 Rall={}; namesAll={};
 cnt=1;
 for idx=1:length(R)
+ 
     if(~ismember('weight',R{idx}.Properties.VariableNames))    
         R{idx}.weight=ones(height(R{idx}),1);
     end
@@ -34,12 +35,15 @@ for idx=1:length(R)
     if(~ismember('Name',R{idx}.Properties.VariableNames))    
         R{idx}.Name=repmat({names{idx}},height(R{idx}),1);
     end
-    
-    % Deal with any NaN's    
+       % Deal with any NaN's    
     if(any(all([isnan(R{idx}.detector) isnan(R{idx}.source)],2)))
         [s,d]=meshgrid(allSrc,allDet);
-        R{idx}=[R{idx}; table(s(:),d(:),'VariableNames',{'source','detector'})];
+        n=repmat(cellstr(R{idx}.Name{1}),size(s(:)));
+        w=repmat(R{idx}.weight(1),size(s(:)));
+        
+        R{idx}=[R{idx}; table(s(:),d(:),w(:),n,'VariableNames',{'source','detector','weight','Name'})];
     end
+    
     
     
     src=R{idx}.source(isnan(R{idx}.detector));
@@ -225,7 +229,8 @@ else
                 model = combineLinearModels(c,vars.model(lst));
                 tmp.model={model};
                 t=model.Coefficients;
-                l=find(ismember(t.Properties.RowNames,['cond_' tmp.Contrast{1}]));
+                str=model.PredictorNames{1};
+                l=find(ismember(t.Properties.RowNames,[str '_' tmp.Contrast{1}]));
                 
                 % Use the values from the table instead
                 tmp.Beta=t.Estimate(l);

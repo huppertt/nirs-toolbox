@@ -18,7 +18,7 @@ job = nirs.modules.AR_IRLS( );
 
 basis=nirs.design.basis.FIR;
 basis.binwidth=1; % each bin is 1 sample wide
-basis.nbins=24;  % 2hz x 12s = 60 bins
+basis.nbins=24;  % 2hz x 12s = 24 bins
 basis.isIRF=true;  % estimate impulse response (cf. full response) model
 
 job .basis('default')=basis;

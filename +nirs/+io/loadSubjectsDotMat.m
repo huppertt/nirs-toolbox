@@ -52,7 +52,7 @@ function data = loadSubjectsDotMat( filename )
                 d = d(:,idx);
                 
                 % get stims
-                stims = nirs.util.convertStimDesignStruct( thisData.StimDesign );
+                stims = nirs.util.convertStimDesignStruct( thisData.StimDesign,t);
                 
                 % get filename
                 [~, fname] = fileparts(s.FileName{iData});

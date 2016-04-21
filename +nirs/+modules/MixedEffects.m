@@ -121,6 +121,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             % avoids issues with mixed data storage (e.g. StO2,Hb, CMRO2)
             % etc.
             utypes=unique(vars.type);
+            if(~iscellstr(utypes)); utypes={utypes(:)}; end
             lstBad=[];
             for iT=1:length(utypes)
                 lst=ismember(vars.type,utypes{iT});
@@ -140,6 +141,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             X    = W*X;
             Z    = W*Z;
             beta = W*beta;
+            
             
             %% fit the model
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
@@ -171,7 +173,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 yproj = beta - lm2.designMatrix('random')*lm2.randomEffects;
                 yproj=inv(W)*yproj;
                 
+                
                 [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type,vars.cond), 'rows', 'stable');
+                vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
                 if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
                 btest=[]; models=cell(height(G.variables),1);
                 for idx=1:max(lst)                   
@@ -180,14 +184,20 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         beta = yproj(ll);
                         w=full(dWTW(ll));
                         
-                        mdl{idx} = fitlm([table(beta) tmp], lm1.Formula.FELinearFormula,'weights',w.^2,...
-                            'dummyVarCoding','full');
+                       mdl{idx} = fitlm([table(beta) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',w.^2,'dummyVarCoding','full');
+                          
                        
                        btest=[btest; mdl{idx}.Coefficients.Estimate];
                        
                         for j=1:length(mdl{idx}.CoefficientNames)
                             cc=mdl{idx}.CoefficientNames{j};
-                            cc=cc(strfind(cc,'cond_')+length('cond_'):end);
+                            if(isempty(find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)))))
+                                if(~isempty(strfind(cc,'cond_')))
+                                    cc=cc(strfind(cc,'cond_')+length('cond_'):end);
+                                else
+                                    cc=cc(min(strfind(cc,'_'))+1:end);
+                                end
+                            end
                             id=find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)) & ...
                                 ismember(G.variables.detector,sd.Var2(idx)) & ismember(G.variables.type,sd.Var3{idx}));
                            models{id}=mdl{idx};

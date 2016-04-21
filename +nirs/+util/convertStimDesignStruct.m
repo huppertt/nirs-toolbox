@@ -1,9 +1,15 @@
-function stims = convertStimDesignStruct( StimDesign )
+function stims = convertStimDesignStruct( StimDesign,time )
+
+if(nargin<2)
+    time=[];
+end
+
+
 
     stims = Dictionary();
     
     for i = 1:length(StimDesign)
-       thisStim = convertOneStim( StimDesign(i) );
+       thisStim = convertOneStim( StimDesign(i),time );
        
        % if key exists merge
        if stims.iskey( thisStim.name )
@@ -18,7 +24,11 @@ function stims = convertStimDesignStruct( StimDesign )
 
 end
 
-function s = convertOneStim( stim )
+function s = convertOneStim( stim,time )
+
+if(~isfield(stim,'continuous') || ~stim.continuous)
+    
+    
     s = nirs.design.StimulusEvents();
     try
         s.name = stim.name;
@@ -43,4 +53,15 @@ function s = convertOneStim( stim )
     else
         s.amp = stim.amp(:);
     end
+else
+    s = nirs.design.StimulusVector();
+       try
+        s.name = stim.name;
+    catch
+        s.name = stim.cond;
+    end
+    s.vector=stim.amp(:);
+    s.time=time(:);
+    
+end
 end

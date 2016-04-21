@@ -41,6 +41,8 @@ function q = fdr( p )
      % p = (i/m)*Q
     q = p*m./[1:m]'*pi0;
         
+    for i=length(q):-1:2; if(q(i)<q(i-1)); q(i-1)=q(i); end; end;
+    
     % put them back in the original order
     q(I) = q;
     

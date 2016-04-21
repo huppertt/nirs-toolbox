@@ -22,23 +22,25 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
             % demographics info
             demo = nirs.createDemographicsTable( S );
            
-            if(~ismember(demo.Properties.VariableNames,obj.sortfield))
-                warning('Sort field not contained in demograophics');
-                G=S;
-                return
-            end
-            
-            subjects = demo.(obj.sortfield);
-            if(ischar(subjects)); subjects=cellstr(subjects); end;
-            subjects = unique(subjects);
-           
-            if(length(subjects)>1)
-                G = nirs.core.ChannelStats();
-                for i=1:length(subjects)
-                    lst=find(ismember(demo.(obj.sortfield),subjects{i}));
-                    G(i)=obj.runThis(S(lst));
+            if(~isempty(obj.sortfield))
+                if(~ismember(demo.Properties.VariableNames,obj.sortfield))
+                    warning('Sort field not contained in demograophics');
+                    G=S;
+                    return
                 end
-                return
+                
+                subjects = demo.(obj.sortfield);
+                if(ischar(subjects)); subjects=cellstr(subjects); end;
+                subjects = unique(subjects);
+                
+                if(length(subjects)>1)
+                    G = nirs.core.ChannelStats();
+                    for i=1:length(subjects)
+                        lst=find(ismember(demo.(obj.sortfield),subjects{i}));
+                        G(i)=obj.runThis(S(lst));
+                    end
+                    return
+                end
             end
                     
             % Return if there is nothing to average

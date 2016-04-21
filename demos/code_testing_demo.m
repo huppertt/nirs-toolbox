@@ -5,7 +5,7 @@
 % to compare the preformance of various code and options 
 
 % Directory to download and unpack the demo data
-root_dir = '/Users/admin/Desktop/tmp' ;
+root_dir = '/Users/huppert/Desktop/tmp' ;
 % number of iterations to run in ROC tests (more = better; but longer run time)
 num_iter = 10;  
 

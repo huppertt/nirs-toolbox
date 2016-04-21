@@ -130,7 +130,12 @@ end
 
 str=options.drawoptions;
 fol=fullfile(getenv('TMPDIR'),['tmp' datestr(now,'dd_mmm_yyyy_HH_MM_SS')]);
-Stats.printAll('tstat',[-5 5],Stats.getCritT(str),fol,'jpeg')
+
+if(isa(Stats,'nirs.core.ImageStats'))
+     Stats.printAll('tstat',[-5 5],Stats.getCritT(str),'beta>.8',{'left','frontal','right'},fol,'jpeg');
+else
+    Stats.printAll('tstat',[-5 5],Stats.getCritT(str),fol,'jpeg');
+end
 caption = str;
 
 %Let's create a table of file locations

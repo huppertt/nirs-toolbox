@@ -12,7 +12,10 @@ function tbl = createDemographicsTable( data )
         
         % get demographics 
         demo = data(i).demographics;
-        
+        if(istable(demo))
+            tbl=demo;
+            return
+        end
         % create struct
         if(isprop(demo,'keys'))
             for j = 1:length(demo.keys)
