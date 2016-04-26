@@ -24,16 +24,16 @@ aal.BORDER_XYZ=icbm_spm2tal(aal.BORDER_XYZ')';
 aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)-2.5;
 aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)+17.5;
 aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)-20;
-
-T =[ 0.9964    0.0178    0.0173   -0.0000
-   -0.0169    0.9957   -0.0444   -0.0000
-   -0.0151    0.0429    1.0215    0.0000
-   -0.4232  -17.5022   11.6967    1.0000];
-
-
-aal.BORDER_XYZ(4,:)=1;
-aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
-aal.BORDER_XYZ=aal.BORDER_XYZ(1:3,:);
+% 
+% T =[ 0.9964    0.0178    0.0173   -0.0000
+%    -0.0169    0.9957   -0.0444   -0.0000
+%    -0.0151    0.0429    1.0215    0.0000
+%    -0.4232  -17.5022   11.6967    1.0000];
+% 
+% 
+% aal.BORDER_XYZ(4,:)=1;
+% aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
+% aal.BORDER_XYZ=aal.BORDER_XYZ(1:3,:);
 aal.ROI={aal.ROI{1} aal.ROI{2}}; 
 
 if(nargin>1)

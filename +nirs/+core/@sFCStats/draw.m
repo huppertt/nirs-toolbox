@@ -61,7 +61,8 @@ for cIdx=1:length(obj.conditions)
             warning('type not recognized: using Correlation');
             values=tbl.R;
             pval = tbl.pvalue;
-            cmap=flipdim(colormap(autumn(2001)),1);
+            [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+            %cmap=flipdim(colormap(autumn(2001)),1);
     end
     
     

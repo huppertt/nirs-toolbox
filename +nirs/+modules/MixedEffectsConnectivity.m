@@ -33,6 +33,11 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
             if(isempty(demo))
                 for idx=1:length(S)
+                   if(iscell(S(idx).demographics))
+                       %hyperscanning
+                        S(idx).demographics=Dictionary;
+                   end
+                    
                     S(idx).demographics('fileIdx')=idx;
                 end
                 demo = nirs.createDemographicsTable( S );

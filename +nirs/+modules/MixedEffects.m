@@ -174,7 +174,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 yproj=inv(W)*yproj;
                 
                 
-                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type,vars.cond), 'rows', 'stable');
+                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
                 vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
                 if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
                 btest=[]; models=cell(height(G.variables),1);

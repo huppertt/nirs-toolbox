@@ -80,7 +80,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
                 connStats(i)=nirs.core.sFCStats();
                 connStats(i).type = obj.corrfcn;
-                connStats(i).description= ['Connectivity model of ' data(i).description];
+                connStats(i).description= data(i).description;
                 connStats(i).probe=data(idxA).probe;
                 connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
                 

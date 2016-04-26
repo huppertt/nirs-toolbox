@@ -36,7 +36,7 @@ for i=1:length(fileExt)
             files(iFile).name=[fileparts(files(iFile).name) filesep];
         end
         if ~isempty(tmp)
-             if(strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)') & isempty(data))
+             if(~isempty(strfind(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)')) & isempty(data))
                  disp('Loading NIRx file geometry from:')
                  disp(['     ' files(iFile).name]);
                  disp('      Note: This registration will be used for all subjects');
