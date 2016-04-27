@@ -1,4 +1,4 @@
-function [data, truth] = simMultimodalData(noise,stim,fwdmodel,beta)
+function [data, truth, truthImage] = simMultimodalData(noise,stim,fwdmodel,beta)
 % This function simulates multimodal data (currently NIRS & EEG)
 
 if(nargin<1 || isempty(noise))
@@ -40,7 +40,7 @@ if(nargin<3 || isempty(fwdmodel))
     fwd.eeg.mesh=mesh;
     fwd.eeg.mesh.mesh(4)=[];
     fwd.eeg.probe=data.eeg.probe;
-    fwd.eeg.prop=[1 NaN 1];
+    fwd.eeg.prop=[1 NaN NaN];
 
 end
 
@@ -61,12 +61,19 @@ if nargin < 4 || isempty(beta)
         p=pos(randi(size(pos,1),1,1),:);
         d=sqrt(sum((mesh(end).nodes-ones(nVox,1)*p).^2,2));
         lst=find(d<20 & d>5);
-        beta(lst,idx)=7;
+        beta(lst,idx)=1;
     end
 end
 
 
-[rawEEG,truth,truthchanEEG]=eeg.testing.simDataImage(fwd.eeg,data.eeg,stim,beta);
-[rawNIRS,truth2,truthchanNIRS]=nirs.testing.simDataImage(fwd.nirs,data.nirs,stim,beta);
+[rawEEG,truthImage,truthchanEEG]=eeg.testing.simDataImage(fwd.eeg,data.eeg,stim,10*beta);
+[rawNIRS,~,truthchanNIRS]=nirs.testing.simDataImage(fwd.nirs,data.nirs,stim,50*beta);
+
+data={};
+data{1}=rawEEG;
+data{2}=rawNIRS;
+
+truth{1}=truthchanEEG;
+truth{2}=truthchanNIRS;
 
 

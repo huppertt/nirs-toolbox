@@ -444,6 +444,8 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 for j=1:size(Z,2)
                     Zlocal=[Zlocal Z(i,j)*ones(size(Llocal,1),1)];
                 end
+                
+               
                 XFull=[XFull; Xlocal];
                 ZFull=[ZFull; Zlocal];               
             end
@@ -521,9 +523,16 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             Z=sparse(Z);
             
              %% fit the model
-             lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern',PAT, ...
-                 'FitMethod', 'ReML');
-    
+            %lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], ...
+            %     'FitMethod', 'ReML');
+            
+            % Call my wrapper for the fitlmefunction
+            lm2 = nirs.math.Remlfiflmematrix(X(:,lstKeep), beta, Z,PAT);
+%             
+%             
+%             lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], ...
+%                  'FitMethod', 'ReML');
+%              
             
             CoefficientCovariance=lm2.CoefficientCovariance;
             

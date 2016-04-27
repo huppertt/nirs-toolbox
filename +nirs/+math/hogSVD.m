@@ -18,6 +18,11 @@ end
 
 [~,~,V]=nirs.math.mysvd(Ls);
 
+%[~,~,V,~,~] = gsvd(Ls(1:31,:),LL);
+% A = U*C*X'
+% B = V*S*X'
+% C'*C + S'*S = I
+ 
 
 tol=sum(abs(V),2);
 V(find(tol<max(tol)*1E-6),:)=0;
@@ -30,6 +35,7 @@ for i=1:length(L)
         US{i}=setfield(US{i},flds{j},L{i}.(flds{j})*V);
     end
 end
+
 
 % 
 % %deal with the trivial cases first
