@@ -1,4 +1,4 @@
-function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
+function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, testingfcn )
 %% simDataSet - simulates a dataset for ROC testing
 % 
 % Args:
@@ -24,7 +24,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
     end
     
     s = stimFunc(noise(1).time);
-    if nargin < 4
+    if nargin < 4 || isempty(beta)
         beta = 7*ones( length(s.keys), ngroup )/sqrt(length(noise));
     end
     
@@ -38,6 +38,10 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
         channels = sd(1:round(end/2),:);
     end
     
+    if nargin < 6 || isempty(testingfcn)
+        testingfcn=@nirs.testing.simData;
+    end
+    
     data = noise;
     
     % group index
@@ -47,7 +51,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels )
     for i = 1:length(noise)
         data(i).demographics('group') = ['G' num2str(gidx(i))];
         data(i).demographics('subject') = ['S' num2str(i)];
-        [data(i), truth] = nirs.testing.simData(data(i), stimFunc(data(i).time), b(:, gidx(i)), channels);
+        [data(i), truth] = feval(testingfcn,data(i), stimFunc(data(i).time), b(:, gidx(i)), channels);
     end
     
 end

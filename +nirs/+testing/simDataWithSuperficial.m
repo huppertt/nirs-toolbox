@@ -1,6 +1,9 @@
 function [data, truth] = simDataWithSuperficial( noise, stim, beta, channels, basis )
 % Simulate data with superficial systemic noise
 
+sigma=120;
+SNR=2;
+
  if nargin < 1 || isempty(noise)
         noise = nirs.testing.simARNoise();
     end
@@ -28,7 +31,7 @@ function [data, truth] = simDataWithSuperficial( noise, stim, beta, channels, ba
     if nargin < 4 || isempty(channels)
         % default to first half of channels
         sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
-        channels = sd(1:round(end/2),:);
+        channels = sd; %(randi(length(sd),1,round(end/2)),:);
     end
     
     
@@ -43,17 +46,16 @@ chan=[noise.probe.link.source noise.probe.link.detector];
 probe=noise.probe;
 
 braindepth=10;
-n=6;
 
 % Compute the optical forward model based on the slab model
 minX = min(probe.optodes.X);
 maxX = max(probe.optodes.X);
-dX = (maxX-minX)/3;
+dX = (maxX-minX)/10;
 minY = min(probe.optodes.Y);
 maxY = max(probe.optodes.Y);
-dY = (maxY-minY)/3;
+dY = (maxY-minY);
 
-[X,Y,Z]=meshgrid([minX-dX:dX/10:maxX+dX],[minY-dY:dY/10:maxY+dY],[-1:-2:-braindepth]);
+[X,Y,Z]=meshgrid([minX-dX*2:dX:maxX+dX*2],[minY-dY*2:dY:maxY+dY*2],[-1:-2:-braindepth]);
 
 mesh=nirs.core.Mesh;
 mesh.nodes=[X(:) Y(:) Z(:)];
@@ -70,12 +72,24 @@ FwdModel.mesh=mesh;
 FwdModel.prop=nirs.media.tissues.brain(.7,50,lambda);
 FwdModel.Fm=0;
 
+m=size(mesh.nodes,1);
+X = repmat(mesh.nodes(:,1),1,m);
+Y = repmat(mesh.nodes(:,2),1,m);
+Z = repmat(mesh.nodes(:,3),1,m);
+
+X=X-X';
+Y=Y-Y';
+Z=Z-Z';
+Dist = X.^2 + Y.^2 + Z.^2;
+Smoother=exp(-Dist/sigma^2);
+Smoother=Smoother.*(Smoother>1E-3);
+Smoother=sparse(blkdiag(Smoother,Smoother));
+
 FwdModel.probe=probe;
 Jacob=FwdModel.jacobian('spectral');
 L=[Jacob.hbo Jacob.hbr];
-[U,s,V]=nirs.math.mysvd(L);
-Lsm = U(:,1:n)*s(1:n,1:n)*V(:,1:n)';
-PSF = L*pinv(Lsm);
+PSF = L*Smoother*L';
+PSF=PSF./normest(PSF);
 
 j=nirs.modules.OpticalDensity;
 dOD=j.run(data);
@@ -84,7 +98,18 @@ dOD.data=(PSF*dOD.data')';
 j=nirs.modules.OpticalDensity2Intensity;
 data = j.run(dOD);
 data = data.sorted();
- 
-[data, truth] = nirs.testing.simData(data, stim, beta, channels, basis );
+
+[X,Y,Z]=meshgrid([minX-dX:dX/3:maxX+dX],[minY-dY:dY/3:maxY+dY],[-15]);
+mesh=nirs.core.Mesh;
+mesh.nodes=[X(:) Y(:) Z(:)];
+FwdModel.mesh=mesh;
+
+[data2, ~, truth] = nirs.testing.simDataImage(FwdModel, data, stim, [], basis );
+%[data2, truth] = nirs.testing.simData([], stim, beta, channels, basis );
+
+d=data2.data-data.data;
+d=d*SNR/(max(abs(d(:)))/sqrt(mean(var(data.data,[],1))));
+data.data=data.data+d;
+
 
 

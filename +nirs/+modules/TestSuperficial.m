@@ -4,8 +4,8 @@ classdef TestSuperficial < nirs.modules.AbstractModule
 %    
     properties
        braindepth = 10;  % depth of brain layer (in mm)
-       sigma = 100;  % Spatial smoothing for superficial layer
-       allow_flip=true;  % This prevents sign flips when the mean over all channels is non-zero.
+       sigma = 200;  % Spatial smoothing for superficial layer
+       allow_flip=false;  % This prevents sign flips when the mean over all channels is non-zero.
     end
     
     methods
@@ -28,12 +28,12 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                 % Compute the optical forward model based on the slab model
                 minX = min(probe.optodes.X);
                 maxX = max(probe.optodes.X);
-                dX = (maxX-minX)/3;
+                dX = (maxX-minX)/5;
                 minY = min(probe.optodes.Y);
                 maxY = max(probe.optodes.Y);
-                dY = (maxY-minY)/3;
+                dY = (maxY-minY)/5;
                 
-                [X,Y,Z]=meshgrid([minX-dX:dX/30:maxX+dX],[minY-dY:dY/30:maxY+dY],[-1:-2:-obj.braindepth*2]);
+                [X,Y,Z]=meshgrid([minX-dX:dX:maxX+dX],[minY-dY:dY:maxY+dY],[-obj.braindepth -obj.braindepth*2]);
                 
                 mesh=nirs.core.Mesh;
                 mesh.nodes=[X(:) Y(:) Z(:)];
@@ -64,14 +64,20 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                      basis = exp(-basisX.^2/obj.sigma^2).*exp(-basisY.^2/obj.sigma^2);
                      
                      lst=find(ismember(probe.link.type,probe.link.type(idx)));
-                     c(lst,idx) = c(lst,idx)-L(lst,:)*(skinmask(:).*basis(:));
-                    
-                     % normalize to make sure it sums to zero
-                     lstP=find(c(:,idx)>0); 
-                     lstN=find(c(:,idx)<0); 
                      
-                     c(lstP,idx)=c(lstP,idx)/sum(c(lstP,idx));
-                     c(lstN,idx)=-c(lstN,idx)/sum(c(lstN,idx));
+                     lambda=.5;
+                     ll=L(lst,:)*diag(skinmask(:).*basis(:));
+                     ll(ismember(lst,idx),:)=0;
+                     c(idx,lst) = c(idx,lst)-L(idx,:)*pinv(ll'*ll+lambda*eye(size(ll,2)))*ll'; 
+                     
+%                      c(lst,idx) = c(lst,idx)-L(lst,:)*(skinmask(:).*basis(:));
+%                     
+%                      % normalize to make sure it sums to zero
+%                      lstP=find(c(:,idx)>0); 
+%                      lstN=find(c(:,idx)<0); 
+%                      
+%                      c(lstP,idx)=c(lstP,idx)/sum(c(lstP,idx));
+%                      c(lstN,idx)=-c(lstN,idx)/sum(c(lstN,idx));
                      
                  end
 

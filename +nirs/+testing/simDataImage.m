@@ -36,7 +36,7 @@ function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, be
         for idx=1:length(stim.keys)
             p=pos(randi(size(pos,1),1,1),:);
             d=sqrt(sum((fwdModel.mesh.nodes-ones(nVox,1)*p).^2,2));
-            lst=find(d<20 & d>5 & fwdModel.mesh.nodes(:,3)>8);
+            lst=find(d<20 & d>5 & abs(fwdModel.mesh.nodes(:,3))>8);
             beta(lst,idx)=7;
         end
     end
