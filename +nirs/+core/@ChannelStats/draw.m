@@ -87,7 +87,7 @@ function draw( obj, vtype, vrange, thresh)
                 end
             end
             
-          
+           
             f=figure;
             set(f,'name',[utypes{iType} ' : ' uconds{iCond}]);
             obj.probe.draw(colors, lineStyles);

@@ -131,6 +131,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 lstBad=[lstBad; find(dWTW(lst) > 100*m)];
             end
             
+            
+            
             W(lstBad,:)=[];
             W(:,lstBad)=[];
             X(lstBad,:)=[];
@@ -138,14 +140,22 @@ classdef MixedEffects < nirs.modules.AbstractModule
             beta(lstBad,:)=[];
             %% Weight the model
                         
-            X    = W*X;
-            Z    = W*Z;
-            beta = W*beta;
+                       
+             X    = W*X;
+             Z    = W*Z;
+             beta = W*beta;
+            
+            
+            if(rank(full(X))<size(X,2))
+                warning('Model is unstable');
+            end
+            lstKeep=find(~all(X==0));
+           
             
             
             %% fit the model
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            lm2 = fitlmematrix(X, beta, Z, [], 'CovariancePattern','Isotropic', ...
+            lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern','Isotropic', ...
                 'FitMethod', 'ML');
             
             cnames = lm1.CoefficientNames(:);
@@ -156,8 +166,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
             cnames = repmat(cnames, [nchan 1]);
             
             %% output
-            G.beta       = lm2.Coefficients.Estimate;
-            G.covb       = lm2.CoefficientCovariance;
+            G.beta=zeros(size(X,2),1);
+            G.covb=1E6*eye(size(X,2));
+            
+            G.beta(lstKeep) = lm2.Coefficients.Estimate;
+            G.covb(lstKeep,lstKeep) = lm2.CoefficientCovariance;
             G.dfe        = lm2.DFE;
             G.probe      = S(1).probe;
             

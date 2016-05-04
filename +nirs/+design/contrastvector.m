@@ -11,6 +11,12 @@ if(iscellstr(str) | iscell(str))
     return;
 end
 
+% remove spaces
+for i=1:length(conditions)
+    conditions{i}(strfind(conditions{i},' '))=[];
+end
+str(strfind(str,' '))=[];
+
 % take care of the simple case
 if(ismember(str,conditions))
     C=1*ismember(conditions,str)';

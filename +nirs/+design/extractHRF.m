@@ -124,7 +124,7 @@ for idx=1:length(conditions)
     link=[link; linktmp];
 end
 
-n=height(tbl)/length(HRF.probe.link.type);
+n=height(tbl)/length(HRF.probe.link.type)/length(conditions);
 link=tbl(1:n:end,1:4);
 for i=1:height(link)
     link.cond{i}=link.cond{i}(1:max(strfind(link.cond{i},'_'))-1);

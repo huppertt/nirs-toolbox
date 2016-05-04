@@ -47,6 +47,9 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             RescaleData=NaN;
             for j=1:length(S)
                 for idx=1:length(S{j})
+                    if(~S{j}(idx).demographics.iskey('subject'))
+                        S{j}(idx).demographics('subject')='default';
+                    end
                     
                     sname=S{j}(idx).demographics('subject');
                     if(isempty(sname))

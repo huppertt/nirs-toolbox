@@ -64,16 +64,17 @@ function data = loadDotNirs( filenames )
                 % defaut naming convention
                  stims = Dictionary();
                  for idx=1:size(d.s,2)
-                    s = nirs.design.StimulusEvents();
-                    d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
-                    s.name=['stim_channel' num2str(idx)];
-                    s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
-                    s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
-                    s.amp=ones(size(s.dur));
-                    if(~isempty(s.amp))
-                        stims(s.name)=s;
-                    end
-                    
+                     try
+                         s = nirs.design.StimulusEvents();
+                         d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
+                         s.name=['stim_channel' num2str(idx)];
+                         s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
+                         s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
+                         s.amp=ones(size(s.dur));
+                         if(~isempty(s.amp))
+                             stims(s.name)=s;
+                         end
+                     end
                  end
                  thisFile.stimulus=stims;
                 
@@ -92,7 +93,7 @@ function data = loadDotNirs( filenames )
         data(end+1) = thisFile.sorted();
             
         catch err
-            if(isempty(d.d))
+            if(~exist('d') || ~isfield(d,'d') || isempty(d.d))
                  disp('Empty file found (skipping):');
                  disp(filenames{iFile});
             else

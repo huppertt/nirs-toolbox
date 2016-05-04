@@ -40,9 +40,11 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                 t_max = t( find(s>0,1,'last' ) ) + obj.postBaseline;
                 
                 % extract data from the time inverval t_min to t_max
+                if(~isempty(t_min))
                 lst = t >= t_min & t <= t_max;
                 t = t(lst);
                 d = d(lst,:);
+                end
                 
                 data(i).data = d;
                 data(i).time = t;

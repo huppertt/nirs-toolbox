@@ -271,7 +271,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                   
                     
                 end
-                S = [S Priors];
+                S = [S(:); Priors(:)];
                 if(isempty(strfind(obj.formula,' + (1|DataType)')))
                     obj.formula=[obj.formula ' + (1|DataType)'];
                 end

@@ -49,6 +49,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 end
             end
             
+            if(isa(S,'nirs.core.ChannelStats'))
             % preallocate group stats
             G = nirs.core.ChannelStats();
             
@@ -210,6 +211,43 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
                 G.variables.model=mdl;
  
+            end
+            else
+                %Deal with averaging time courses together
+                
+                % First, let's just create a giant table to do this
+                tbl=table;
+                demo=nirs.createDemographicsTable(S);
+                for i=1:length(S)
+                    data={};
+                    for j=1:size(S(i).data,2)
+                        data{j,1}=S(i).data(:,j);
+                    end
+                    
+                    tbl=[tbl; [repmat(demo(i,:),size(S(i).data,2),1) S(i).probe.link table(data)]];
+                end
+                for i=1:height(tbl)
+                    ntps(i)=length(tbl.data{i});
+                end
+                ntps=max(ntps);
+                for i=1:height(tbl)
+                    tbl.data{i}(end+1:ntps)=NaN;
+                end
+                [link,~,idx]=unique(table(tbl.source,tbl.detector,tbl.type,'VariableNames',{'source','detector','type'}));
+                data=zeros(ntps,height(link));
+                for i=1:height(link)
+                    lst=find(idx==i);
+                    d=horzcat(tbl.data{lst});
+                    d=median(d,2);
+                    data(:,i)=d;
+                end
+                G=nirs.core.Data;
+                G.description='Group Average model from core.Data';
+                G.probe=S(1).probe;
+                G.probe.link=link;
+                G.data=data;
+                G.time=[0:ntps-1]*S(1).Fs;
+                G.Fm=S(1).Fm;
             end
             
                         
