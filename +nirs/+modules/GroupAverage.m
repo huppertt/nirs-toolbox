@@ -237,16 +237,19 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 data=zeros(ntps,height(link));
                 for i=1:height(link)
                     lst=find(idx==i);
-                    d=horzcat(tbl.data{lst});
-                    d=median(d,2);
-                    data(:,i)=d;
+                    for j=1:length(lst)
+                        d(:,j)=tbl.data{lst(j)};
+                    end
+                    e=std(d,[],2)/sqrt(size(d,2));
+                    d=mean(d,2);
+                    data(:,i)=d+sqrt(-1)*e;
                 end
                 G=nirs.core.Data;
                 G.description='Group Average model from core.Data';
                 G.probe=S(1).probe;
                 G.probe.link=link;
                 G.data=data;
-                G.time=[0:ntps-1]*S(1).Fs;
+                G.time=[0:ntps-1]/S(1).Fs;
                 G.Fm=S(1).Fm;
             end
             

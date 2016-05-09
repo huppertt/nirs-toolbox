@@ -93,7 +93,7 @@ classdef Data
             out.data = out.data(:,idx);
         end
         
-        function varargout=draw( obj, lstChannels )
+        function varargout=draw( obj, lstChannels,adderr )
             %% draw - Plots the probe geometry.
             % 
             % Args:
@@ -103,6 +103,10 @@ classdef Data
             if nargin == 1
                 lstChannels = 1:size(obj(1).data,2);
             end
+            if(nargin<3)
+                adderr=false;
+            end
+            
             if(isempty(lstChannels))
                 % draw a plot, but then turn it off to only show the stim
                 % marks
@@ -119,7 +123,7 @@ classdef Data
                 b=ceil(sqrt(length(obj)));
                 for i=1:length(obj)
                     subplot(a,b,i);
-                    obj(i).draw(lstChannels);
+                    obj(i).draw(lstChannels,adderr);
                     legend off;
                 end
                 return
@@ -139,8 +143,8 @@ classdef Data
             gca; hold on;
             
             % data min/max/size
-            dmax = max( d(:) );
-            dmin = min( d(:) );
+            dmax = max( real(d(:)) );
+            dmin = min( real(d(:)) );
             dsize = (dmax-dmin);
             
             % plot stim blocks if available
@@ -166,8 +170,11 @@ classdef Data
             end
             
             % plot data
-            h=plot( t, d );
-        
+            if(iscomplex(d) & adderr)
+                h=errorbar( t, real(d),imag(d) );
+            else
+                h=plot( t, real(d) );
+            end
             xlabel( 'seconds' );
             
             % axes limits

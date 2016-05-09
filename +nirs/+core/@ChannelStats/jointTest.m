@@ -9,6 +9,10 @@ function out = jointTest( obj )
     vars = obj.variables;
     vars.type = [];
     
+    if(ismember('model',vars.Properties.VariableNames))
+        vars.model=[];
+    end
+    
     [~, uvars ,utests] = unique(vars, 'rows', 'stable');
     
     % loop through pairs/conditions

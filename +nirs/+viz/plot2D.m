@@ -1,4 +1,4 @@
-function h = plot2d(data,samefig)
+function h = plot2d(data,samefig,adderr)
 % This function plots the time-series data in a spatial arrangement
 % according to the probe layout
 
@@ -10,6 +10,10 @@ utypes = unique(data.probe.link.type);
 if(nargin<2)
     samefig=false;
 end
+if(nargin<3)
+    adderr=false;
+end
+
 
 a=[];
 for idx=1:length(utypes)
@@ -47,9 +51,14 @@ for idx=1:length(utypes)
     end
     for j=1:length(lst)
         hold(a(j),'on');
-        plot(a(j),data.time,data.data(:,lst(j)));
+        if(iscomplex(data.data(:,lst(j))) & adderr)
+            errorbar(a(j),data.time,real(data.data(:,lst(j))),...
+                imag(data.data(:,lst(j))));
+        else
+            plot(a(j),data.time,real(data.data(:,lst(j))));
+        end
         set(a(j),'xlim',[min(data.time) max(data.time)]);
-        set(a(j),'ylim',[min(min(data.data(:,lstA))) max(max(data.data(:,lstA)))]);
+        set(a(j),'ylim',[min(min(real(data.data(:,lstA)))) max(max(real(data.data(:,lstA))))]);
         axis(a(j),'off');
     end
    
