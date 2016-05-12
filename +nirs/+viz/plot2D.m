@@ -51,7 +51,7 @@ for idx=1:length(utypes)
     end
     for j=1:length(lst)
         hold(a(j),'on');
-        if(iscomplex(data.data(:,lst(j))) & adderr)
+        if(~isreal(data.data(:,lst(j))) & adderr)
             errorbar(a(j),data.time,real(data.data(:,lst(j))),...
                 imag(data.data(:,lst(j))));
         else

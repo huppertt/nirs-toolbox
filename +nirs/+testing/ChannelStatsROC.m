@@ -96,8 +96,12 @@ classdef ChannelStatsROC
         function obj = run(obj, iter)
             for i = 1:iter
                [data, truth] = obj.simfunc();
+               if(length(truth)>height(data(1).probe.link))
+                    % Image based methods
+               else
                [~,i]=sortrows(data(1).probe.link,{'type','source','detector'});
                truth=truth(i);
+               end
                % pipeline stats
                
                T=[];
@@ -107,7 +111,12 @@ classdef ChannelStatsROC
                for i=1:length(obj.pipeline)
                    
                    stats = obj.pipeline(i).run(data);
-                   stats=sorted(stats,{'type','source','detector'});
+                   
+                    if(length(truth)>height(data(1).probe.link))
+                        stats=sorted(stats,{'cond','type','VoxID'})
+                    else
+                        stats=sorted(stats,{'type','source','detector'});
+                    end
                    % multivariate joint hypothesis testing
                    fstats = stats.jointTest();
                    

@@ -84,7 +84,7 @@ function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, be
     data.data = Y;
     data.stimulus = stim;
     
-    truth=(b~=0);
+    truth=(b(:)~=0);
     t=[];
     [un,~,j]=unique(link.type);
     for i=1:length(un)

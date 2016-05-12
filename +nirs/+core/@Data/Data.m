@@ -170,7 +170,7 @@ classdef Data
             end
             
             % plot data
-            if(iscomplex(d) & adderr)
+            if(~isreal(d) & adderr)
                 h=errorbar( t, real(d),imag(d) );
             else
                 h=plot( t, real(d) );
