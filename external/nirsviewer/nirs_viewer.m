@@ -557,3 +557,31 @@ rpt=nirs.util.create_chanstats_rpt(data,[varargin{1} '_report']);
 report(rpt);
 
 return
+
+
+% --------------------------------------------------------------------
+function menu_probe_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_probe (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function probe_register_Callback(hObject, eventdata, handles)
+% hObject    handle to probe_register (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function depth_map_Callback(hObject, eventdata, handles)
+% hObject    handle to depth_map (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function roi_analysis_Callback(hObject, eventdata, handles)
+% hObject    handle to roi_analysis (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

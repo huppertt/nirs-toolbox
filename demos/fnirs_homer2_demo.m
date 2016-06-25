@@ -7,7 +7,7 @@
 
 clear 
 % change this to save results somewhere else
-root_dir = '/Users/huppert/Desktop/tmp' ;
+root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
 
 % Download the sample data from the HOMER-2 site

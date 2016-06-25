@@ -2,8 +2,8 @@ function [tp,fp,th] = roc( truth, pval )
 
     lst=find(truth);
     lstN=find(~truth);
-    if(length(lst)~=length(lstN))
-        warning('roc has uneven binary profile');
+    if(length(lst)~=length(lstN) & ~all(truth==0))
+%        warning('roc has uneven binary profile');
         n=min(length(lst),length(lstN));
         lst=lst(randperm(length(lst),n));
         lstN=lstN(randperm(length(lstN),n));

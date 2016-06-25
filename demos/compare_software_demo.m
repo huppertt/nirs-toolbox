@@ -17,7 +17,7 @@
 
 
 % Directory to download and unpack the demo data
-root_dir = '/Users/admin/Desktop/tmp' ;
+root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
 % number of iterations to run in ROC tests (more = better; but longer run time)
 num_iter = 50;  % In the paper, I ran 1000, but this took over a day to run on 
@@ -91,7 +91,7 @@ List=nirs.modules.pipelineToList(jobs);
 %     [1x1 nirs.modules.ExportData    ] - save the SubjStats variable to the workspace
 
 % Let's change the resample module (3rd entry)
-List{3}.Fs=4;  % In the paper, I used 4Hz, but the ReML code in NIRS-SPM will run as O(N^3) 
+List{3}.Fs=1;  % In the paper, I used 4Hz, but the ReML code in NIRS-SPM will run as O(N^3) 
 % and so 4Hz will take a real long time to run.  Again, let's use something smaller just to get the 
 % flavor of the comparision.
 

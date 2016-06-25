@@ -5,7 +5,8 @@
 % to compare the preformance of various code and options 
 
 % Directory to download and unpack the demo data
-root_dir = '/Users/huppert/Desktop/tmp' ;
+root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+
 % number of iterations to run in ROC tests (more = better; but longer run time)
 num_iter = 10;  
 
@@ -47,6 +48,11 @@ disp(nirs.testing.unittests.runTests);
 % Totals:
 %    10 Passed, 0 Failed, 0 Incomplete.
 %    2.1675 seconds testing time.
+
+% Note- if you get an error, it may be due to FieldTrip in the matlab path.
+%  Fieldtrip overwrites several builtin functions (e.g. "max") and causes
+%  issues because these FieldTrip versions don't actually work the same as
+%  the matlab ones.  The solution is to remove Fieldtrip from the path.
 
 
 %% The second type of testing is regression testing and will run sensitivity/specificity analysis on nirs.modules
@@ -210,7 +216,7 @@ ROCtest.draw;
 disp('--------------------------------------------------------------------');
 disp('PART 4:  Group-level ROC Demo');
 
-%create the ROC class obhect
+%create the ROC class object
 ROCtest=nirs.testing.ChannelStatsROC;
 %create the data simuator (we will use all the defaults here)
 ROCtest.simfunc=@()nirs.testing.simDataSet;  

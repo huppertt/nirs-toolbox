@@ -1,7 +1,8 @@
 %% Image reconstruction demo
+clear
 
 % TODO - directory to download the sample data into
-root_dir = '/Users/huppert/Desktop/tmp' ;
+root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
 % TODO- number of iteractions for ROC curve demo
 num_iter = 10;  
@@ -138,7 +139,8 @@ j.basis = nirs.inverse.basis.gaussian(mesh,20);
 
 
 % Now create the priors in the model
-j.mask =(mesh.nodes(:,3)>5);
+j.mask =(mesh.nodes(:,3)>5); % only points below 5mm
+
 % This is the Minimum Norm estimate
 prior.hbo=zeros(size(J.hbo,2),1);
 prior.hbr=zeros(size(J.hbo,2),1);
@@ -158,6 +160,7 @@ ImageStats.draw('tstat',[-3 3],'p<0.05','beta>.8','superior');
 
 
 % For reference, let's show the truth image too.
+truth=reshape(truth,[],2);
 figure; 
 h=subplot(2,1,1);
 mesh.draw(truth(1:end/2,1));
@@ -239,7 +242,7 @@ end
 
 % This data is one of the subject's from:
 % Functional near-infrared spectroscopy (fNIRS) of brain function during active balancing using a video game system.
-% Karim H1, Schmidt B, Dart D, Beluk N, Huppert T.
+% Karim H, Schmidt B, Dart D, Beluk N, Huppert T.
 % Gait Posture. 2012 Mar;35(3):367-72
 % http://www.ncbi.nlm.nih.gov/pubmed/22078300
 
@@ -281,6 +284,8 @@ ImageStats=j.run(SubjStats);
 % Mask the image at alpha<0.05 (typeI error) and power>.8 (typeII error)
 h=ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8','right');
 
+%TODO- Atlasviewer brains are rotated from my version.  I need to fix this
+%within the import function.
 
 
 

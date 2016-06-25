@@ -102,6 +102,7 @@ classdef Data
             % get data
             if nargin == 1
                 lstChannels = 1:size(obj(1).data,2);
+                
             end
             if(nargin<3)
                 adderr=false;
@@ -115,7 +116,9 @@ classdef Data
             else
                 showplot=true;
             end
-            
+            if(isempty(obj(1).data))
+                lstChannels=[];
+            end
             
             if(length(obj)>1)
                 figure;

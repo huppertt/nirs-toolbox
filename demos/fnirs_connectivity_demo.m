@@ -9,6 +9,7 @@
 % yet (to do so is not typical of Granger's anyway, but I think it might
 % needed for fNIRS).  
 
+clear 
 
 % change this to save results somewhere else
 root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
@@ -404,7 +405,7 @@ disp(['FDR for AR-Robust Correlation model: ' num2str(FD_AR/cnt*100) '%']);
 %   FDR for AR-Robust Correlation model: 0.33673%
 
 % And we expected 5% (p<0.05) so we did terrible with correlation and
-% greate with the AR-robust model (as we had already knownn if you worked
+% great with the AR-robust model (as we had already known if you worked
 % through this example above);
 
 % Again, the results can be drawn like this:
