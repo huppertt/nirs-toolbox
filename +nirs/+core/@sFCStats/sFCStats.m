@@ -146,7 +146,7 @@ classdef sFCStats
             
             
         end
-        
+         S = ttest(obj, c, b, names);
         draw( obj, vtype, vrange, thresh );     
 
     end

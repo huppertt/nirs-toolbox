@@ -43,7 +43,6 @@ function stim = randStimDesign( t, stimDur, stimSpace, ncond )
         s.amp    = amp(lst);
         s.dur    = dur(lst);
         s.onset  = onset(lst);
-        
         stim(s.name) = s;
     end
     

@@ -90,7 +90,7 @@ function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, be
     for i=1:length(un)
         t(:,i)=max(abs(Yact(j==i,:)),[],2)/max(max(abs(Yact(j==i,:)),[],2));
     end
-    beta=t;
+    %beta=t;
     t=any(t>.25,2);
     truthchan=zeros(size(Y,2),1);
     for i=1:length(un)

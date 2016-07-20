@@ -86,7 +86,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
                 cond={};
                 if(obj.divide_events)
-                    stimNames=unique({data(idxA).stimulus.keys{:} data(idxB).stimulus.keys{:}});
+                    stimNames=unique(horzcat(data(idxA).stimulus.keys, data(idxB).stimulus.keys));
                     stim=Dictionary;
                     for idx=1:length(stimNames)
                         onsets=[];
@@ -96,11 +96,11 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             onsets=[onsets s.onset];
                             dur=[dur s.dur];
                         end
-                        s=data(idxB).stimulus(stimNames{idx});
-                        if(~isempty(s))
-                            onsets=[onsets; s.onset];
-                            dur=[dur; s.dur];
-                        end
+%                         s=data(idxB).stimulus(stimNames{idx});
+%                         if(~isempty(s))
+%                             onsets=[onsets; s.onset];
+%                             dur=[dur; s.dur];
+%                         end
                         ss=nirs.design.StimulusEvents;
                         ss.name=stimNames{idx};
                         ss.onset=onsets;
@@ -113,6 +113,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     Basis=Dictionary;
                     Basis('default')=nirs.design.basis.BoxCar;
                     [X, names] = nirs.design.createDesignMatrix(stim,time,Basis);
+                    mask={};
                     mask{1}=1*(sum(abs(X),2)==0);
                     cond{1}='rest';
                     
@@ -139,13 +140,21 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                         Z=zeros(40,size(dd,2));
                         dd=[dd; Z; [dataB dataA].*(mask{cIdx}*ones(1,size(dataA,2)*2))];
                     end
+                    
+                    [ii,~]=find(dd~=0);
+                    lstBad=[max(ii)+1:length(time)];
+                    lstBad=[lstBad 1:min(ii)]; 
+                    dd(lstBad,:)=[];
+                    
                     tmp.time=time;
+                    tmp.time(lstBad)=[];
                     tmp.data=dd;
                    
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
-                    connStats(i).probe = nirs.util.createhyperscanprobe(connStats(i).probe);
-                    
+                    if(cIdx==1)
+                        connStats(i).probe = nirs.util.createhyperscanprobe(connStats(i).probe);
+                    end
                     r(1:end/2,1:end/2)=0;
                     r(1+end/2:end,1+end/2:end)=0;
                     

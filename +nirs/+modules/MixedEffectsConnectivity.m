@@ -54,7 +54,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
             
             % Let's do this per channel for now
-            n=height(S(1).table);
+            n=size(S(1).R,1)*size(S(1).R,2);
             
               if(isa(S(1),'nirs.core.sFCStats'))
                   fld='Z';
@@ -67,10 +67,13 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             D=zeros(length(S),n);
             cond={};
             cnt=1;
-            for i=1:length(S)
+            demoall=demo(1,:);
+            for i=1:length(S) 
+               
                 for cIdx=1:length(S(i).conditions)
                     D(cnt,:)=real(reshape(S(i).(fld)(:,:,cIdx),[],1))';
                     cond{cnt,1}=S(i).conditions{cIdx};
+                    demoall(cnt,:)=demo(i,:);
                     cnt=cnt+1;
                 end
             end
@@ -86,7 +89,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
             
             corr=D(:,1);
-            vars=[demo table(corr,cond)];
+            vars=[demoall table(corr,cond)];
             warning('off','stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit');
             
             lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
@@ -150,8 +153,16 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 [n,m]=size(S(1).R);
                 Z=Coef;
                 G.R=tanh(Z);
-                dfe=S(1).dfe; for idx=2:length(S); dfe=dfe+S(idx).dfe; end;
-                G.dfe=repmat(dfe,length(CoefficientNames),1)/length(S);
+                dfe=zeros(1,length(CoefficientNames)); 
+                for idx=1:length(S); 
+                    for j=1:length(CoefficientNames);
+                        k=find(ismember(S(idx).conditions,CoefficientNames{j}));
+                        if(~isempty(k))
+                            dfe(j)=dfe(j)+S(idx).dfe(k);
+                        end
+                    end; 
+                end;
+                G.dfe=dfe/length(S);
                 
              else
                 error('fix this part');

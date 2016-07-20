@@ -1,4 +1,4 @@
-function S = ttest(obj, c, b,names)
+function S = ttest(obj, c, b, names)
     %% ttest - Tests the null hypothesis c*beta = b
     % 
     % Args:
@@ -9,7 +9,10 @@ function S = ttest(obj, c, b,names)
     %     % tests the sum and difference of betas
     %     stats.ttest([1 1; 1 -1])
 
-      if(nargin<3)
+
+    
+    
+     if(nargin<3)
             b=[];
      end
      if(nargin<4)
@@ -22,16 +25,9 @@ function S = ttest(obj, c, b,names)
         end
          return
      end
-    
-    nchan = length(obj.beta)/length(obj.conditions);
-
-    % sort variables
-    [~, icond] = sort(obj.conditions);
-    obj = obj.sorted();
-    
-    
-    
-    if(isstr(c) || iscell(c) || iscellstr(c))
+     
+     
+     if(isstr(c) || iscell(c) || iscellstr(c))
          if(isstr(c)); c=cellstr(c); end;
          if(isempty(names))
              names=c;
@@ -43,14 +39,26 @@ function S = ttest(obj, c, b,names)
          c(lst,:)=[];
          names={names{~lst}};
      end
+     
+    if(length(obj)>1)
+        for idx=1:length(obj)
+            S(idx)=obj(idx).ttest(c,b,names);
+        end
+        return
+    end
     
+    nchan = size(obj.probe.link,1);
+    
+    % sort variables
+    [~, icond] = sort(obj.conditions);
+    obj = obj.sorted();
     
     c = c(:, icond);
     
     % full contrast matrix
-    C = kron(speye(nchan,nchan), c);
+    C = kron(eye(nchan), c);
 
-    if nargin < 3
+    if nargin < 3 || isempty(b)
         b = zeros(size(C,1),1);
     else
         b = repmat(b(icond), [nchan 1]);
@@ -60,28 +68,27 @@ function S = ttest(obj, c, b,names)
     beta = bsxfun(@minus, C*obj.beta, b);
 
     % new covariance
-    covb=C*obj.covb_chol;
-  
+    covb = C*obj.covb*C';
+
     % output
     S = obj;
 
     S.beta  = beta;
-    S.covb_chol  = covb;
-    S.typeII_StdE = C*obj.typeII_StdE;
-    
+    S.covb  = covb;
+
     % new condition names
-    if(isempty(names))
+    if nargin < 4 && isempty(names)
         cond = obj.transformNames(c);
     else
-        cond=names;
+        cond = names;
     end
+    
     cond = repmat( cond(:), [nchan 1] );
 
-    var = obj.variables;
-    type=unique(var.cond);
-    lst=find(ismember(var.cond,type{1}));
-    var=var(lst,:);
-    var=repmat(var,size(c,1),1);
-    var.cond=cond;
-    S.variables = var;
+    
+        link = repmat( obj.probe.link, [size(c,1) 1] );
+        link = sortrows(link, {'source', 'detector', 'type'});
+        S.variables = [link table(cond)];
+  
+    S.description = 'T-test';
 end

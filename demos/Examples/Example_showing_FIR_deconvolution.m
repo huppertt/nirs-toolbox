@@ -18,8 +18,8 @@ job = nirs.modules.AR_IRLS( );
 
 basis=nirs.design.basis.FIR;
 basis.binwidth=1; % each bin is 1 sample wide
-basis.nbins=24;  % 2hz x 12s = 24 bins
-basis.isIRF=true;  % estimate impulse response (cf. full response) model
+basis.nbins=34;  % 2hz x 12s = 24 bins
+basis.isIRF=0; %true;  % estimate impulse response (cf. full response) model
 
 job .basis('default')=basis;
 SubjStats = job .run( hb );  % run the analysis model
@@ -49,7 +49,7 @@ HRFroi.draw;  % The left panel is ROI1
 % But we now have 24 betas to define the contrast, so we need to define the
 % contrast over a time-window
 
-contrastWinow=GroupStats.ttest('A[4:8]');  % This computes the contast from 2-4s (time point 4-8)
+contrastWindow=GroupStats.ttest('A[4:8]');  % This computes the contast from 2-4s (time point 4-8)
 
 % Likewise, this is the test of points 4-8 vs points 1-2 
 GroupStats.ttest('A[4:8]-A[1:2]').draw

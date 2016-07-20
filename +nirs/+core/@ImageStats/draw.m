@@ -80,7 +80,7 @@ function h = draw( obj, vtype, vrange, thresh ,powerthresh,viewpt)
         if(isa(viewpt{i}, 'function_handle'))
             viewfcn{i}=viewpt{i};
         else
-            switch(viewpt{i})
+            switch(lower(viewpt{i}))
                 case('left')
                     viewfcn{i}={@(h)view(h,-90,0); ...  % Change view to the left
                         @(h)camroll(h,0); ... % rotate the image by 90degress

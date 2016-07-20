@@ -93,7 +93,7 @@ result=nirs.util.roiAverage(GroupStats,ROI,'test')
 probe = GroupStats.probe;
 
 Name{1}='FpZ';
-xyz(1,:)=[0 0 0];
+xyz(1,:)=[0 -12 0];
 Type{1}='FID-anchor';  % This is an anchor point
 Units{1}='mm';
 
@@ -104,12 +104,12 @@ Type{2}='FID-attractor';  % This is an attractor
 Units{2}='mm';
 
 Name{3}='T7';
-xyz(3,:)=[-200 0 0];
+xyz(3,:)=[200 -12 0];
 Type{3}='FID-attractor';  % This is an attractor
 Units{3}='mm';
 
 Name{4}='T8';
-xyz(4,:)=[200 0 0];
+xyz(4,:)=[-200 -12 0];
 Type{4}='FID-attractor';  % This is an attractor
 Units{4}='mm';
 

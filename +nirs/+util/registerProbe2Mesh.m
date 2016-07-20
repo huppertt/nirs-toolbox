@@ -37,9 +37,11 @@ for i=1:size(ProbePos,1)
     end
 end
 
+lst=find(ismember(probe.optodes.Type,{'Source','Detector','FID-anchor'}));
+
 %Place the probe on a sphere
-x=ProbePos(:,1); x=x-mean(x);
-y=ProbePos(:,2); y=y-mean(y);
+x=ProbePos(:,1); x=x-mean(x(lst));
+y=ProbePos(:,2); y=y-mean(y(lst));
 theta = atan(x/HeadRadius);
 phi = atan(y/HeadRadius);
 [ProbePosSphere(:,1),ProbePosSphere(:,2),ProbePosSphere(:,3)]=sph2cart(theta,phi,HeadRadius*ones(size(x)));

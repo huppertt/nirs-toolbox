@@ -81,6 +81,8 @@ classdef Probe
             %% This function returns the src pos (in mm)
             tbl=sortrows(obj.optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Source'));
+            
+            
             srcPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
             
              %Convert to mm if needed
@@ -92,6 +94,9 @@ classdef Probe
             %% This function returns the det pos (in mm)
              tbl=sortrows(obj.optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Detector'));
+            
+            
+            
             detPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
             
             %Convert to mm if needed

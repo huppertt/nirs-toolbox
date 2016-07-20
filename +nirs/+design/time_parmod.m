@@ -1,4 +1,4 @@
-function st=time_parmod(stim,center,reset)
+function st=time_parmod(stim,time,center,reset)
 % This function creates a time-paramtricaly modulated stimulus
 
 if(nargin<2)
@@ -12,7 +12,7 @@ st=nirs.design.StimulusVector;
 st.name=[stim.name '_pmod'];
 
 dt=.5;
-t=min(stim.onset)-10:dt:max(stim.onset+stim.dur+10);
+t=time';
 s=zeros(size(t));
 
 if(reset)

@@ -59,15 +59,18 @@ if(seperateflag)
         [~,id]=min(d);
         fid.Type=repmat({'FID-attractor'},height(fid),1);
         fid.Type{id}='FID-anchor';
+        s=sort(d);
+        lst=find(d>s(3)*1.5);
+        fid(lst,:)=[];
         p(i).optodes=[p(i).optodes; fid];
         p(i) = nirs.util.registerProbe2Mesh(mesh(1),p(i));
         
         srcPos(unique(link.source),:)=p(i).srcPos;
         detPos(cluster{i},:)=p(i).detPos;
         f=p(i).optodes(ismember(p(i).optodes.Type,{'FID-anchor','FID-attractor'}),:);
-        ff(:,1,i)=f.X;
-        ff(:,2,i)=f.Y;
-        ff(:,3,i)=f.Z;
+%        ff(:,1,i)=f.X;
+%        ff(:,2,i)=f.Y;
+%        ff(:,3,i)=f.Z;
         
     end
     fid=probe.optodes(ismember(probe.optodes.Type,{'FID-anchor','FID-attractor'}),:);

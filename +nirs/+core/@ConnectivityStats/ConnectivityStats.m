@@ -122,6 +122,8 @@ classdef ConnectivityStats
             
         end
         
+        stats = ttest( obj, c, b, names );
+        
         draw( obj, vtype, vrange, thresh );     
 
     end

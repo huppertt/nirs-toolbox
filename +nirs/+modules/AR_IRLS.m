@@ -48,6 +48,8 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
                 
+                X(find(isnan(X)))=0;
+                
                 % check model
                 obj.checkRank( [X C] )
                 obj.checkCondition( [X C] )
