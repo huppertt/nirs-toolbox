@@ -57,7 +57,7 @@ function S = ttest(obj, c, b, names)
     S=obj;
     S.R=tanh(Z);
     S.conditions=names;
-    S.dfe=min(obj.dfe)-1;
+    S.dfe=mean(obj.dfe(c~=0));
     
     S.description = 'T-test';
 end

@@ -164,7 +164,7 @@ classdef Graph
             end
             
             c=max(abs(obj.nodeInfo.value));
-            
+            c=.3;
             cmap=colormap(jet);
             if(length(unique(obj.nodeInfo.value))==1)
                 cmap(:)=0;

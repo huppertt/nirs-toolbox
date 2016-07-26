@@ -52,15 +52,18 @@ for cIdx=1:length(obj.conditions)
         case('r')
             values=tbl.R;
             pval=tbl.pvalue;
+            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
         case('z')
             values=tbl.Z;
             pval=tbl.pvalue;
+            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
         otherwise
             warning('type not recognized: using Correlation');
             values=tbl.R;
             pval = tbl.pvalue;
+            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             %cmap=flipdim(colormap(autumn(2001)),1);
     end
@@ -82,7 +85,11 @@ for cIdx=1:length(obj.conditions)
         % takes in string in form of 'p < 0.05' or 'q < 0.10'
         s = strtrim( strsplit( thresh, '<' ) );
         
-        mask = pval < str2double(s{2});
+        if(~isempty(strfind(s{1},'q')))
+            mask = qval < str2double(s{2});
+        else
+            mask = pval < str2double(s{2});
+        end
     end
     I=eye(sqrt(length(mask)));
     mask=mask.*(~I(:));

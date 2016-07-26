@@ -17,7 +17,9 @@ function tbl = createStimlusTable( data )
         if(isprop(stim,'keys'))
             tbl(i).FileIdx = i;
             for j = 1:length(stim.keys)
-                tbl(i).(strtrim(stim.keys{j})) = stim.values{j};
+                str=strtrim(stim.keys{j});
+                str(find(double(str)<65 | double(str)>122))=[];
+                tbl(i).(str) = stim.values{j};
             end
             
         end

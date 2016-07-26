@@ -43,7 +43,7 @@ for i=1:length(fileExt)
                  disp('      To load all use "loadDirectory(<>,<>,@(file)nirs.io.loadNIRx(file))"');
                  tmp = nirs.io.loadNIRx(files(iFile).name,true);
                  probe=tmp.probe;
-             elseif(strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)'))
+             elseif(~isempty(strfind(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)')))
                  tmp.probe=probe;
             end
             
