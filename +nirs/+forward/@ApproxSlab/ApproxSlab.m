@@ -6,7 +6,7 @@ classdef ApproxSlab
         probe;
         prop;
         mesh;
-        Fm = 110;
+        Fm = 0;
     end
     
     methods

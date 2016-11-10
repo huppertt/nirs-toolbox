@@ -1,0 +1,17 @@
+function [R,p,dfe]=partialcorr(data,robust_flag)
+
+if(nargin<2)
+    robust_flag=true;
+end
+
+if(~isempty(strfind(class(data),'.core.Data')))
+    data=data.data;
+end
+
+if(robust_flag)
+    [R,p]=nirs.math.robust_corrcoef(data);
+else
+    [R,p]=partialcorr(data);
+end
+
+dfe = length(data);
