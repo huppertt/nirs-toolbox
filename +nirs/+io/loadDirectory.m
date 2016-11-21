@@ -56,7 +56,7 @@ for i=1:length(fileExt)
             
             % put demographics variables based on folder names
             demo = fsplit(length(rsplit)+1:end-1);
-            
+            data(end).description=files(iFile).name;
             for iDemo = 1:min(length(folderHierarchy),length(demo))
                 data(end).demographics(folderHierarchy{iDemo}) = demo{iDemo};
             end

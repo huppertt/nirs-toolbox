@@ -9,8 +9,9 @@ if(nargin<2)
     verbose=false;
 end
 
-d=bsxfun(@minus,d,median(d,1));
-d=bsxfun(@rdivide,d,sqrt(2)*mad(d,1,1));
+lst=find(sum(abs(d),2)>2*min(sum(abs(d),2)));
+d(lst,:)=bsxfun(@minus,d(lst,:),median(d(lst,:),1));
+d(lst,:)=bsxfun(@rdivide,d(lst,:),sqrt(2)*mad(d(lst,:),1,1));
 
 
 W=ones(size(d,1),1);
@@ -40,7 +41,7 @@ for i=1:size(d,2)
         end
         warning('off','stats:statrobustfit:IterationLimit')
         
-        r(i,j)=robustfit(d(:,i),d(:,j),'bisquare',[],'off');
+        r(i,j)=robustfit(d(lst,i),d(lst,j),'bisquare',[],'off');
         cnt=cnt+1;
     end
 end

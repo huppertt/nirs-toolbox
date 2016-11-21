@@ -212,7 +212,7 @@ else
             % contrast vector
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
-            
+            c=c/sum(c);
            
             broi    = c'*b;
             se      = sqrt(c'*C*c);

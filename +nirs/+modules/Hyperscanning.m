@@ -114,8 +114,10 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     Basis('default')=nirs.design.basis.BoxCar;
                     [X, names] = nirs.design.createDesignMatrix(stim,time,Basis);
                     mask={};
-                    mask{1}=1*(sum(abs(X),2)==0);
-                    cond{1}='rest';
+                    if(~isempty(find(sum(abs(X),2)==0)))
+                        mask{1}=1*(sum(abs(X),2)==0);
+                        cond{1}='rest';
+                    end
                     
                     for idx=1:size(X,2);
                         if(~all(X(:,idx)==0))

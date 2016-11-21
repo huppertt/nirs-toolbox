@@ -34,6 +34,10 @@ DetPos = probeInfo.probes.coords_d2;
 DetPos(:,3)=0;
 
 [s,d]=find(info.S_D_Mask);
+
+%% Fix added based on bug from Guilherme A. Zimeo Morais created an issue 2016-08-24
+[s,a]=sort(s); d=d(a);
+
 link=table(repmat(s,length(info.Wavelengths),1),...
     repmat(d,length(info.Wavelengths),1),...
     reshape(repmat(info.Wavelengths(:)',length(s),1),[],1),...

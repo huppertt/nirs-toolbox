@@ -59,4 +59,5 @@ model = parafac(d,Fac,Options,const,OldLoad,FixMode);
 [A,B,C] = fac2let(model);
 
 aa=zeros(size(d));
-for i=1:25; for j=1:3; aa(:,:,j)=aa(:,:,j)+(A(:,i)*B(:,i)')*C(j,i); end; end;
+for i=1:25; for j=1:3; aa(:,:,j)=
+        ; end; end;

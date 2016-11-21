@@ -62,7 +62,8 @@ function data = loadDotNirs( filenames )
             else
                 % Try to add from the "s" variable directly and use a
                 % defaut naming convention
-                 stims = Dictionary();
+                stims = Dictionary();
+                d.s = nirs.util.aux2stim(d);
                 % d.s=d.aux(:,1);
                  for idx=1:size(d.s,2)
                      try
