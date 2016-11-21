@@ -108,7 +108,7 @@ classdef MEGProbe
                 t(lst(i))=text(xele(lst(i)),yele(lst(i)),obj.electrodes.Name{lst(i)});
             end
             set(t(lst),'HorizontalAlignment','center','VerticalAlignment','bottom','FontSize',10);
-            set(t,'visible','off');
+            set(t(lst),'visible','off');
             
           headradius=norm([x(find(ismember(tbl.Name,'Fpz'))) y(find(ismember(tbl.Name,'Fpz')))]-...
                 [x(find(ismember(tbl.Name,'Cz'))) y(find(ismember(tbl.Name,'Cz')))]);
