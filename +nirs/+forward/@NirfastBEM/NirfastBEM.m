@@ -4,7 +4,7 @@ classdef NirfastBEM
         mesh; 
         probe;
         prop;
-
+        preK={};
         Fm = 0;
     end
     
@@ -177,14 +177,28 @@ classdef NirfastBEM
                 BEM(1).fiducials=[BEM(1).fiducials; fidtbl];
             end
             
-            BEM(2)=nirs.core.Mesh();
-            BEM(2).nodes=double(surf(end).rr)*1000;
-            BEM(2).faces=double(surf(end).tris);
+            for i=2:length(surf)
+                BEM(i)=nirs.core.Mesh();
+                BEM(i).nodes=double(surf(i).rr)*1000;
+                BEM(i).faces=double(surf(i).tris);
+            end
+            
+            BEM(1).transparency=.1;
+            BEM(2).transparency=.1;
             
             obj.mesh=BEM;
             
             
         end
+        
+        function obj = load_freesurfer(obj,subjectdir,subjid)
+            file=dir(fullfile(subjectdir,subjid,'bem','*-bem.fif'));
+            file=fullfile(subjectdir,subjid,'bem',file(1).name)
+            obj=obj.loadBEM_fif(file);
+            
+            
+        end
+        
         
         function draw(obj,values,varargin)
         

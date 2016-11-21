@@ -1,4 +1,4 @@
-function draw( obj, vtype, vrange, thresh)
+function draw( obj, vtype, vrange, thresh,figH)
     %% draw - Draws channelwise values on a probe.
     % Args:
     %     vtype   - either 'beta' or 'tstat'
@@ -87,8 +87,11 @@ function draw( obj, vtype, vrange, thresh)
                 end
             end
             
-           
+           if(nargin<5)
             f=figure;
+           else
+               f=figH;
+           end
             set(f,'name',[utypes{iType} ' : ' uconds{iCond}]);
             obj.probe.draw(colors, lineStyles);
             c = colorbar; colormap(cmap); caxis(vrange);

@@ -90,12 +90,15 @@ stimTable.FileIdx=NaN;  % If we set the FileIdx to NaN then it will apply to all
 % intact and changing every entry seperately.  If we left this as
 % FileIdx=1, then our change would only be applied to the first file
 
-stimTable.stim_channel1.onset=NaN;  % Using NaN will keep the original timing.  Again, if we left the 
+st=stimTable.stim_channel;
+
+st.onset=NaN;
+st.dur=10; % But let's change the duration to 10s for all trials
+
+stimTable.stim_channel=st;  % Using NaN will keep the original timing.  Again, if we left the 
 % values as real values (which in this case correspond to the first file),
 % then it will replace all the times (and potentially mess up files 2 and
 % beyond).  
-stimTable.stim_channel1.dur=5; % But let's change the duration to 10s for all trials
-
 
 % To implement the changes, we use the ChangeStimulusInfo job
 j = nirs.modules.ChangeStimulusInfo();
@@ -119,22 +122,22 @@ j = nirs.modules.BeerLambertLaw(j);
 j = nirs.modules.AR_IRLS(j);
 
 % Let's use a FIR model to show how to do deconvolution
-FIRbasis=nirs.design.basis.FIR;
-
-% FIRbasis = 
-%   FIR with properties:
-%     nbins: 10  - number of bins in the HRF 
-%     binwidth: 5 - number of time-points per bin
-
-% Currently our sample rate is 10Hz (=raw(1).Fs)
-% Thus, binwidth =5 corresponds to a 0.5s bin
-% The nbins =10 tells us the window will be 0.5s x 10 = 5s wide, which is not
-% wide enough.  Note, this is for the estimation of the impulse response
-% function (so the response is convolved with whatever the stimulus
-% duration is).  Let's make the width 15s by setting nbins =30
-FIRbasis.nbins=30;
-
-j.basis('default')=FIRbasis;
+% FIRbasis=nirs.design.basis.FIR;
+% 
+% % FIRbasis = 
+% %   FIR with properties:
+% %     nbins: 10  - number of bins in the HRF 
+% %     binwidth: 5 - number of time-points per bin
+% 
+% % Currently our sample rate is 10Hz (=raw(1).Fs)
+% % Thus, binwidth =5 corresponds to a 0.5s bin
+% % The nbins =10 tells us the window will be 0.5s x 10 = 5s wide, which is not
+% % wide enough.  Note, this is for the estimation of the impulse response
+% % function (so the response is convolved with whatever the stimulus
+% % duration is).  Let's make the width 15s by setting nbins =30
+% FIRbasis.nbins=15;
+% 
+% j.basis('default')=FIRbasis;
 
 SubjStats = j.run(rawChanged);
 % Note, SubjStats now has 240 betas (8 channels x 30 betas per condition)

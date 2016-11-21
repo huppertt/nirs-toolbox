@@ -32,7 +32,9 @@ classdef FixNaNs < nirs.modules.AbstractModule
                 if any(lst(:))
                     try
                         for j = 1:size(d,2)
-                            if any(lst(:,j))
+                            if(all(lst(:,j)))
+                                 d(lst(:,j),j) = obj.ifFailReplaceWith;
+                            elseif any(lst(:,j))
                                 % interpolation
                                 l = lst(:,j);
                                 d(l,j) = interp1(t(~l), d(~l,j), t(l),'linear','extrap');
@@ -46,6 +48,7 @@ classdef FixNaNs < nirs.modules.AbstractModule
                     end
 
                 end
+                data(i).data=d;
             end
         end
     end

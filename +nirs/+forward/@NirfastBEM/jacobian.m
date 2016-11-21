@@ -24,8 +24,13 @@ function [J, meas] = jacobian( obj, type )
     for i = 1:length( types ) 
 
         lst = obj.probe.link.type == types(i);
+       if(~isempty(obj.preK))
+           data= bemdata_stnd_PreK(mesh{i},obj.Fm,obj.K{i});
+       else
         data = bemdata_stnd( mesh{i},obj.Fm );
-        
+       end
+%         K = BEM_precomputeK(mesh{i},obj.Fm);
+%         data2= bemdata_stnd_PreK(mesh{i},obj.Fm,K);
         if obj.Fm == 0
             thisD = data.paa(:,1);
             thisD( thisD < 0 ) = 0;

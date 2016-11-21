@@ -33,12 +33,16 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                     s(:,j) = stims{j}.getStimVector( t );
                 end
                 
-                s = sum( abs(s), 2 );
-                
-                % find first/last stim period and calculate time inverval
-                t_min = t( find(s>0,1,'first') ) - obj.preBaseline;
-                t_max = t( find(s>0,1,'last' ) ) + obj.postBaseline;
-                
+%                 s = sum( abs(s), 2 );
+%                 
+%                 % find first/last stim period and calculate time inverval
+%                 t_min = t( find(s>0,1,'first') ) - obj.preBaseline;
+%                 t_max = t( find(s>0,1,'last' ) ) + obj.postBaseline;
+%                 
+
+                t_min=min(vertcat(stims{:}.onset))- obj.preBaseline;
+                t_max=max(vertcat(stims{:}.onset)+vertcat(stims{:}.dur))+ obj.postBaseline;
+
                 % extract data from the time inverval t_min to t_max
                 if(~isempty(t_min))
                 lst = t >= t_min & t <= t_max;
