@@ -22,7 +22,12 @@ else
     p=modelorder;
 end
 
+
+lst=all(data==0,2);
+
 [yfilt,f] = nirs.math.innovations(data,p);
+
+yfilt(lst,:)=[];
 
 if(robust_flag)
     [R,p]=nirs.math.robust_corrcoef(yfilt);

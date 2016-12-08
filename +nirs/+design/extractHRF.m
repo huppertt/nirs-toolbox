@@ -125,12 +125,12 @@ for idx=1:length(conditions)
 end
 
 n=height(tbl)/length(HRF.probe.link.type)/length(conditions);
-link=tbl(1:n:end,1:4);
-for i=1:height(link)
-    link.cond{i}=link.cond{i}(1:max(strfind(link.cond{i},'_'))-1);
-end
-link.type=strcat(link.type,repmat({':'},height(link),1),link.cond);
-link.cond=[];
+% link=tbl(1:n:end,1:4);
+% for i=1:height(link)
+%     link.cond{i}=link.cond{i}(1:max(strfind(link.cond{i},'_'))-1);
+% end
+% link.type=strcat(link.type,repmat({':'},height(link),1),link.cond);
+% link.cond=[];
 
 HRF.probe.link=link;
 HRF.data=data;
