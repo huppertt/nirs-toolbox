@@ -27,6 +27,7 @@ end
 labels{1}='Contrast'; 
 isfound(1)=false;
 for i=1:size(R,2)
+    labels{i}='';
     for j=1:length(groupings)
         if(~isempty(strfind(lower(R{1,i}),lower(groupings{j}))))
             labels{i}=groupings{j};
@@ -42,7 +43,7 @@ end
 
 ustr=unique(str);
 for j=1:length(groupings)
-    k(j)=find(ismember(labels,groupings{j}));
+    k(j)=min(find(ismember(labels,groupings{j})));
     g{j}=unique({R{:,k(j)}});
 end
 

@@ -51,6 +51,7 @@ end
 % Section 2.3 Eqn 6
 % r = sqrt(b1*b2)
 r=sign(r).*abs(sqrt(r.*r'));
+r=.5*(r+r');
 
 n=size(d,1);
 
@@ -58,9 +59,7 @@ Tstat = r .* sqrt((n-2) ./ (1 - r.^2));
 p = 2*tpvalue(-abs(Tstat),n-2);
 p=tril(p,-1)+tril(p,-1)'+eye(size(p));
 
-
 end
-
 
 function w = wfun(r)
 s = mad(r, 0) / 0.6745;

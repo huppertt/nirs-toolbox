@@ -162,7 +162,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                         end
                     end; 
                 end;
-                G.dfe=dfe/length(S);
+                G.dfe=dfe; %/length(S);
                 
              else
                 error('fix this part');
