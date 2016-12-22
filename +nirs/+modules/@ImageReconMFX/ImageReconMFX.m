@@ -428,7 +428,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
 
             Beta0= zeros(size(X,2)+size(Z,2),1);
             
-            [lambda,Beta,Stats]=nirs.math.REML(beta,[X(:,lstKeep) Z],Beta0,R,Q);
+            [lambda,Beta,Stats]=nirs.math.REML(beta,[X(:,lstKeep) Z],Beta0(lstKeep),R,Q);
             lm2.CoefficientCovariance=Stats.tstat.covb(1:length(lstKeep),1:length(lstKeep));
             lm2.Coefficients.Estimate=Beta(1:length(lstKeep));
             dfe= Stats.tstat.dfe;

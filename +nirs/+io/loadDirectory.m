@@ -23,14 +23,18 @@ end
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
 for i=1:length(fileExt)
-    files = rdir([rootFolder filesep '**' filesep '*' fileExt{i}]);
+    files = rdir(fullfile(rootFolder,'*',['*' fileExt{i}]));
     
     
     for iFile = 1:length( files )
         
         % load using load function
+        try
         tmp = loadFunc{i}( files(iFile).name );
-        
+        catch
+            warning(['error reading file: ' files(iFile).name]);
+            continue;
+        end
         % NIRx data uses folders instead of files... back up one
         if(~isempty(strfind(fileExt{i},'.wl')))
             files(iFile).name=[fileparts(files(iFile).name) filesep];

@@ -61,6 +61,11 @@ raw = nirs.core.Data();
 lst=find(ismember(info.SDkey(:,2:3),[probe.link.source probe.link.detector],'rows'));
 for idx=1:length(info.Wavelengths)
     file = dir(fullfile(folder,['*.wl' num2str(idx)]));
+    
+    if(file(1).bytes==0)
+        error('zero byte file');
+    end
+    
     d = dlmread(fullfile(folder,file(1).name));
     raw.data=[raw.data d(:,lst)];
 end
