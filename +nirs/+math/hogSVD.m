@@ -5,51 +5,34 @@ function [US,V]=hogSVD(L)
 % L1 = U1*S1*V'
 % L2 = U2*S2*V'
 
-Ls=[];
+
+L2=[];
 for i=1:length(L)
-    flds=fields(L{i});
-    LL=abs(L{i}.(flds{1}))/normest(abs(L{i}.(flds{1})));
-    for j=2:length(flds)
-        LL=LL+abs(L{i}.(flds{j}))/normest(abs(L{i}.(flds{1})));
-        
-    end
-    Ls=[Ls; LL];
+    f=fields(L{i});
+   for j=1:length(f)
+        L2=[L2; L{i}.(f{j})];
+        m(i)=size(L{i}.(f{j}),1);
+   end 
 end
 
-[~,~,V]=nirs.math.mysvd(Ls);
+[U,S,V]=nirs.math.mysvd(L2);
+% % I am using parafac instead of SVD to allow for missing (NaN) data
+% Factor=parafac(L2,sum(m),[1 1]);
+% V=Factor{2};
 
-%[~,~,V,~,~] = gsvd(Ls(1:31,:),LL);
-% A = U*C*X'
-% B = V*S*X'
-% C'*C + S'*S = I
- 
-
-tol=sum(abs(V),2);
-V(find(tol<max(tol)*1E-6),:)=0;
+% tol=sum(abs(V),2);
+% V(find(tol<max(tol)*1E-6),:)=0;
 
 US={};
 for i=1:length(L)
     US{i}=[];
     flds=fields(L{i});
     for j=1:length(flds)
+        lst=find(ismember(flds,f{j}));
         US{i}=setfield(US{i},flds{j},L{i}.(flds{j})*V);
     end
 end
 
-
-% 
-% %deal with the trivial cases first
-% if(length(L)==1)
-%     [U{1},S{1},V]=nirs.math.mysvd(full(L{1}));
-%     return;
-% elseif(length(L)==2)
-%     [U{1},U{2},V,S{1},S{2}] = gsvd(full(L{1}),full(L{2}),0);
-%     return;
-% else
-%     error('not implmented yet');
-% end
-
-%Now the harder case of multiple pairs
 
 
 return

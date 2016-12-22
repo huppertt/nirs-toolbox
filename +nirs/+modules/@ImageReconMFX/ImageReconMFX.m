@@ -127,21 +127,6 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             
-            %             
-%                probe=obj.probe(key2);
-%                     [lia,locb]=ismember(probe.link,S(id(k)).probe.link);
-%                     if(~all(lia))
-%                         error('Src-Det found in data but not in fwd model');
-%                     end
-%                     
-%                     if(isempty(strfind(key,'prior')))
-%                         llocal(locb,:)=X(k,i)*L(key);
-%                     else
-%                         llocal=X(k,i)*L(key);
-%                     end
-%                     
-            
-            
             
             
             % FInd the initial noise weighting
@@ -210,72 +195,72 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             % e.g. pval(typeII) = 2*tcdf(-abs(beta/sqrt(VarMDU+CovBeta)),dfe)
             
             
-            if(~isempty(obj.prior))
-                
-                %Now, let's add the priors as virtual measurements
-                % This allows us to use ReML in the fitLME function
+%             if(~isempty(obj.prior))
+%                 
+%                 %Now, let's add the priors as virtual measurements
+%                 % This allows us to use ReML in the fitLME function
                 for idx=1:length(S);
                     S(idx).demographics('DataType')='real';
                 end
-                
-                nch=size(US{1},1);
-                L=[];
-                for fIdx=1:length(flds)
-                    thisprobe=nirs.core.Probe;
-                    thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
-                    L=setfield(L,flds{fIdx},eye(size(V,2))*scale);
-                    Probes(['prior:' flds{fIdx}])=thisprobe;
-                end
-                Lfwdmodels('prior')=L;
-                Priors=nirs.core.ChannelStats;
-                cnt=1;
-                
-                for idx=1:length(S)
-                   
-                    
-                    variables = sortrows(S(idx).variables,{'cond'});
-                    conds=unique(variables.cond);
-                    
-                    variableLst = variables(find(ismember(variables.cond,conds{1})),:);
-                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
-                    
-                    for cIdx=1:length(conds)
-                        if(ismember(conds{cIdx},obj.prior.keys))
-                            key=conds{cIdx};
-                        else
-                            key='default';
-                        end
-                        thisprior = obj.prior(key);
-                        flds=fields(thisprior);
-                        for fIdx=1:length(flds)
-                            
-                            variableLst.cond=repmat({conds{cIdx}},height(variableLst),1);
-                            variableLst.type=repmat({flds{fIdx}},height(variableLst),1);
-                            for j=1:size(thisprior.(flds{fIdx}),2)
-                                
-                                Priors(cnt).demographics=S(idx).demographics;
-                                Priors(cnt).demographics('DataType')='prior';
-                                Priors(cnt).demographics('subject')='prior';
-                                Priors(cnt).beta=V'* Basis(LstInMask,:)'* thisprior.(flds{fIdx})(LstInMask,j);
-                                Priors(cnt).variables=variableLst;
-                                
-                                Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
-                                
-                                Priors(cnt).probe=S(idx).probe;
-                                cnt=cnt+1;
-                                
-                                
-                            end
-                        end
-                    end
-                  
-                    
-                end
-                S = [S(:); Priors(:)];
-                if(isempty(strfind(obj.formula,' + (1|DataType)')))
-                    obj.formula=[obj.formula ' + (1|DataType)'];
-                end
-            end
+%                 
+%                 nch=size(US{1},1);
+%                 L=[];
+%                 for fIdx=1:length(flds)
+%                     thisprobe=nirs.core.Probe;
+%                     thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
+%                     L=setfield(L,flds{fIdx},eye(size(V,2))*scale);
+%                     Probes(['prior:' flds{fIdx}])=thisprobe;
+%                 end
+%                 Lfwdmodels('prior')=L;
+%                 Priors=nirs.core.ChannelStats;
+%                 cnt=1;
+%                 
+%                 for idx=1:length(S)
+%                    
+%                     
+%                     variables = sortrows(S(idx).variables,{'cond'});
+%                     conds=unique(variables.cond);
+%                     
+%                     variableLst = variables(find(ismember(variables.cond,conds{1})),:);
+%                     if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
+%                     
+%                     for cIdx=1:length(conds)
+%                         if(ismember(conds{cIdx},obj.prior.keys))
+%                             key=conds{cIdx};
+%                         else
+%                             key='default';
+%                         end
+%                         thisprior = obj.prior(key);
+%                         flds=fields(thisprior);
+%                         for fIdx=1:length(flds)
+%                             
+%                             variableLst.cond=repmat({conds{cIdx}},height(variableLst),1);
+%                             variableLst.type=repmat({flds{fIdx}},height(variableLst),1);
+%                             for j=1:size(thisprior.(flds{fIdx}),2)
+%                                 
+%                                 Priors(cnt).demographics=S(idx).demographics;
+%                                 Priors(cnt).demographics('DataType')='prior';
+%                                 Priors(cnt).demographics('subject')='prior';
+%                                 Priors(cnt).beta=V'* Basis(LstInMask,:)'* thisprior.(flds{fIdx})(LstInMask,j);
+%                                 Priors(cnt).variables=variableLst;
+%                                 
+%                                 Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
+%                                 
+%                                 Priors(cnt).probe=S(idx).probe;
+%                                 cnt=cnt+1;
+%                                 
+%                                 
+%                             end
+%                         end
+%                     end
+%                   
+%                     
+%                 end
+%                 S = [S(:); Priors(:)];
+%                 if(isempty(strfind(obj.formula,' + (1|DataType)')))
+%                     obj.formula=[obj.formula ' + (1|DataType)'];
+%                 end
+%             end
             
             demo = nirs.createDemographicsTable( S );
             
@@ -398,13 +383,13 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             beta = W*beta;
             
             
-            %Now deal with the ReML covariace terms
-            nRE=size(Z,2);
-            PAT=eye(nRE,nRE);
-            names=unique(tmpvars.DataType);
-            lst=find(ismember(names,{'priorhbo','priorhbr'}));
-            PAT(lst,lst)=-1;
-            for i=1:nRE; PAT(i,i)=1; end;
+%             %Now deal with the ReML covariace terms
+%             nRE=size(Z,2);
+%             PAT=eye(nRE,nRE);
+%             names=unique(tmpvars.DataType);
+%             lst=find(ismember(names,{'priorhbo','priorhbr'}));
+%             PAT(lst,lst)=-1;
+%             for i=1:nRE; PAT(i,i)=1; end;
                    
             lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
@@ -414,9 +399,41 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             X=sparse(X);
             Z=sparse(Z);
             
+           
+            
+             n=size(V,2);
+            %VtV=V'*V;
+            VtV=speye(n,n);
+           
+            for i=1:length(flds)
+                Q{i}=[];
+                for j=1:i-1
+                    Q{i}=blkdiag(Q{i},0*speye(n,n));
+                end
+                Q{i}=blkdiag(Q{i},VtV);
+                for j=i+1:length(flds)
+                    Q{i}=blkdiag(Q{i},0*speye(n,n));
+                end
+                Q{i}=blkdiag(Q{i},0*speye(size(Z,2),size(Z,2)));
+            end    
+            for i=1:size(Z,2)
+                Q{end+1}=sparse(n*length(flds)+i,n*length(flds)+i,1,...
+                    n*length(flds)+size(Z,2),n*length(flds)+size(Z,2));
+            end
+           % TODO-- off diagionals
+           %     lst=find(ismember(names,{'priorhbo','priorhbr'}));
+           
+            R={speye(size(beta,1),size(beta,1))};
+            
+
+            Beta0= zeros(size(X,2)+size(Z,2),1);
+            
+            [lambda,Beta,Stats]=nirs.math.REML(beta,[X(:,lstKeep) Z],Beta0,R,Q);
+            lm2.CoefficientCovariance=Stats.tstat.covb(1:length(lstKeep),1:length(lstKeep));
+            lm2.Coefficients.Estimate=Beta(1:length(lstKeep));
+            dfe= Stats.tstat.dfe;
 %             %% fit the model
-            lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern',PAT, ...
-                'FitMethod', 'ReML');
+%             lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [],'FitMethod', 'ReML');
 
 
             
@@ -446,12 +463,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 end
             end
             V=iWall*Vall;
-             G.beta=V*lm2.Coefficients.Estimate;
+            G.beta=V(:,lstKeep)*lm2.Coefficients.Estimate;
             [Uu,Su,Vu]=nirs.math.mysvd(CoefficientCovariance);
             
             G.covb_chol = V(:,lstKeep)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
             
-            G.dfe        = lm2.DFE;
+            G.dfe        = dfe;
             
            fwd=[];
            for idx=1:length(flds)

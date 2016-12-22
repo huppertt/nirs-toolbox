@@ -6,7 +6,8 @@ function [J, mesh, probe] = loadSensDotMat( filename )
     mesh=nirs.core.Mesh;
     mesh.nodes = tmp.sensitivity.mesh.vertices;
     mesh.faces = tmp.sensitivity.mesh.faces;
-    
+    mesh.nodes(:,[2 3])=mesh.nodes(:,[3 2]);
+    mesh.nodes(:,[3])=-mesh.nodes(:,[3]);
     
     %% probe
     % can't find wavelength info in file so making big assumptions here

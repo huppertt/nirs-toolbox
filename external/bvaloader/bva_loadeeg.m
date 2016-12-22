@@ -64,6 +64,8 @@ if exist(fullfile(pathName, meta.eegFile),'file')
 	eegFile = fullfile(pathName, meta.eegFile);
 elseif exist(fullfile(pathName, lower( meta.eegFile )),'file');
 	eegFile = fullfile(pathName, lower( meta.eegFile ));
+elseif exist([strtok(hdrFile,'.') '.eeg'],'file')
+    eegFile = [strtok(hdrFile,'.') '.eeg'];
 else
 	error('ERRP:io:bva_loadeeg','Couldn''t find find .eeg file');
 end

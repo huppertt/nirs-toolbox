@@ -22,6 +22,13 @@ classdef StimulusEvents
             for i = 1:length( obj.onset )
                 % list of points for this onset
                 lst = time >= obj.onset(i) & time < obj.onset(i)+obj.dur(i);
+                
+                if(isempty(find(lst)))
+                    % for really short durations this can happen because of
+                    % the >= vs < issue
+                    lst=min(find(time >= obj.onset(i)));
+                end
+                
                 % set them to correct amplitude
                 vec(lst) = vec(lst) + obj.amp(i);
                     

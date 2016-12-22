@@ -14,7 +14,7 @@ for i = 1:n
     f{i}=[1; -a(2:end)];
     
     yfilt(:,i) = filter(f{i}, 1, y);
-    
+            
 end
 
 return

@@ -16,7 +16,7 @@ end
 Beta_priorO=Beta_prior;
 
 [m,n] = size(X);
-[U,S,V]=mysvd(full(X));
+[U,S,V]=nirs.math.mysvd(full(X));
 s = diag(S);
 tol = max(m,n) * eps(max(s));
 r = sum(s > tol);
@@ -42,13 +42,13 @@ if(size(X,1)<size(X,2))
     %  Y = U*(S*V'*Beta) --> Y=U*S*Beta2;
     %  cov(Beta2) = S*V'*Q*V*S';
     %[V,S,U]=svd(full(X'),0);
-    [U,S,V]=mysvd(full(X));
+    [U,S,V]=nirs.math.mysvd(full(X));
     
     for idx=1:length(Qp)
-        Qp2{idx}=S*V'*Qp{idx}*V*S';
+        Qp2{idx}=V'*Qp{idx}*V;
     end
-    Beta_prior=S*V'*Beta_prior;
-    [lambda,Beta,Stats]=nirs.math.REML(Y,U,Beta_prior,Qn,Qp2,maxIter);
+    Beta_prior=V'*Beta_prior;
+    [lambda,Beta,Stats]=nirs.math.REML(Y,U*S,Beta_prior,Qn,Qp2,maxIter);
 
     if(jump)
         return
@@ -193,9 +193,21 @@ end
 clear U V X2 iCe iCp Qp2 iCe R S Cn Cp iCn Beta
 
 %[Beta,stdx,mse]=regress_wLS(Y,X,Beta_priorO,Qn,Qp,lambda);
-[Beta,stdx,mse]=invl(Y,X,Qn,Qp,lambda,true);    
+%[Beta,stdx,mse]=invl(Y,X,Qn,Qp,lambda,true);    
 
 
+Cn = tolr*speye(size(Qn{1},1));  %Make sure it stays in numerical precision
+for i = 1:length(Qn)
+    Cn = Cn + Qn{i}*exp(lambda(i));
+end
+Cp = tolr*speye(size(Qp{1},1));  %Make sure it stays in numerical precision
+for i = 1:length(Qp)
+    Cp = Cp + Qp{i}*exp(lambda(i+length(Qn)));
+end
+iCn=inv(Cn);
+iCp=inv(Cp);
+XtXi = pinv(X'*iCn*X+iCp);
+Beta = XtXi*X'*iCn*Y;
 %Now, put the final pieces together
 %Beta= C_beta_y * Xt_iCe * Y;
 
@@ -222,36 +234,30 @@ lambda=max(lambda,log(tolr));
 lambda=min(lambda,log(1/tolr));
 
 Stats.tstat.beta=Beta;
-Stats.tstat.covb=stdx.^2./mse;
+Stats.tstat.covb=XtXi/mse;
 Stats.tstat.dfe=size(X,2);
 Stats.tstat.t=[];
-Stats.tstat.stdx=stdx;
 Stats.tstat.mse=mse;
-
-for idx=1:size(Stats.tstat.beta,2)
-    
-Stats.tstat.t=Stats.tstat.beta./stdx;
-end
 Stats.tstat.pval=2*tcdf(-abs(full(Stats.tstat.t)),Stats.tstat.dfe);
 
 clear Beta_prior CY C_beta_y Cn Cp Qn Qp X X2 iCe residuals ybar yhat 
-
-V=Ce*size(Y,2)/trace(Ce);
-%R=speye(size(Y,1))-sparse(L*Lt_invCn);
-Vt=V';
-clear V Y
-
-trRV=sum(R(:).*Vt(:));
-V=Vt';
-RV=R*V;
-RVt=RV';
-
-clear Ce R Vt
-trRVRV=sum(RV(:).*RVt(:));
-clear RV RVt
-Stats.trRV=trRV;
-Stats.trRVRV=trRVRV;
-Stats.erdf= full(trRV^2/trRVRV);
+% 
+% V=Ce*size(Y,2)/trace(Ce);
+% R=speye(size(Y,1))-sparse(L*Lt_invCn);
+% Vt=V';
+% clear V Y
+% 
+% trRV=sum(R(:).*Vt(:));
+% V=Vt';
+% RV=R*V;
+% RVt=RV';
+% 
+% clear Ce R Vt
+% trRVRV=sum(RV(:).*RVt(:));
+% clear RV RVt
+% Stats.trRV=trRV;
+% Stats.trRVRV=trRVRV;
+% Stats.erdf= full(trRV^2/trRVRV);
 
 fprintf('\n');
 
