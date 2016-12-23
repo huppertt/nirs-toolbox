@@ -137,10 +137,10 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 for cIdx=1:length(mask)
                     tmp=data(idxA);
                     
-                    dd=[dataA dataB].*(mask{cIdx}*ones(1,size(dataA,2)*2));
+                    dd=[dataA dataB]+(1i)*(mask{cIdx}*ones(1,size(dataA,2)*2));
                     if(obj.symetric)
                         Z=zeros(40,size(dd,2));
-                        dd=[dd; Z; [dataB dataA].*(mask{cIdx}*ones(1,size(dataA,2)*2))];
+                        dd=[dd; Z; [dataB dataA]+(1i)*(mask{cIdx}*ones(1,size(dataA,2)*2))];
                     end
                     
                     [ii,~]=find(dd~=0);

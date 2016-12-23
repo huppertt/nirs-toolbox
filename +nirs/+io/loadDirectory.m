@@ -23,7 +23,7 @@ end
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
 for i=1:length(fileExt)
-    files = rdir(fullfile(rootFolder,'*',['*' fileExt{i}]));
+    files = rdir(fullfile(rootFolder,'**',['*' fileExt{i}]));
     
     
     for iFile = 1:length( files )

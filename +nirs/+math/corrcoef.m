@@ -1,4 +1,4 @@
-function [r,p]=robust_corrcoef(d,verbose,mask);
+function [r,p]=corrcoef(d,verbose,mask);
 % This is a robust version of the corrcoef function
 % Based on Shevlyakov and Smirnov (2011). Robust Estimation of the
 % Correlation Coeficient: An Attempt of Survey.  Austrian J. of Statistics.
@@ -17,13 +17,6 @@ end
 d=bsxfun(@minus,d,median(d,1));
 d=bsxfun(@rdivide,d,sqrt(2)*mad(d,1,1));
 
-
-W=ones(size(d,1),1);
-for idx=1:size(d,2)
-    W = min(W,wfun(d(:,idx)));
-end
-% Weight the whole model first to down-weight global motion artifacts
-d=spdiags(W,0,length(W),length(W))*d;
 
 % all pairwise combinations
 r=ones(size(d,2));
@@ -45,7 +38,8 @@ for i=1:size(d,2)
         end
         warning('off','stats:statrobustfit:IterationLimit')
         lst=find(mask(:,i) & mask(:,j));
-        r(i,j)=robustfit(d(lst,i),d(lst,j),'bisquare',[],'off');
+        %r(i,j)=robustfit(d(lst,i),d(lst,j),'bisquare',[],'off');
+        r(i,j)=regress(d(lst,i),d(lst,j));
         cnt=cnt+1;
     end
 end

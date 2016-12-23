@@ -19,6 +19,13 @@ if(nargin<2 || isempty(freq))
    freq=[0 1]*Fs/2;
 end
 
+
+if(iscomplex(data))
+    warning('code does not support masked data yet');
+    data=real(data);
+end
+
+
 if(robust_flag)
     [r,p] = nirs.math.robust_wavelet_coher(data,Fs,freq,wname);
 else

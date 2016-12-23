@@ -31,6 +31,13 @@ else
    Fs=1;
 end
 
+
+if(iscomplex(data))
+    warning('code does not support masked data yet');
+    data=real(data);
+end
+
+
 if(isstr(modelorder))
     p = Fs*str2num(modelorder(1:strfind(modelorder,'x')-1));
 else

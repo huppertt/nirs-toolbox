@@ -22,17 +22,19 @@ else
     p=modelorder;
 end
 
+if(iscomplex(data))
+    mask=imag(data)>0;
+else
+    mask=ones(size(data));
+end
 
-lst=all(data==0,2);
+[yfilt,f] = nirs.math.innovations(real(data),p);
 
-[yfilt,f] = nirs.math.innovations(data,p);
-
-yfilt(lst,:)=[];
 
 if(robust_flag)
-    [R,p]=nirs.math.robust_corrcoef(yfilt);
+    [R,p]=nirs.math.robust_corrcoef(yfilt,false,mask);
 else
-    [R,p]=corrcoef(yfilt);
+    [R,p]=nirs.math.corrcoef(yfilt,mask);
 end
 
 dfe = length(yfilt);

@@ -66,7 +66,7 @@ classdef Connectivity < nirs.modules.AbstractModule
                     tmp=data(i);
                     tmp.data=tmp.data-ones(size(tmp.data,1),1)*mean(tmp.data,1);
                     tmp.data=tmp.data-ones(size(tmp.data,1),1)*mean(tmp.data,1);
-                    tmp.data=tmp.data.*(mask{cIdx}*ones(1,size(tmp.data,2)));
+                    tmp.data=tmp.data+(1i)*(mask{cIdx}*ones(1,size(tmp.data,2)));
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
                     connStats(i).dfe(cIdx)=dfe;
