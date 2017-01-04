@@ -48,7 +48,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 n = demo.Properties.VariableNames;
                 for i = 1:length(n)
                     if all( isnumeric( demo.(n{i}) ) )
-                        demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+                        demo.(n{i}) = demo.(n{i}) - nanmean( demo.(n{i}) );
                     end
                 end
             end
@@ -97,7 +97,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             X = lm.designMatrix('Fixed');
             Z = lm.designMatrix('Random');
             
-            Coef = inv(X'*X)*X'*D;
+            lst=find(~any(isnan(X),2));
+            
+            Coef = inv(X(lst,:)'*X(lst,:))*X(lst,:)'*D(lst,:);
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
             
 %             Coef=[]; cnt=0;
@@ -133,8 +135,10 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
             CoefficientNames=lm.CoefficientNames;
             for i=1:length(CoefficientNames) 
-                CoefficientNames{i}=CoefficientNames{i}(strfind(CoefficientNames{i},...
-                    'cond_')+length('cond_'):end); 
+                CoefficientNames{i}=[CoefficientNames{i}(1:strfind(CoefficientNames{i},...
+                    'cond_')-1)...
+                    CoefficientNames{i}(strfind(CoefficientNames{i},...
+                    'cond_')+length('cond_'):end)]; 
             end;
 
             G.description = 'Group Level Connectivity';
@@ -162,6 +166,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                         end
                     end; 
                 end;
+                dfe(find(dfe==0))=mean(dfe(find(dfe~=0)));
                 G.dfe=dfe; %/length(S);
                 
              else

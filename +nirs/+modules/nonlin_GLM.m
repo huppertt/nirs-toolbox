@@ -35,8 +35,9 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
             
             for i = 1:length(data)
                 % get data
-            
-              
+                d=data(i).data;
+                Fs=data(i).Fs;
+                
                 probe = data(i).probe;
                 
                 % make sure data is in order
@@ -56,15 +57,13 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                 
                 
                
-                
-                
-                
                 % Temporarirly change the basis to the FIR model to get the
                 % design matrix
                 obj.basis=Dictionary();
                 FIRmodel=nirs.design.basis.FIR;
                 FIRmodel.binwidth=1;
-                FIRmodel.nbins=nbins;
+                FIRmodel.nbins=1;
+                FIRmodel.isIRF=true;
                 
                 obj.basis('default')=FIRmodel;
                 % get experiment design
@@ -73,13 +72,13 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                 obj.basis=basis;
                 
                 
-                C = obj.getTrendMatrix( time );
+                C = obj.getTrendMatrix( data(i).time );
                 
                 % check model
                 obj.checkRank( [X C] )
                 obj.checkCondition( [X C] )
                 
-                
+                names=unique(nirs.getStimNames(data(i)));
                 
                 
                 HRFfcn={};
@@ -88,9 +87,9 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                     H={};
                     for j=1:length(names)
                         if(basis.iskey(names{j}))
-                            basefcn=nonlinbasis(names{j});
+                            basefcn=@(x)assignbasis(basis(names{j}),x);
                         else
-                            basefcn=nonlinbasis('default');
+                            basefcn=@(x)assignbasis(basis('default'),x);
                         end
                         lst=cnt;
                         H{end+1}=@(x)x(lst)*basefcn(x);
@@ -212,16 +211,20 @@ sigma2=stats.sigma2;
 end
 
 function basis = assignbasis(basis,beta)
+% 
+% 
+% cnt=0;
+% for idx=1:basis.count
+%     base=basis.values{idx};
+%     x=base.invtform_params;
+%     lst=cnt+[1:length(x)];
+%     cnt=cnt+length(x);
+%     
+%     base=base.fwdtform_params(beta(lst));
+%     basis(basis.keys{idx})=base;
+% end
+% 
+% 
+    basis=basis.fwdtform_params(beta);
 
-
-cnt=0;
-for idx=1:basis.count
-    base=basis.values{idx};
-    x=base.invtform_params;
-    lst=cnt+[1:length(x)];
-    cnt=cnt+length(x);
-    
-    base=base.fwdtform_params(beta(lst));
-    basis(basis.keys{idx})=base;
-end
 end

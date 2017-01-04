@@ -38,7 +38,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 n = demo.Properties.VariableNames;
                 for i = 1:length(n)
                     if all( isnumeric( demo.(n{i}) ) )
-                        demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+                        demo.(n{i}) = demo.(n{i}) - nanmean( demo.(n{i}) );
                     end
                 end
             end
@@ -145,8 +145,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
              Z    = W*Z;
              beta = W*beta;
             
-            
-            if(rank(full(X))<size(X,2))
+            [i,j]=find(isnan(X));
+            lst=find(~ismember(1:size(X,1),unique(i)));
+            if(rank(full(X(lst,:)))<size(X,2))
                 warning('Model is unstable');
             end
             lstKeep=find(~all(X==0));
