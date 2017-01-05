@@ -11,9 +11,9 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
     %     spm_cVi -  {<none> or <AR(##)> }
     
     properties
-       spm_hpf='DCT,128';
-       spm_lpf='none';
-       spm_cVi='AR(1)';
+        spm_hpf='DCT,128';
+        spm_lpf='none';
+        spm_cVi='AR(1)';
     end
     
     methods
@@ -53,10 +53,22 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 obj.checkRank( [X C] )
                 obj.checkCondition( [X C] )
                 
+                if(rank([X C]) < size([X C],2) & obj.goforit)
+                    disp('Using PCA regression model');
+                    [U,s,V]=nirs.math.mysvd([X C]);
+                    lst=find(diag(s)>eps(1)*10);
+                    V=V(:,lst);
+                    SPM.xX.X      = U(:,lst)*s(lst,lst);
+                    
+                    
+                else
+                    SPM.xX.X      = [X C];
+                end
+                
                 nscan=length(t);
                 
                 % Create the SPM structure
-                SPM.xX.X      = [X C];
+                
                 SPM.xX.iH     = [];
                 SPM.xX.iC     = [1:size(X,2)];
                 SPM.xX.iB     = [1:size(C,2)] + size(X,2);
@@ -80,7 +92,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                     SPM.xX.K.HParam.type = 'DCT';
                     SPM.xX.K.HParam.M = cutoff;
                 else
-                     SPM.xX.K.HParam.type = 'none';
+                    SPM.xX.K.HParam.type = 'none';
                 end
                 
                 
@@ -108,7 +120,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                     'RT', 1/Fs,...
                     'LParam', SPM.xX.K.LParam);
                 SPM.xX.K = spm_filter_HPF_LPF_WMDL(K);
-               
+                
                 if(strcmp(obj.spm_cVi,'none'))
                     SPM.xVi.V  = speye(sum(nscan));
                     cVi        = 'i.i.d';
@@ -118,7 +130,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 end
                 
                 SPM.xVi.form = cVi;
-
+                
                 data(i)=data(i).sorted({'type','source','detector'});
                 probe=data(i).probe;
                 utype=unique(data(i).probe.link.type);
@@ -139,7 +151,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                     covb = blkdiag(covb,kron(SPM.xX.Bcov(SPM.xX.iC,SPM.xX.iC),SPM.nirs.ResSS./SPM.xX.trRV));
                 end
                 
-    %
+                %
                 % put stats
                 ncond = length(names);
                 nchan = size(data(i).probe.link, 1);
@@ -153,8 +165,16 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 S(i).variables = [link table(cond)];
                 S(i).beta = beta;
                 
-               
+                
                 S(i).covb = covb;
+                
+                if(rank([X C]) < size([X C],2) & obj.goforit)
+                    stats.beta=V*stats.beta;
+                    for j=1:size(stats.covb,3)
+                        c(:,:,j)=V*squeeze(stats.covb(:,:,j))*V';
+                    end
+                    stats.covb=c;
+                end
                 
                 S(i).dfe  = SPM.xX.erdf;
                 
@@ -174,4 +194,4 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
     end
 end
 
- 
+

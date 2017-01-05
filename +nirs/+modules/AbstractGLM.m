@@ -5,6 +5,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
         basis       = Dictionary();                 % dictionary of bases using stim name as key
         verbose     = true;                         % flag to show GLM progress
         trend_func  = @nirs.design.trend.constant   % a function of time that returns trend regressors
+        goforit = false;  % flag to force processing of poorly conditioned design matrices (use with caution)
     end
 
     methods( Access = protected )
@@ -39,7 +40,11 @@ classdef AbstractGLM < nirs.modules.AbstractModule
         % check rank and throw error
         function checkRank( X )
             if rank(X) < size(X,2)
-                error( 'Design matrix is rank deficient.' )
+                if(~obj.goforit)
+                    error( 'Design matrix is rank deficient.' )
+                else
+                    warning( 'Design matrix is rank deficient.' )
+                end
             end
         end
                 

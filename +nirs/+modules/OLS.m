@@ -56,12 +56,34 @@ classdef OLS < nirs.modules.AbstractGLM
                 obj.checkCondition( [X C] )
                 
                 % run regression
-                %stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
-                stats.beta = [X C]\ d;
-                for j = 1:size(d,2)
-                    stats.covb(:,:,j) = pinv([X C]'*[X C]) * var(d(:,j) - [X C]*stats.beta(:,j));
+                if(rank([X C]) < size([X C],2) & obj.goforit)
+                    disp('Using PCA regression model');
+                    [U,s,V]=nirs.math.mysvd([X C]);
+                    lst=find(diag(s)>eps(1)*10);
+                    V=V(:,lst);
+                    A=U(:,lst)*s(lst,lst);
+                    stats.beta = A\ d;
+                    for j = 1:size(d,2)
+                        stats.covb(:,:,j) = pinv(A'*A) * var(d(:,j) - A*stats.beta(:,j));
+                    end
+                    
+                    stats.beta=V*stats.beta;
+                    for j=1:size(stats.covb,3)
+                        c(:,:,j)=V*squeeze(stats.covb(:,:,j))*V';
+                    end
+                    stats.covb=c;
+                    stats.dfe = size(d,1) - rank(A);
+                else
+                    stats.beta = [X C]\ d;
+                    for j = 1:size(d,2)
+                        stats.covb(:,:,j) = pinv([X C]'*[X C]) * var(d(:,j) - [X C]*stats.beta(:,j));
+                    end
+                    stats.dfe = size(d,1) - rank([X C]);
                 end
-                stats.dfe = size(d,1) - rank([X C]);
+                
+                %stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
+
+                
                 
                 
                 % put stats

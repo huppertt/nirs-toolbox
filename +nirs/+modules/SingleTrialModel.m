@@ -1,5 +1,5 @@
-classdef AR_IRLS < nirs.modules.AbstractGLM
-%% AR_IRLS - Performs first-level per file GLM analysis.
+classdef SingleTrialModel < nirs.modules.AbstractGLM
+%% Performs single trial first-level per file GLM analysis using a random effects model.
 % 
 % Options:
 %     basis       - a Dictionary object containing temporal bases using stim name as key
@@ -7,7 +7,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
 %     trend_func  - a function that takes in a time vector and returns trend regressors
 %     
 % Example:
-%     j = nirs.modules.AR_IRLS();
+%     j = nirs.modules.SingleTrialModel();
 %     
 %     b = Dictionary();
 %     b('default') = nirs.design.basis.Canonical(); % default basis
@@ -22,10 +22,10 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
 %     specified explicitly in the stimulus design with BoxCar basis functions
     
     methods
-        function obj = AR_IRLS( prevJob )
+        function obj = SingleTrialModel( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
             
-            obj.name = 'GLM via AR(P)-IRLS';
+            obj.name = 'Single Trial GLM Model';
             obj.basis('default') = nirs.design.basis.Canonical();
         end
         
@@ -44,21 +44,44 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 [probe.link, idx] = sortrows(probe.link, {'source', 'detector','type'});
                 d = d(:, idx);
                 
+                
+                
+                % split the conditions to create the random effects model
+                keys=data(i).stimulus.keys;
+                ttests={}; cnt=1;
+                for k=1:length(keys)
+                    name=keys{k};
+                    stim=data(i).stimulus(name);
+                    disp(['Split ' name ' into ' num2str(length(stim.onset)) ' trials']);
+                    for l=1:length(stim.onset)
+                        stim=data(i).stimulus(name);
+                        stim.dur([1:l-1 l+1:end])=[];
+                        stim.amp([1:l-1 l+1:end])=[];
+                        stim.onset([1:l-1 l+1:end])=[];
+                        data(i).stimulus([name ':trial' num2str(l)])=stim;
+                        ttests{cnt,1}=[name '+' name ':trial' num2str(l)];
+                        ttests{cnt,2}=[name ':trial' num2str(l)];
+                        cnt=cnt+1;
+                    end
+                end
+                
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
                 
                 X(find(isnan(X)))=0;
-                
-                % check model
+
+                %check model
                 obj.checkRank( [X C] )
                 obj.checkCondition( [X C] )
                 
+                % run regression
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
                     lst=find(diag(s)>eps(1)*10);
                     V=V(:,lst);
+                    
                     stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
                     stats.beta=V*stats.beta;
                     for j=1:size(stats.covb,3)
@@ -66,7 +89,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     end
                     stats.covb=c;
                 else
-                
+                    
                     % run regression
                     stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
                 end
@@ -98,6 +121,8 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = probe;
                 
+                % Put the model back together
+                S(i)=S(i).ttest({ttests{:,1}},[],{ttests{:,2}});
                 % print progress
                 obj.printProgress( i, length(data) )
             end

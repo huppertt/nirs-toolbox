@@ -204,8 +204,8 @@ Cp = tolr*speye(size(Qp{1},1));  %Make sure it stays in numerical precision
 for i = 1:length(Qp)
     Cp = Cp + Qp{i}*exp(lambda(i+length(Qn)));
 end
-iCn=inv(Cn);
-iCp=inv(Cp);
+iCn=pinv(full(Cn));
+iCp=pinv(full(Cp));
 XtXi = pinv(X'*iCn*X+iCp);
 Beta = XtXi*X'*iCn*Y;
 %Now, put the final pieces together

@@ -186,30 +186,8 @@ Lold=[Lold.hbo Lold.hbr];
 [Lnew]=FwdModel.jacobian('spectral');
 Lnew=[Lnew.hbo Lnew.hbr];
 
-%[Unew,Snew,Vnew]=nirs.math.mysvd(Lnew);
-% [Uold,Sold,Vold]=nirs.math.mysvd(Lold);
-% s=diag(Sold);
-% lst=find(s>s(1)/1E4);
-% S=diag(s(lst));
-% H = Lnew*Vold(:,lst)*S*Uold(:,lst)';
-
-% [c,~,i]=unique(ChanStats.probe.link.type);
-% H=[];
-% for j=1:length(unique(i))
-%     lst=find(i==j);
-%     lst2=find(ismember(NewProbe.link.type,c(j)));
-%     H=blkdiag(H,Lnew(lst2,:)*pinv(Lold(lst,:)));
-% end
-% H=H/norm(H);
-
 if(isa(ChanStats,'nirs.core.Data'))
-%     ChanStatsNew=ChanStats;
-%     ChanStatsNew.probe=NewProbe;
-%     lam=.1;
-%     [U,S,V]=nirs.math.mysvd(Lold);
-%     H = Lnew*V*inv(S+eye(size(S))*lam)*U';
-%     ChanStatsNew.data=(H*ChanStats.data')';
-erorr('not supported data type');
+    error('not supported data type');
 end
 
     ChanStatsNew=ChanStats;
@@ -220,22 +198,30 @@ end
         error('not fully tested')
     end
     
-%     [u,s,~]=svd(ChanStats.covb,'econ');
-%     W = diag(1./diag(sqrt(s))) * u';
-    W=diag(1./sqrt(diag(ChanStats.covb)));
-
-    [US,V]=nirs.math.hogSVD({Lnew,Lold});
-    lambda=1E3;
-    H = US{1}*pinv(US{2}'*W'*W*US{2}+lambda*eye(size(US{1})))*W'*US{2}'*W;
-   for idx=1:32; H(idx,:)=H(idx,:)/norm(H(idx,:)); end;
-  
-    ChanStatsNew.beta=H*ChanStats.beta;
-    covb=H*ChanStats.covb*H';
-%     covb=covb+max(1E-4*max(diag(covb)),min(diag(ChanStats.covb)))*eye(size(covb));
-%     
-%     c=(triu(covb,1)+tril(covb,-1)')/2;
-%     c=c+c'+diag(diag(covb));
-    ChanStatsNew.covb=covb;
+    W=inv(chol(ChanStats.covb));
+               
+   [U,S,V]=nirs.math.mysvd(Lold);
+    
+    L=U*S;
+    Lnew=Lnew*V;
+    [m,n]=size(L);
+    
+    W=W/sqrt(norm(L));
+    
+    m=m/2; n=n/2;
+    Q={blkdiag(speye(n,n),zeros(n,n)) blkdiag(zeros(n,n),speye(n,n))};
+    
+    %Q={W*blkdiag(speye(n,n),zeros(n,n))*W' W*blkdiag(zeros(n,n),speye(n,n))*W'};
+    %R={W*blkdiag(speye(m,m),zeros(m,m))*W' W*blkdiag(zeros(m,m),speye(m,m))*W'};
+    
+    %Q={speye(n*2,n*2)};
+    R={W*ChanStats.covb*W'};
+    
+    [lambda,Beta,Stats]=nirs.math.REML(W*ChanStats.beta,W*L,zeros(n*2,1),R,Q);
+     
+    ChanStatsNew.beta=Lnew*Beta;
+    ChanStatsNew.covb=Lnew*Stats.tstat.covb*Lnew';
+    
     cond=repmat(cond,height(ChanStatsNew.probe.link),1);
     ChanStatsNew.variables=[ChanStatsNew.probe.link table(cond)];
     
