@@ -27,5 +27,11 @@ link.detector=link.detector+size(probe.detPos,1);
 
 probeShift.link=link;
 
+hyperscan=repmat('A',height(probe.link),1);
+probe.link=[probe.link table(hyperscan)];
+
+hyperscan=repmat('B',height(probeShift.link),1);
+probeShift.link=[probeShift.link table(hyperscan)];
+
 probe.link=[probe.link; probeShift.link];
 probe.optodes=[probe.optodes; probeShift.optodes];
