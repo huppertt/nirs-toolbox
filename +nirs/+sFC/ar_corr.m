@@ -23,7 +23,7 @@ else
 end
 
 if(iscomplex(data))
-    mask=imag(data)>0;
+    mask=~(imag(data)>0);
 else
     mask=ones(size(data));
 end

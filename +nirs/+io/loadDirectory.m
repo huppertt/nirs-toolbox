@@ -3,7 +3,7 @@ function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
 if nargin < 4,
     fileExt  = {'.nirs','.oxy3','.wl1'};
 end
-if nargin < 3,
+if nargin < 3 || isempty(loadFunc),
     loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false)};
 end
 
@@ -23,13 +23,17 @@ end
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
 for i=1:length(fileExt)
-    files = rdir(fullfile(rootFolder,'**',['*' fileExt{i}]));
-    
+    if(~isempty(strfind(rootFolder,'*')))
+        files = rdir(fullfile(rootFolder,'*',['*' fileExt{i}]));
+    else
+        files = rdir(fullfile(rootFolder,'**',['*' fileExt{i}]));
+    end
     
     for iFile = 1:length( files )
         
         % load using load function
         try
+        disp(['loading: ' files(iFile).name]);
         tmp = loadFunc{i}( files(iFile).name );
         catch
             warning(['error reading file: ' files(iFile).name]);

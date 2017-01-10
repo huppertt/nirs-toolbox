@@ -133,8 +133,10 @@ fol=fullfile(getenv('TMPDIR'),['tmp' datestr(now,'dd_mmm_yyyy_HH_MM_SS')]);
 
 if(isa(Stats,'nirs.core.ImageStats'))
      Stats.printAll('tstat',[-5 5],Stats.getCritT(str),'beta>.8',{'left','frontal','right'},fol,'jpeg');
+elseif(isa(Stats,'nirs.core.sFCStats'))
+    Stats.printAll('r',[],str,fol,'jpeg');
 else
-    Stats.printAll('tstat',[-5 5],Stats.getCritT(str),fol,'jpeg');
+    Stats.printAll('tstat',[-5 5],str,fol,'jpeg');
 end
 caption = str;
 

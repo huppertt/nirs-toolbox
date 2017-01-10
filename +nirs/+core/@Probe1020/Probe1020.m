@@ -405,7 +405,7 @@ classdef Probe1020 < nirs.core.Probe
                 Pos(:,2)=obj.optodes_registered.Y(lst);
                 Pos(:,3)=obj.optodes_registered.Z(lst);
                 [x,y]=obj.convert2d(Pos);
-                
+                xop=x; yop=y;
                 lstS=find(ismember(obj.optodes.Type,'Source'));
                 scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r')
                 lstD=find(ismember(obj.optodes.Type,'Detector'));
@@ -497,10 +497,10 @@ classdef Probe1020 < nirs.core.Probe
             set(gcf,'color','w');
             
             if(obj.zoom)
-                dx=(max(x)-min(x))/10;
-                dy=(max(y)-min(y))/10;
-                set(gca,'Xlim',[min(x)-dx max(x)+dx]);
-                set(gca,'Ylim',[-headradius*1.13 max(y)+dy]);
+                dx=(max(xop)-min(xop))/10;
+                dy=(max(yop)-min(yop))/10;
+                set(gca,'Xlim',[min(xop)-dx max(xop)+dx]);
+                set(gca,'Ylim',[-headradius*1.13 max(yop)+dy]);
             end
             set(gca,'Xdir','reverse');
             if(nargout>0)

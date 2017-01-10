@@ -22,7 +22,14 @@ else
     p=modelorder;
 end
 
-[yfilt,f] = nirs.math.innovations(data,p);
+
+if(iscomplex(data))
+    mask=~(imag(data)>0);
+else
+    mask=ones(size(data));
+end
+
+[yfilt,f] = nirs.math.innovations(real(data),p);
 
 if(robust_flag)
     [R,p]=nirs.math.robust_corrcoef(yfilt);

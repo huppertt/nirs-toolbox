@@ -87,7 +87,7 @@ classdef sFCStats
             end
         end
         
-        function grph=graph(obj,vtype,thresh)
+        function grph=graph(obj,vtype,thresh,flip)
             % converts to a graph type object
             
             if(nargin<2)
@@ -110,6 +110,9 @@ classdef sFCStats
                 vtype=vtype(1:strfind(vtype,':')-1);
             end
             
+            if(nargin<4 || isempty(flip))
+                flip=[1 1];
+            end
             
             for i=1:length(obj)
                 lst=find(ismember(obj(i).probe.link.type,type));
@@ -146,9 +149,9 @@ classdef sFCStats
             
             
         end
-         S = ttest(obj, c, b, names);
-        draw( obj, vtype, vrange, thresh );     
-
+        S = ttest(obj, c, b, names);
+        h=draw( obj, vtype, vrange, thresh,flip );     
+        printAll( obj, vtype, vrange, thresh, folder, ext , flip);
     end
     
     

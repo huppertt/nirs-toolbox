@@ -1,4 +1,4 @@
-function draw( obj, vtype, vrange, thresh )
+function f=draw( obj, vtype, vrange, thresh ,flip)
 %% draw - Draws channelwise values on a probe.
 % Args:
 %     vtype   - either 'Pearsons' or 'Fischer-Z' or 'Grangers' or 'Grangers-F'
@@ -34,6 +34,10 @@ end
 
 
 vtype(strfind(vtype,' '))=[];
+
+if(nargin<5 || isempty(flip))
+    flip=[1 1];
+end
 
 
 for cIdx=1:length(obj.conditions)
@@ -167,7 +171,18 @@ for cIdx=1:length(obj.conditions)
                     set(h2,'Units','normalized');
                     set(h1,'Units','normalized');
                     
-                  
+                    if(flip(1)==1); 
+                        set(h1,'Ydir','reverse');
+                    else
+                        set(h1,'Ydir','normal');
+                    end
+                       if(flip(2)==1); 
+                        set(h2,'Ydir','reverse');
+                    else
+                        set(h2,'Ydir','normal');
+                    end
+                    
+                   p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
                     
                     
                     ax=axes('Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
@@ -177,26 +192,74 @@ for cIdx=1:length(obj.conditions)
                     hh=getframe(ax);
                     hh=hh.cdata;
                     for i=1:length(s1)
-                        s=scatter(h1,mean(s1(i).XData),mean(s1(i).YData),'filled','r','Sizedata',40);
+                        s=scatter(h1,s1(i).XData(2),s1(i).YData(2),'filled','r','Sizedata',40);
                         hh2=getframe(ax);
                         [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                        xy(i,1)=median(b)/size(hh2.cdata,2)*210-105;
-                        xy(i,2)=median(a)/size(hh2.cdata,1)*200-100;
+                        i2=p.link.source(i);
+                        srcPos(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
+                        srcPos(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
                         delete(s); 
+                        
+                        s=scatter(h1,s1(i).XData(1),s1(i).YData(1),'filled','r','Sizedata',40);
+                        hh2=getframe(ax);
+                        [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
+                        i2=p.link.detector(i);
+                        detPos(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
+                        detPos(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
+                        delete(s);
+                        
                     end
                     for i=1:length(s2)
-                        s=scatter(h2,mean(s2(i).XData),mean(s2(i).YData),'filled','r','Sizedata',40);
+                        s=scatter(h2,s2(i).XData(2),s2(i).YData(2),'filled','r','Sizedata',40);
                         hh2=getframe(ax);
                         [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                        xy2(i,1)=median(b)/size(hh2.cdata,2)*210-105;
-                        xy2(i,2)=median(a)/size(hh2.cdata,1)*200-100;
+                        i2=p.link.source(i);
+                        srcPos2(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
+                        srcPos2(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
+                        delete(s); 
+                        
+                        s=scatter(h2,s2(i).XData(1),s2(i).YData(1),'filled','r','Sizedata',40);
+                        hh2=getframe(ax);
+                        [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
+                        i2=p.link.detector(i);
+                        detPos2(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
+                        detPos2(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
                         delete(s);
+                        
                     end
+                    srcPos=[srcPos; srcPos2];
+                    detPos=[detPos; detPos2];
+                    
+                    lst=find(strcmp(typesOrigin,utypesOrigin(ii)) & ...
+                        strcmp(typesDest,utypesDest(jj)));
                     
                     
-                    for i=1:size(xy,1); 
-                        l(i)=plot([xy(i,1) xy2(i,1)],[xy(i,2) xy2(i,2)]); 
-                    end;
+                    vals = values(lst);
+                    
+                    % this mask
+                    m = mask(lst);
+                    
+                    % map to colors
+                    idx = bsxfun(@minus, vals', z);
+                    [~, idx] = min(abs(idx), [], 1);
+                    colors = cmap(idx, :);
+                    h2=[];
+                    
+                    posOrig=(srcPos(tbl.SourceOrigin(lst),:)+...
+                        detPos(tbl.DetectorOrigin(lst),:))/2;
+                    posDest=(srcPos(tbl.SourceDest(lst),:)+...
+                        detPos(tbl.DetectorDest(lst),:))/2;
+                    
+                    
+                    X=[posOrig(:,1) posDest(:,1)];
+                    Y=[posOrig(:,2) posDest(:,2)];
+                 
+                        
+                    for idx=1:length(vals)
+                        if(m(idx))
+                            h2(end+1)=plot(ax,X(idx,:),Y(idx,:),'Color',colors(idx,:));
+                        end
+                    end
                     set(ax,'YDir','reverse');
                     
                     axis off;
