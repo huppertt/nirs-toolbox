@@ -42,7 +42,7 @@ for i=1:M(3-dim)
   beta = mod(beta,2*pi);
   n = size(beta,1);
 
-  dd = circ_dist2(beta,beta);
+  dd = nirs.math.circ_dist2(beta,beta);
   m1 = sum(dd>=0,1);
   m2 = sum(dd<=0,1);
 
@@ -60,7 +60,7 @@ for i=1:M(3-dim)
 
   md = circ_mean(beta(idx));
 
-  if abs(circ_dist(circ_mean(beta),md)) > abs(circ_dist(circ_mean(beta),md+pi))
+  if abs(nirs.math.circ_dist(nirs.math.circ_mean(beta),md)) > abs(nirs.math.circ_dist(nirs.math.circ_mean(beta),md+pi))
     md = mod(md+pi,2*pi);
   end
   

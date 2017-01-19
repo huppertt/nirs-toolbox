@@ -20,7 +20,10 @@ classdef Probe
             %     labels - name of 10-20 points
             
             tbl=nirs.util.list_1020pts('?');
-            lst=find(ismember(lower(tbl.Name),lower(labels)));
+            lst=[];
+            for i=1:length(labels)
+                lst=[lst find(ismember(lower(tbl.Name),lower(labels{i})))];
+            end
             tbl.Type=[];
            
             obj.electrodes=tbl(lst,:);

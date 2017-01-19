@@ -165,21 +165,32 @@ for cIdx=1:length(obj.conditions)
                 if(strcmp(utypesOrigin(ii),utypesDest(jj)))
                     h1=subplot(2,length(utypesOrigin),ii);
                     s1=p.draw([],[],h1);
+                    cb=colorbar('EastOutside');
+                    set(cb,'visible','off');
                     h2=subplot(2,length(utypesOrigin),length(utypesOrigin)+ii);
                     s2=p.draw([],[],h2);
+                    cb=colorbar('EastOutside');
+                    set(cb,'visible','off');
+                    
+                    set(s1,'color',[.5 .5 .5]);
+                    set(s2,'color',[.5 .5 .5]);
                     
                     set(h2,'Units','normalized');
                     set(h1,'Units','normalized');
                     
                     if(flip(1)==1); 
                         set(h1,'Ydir','reverse');
+                        set(h1,'Xdir','normal');
                     else
                         set(h1,'Ydir','normal');
+                         set(h1,'Xdir','reverse');
                     end
                        if(flip(2)==1); 
                         set(h2,'Ydir','reverse');
+                         set(h1,'Xdir','normal');
                     else
                         set(h2,'Ydir','normal');
+                         set(h1,'Xdir','reverse');
                     end
                     
                    p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
@@ -261,10 +272,14 @@ for cIdx=1:length(obj.conditions)
                         end
                     end
                     set(ax,'YDir','reverse');
-                    
+                    set(h2,'Linewidth',4)
                     axis off;
                     
-                    
+                    pos=get(ax,'Position');
+                    cb=colorbar('EastOutside');
+                    set(ax,'Position',pos);
+                    colormap(cmap);
+                    caxis([vrange(1), vrange(2)]);
                     
                     
                     

@@ -50,7 +50,7 @@ else
 end
 
 % compute mean resultant vector length
-r = circ_r(alpha,w,d,dim);
+r = nirs.math.circ_r(alpha,w,d,dim);
 
 % apply transformation to var
 S = 1 - r;
