@@ -18,7 +18,7 @@ classdef DiscardStims < nirs.modules.AbstractModule
             
            % get current stim names
             stimNames = nirs.getStimNames(data);
-
+            disc=[];
             % loop through and remove stims
             for i = 1:length(data)
                 if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data'))
@@ -32,10 +32,15 @@ classdef DiscardStims < nirs.modules.AbstractModule
                 else
                     cond=data(i).conditions;
                     cond={cond{~ismember(cond,obj.listOfStims)}};
-                    data(i)=data(i).ttest(cond);
+                    if(~isempty(cond))
+                         data(i)=data(i).ttest(cond);
+                    else
+                        disc=[disc; i];
+                    end
                 end
             end
-
+            data(disc)=[];
+            
             % compare old and new list of stims
             if length(stimNames) == length(nirs.getStimNames(data))
                 warning( 'No stims discarded.  Did you provide the correct stim names?' )

@@ -36,12 +36,13 @@ if(flag_normalize)
     
     nn=min(find(cumsum(diag(S))/sum(diag(S))>.99));
     nn=min(nn,maxcomp);
-    [icasig, A, W] = fastica(X(n+1:end-n,:)', 'numOfIC',nn);
+    [icasig, A, W] = fastica(X(n+1:end-n,:)', 'numOfIC',nn,'approach',...
+    'symm', 'g', 'tanh','stabilization','on');
 
-    cfs=nirs.math.wavelet(icasig(:,1),FS,scales,wname,false,flag_SMOOTH,NSW,NTW);
+    cfs=nirs.math.wavelet(icasig(1,:),FS,scales,wname,false,flag_SMOOTH,NSW,NTW);
     cfs=cfs/sqrt(sum(cfs(:).*conj(cfs(:))));
     for i=2:size(icasig,1);
-        tmp=nirs.math.wavelet(icasig(:,1),FS,scales,wname,false,flag_SMOOTH,NSW,NTW);
+        tmp=nirs.math.wavelet(icasig(i,:),FS,scales,wname,false,flag_SMOOTH,NSW,NTW);
         cfs=cfs+tmp/sqrt(sum(tmp(:).*conj(tmp(:))));
     end
     c=nirs.math.wavelet(d,FS,scales,wname,false,flag_SMOOTH,NSW,NTW);

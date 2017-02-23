@@ -164,7 +164,8 @@ n=round(size(x,1)/30);
 nn=min(find(cumsum(diag(S))/sum(diag(S))>.99));
 nn=min(nn,maxcomp);
 
-[icasig, A, W] = fastica(X(n+1:end-n,:)', 'numOfIC',nn);
+[icasig, A, W] = fastica(X(n+1:end-n,:)', 'numOfIC',nn,'approach',...
+    'symm', 'g', 'tanh','stabilization','on');
 
 i=1;
 [s,f,t,Pxx,fcorr,tcorr] = spectrogram(icasig(i,:),varargin{:});

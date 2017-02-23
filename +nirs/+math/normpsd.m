@@ -13,7 +13,8 @@ n=round(size(y,1)/30);
 nn=min(find(cumsum(diag(S))/sum(diag(S))>.99));
 nn=min(nn,maxcomp);
 
-[icasig, A, W] = fastica(X(n+1:end-n,:)', 'numOfIC',nn);
+[icasig, A, W] = fastica(X(n+1:end-n,:)', 'numOfIC',nn,'approach',...
+    'symm', 'g', 'tanh','stabilization','on');
 P=[];
 for i=1:size(icasig,1); 
     [P(:,i),f]=pwelch(icasig(i,:),128,96,'power'); 

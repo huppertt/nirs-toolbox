@@ -4,6 +4,7 @@ classdef AbstractModule
     properties
         name    = ''; % name of the module for convenience
         prevJob = []; % the module preceding this module in the pipeline
+        
     end
     
     methods( Abstract )

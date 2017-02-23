@@ -71,15 +71,13 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 
                 X(find(isnan(X)))=0;
 
-                %check model
-                obj.checkRank( [X C] )
-                obj.checkCondition( [X C] )
+               
                 
                 % run regression
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
-                    lst=find(diag(s)>eps(1)*10);
+                    lst=find(diag(s)>max(diag(s))/1E8);
                     V=V(:,lst);
                     
                     stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
@@ -89,7 +87,9 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                     end
                     stats.covb=c;
                 else
-                    
+                    %check model
+                    obj.checkRank( [X C] )
+                    obj.checkCondition( [X C] )
                     % run regression
                     stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
                 end

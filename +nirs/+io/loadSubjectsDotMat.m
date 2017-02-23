@@ -1,5 +1,5 @@
 function data = loadSubjectsDotMat( filename )
-    load(filename)
+    load(filename,'-MAT')
     
     data = nirs.core.Data.empty;
     
@@ -21,6 +21,8 @@ function data = loadSubjectsDotMat( filename )
             baseLink = probe.link;
             
             % fix link
+            try; s.SD.lambda=s.SD.Lambda; end;
+                
             lambda = sort( s.SD.lambda ); 
             link = table([],[],[],'VariableNames',{'source','detector','type'});
             for iLambda = 1:length(s.SD.lambda)
