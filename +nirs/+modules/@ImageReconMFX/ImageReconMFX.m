@@ -194,73 +194,13 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             % voxel given the noise in the measurements
             % e.g. pval(typeII) = 2*tcdf(-abs(beta/sqrt(VarMDU+CovBeta)),dfe)
             
-            
-%             if(~isempty(obj.prior))
-%                 
+                  
 %                 %Now, let's add the priors as virtual measurements
 %                 % This allows us to use ReML in the fitLME function
                 for idx=1:length(S);
                     S(idx).demographics('DataType')='real';
                 end
-%                 
-%                 nch=size(US{1},1);
-%                 L=[];
-%                 for fIdx=1:length(flds)
-%                     thisprobe=nirs.core.Probe;
-%                     thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
-%                     L=setfield(L,flds{fIdx},eye(size(V,2))*scale);
-%                     Probes(['prior:' flds{fIdx}])=thisprobe;
-%                 end
-%                 Lfwdmodels('prior')=L;
-%                 Priors=nirs.core.ChannelStats;
-%                 cnt=1;
-%                 
-%                 for idx=1:length(S)
-%                    
-%                     
-%                     variables = sortrows(S(idx).variables,{'cond'});
-%                     conds=unique(variables.cond);
-%                     
-%                     variableLst = variables(find(ismember(variables.cond,conds{1})),:);
-%                     if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
-%                     
-%                     for cIdx=1:length(conds)
-%                         if(ismember(conds{cIdx},obj.prior.keys))
-%                             key=conds{cIdx};
-%                         else
-%                             key='default';
-%                         end
-%                         thisprior = obj.prior(key);
-%                         flds=fields(thisprior);
-%                         for fIdx=1:length(flds)
-%                             
-%                             variableLst.cond=repmat({conds{cIdx}},height(variableLst),1);
-%                             variableLst.type=repmat({flds{fIdx}},height(variableLst),1);
-%                             for j=1:size(thisprior.(flds{fIdx}),2)
-%                                 
-%                                 Priors(cnt).demographics=S(idx).demographics;
-%                                 Priors(cnt).demographics('DataType')='prior';
-%                                 Priors(cnt).demographics('subject')='prior';
-%                                 Priors(cnt).beta=V'* Basis(LstInMask,:)'* thisprior.(flds{fIdx})(LstInMask,j);
-%                                 Priors(cnt).variables=variableLst;
-%                                 
-%                                 Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
-%                                 
-%                                 Priors(cnt).probe=S(idx).probe;
-%                                 cnt=cnt+1;
-%                                 
-%                                 
-%                             end
-%                         end
-%                     end
-%                   
-%                     
-%                 end
-%                 S = [S(:); Priors(:)];
-%                 if(isempty(strfind(obj.formula,' + (1|DataType)')))
-%                     obj.formula=[obj.formula ' + (1|DataType)'];
-%                 end
-%             end
+
             
             demo = nirs.createDemographicsTable( S );
             
@@ -317,7 +257,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Xlocal=[];
                 Zlocal=[];
                 
-                subname = tmpvars.subject{i};
+                subname = tmpvars.subject(i);
                 if(~Lfwdmodels.iskey(subname))
                     subname='default';
                 end
@@ -332,7 +272,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Llocal =[];
                 for fIdx=1:length(flds)
                         s=1;
-                    if(strcmp(tmpvars.subject{i},'prior') && ~strcmp(tmpvars.type{i},flds{fIdx}))
+                    if(strcmp(tmpvars.subject(i),'prior') && ~strcmp(tmpvars.type(i),flds{fIdx}))
                         s=0;
                     end
                     l=Lfwdmodels(subname);
@@ -404,14 +344,14 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
              n=size(V,2);
             %VtV=V'*V;
             VtV=speye(n,n);
-           
-            for i=1:length(flds)
+           ncond=length(conds);
+            for i=1:length(flds)*ncond
                 Q{i}=[];
                 for j=1:i-1
                     Q{i}=blkdiag(Q{i},0*speye(n,n));
                 end
                 Q{i}=blkdiag(Q{i},VtV);
-                for j=i+1:length(flds)
+                for j=i+1:length(flds)*ncond
                     Q{i}=blkdiag(Q{i},0*speye(n,n));
                 end
                 Q{i}=blkdiag(Q{i},0*speye(size(Z,2),size(Z,2)));

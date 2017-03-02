@@ -72,7 +72,7 @@ if(size(X,1)<size(X,2))
     iCe = blkdiag(iCn,iCp);
     X2 = [X; speye(size(X,2))];
     
-    R=speye(size(X2,1))-X2*inv(X2'*iCe*X2)*X2'*iCe;
+    R=speye(size(X2,1))-X2*pinv(X2'*iCe*X2+10*eps(1)*speye(size(X2,2),size(X2,2)))*X2'*iCe;
         
 else
 

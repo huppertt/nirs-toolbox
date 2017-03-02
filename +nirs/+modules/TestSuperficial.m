@@ -3,8 +3,8 @@ classdef TestSuperficial < nirs.modules.AbstractModule
     %
     %
     properties
-        braindepth = 5;  % depth of brain layer (in mm)
-        sigma = 60;  % Spatial smoothing for superficial layer
+        braindepth = 10;  % depth of brain layer (in mm)
+        sigma = 120;  % Spatial smoothing for superficial layer
         method = 2;
         %allow_flip=false;  % This prevents sign flips when the mean over all channels is non-zero.
     end
@@ -82,18 +82,26 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                         ll=w*L(lst,:)*[skinmask(:).*basis(:)];
                         ll(ismember(lst,idx),:)=0;
                         c(idx,lst) = c(idx,lst)*w-L(idx,:)*(skinmask(:).*basis(:))*pinv(ll'*ll+lambda*eye(size(ll,2)))*ll'*w;
-                    else
-                        % In this example, we do an ROI based model and do
-                        % a T-test of an ROI defined by a low spatial
-                        % resolution skin basis and the brain region seen by the single detector
                         
-                        c(idx,lst) = c(idx,lst)-(L(lst,:)*(skinmask(:).*basis(:)))';
                         
                         %normalize to make sure it sums to zero
                         lstP=find(c(idx,:)>0);
                         lstN=find(c(idx,:)<0);
                         
-                        c(idx,lstP)=c(idx,lstP)/sum(c(idx,lstP));
+                        c(idx,lstP)=3*c(idx,lstP)/sum(c(idx,lstP));
+                        c(idx,lstN)=-c(idx,lstN)/sum(c(idx,lstN));
+                    else
+                        % In this example, we do an ROI based model and do
+                        % a T-test of an ROI defined by a low spatial
+                        % resolution skin basis and the brain region seen by the single detector
+                        a=(L(lst,:)*(skinmask(:).*basis(:)))';
+                        c(idx,lst) = c(idx,lst)-a;
+                        
+                        %normalize to make sure it sums to zero
+                        lstP=find(c(idx,:)>0);
+                        lstN=find(c(idx,:)<0);
+                        
+                        c(idx,lstP)=3*c(idx,lstP)/sum(c(idx,lstP));
                         c(idx,lstN)=-c(idx,lstN)/sum(c(idx,lstN));
                     end
                     
@@ -102,15 +110,18 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                 
                 cc = kron(c,eye(length(data(i).conditions)));
                 
+                
                 if(0) %obj.allow_flip)
                     % I don't think it ever makes sense to allow this
                     data(i).beta = cc * data(i).beta;
+                    
                 else
-                    data(i).beta = max(cc * abs(data(i).beta),0).*sign(data(i).beta);
-                end
+                    data(i).beta = (cc * data(i).beta).*(sign(data(i).beta)==sign(cc * data(i).beta));
                 
-                data(i).covb = cc * data(i).covb * cc'
-                data(i).covb=data(i).covb+eye(size(cc,1))*min(diag(data(i).covb));
+                end
+                s=min(diag(data(i).covb))/10;
+                data(i).covb = cc * data(i).covb * cc';
+                data(i).covb=data(i).covb+eye(size(cc,1))*(s);
                 
             end
             

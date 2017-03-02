@@ -37,6 +37,7 @@ classdef ChannelStats
         
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
+        basis           % basis set info used to create model
     end
     
     properties ( Dependent = true )
@@ -49,6 +50,12 @@ classdef ChannelStats
     end
     
     methods
+        
+        function hrf=HRF(obj)
+        % function extracts the HRF from the stats variable
+            hrf=nirs.design.extractHRF(obj,obj.basis.base,obj.basis.stim,obj.basis.Fs);
+        end
+        
         % unique conditions
         function c = get.conditions( obj )
             if ~isempty(obj.variables)

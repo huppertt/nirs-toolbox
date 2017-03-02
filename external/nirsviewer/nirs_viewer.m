@@ -99,8 +99,12 @@ for gIdx=1:length(groups)
         s = uitreenode('v0', subj{sIdx},  subj{sIdx}, [], false);
         lstfiles=find(ismember(table.group, groups{gIdx}) & ismember(table.subject, subj{sIdx}));
         for cf=1:length(lstfiles)
+            if(~isempty(data(lstfiles(cf)).description))
             [~,file,ext]=fileparts(data(lstfiles(cf)).description);
             f = uitreenode('v0', num2str(lstfiles(cf)),[file ext],[],true);
+            else
+                f = uitreenode('v0', num2str(lstfiles(cf)),['file' num2str(lstfiles(cf))],[],true);
+            end
             s.add(f);
         end
         g.add(s);

@@ -21,17 +21,22 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
     %     trend_func must at least return a constant term unless all baseline periods are
     %     specified explicitly in the stimulus design with BoxCar basis functions
     
+    
+    properties
+        bandwidth;
+    end
     methods
         function obj = nonlin_GLM( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end;
             
             obj.name = 'nonlinear GLM with AR(P) filtering';
             obj.basis('default') = nirs.design.basis.nonlinearHRF();
+            obj.bandwidth = .3;
         end
         
         function S = runThis( obj, data )
             
-            
+             vec = @(x) x(:);
             
             for i = 1:length(data)
                 % get data
@@ -45,7 +50,7 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                 
                 basis=obj.basis;
                 
-                cnt=1;
+                cnt=0;
                 param0=[];
                 for idx=1:basis.count
                     base=basis.values{idx};
@@ -55,14 +60,13 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                     param0=[param0; x];
                 end
                 
-                
-               
+                tHRF=[0:1/Fs:18];
                 % Temporarirly change the basis to the FIR model to get the
                 % design matrix
                 obj.basis=Dictionary();
                 FIRmodel=nirs.design.basis.FIR;
                 FIRmodel.binwidth=1;
-                FIRmodel.nbins=1;
+                FIRmodel.nbins=length(tHRF);
                 FIRmodel.isIRF=true;
                 
                 obj.basis('default')=FIRmodel;
@@ -80,69 +84,66 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                 
                 names=unique(nirs.getStimNames(data(i)));
                 
-                
-                HRFfcn={};
-                XX={}; beta={}; Fcn={};
-                for i=1:size(d,2)
-                    H={};
-                    for j=1:length(names)
-                        if(basis.iskey(names{j}))
-                            basefcn=@(x)assignbasis(basis(names{j}),x);
-                        else
-                            basefcn=@(x)assignbasis(basis('default'),x);
-                        end
-                        lst=cnt;
-                        H{end+1}=@(x)x(lst)*basefcn(x);
-                        cnt=cnt+1;
+                H={};
+                for j=1:length(names)
+                    if(basis.iskey(names{j}))
+                        basefcn=@(x)assignbasis(basis(names{j}),x);
+                    else
+                        basefcn=@(x)assignbasis(basis('default'),x);
                     end
-                    lst=cnt+[1:size(C,2)];
-                    
-                    H{end+1}=@(x)x(lst);
-                    cnt=cnt+size(C,2);
-                    
-                    XX{end+1}=sparse([X C]);
-                    beta{end+1}=d(:,i);
-                    Fcn{end+1}=@(x)vertcat(cell2mat(cellfun(@(a){a(x)},H)'));
+                    H{end+1}=@(x)convert(basefcn(x(lst{j})),[1; zeros(length(tHRF)-1,1)],tHRF);
+                end
+                fcn=@(beta,x)myfcn(beta,x,H,cnt);
+                
+                x = zeros(length(tHRF)*length(names)*size(d,2),length(names)*size(d,2));
+                for i=1:length(names)*size(d,2)
+                    x([1:length(tHRF)]+(i-1)*length(tHRF),i)=1;
                 end
                 
-                
-                xo=zeros(cnt,1);
-                xo(length(names)*size(d,2)+[1:length(param0)])=param0;
-                
-                hrf=@(x)vertcat(cell2mat(cellfun(@(a){a(x)},Fcn)'));
+                xo=zeros(cnt+size(x,2),1);
+                for j=1:length(names)
+                    xo(lst{j})=param0;
+                end
+               
+                b=zeros(size(x,1),1);
+                dd=d;
                 
                 options=statset('fitnlm');
                 options.Robust='on';
-                options.MaxIter=10;
+                options.MaxIter=50;
+                for iter=1:4
+                    disp(['Iteration ' num2str(iter) ' of 4']); 
+                    stats = nirs.math.ar_irls( dd, [X C], round(4*Fs) );
+                    b2=stats.beta(1:size(X,2),:);
+                    
+                    if(obj.bandwidth*2/Fs<1)
+                        [fa,fb]=butter(4,obj.bandwidth*2/Fs);
+                        b2=filtfilt(fa,fb,b2);
+                    end
+                    
+                    b=b+reshape(b2,[],1);
+                    hrf=[];
+                    for i=1:length(H)
+                        hrf=[hrf; H{i}(xo)];
+                    end
+                    stats2 = nirs.math.ar_irls( d, [X*hrf C], round(4*Fs) );
+                    xo(cnt+1:end)=reshape(stats2.beta(1:length(H),:),[],1);
+                    
+                    warning('off','stats:nlinfit:ModelConstantWRTParam');
+                    warning('off','stats:nlinfit:IterationLimitExceeded');
+                    %nlm = fitnlm(x,b,fcn,xo,'Options',options);
+                    coef=nirs.math.NonLinearModel.nlinfit(x,b,fcn,xo,'Options',options);
+                    
+                    hrf=[];
+                    for i=1:length(H)
+                        %hrf=[hrf; H{i}(nlm.Coefficients.Estimate)];
+                        hrf=[hrf; H{i}(coef)];
+                    end
+                    stats = nirs.math.ar_irls( d, [X*hrf C], round(4*Fs) );
+                    dd=d-[X*hrf C]*stats.beta;
+                end
                 
-                %             for iter=1:10
-                %                 disp(iter)
-                X=blkdiag(XX{:});
-                b=vertcat(beta{:});
-                
-                model=@(beta,A)A*hrf(beta);
-                [coef,r,J,Sigma,mse,errorModelInfo,robustw] = ...
-                    nirs.math.NonLinearModel.nlinfit(X,b,model,xo,options);
-                
-                %                 nlm=fitnlm(X,b,@(beta,A)A*hrf(beta),xo,'Options',options);
-                %
-                %                 %xo=nlm.Coefficients.Estimate;
-                %                 xo = coef;
-                %
-                %                 res = cellfun(@(b,X,F)(b-X*F(xo)),beta,XX,Fcn,'UniformOutput',false);
-                %
-                %                 pmax=Fs*4;
-                %                 [~,f] = nirs.math.innovations(horzcat(res{:}),pmax);
-                %
-                %                 XX = cellfun(@(X,f)filter(f,1,full(X)),XX,f,'UniformOutput',false);
-                %                 beta = cellfun(@(beta,f)filter(f,1,beta),beta,f,'UniformOutput',false);
-                %
-                %             end
-                %
-                
-                % run regression
-                stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
-                
+                                
                 % put stats
                 ncond = length(names);
                 nchan = size(data(i).probe.link, 1);
@@ -171,6 +172,36 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = data(i).probe;
                 
+                bb=Dictionary;
+                for idx=1:basis.count
+                    bb(basis.keys{idx})=assignbasis(basis('default'),coef(lst{idx}));    
+                end
+                for j=1:length(names)
+                    if(basis.iskey(names{j}))
+                        basefcn=@(x)assignbasis(basis(names{j}),x);
+                    else
+                        basefcn=@(x)assignbasis(basis('default'),x);
+                    end
+                    H{end+1}=@(x)convert(basefcn(x(lst{j})),[1; zeros(length(tHRF)-1,1)],tHRF);
+                end
+                
+                 
+                stim=Dictionary;
+                for j=1:data(i).stimulus.count;
+                    ss=data(i).stimulus.values{j};
+                    if(isa(ss,'nirs.design.StimulusEvents'))
+                        s=nirs.design.StimulusEvents;
+                        s.name=ss.name;
+                        s.dur=mean(ss.dur);
+                        stim(data(i).stimulus.keys{j})=s;
+                    end
+                end
+                
+                S(i).basis.base=bb;
+                S(i).basis.Fs=Fs;
+                S(i).basis.stim=stim;
+                
+                
                 % print progress
                 obj.printProgress( i, length(data) )
             end
@@ -181,50 +212,19 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
     
 end
 
-
-function J = jacobian(beta,obj,data,delta)
-
-numparam=length(beta);
-beta0=beta;
-
-s2=getsigma2(obj,data);
-
-for i=1:numparam
-    beta=beta0;
-    beta(i)=beta(i)+delta(i);
-    obj.basis = assignbasis(obj.basis,beta);
-    sigma2=getsigma2(obj,data);
-    J(:,i)=(s2-sigma2)./delta(i);
-end
+function d = myfcn(beta,x,H,cnt)
+    d=[];
+    for i=1:length(H)
+        d=[d; H{i}(beta)];
+    end
+    d=repmat(d,size(x,2)/length(H),1);
+    d = d .*(x*beta(cnt+1:end));
+    
 end
 
-function sigma2=getsigma2(obj,data)
-
-d  = data.data;
-time  = data.time;
-Fs = data.Fs;
-
-C = obj.getTrendMatrix( time );
-[X, ~] = obj.createX( data(1) );
-stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
-sigma2=stats.sigma2;
-end
 
 function basis = assignbasis(basis,beta)
-% 
-% 
-% cnt=0;
-% for idx=1:basis.count
-%     base=basis.values{idx};
-%     x=base.invtform_params;
-%     lst=cnt+[1:length(x)];
-%     cnt=cnt+length(x);
-%     
-%     base=base.fwdtform_params(beta(lst));
-%     basis(basis.keys{idx})=base;
-% end
-% 
-% 
+ 
     basis=basis.fwdtform_params(beta);
 
 end

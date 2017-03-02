@@ -284,8 +284,6 @@ ImageStats=j.run(SubjStats);
 % Mask the image at alpha<0.05 (typeI error) and power>.8 (typeII error)
 h=ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8','right');
 
-%TODO- Atlasviewer brains are rotated from my version.  I need to fix this
-%within the import function.
 
 
 

@@ -39,7 +39,7 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
         % append to variable names & design matrix
         if size(x,2) > 1
             for k = 1:size(x,2)
-                names{end+1} = [stim_keys{iKey} '_' sprintf('%02i',k)];
+                names{end+1} = [stim_keys{iKey} ':' sprintf('%02i',k)];
             end
         else
             names{end+1} = stim_keys{iKey};

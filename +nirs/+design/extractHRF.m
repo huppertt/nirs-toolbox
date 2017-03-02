@@ -41,25 +41,37 @@ end
 conditions=Stats.conditions;
 for idx=1:length(conditions)
     l=strfind(conditions{idx},':');
-    if(isempty(l))
-        l=length(conditions{idx});
-    else
-        l=l-1;
+    if(~isempty(l))
+       conditions{idx}=conditions{idx}(1:l-1);
     end
     
-    
-    str=strsplit(conditions{idx}(1:l),'_');
-    str=strcat(str{1:max(1,length(str)-1)});
-    conditions{idx}=[str conditions{idx}(l+1:end)];
 end
 conditions=unique(conditions);    
 
+if(isa(duration,'Dictionary'))
+    dur=zeros(length(conditions),1);
+    for idx=1:length(conditions)
+        k=find(ismember(duration.keys,conditions{idx}));
+        if(~isempty(k))
+        s=duration(duration.keys{k});
+        dur(idx)=s.dur;
+        else
+            dur(idx)=1/Fs;
+        end
+    end
+    duration=dur;
+end
+if(length(duration)==1)
+    duration=repmat(duration,length(conditions),1);
+end
+
+
 lenHRF=90;
-t=[0:1/Fs:(duration+lenHRF)*length(conditions)];
+t=[0:1/Fs:(max(duration)+lenHRF)*length(conditions)];
 
 stimulus=Dictionary();
 for idx=1:length(conditions)
-    stim=nirs.design.StimulusEvents(conditions{idx},(idx-1)*(duration+lenHRF)+1,duration,1);
+    stim=nirs.design.StimulusEvents(conditions{idx},(idx-1)*(duration(idx)+lenHRF)+1,duration(idx),1);
     stimulus(conditions{idx})=stim;
 end
 
@@ -69,18 +81,18 @@ tbl=sortrows(tbl,{'source','detector','type','cond'});
 
 cnames=tbl.cond(1:size(X,2));
 for i=1:length(cnames)
-     l=strfind(cnames{i},':');
-    if(isempty(l))
+   l=strfind(cnames{i},':');
+    if(~isempty(l))
         l=length(cnames{i});
-    else
-        l=l-1;
+        
+        str=strsplit(cnames{i}(1:l),'_');
+        num=str{end};
+        if(~isempty(str2num(num)))
+            str=strcat(str{1:max(1,length(str)-1)});
+            cnames{i}=[str cnames{i}(l+1:end) '_' num];
+            
+        end
     end
-    
-    
-    str=strsplit(cnames{i}(1:l),'_');
-    num=str{end};
-    str=strcat(str{1:max(1,length(str)-1)});
-    cnames{i}=[str cnames{i}(l+1:end) '_' num];
 end
 
 
@@ -93,8 +105,8 @@ Htstat=X*tstat(lst,:);
 
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
-i=mod(i,(duration+lenHRF)*Fs);
-npts = fix(min(max(i)+10,(duration+lenHRF)*Fs));
+i=mod(i,(max(duration)+lenHRF)*Fs);
+npts = fix(min(max(i)+10,(max(duration)+lenHRF)*Fs));
 
 HRF=nirs.core.Data();
 HRF.description=['HRF from basis: ' Stats.description];
@@ -106,7 +118,7 @@ HRF.time=t(1:npts);
 data=[];
 link=table;
 for idx=1:length(conditions)
-    lstT=fix([(idx-1)*(duration+lenHRF)*Fs+[1:npts]]);
+    lstT=fix([(idx-1)*(duration(idx)+lenHRF)*Fs+[1:npts]]);
     typ={};
     typ2={};
     if(ismember(lower(type),'hrf'))
@@ -143,7 +155,7 @@ HRF.demographics=Stats.demographics;
 
 stimulus=Dictionary();
 for idx=1:length(conditions)
-    stim=nirs.design.StimulusEvents(conditions{idx},1,duration,1);
+    stim=nirs.design.StimulusEvents(conditions{idx},.001,duration(idx),1);
     stimulus(conditions{idx})=stim;
 end
 

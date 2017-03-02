@@ -168,11 +168,15 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             %% output
             G.beta=zeros(size(X,2),1);
-            G.covb=1E6*eye(size(X,2));
+            G.covb=1E6*eye(size(X,2)); %make sure anything not fit will have high variance
             
             G.beta(lstKeep) = lm2.Coefficients.Estimate;
             G.covb(lstKeep,lstKeep) = lm2.CoefficientCovariance;
-            G.dfe        = lm2.DFE;
+            %G.dfe        = lm2.DFE;
+            
+            [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
+            G.dfe=length(beta)-sum(U(:).*U(:));
+            
             G.probe      = S(1).probe;
             
             sd = repmat(sd, [length(unique(cnames)) 1]);

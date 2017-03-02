@@ -63,7 +63,9 @@ function S = ttest(obj, c, b, names)
     else
         b = repmat(b(icond), [nchan 1]);
     end
-
+    
+    obj=sorted(obj);
+    
     % transform beta
     beta = bsxfun(@minus, C*obj.beta, b);
 

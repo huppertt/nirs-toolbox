@@ -22,8 +22,8 @@ else
     p=modelorder;
 end
 
-if(iscomplex(data))
-    mask=~(imag(data)>0);
+if(~isreal(data))
+    mask=(imag(data)>0);
 else
     mask=ones(size(data));
 end

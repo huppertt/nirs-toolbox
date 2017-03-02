@@ -113,7 +113,7 @@ classdef ChannelStatsROC
                    stats = obj.pipeline(i).run(data);
                    
                     if(length(truth)>height(data(1).probe.link))
-                        stats=sorted(stats,{'cond','type','VoxID'})
+                        stats=sorted(stats,{'cond','type','VoxID'});
                     else
                         stats=sorted(stats,{'type','source','detector'});
                     end

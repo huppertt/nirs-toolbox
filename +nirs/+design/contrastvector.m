@@ -62,8 +62,7 @@ for i=1:length(conditions)
     end
     if(double(conditions{i}(l))>=48 & ...
             double(conditions{i}(l))<=57) %  between 0-9
-            names{i}=[conditions{i}(1:max(strfind(conditions{i}(1:l),'_'))-1) ...
-                conditions{i}(max(strfind(conditions{i}(l:end),':'))+l-1:end)];
+            names{i}=conditions{i}(1:l-1);
     else
         names{i}=conditions{i};
     end
@@ -83,20 +82,23 @@ for idx=1:length(cond)
     else
         lst=[];
         for i=1:length(indices{idx})
-            l=strfind(cond{idx},':');
+            l=strfind(conditions{idx},':');
             if(isempty(l))
-                l=length(cond{idx});
+                l=length(conditions{idx});
             else
                 l=l-1;
             end
             
             s=['00' num2str(indices{idx}(i))];
-            lst=[lst find(ismember(conditions,[cond{idx}(1:l)...
-                '_' s(end-1:end) cond{idx}(l+1:end)]))];
+            lst2=find(ismember(conditions,[cond{idx}(1:l)...
+                ':' s(end-1:end) cond{idx}(l+1:end)]));
+            if(isempty(lst2))
+                warning(['unable to find name: ' cond{idx}(1:l)...
+                ':' s(end-1:end) cond{idx}(l+1:end)]);
+            end
+            lst=[lst lst2];
         end
-        if(length(lst)~=length(indices{idx}) || length(lst)==0)
-            warning(['unable to find name: ' cond{idx}]);
-        end
+        
     end
    
     C(1,lst)=C(1,lst)+ones(1,length(lst))*multiplier{idx};

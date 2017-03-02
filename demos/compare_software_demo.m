@@ -20,7 +20,7 @@
 root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
 % number of iterations to run in ROC tests (more = better; but longer run time)
-num_iter = 50;  % In the paper, I ran 1000, but this took over a day to run on 
+num_iter = 20;  % In the paper, I ran 1000, but this took over a day to run on 
 % a high end computer.  Let's just run a few to give the flavor of the comparision    
 
 

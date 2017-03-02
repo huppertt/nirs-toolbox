@@ -121,6 +121,22 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = probe;
                 
+                stim=Dictionary;
+                for j=1:data(i).stimulus.count;
+                    ss=data(i).stimulus.values{j};
+                    if(isa(ss,'nirs.design.StimulusEvents'))
+                        s=nirs.design.StimulusEvents;
+                        s.name=ss.name;
+                        s.dur=mean(ss.dur);
+                        stim(data(i).stimulus.keys{j})=s;
+                    end
+                end
+                
+                S(i).basis.base=obj.basis;
+                S(i).basis.Fs=Fs;
+                S(i).basis.stim=stim;
+                
+                
                 % Put the model back together
                 S(i)=S(i).ttest({ttests{:,1}},[],{ttests{:,2}});
                 % print progress
