@@ -1,6 +1,6 @@
 function HRF = extractHRF(Stats,basis,duration,Fs,type)
-% This function returns the impulse response or HRF 
-% from a nirs.core.ChannelStats variable  
+% This function returns the impulse response or HRF
+% from a nirs.core.ChannelStats variable
 %
 % Inputs:
 %     Stats -  a nirs.core.ChannelStats or nirs.core.ImageStats variable
@@ -31,7 +31,7 @@ end
 
 if(length(Stats)>1)
     for idx=1:length(Stats)
-         HRF(idx) = nirs.design.extractHRF(Stats(idx),basis,duration,Fs,type);
+        HRF(idx) = nirs.design.extractHRF(Stats(idx),basis,duration,Fs,type);
     end
     return;
 end
@@ -41,58 +41,50 @@ end
 conditions=Stats.conditions;
 for idx=1:length(conditions)
     l=strfind(conditions{idx},':');
-    if(~isempty(l))
-       conditions{idx}=conditions{idx}(1:l-1);
+    if(isempty(l))
+        l=length(conditions{idx});
+    else
+        l=l-1;
     end
     
+    
+    str=strsplit(conditions{idx}(1:l),'_');
+    str=strcat(str{1:max(1,length(str)-1)});
+    conditions{idx}=[str conditions{idx}(l+1:end)];
 end
-conditions=unique(conditions);    
-
-if(isa(duration,'Dictionary'))
-    dur=zeros(length(conditions),1);
-    for idx=1:length(conditions)
-        k=find(ismember(duration.keys,conditions{idx}));
-        if(~isempty(k))
-        s=duration(duration.keys{k});
-        dur(idx)=s.dur;
-        else
-            dur(idx)=1/Fs;
-        end
-    end
-    duration=dur;
-end
-if(length(duration)==1)
-    duration=repmat(duration,length(conditions),1);
-end
-
+conditions=unique(conditions);
 
 lenHRF=90;
-t=[0:1/Fs:(max(duration)+lenHRF)*length(conditions)];
+t=[0:1/Fs:(duration+lenHRF)*length(conditions)];
 
 stimulus=Dictionary();
 for idx=1:length(conditions)
-    stim=nirs.design.StimulusEvents(conditions{idx},(idx-1)*(duration(idx)+lenHRF)+1,duration(idx),1);
+    stim=nirs.design.StimulusEvents(conditions{idx},(idx-1)*(duration+lenHRF)+1,duration,1);
     stimulus(conditions{idx})=stim;
 end
 
 [X, names] = nirs.design.createDesignMatrix( stimulus, t, basis);
 tbl=Stats.table;
-tbl=sortrows(tbl,{'source','detector','type','cond'});
-
+if(isa(Stats,'eeg.core.ChannelStats'))
+    tbl=sortrows(tbl,{'electrode','type','cond'});
+else
+    tbl=sortrows(tbl,{'source','detector','type','cond'});
+end
+    
 cnames=tbl.cond(1:size(X,2));
 for i=1:length(cnames)
-   l=strfind(cnames{i},':');
-    if(~isempty(l))
+    l=strfind(cnames{i},':');
+    if(isempty(l))
         l=length(cnames{i});
-        
-        str=strsplit(cnames{i}(1:l),'_');
-        num=str{end};
-        if(~isempty(str2num(num)))
-            str=strcat(str{1:max(1,length(str)-1)});
-            cnames{i}=[str cnames{i}(l+1:end) '_' num];
-            
-        end
+    else
+        l=l-1;
     end
+    
+    
+    str=strsplit(cnames{i}(1:l),'_');
+    num=str{end};
+    str=strcat(str{1:max(1,length(str)-1)});
+    cnames{i}=[str cnames{i}(l+1:end) '_' num];
 end
 
 
@@ -105,11 +97,16 @@ Htstat=X*tstat(lst,:);
 
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
-i=mod(i,(max(duration)+lenHRF)*Fs);
-npts = fix(min(max(i)+10,(max(duration)+lenHRF)*Fs));
+i=mod(i,(duration+lenHRF)*Fs);
+npts = fix(min(max(i)+10,(duration+lenHRF)*Fs));
 
-HRF=nirs.core.Data();
-HRF.description=['HRF from basis: ' Stats.description];
+if(isa(Stats,'eeg.core.ChannelStats'))
+    HRF=eeg.core.Data();
+    HRF.description=['ERP from basis: ' Stats.description];
+else
+    HRF=nirs.core.Data();
+    HRF.description=['HRF from basis: ' Stats.description];
+end
 HRF.probe=Stats.probe;
 HRF.time=t(1:npts);
 
@@ -118,19 +115,19 @@ HRF.time=t(1:npts);
 data=[];
 link=table;
 for idx=1:length(conditions)
-    lstT=fix([(idx-1)*(duration(idx)+lenHRF)*Fs+[1:npts]]);
+    lstT=fix([(idx-1)*(duration+lenHRF)*Fs+[1:npts]]);
     typ={};
     typ2={};
     if(ismember(lower(type),'hrf'))
         data=[data Hbeta(lstT,lst) ];
-         typ=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
+        typ=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
     end
     if(ismember(lower(type),'tstat'))
         data=[data  Htstat(lstT,lst)];
         typ2=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx} ':tstat' ]},height(HRF.probe.link),1));
-   
-    end
         
+    end
+    
     linktmp=repmat(HRF.probe.link,length(type),1);
     linktmp.type=vertcat(typ,typ2);
     link=[link; linktmp];
@@ -155,7 +152,7 @@ HRF.demographics=Stats.demographics;
 
 stimulus=Dictionary();
 for idx=1:length(conditions)
-    stim=nirs.design.StimulusEvents(conditions{idx},.001,duration(idx),1);
+    stim=nirs.design.StimulusEvents(conditions{idx},1,duration,1);
     stimulus(conditions{idx})=stim;
 end
 
