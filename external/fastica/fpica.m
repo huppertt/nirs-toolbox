@@ -323,7 +323,7 @@ if approachMode == 1,
       fprintf('Note that the plots are probably wrong.\n');
       if ~isempty(B)
 	% Symmetric orthogonalization.
-	B = B * real(inv(B' * B)^(1/2));
+	B = B * real(pinv(B' * B)^(1/2));
 
 	W = B' * whiteningMatrix;
 	A = dewhiteningMatrix * B;
@@ -350,7 +350,7 @@ if approachMode == 1,
     
     
     % Symmetric orthogonalization.
-    B = B * real(inv(B' * B)^(1/2));
+    B = B * real(pinv(B' * B)^(1/2));
     
     % Test for termination condition. Note that we consider opposite
     % directions here as well.

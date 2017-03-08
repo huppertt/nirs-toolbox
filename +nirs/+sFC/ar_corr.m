@@ -24,6 +24,7 @@ end
 
 if(~isreal(data))
     mask=(imag(data)>0);
+    
 else
     mask=ones(size(data));
 end

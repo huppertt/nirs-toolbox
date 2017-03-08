@@ -37,6 +37,7 @@ classdef ChannelStats
         
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
+         basis           % basis set info used to create model
     end
     
     properties ( Dependent = true )
@@ -56,6 +57,12 @@ classdef ChannelStats
             else
                 c = [];
             end
+        end
+        
+        
+        function erp=ERP(obj)
+        % function extracts the ERP from the stats variable
+            erp=eeg.design.extractERP(obj,obj.basis.base,obj.basis.stim,obj.basis.Fs);
         end
         
         % t statistic calculation
@@ -114,7 +121,7 @@ classdef ChannelStats
             %% sorted - returns sorted stats by columns in variables
             out = obj;
             if nargin < 2
-                colsToSortBy = {'type', 'cond'};
+                colsToSortBy = {'electrode','type', 'cond'};
             end
             
             if(length(obj)>1)

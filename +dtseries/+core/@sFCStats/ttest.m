@@ -47,50 +47,17 @@ function S = ttest(obj, c, b, names)
         return
     end
     
-    nchan = size(obj.probe.link,1);
-    
-    % sort variables
-    [~, icond] = sort(obj.conditions);
-    
-    
-    obj=sorted(obj);
-    c = c(:, icond);
-    
-    % full contrast matrix
-    C = kron(eye(nchan), c);
-
-    if nargin < 3 || isempty(b)
-        b = zeros(size(C,1),1);
-    else
-        b = repmat(b(icond), [nchan 1]);
-    end
-    obj = sorted(obj);
-    
-    % transform beta
-    beta = bsxfun(@minus, C*obj.beta, b);
-
-    % new covariance
-    covb = C*obj.covb*C';
-
-    % output
-    S = obj;
-
-    S.beta  = beta;
-    S.covb  = covb;
-
-    % new condition names
-    if nargin < 4 && isempty(names)
-        cond = obj.transformNames(c);
-    else
-        cond = names;
+   
+    for i=1:size(obj.Z,1)
+        for j=1:size(obj.Z,2)
+            Z(i,j,:)=c*squeeze(obj.Z(i,j,:));
+        end
     end
     
-    cond = repmat( cond(:), [nchan 1] );
-
+    S=obj;
+    S.R=tanh(Z);
+    S.conditions=names;
+    S.dfe=mean(obj.dfe(c~=0));
     
-        link = repmat( obj.probe.link, [size(c,1) 1] );
-        link = sortrows(link, {'source', 'detector', 'type'});
-        S.variables = [link table(cond)];
-  
     S.description = 'T-test';
 end

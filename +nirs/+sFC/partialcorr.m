@@ -8,7 +8,7 @@ if(~isempty(strfind(class(data),'.core.Data')))
     data=data.data;
 end
 
-if(iscomplex(data))
+if(~isreal(data))
     warning('code does not support masked data yet');
     data=real(data);
 end

@@ -9,8 +9,9 @@ if(~isempty(strfind(class(data),'.core.Data')))
 end
 
 
-if(iscomplex(data))
-    mask=~(imag(data)>0);
+if(~isreal(data))
+    mask=(imag(data)>0);
+    data=real(data);
 else
     mask=ones(size(data));
 end
@@ -19,7 +20,11 @@ end
 if(robust_flag)
     [R,p]=nirs.math.robust_corrcoef(data,false,mask);
 else
-    [R,p]=nirs.math.corrcoef(data,mask);
+    if(all(mask(:)==1))
+        [R,p]=corrcoef(data);
+    else
+        [R,p]=nirs.math.corrcoef(data,false,mask);
+    end
 end
 
 dfe = length(data);

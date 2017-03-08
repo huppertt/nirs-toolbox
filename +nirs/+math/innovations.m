@@ -8,7 +8,7 @@ X = []; lst = [];
 % model selection
 for i = 1:n
     % fit AR model
-    y1 = mean(Y(:,1));
+    y1 = mean(Y(:,i));
     y = bsxfun(@minus,Y(:,i),y1);
     a = nirs.math.ar_fit(y, Pmax);
     f{i}=[1; -a(2:end)];

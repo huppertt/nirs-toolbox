@@ -20,7 +20,7 @@ if(nargin<2 || isempty(freq))
 end
 
 
-if(iscomplex(data))
+if(~isreal(data))
     warning('code does not support masked data yet');
     data=real(data);
 end

@@ -1,17 +1,17 @@
 classdef Data
-    %% DATA - Holds EEG data.
+    %% DATA - Holds dense-time series data.
     % 
     % Properties: 
     %     description  - description of data (e.g. filename)
-    %     data         - ntime x nchan array of NIRS data
-    %     probe        - a Probe object containing measurement geometry
+    %     data         - ntime x ncomp array of data - data is saved in
+    %                   eigenspace 
+    %     mesh         - a mesh object for displaying data
     %     time         - a vector containing the time
-    %     Fs           - sampling frequency
     %     stimulus     - a Dictionary object containing stimulus info
     %                    (e.g. stimulus('tapping') returns a StimulusEvents Object)
     %     demographics - a Dictionary object containing demographics info
     %                    (e.g. demographics('age') returns 28)
-    % 
+    %     projectors   - <ncom x nvert> eigenvectors to get to the full vertex data  
     %     
     %  Methods:
     %     draw - displays the time series data and stimulus timings
@@ -19,8 +19,10 @@ classdef Data
     properties
         description
         data               % channel time series in columns
-        probe;             % object describing geometry
+        mesh               % mesh object 
         time               % vector of time points
+        projectors
+        cov
         stimulus        = Dictionary();	% struct containing stim vectors (vectors, names, types)
         demographics    = Dictionary();	% table containing demographics (names, values)
     end
@@ -30,21 +32,20 @@ classdef Data
     end
 
     methods
-        function obj = Data( data, time, probe, stimulus, demographics, description )
+        function obj = Data( data, time, probe, Fm, stimulus, demographics, description )
             %% Data - Creates a Data object.
             % 
             % Args:
             %     data         - (optional) ntime x nchan array of NIRS data
             %     time         - (optional) a vector containing the time
-            %     probe        - (optional) a Probe object containing measurement geometry
-            %     Fm           - (optional) modulation frequency (0 for CW NIRS)
+            %     mesh        -  (optional) a mesh object
             %     stimulus     - (optional) a Dictionary object containing stimulus info
             %     demographics - (optional) a Dictionary object containing demographics info
             %     description  - (optional) description of data (e.g. filename)
 
             if nargin > 0, obj.data         = data;         end
             if nargin > 1, obj.time         = time;         end
-            if nargin > 2, obj.probe        = probe;        end
+            if nargin > 2, obj.mesh         = mesh;        end
             if nargin > 3, obj.stimulus     = stimulus;     end
             if nargin > 4, obj.demographics = demographics; end
             if nargin > 5, obj.description  = description;  end
@@ -77,7 +78,7 @@ classdef Data
             %% returns sorted channels of data by column in probe.link
             out = obj;
             if nargin < 2
-                colsToSortBy = {'electrode', 'type'};
+                colsToSortBy = {'vertex', 'type'};
             end
             if(length(obj)>1)
                 for idx=1:length(obj)
@@ -85,18 +86,24 @@ classdef Data
                 end
                 return
             end
-            [out.probe.link, idx] = sortrows(out.probe.link, colsToSortBy);
+            [out.probe.link, idx] = sortrows(out.mesh.link, colsToSortBy);
             out.data = out.data(:,idx);
         end
         
-        function varargout=draw( obj, lstChannels )
+        function varargout=draw( obj, lstChannels,adderr )
             %% draw - Plots the probe geometry.
             % 
             % Args:
             %     lstChannels - list of channels to show
-             if nargin == 1
-                lstChannels = 1:size(obj(1).data,2);
+            
+            % get data
+            if nargin == 1
+                lstChannels = 1:round(size(obj(1).data,2)/20):size(obj(1).data,2);
             end
+            if(nargin<3)
+                adderr=false;
+            end
+            
             if(isempty(lstChannels))
                 % draw a plot, but then turn it off to only show the stim
                 % marks
@@ -109,21 +116,26 @@ classdef Data
                 lstChannels=[];
             end
             
-            
             if(length(obj)>1)
                 figure;
                 a=round(sqrt(length(obj)));
                 b=ceil(sqrt(length(obj)));
                 for i=1:length(obj)
                     subplot(a,b,i);
-                    obj(i).draw(lstChannels);
+                    obj(i).draw(lstChannels,adderr);
                     legend off;
                 end
                 return
             end
             
+            Vall=sparse(size(obj.projectors,1),size(obj.data,2));
+            ii=unique(obj.mesh.link.type);
+            for i=1:length(ii)
+                Vall(:,ismember(obj.mesh.link.type,ii(i)))=obj.projectors;
+            end
+            
             t = obj.time;
-            d = obj.data(:,lstChannels);
+            d = obj.data*Vall(lstChannels,:)';
             
             % get stim vecs
             s = []; k = obj.stimulus.keys;
@@ -136,8 +148,8 @@ classdef Data
             gca; hold on;
             
             % data min/max/size
-            dmax = max( d(:) );
-            dmin = min( d(:) );
+            dmax = max( real(d(:)) );
+            dmin = min( real(d(:)) );
             dsize = (dmax-dmin);
             
             % plot stim blocks if available
@@ -163,10 +175,10 @@ classdef Data
             end
             
             % plot data
-            h=plot( t, d );
-            
-            if(~showplot)
-                set(h,'visible','off');
+            if(~isreal(d) & adderr)
+                h=errorbar( t, real(d),imag(d) );
+            else
+                h=plot( t, real(d) );
             end
             xlabel( 'seconds' );
             
@@ -178,10 +190,14 @@ classdef Data
                 ylim( [pmin pmax] );
             end
             
+            if(~showplot)
+                set(h,'visible','off');
+            end
+            
             if(nargout>0)
                 varargout{1}=h;
             end
-          
+            
         end
         
     end

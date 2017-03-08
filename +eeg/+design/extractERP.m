@@ -1,15 +1,15 @@
-function HRF = extractHRF(Stats,basis,duration,Fs,type)
-% This function returns the impulse response or HRF 
-% from a nirs.core.ChannelStats variable  
+function HRF = extractERP(Stats,basis,duration,Fs,type)
+% This function returns the impulse response or ERP 
+% from a eeg.core.ChannelStats variable  
 %
 % Inputs:
-%     Stats -  a nirs.core.ChannelStats or nirs.core.ImageStats variable
+%     Stats -  a eeg.core.ChannelStats or eeg.core.ImageStats variable
 %     basis - the basis function used to compute the stats
 %     duration (optional) - convolves the IRF (default =1/Fs)
 %     Fs - the sample rate to use (default = 4Hz)
 
 if(nargin<5)
-    type={'hrf'};
+    type={'erp'};
 end
 
 if(~iscell(type))
@@ -66,7 +66,7 @@ if(length(duration)==1)
 end
 
 
-lenHRF=90;
+lenHRF=1;
 t=[0:1/Fs:(max(duration)+lenHRF)*length(conditions)];
 
 stimulus=Dictionary();
@@ -77,7 +77,7 @@ end
 
 [X, names] = nirs.design.createDesignMatrix( stimulus, t, basis);
 tbl=Stats.table;
-tbl=sortrows(tbl,{'source','detector','type','cond'});
+tbl=sortrows(tbl,{'electrode','type','cond'});
 
 cnames=tbl.cond(1:size(X,2));
 for i=1:length(cnames)
@@ -108,12 +108,12 @@ Htstat=X*tstat(lst,:);
 i=mod(i,(max(duration)+lenHRF)*Fs);
 npts = fix(min(max(i)+10,(max(duration)+lenHRF)*Fs));
 
-HRF=nirs.core.Data();
+HRF=eeg.core.Data();
 HRF.description=['HRF from basis: ' Stats.description];
 HRF.probe=Stats.probe;
 HRF.time=t(1:npts);
 
-[~,lst]=sortrows(HRF.probe.link,{'source','detector','type'});
+[~,lst]=sortrows(HRF.probe.link,{'electrode','type'});
 
 data=[];
 link=table;
@@ -121,7 +121,7 @@ for idx=1:length(conditions)
     lstT=fix([(idx-1)*(duration(idx)+lenHRF)*Fs+[1:npts]]);
     typ={};
     typ2={};
-    if(ismember(lower(type),'hrf'))
+    if(ismember(lower(type),'erp'))
         data=[data Hbeta(lstT,lst) ];
          typ=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
     end

@@ -2,11 +2,11 @@ function s = aux2stim(data)
 % This function fixes some of the stim mark issues on the Cw6 system
 s=data.s;
 
-if(max(data.aux(:))>15000)
+if(max(data.aux(:))>1500)
     cnt=1; bin=zeros(length(data.t),0);
     ss=zeros(length(data.t),0);
     for i=1:size(data.aux,2)
-        if(max(data.aux(:,i)>15000))
+        if(max(data.aux(:,i)>1500))
             slocal=data.aux(:,i);
             slocal=slocal-min(slocal);
             slocal=slocal/max(slocal);           

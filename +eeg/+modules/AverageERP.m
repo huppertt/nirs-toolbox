@@ -98,6 +98,23 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 S(i).demographics   = data(i).demographics;
                 S(i).probe          = data(i).probe;
                 
+                stim=Dictionary;
+                for j=1:data(i).stimulus.count;
+                    ss=data(i).stimulus.values{j};
+                    if(isa(ss,'nirs.design.StimulusEvents'))
+                        s=nirs.design.StimulusEvents;
+                        s.name=ss.name;
+                        s.dur=mean(ss.dur);
+                        s.onset=0;
+                        s.amp=1;
+                        stim(data(i).stimulus.keys{j})=s;
+                    end
+                end
+                
+                S(i).basis.base=basis;
+                S(i).basis.Fs=Fs;
+                S(i).basis.stim=stim;
+                
                 % print progress
                 obj.printProgress( i, length(data) )
             end
