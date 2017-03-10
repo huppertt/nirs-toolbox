@@ -9,7 +9,7 @@ classdef HRFconvolve < nirs.modules.AbstractModule
 
     methods
 
-        function obj = BandPassFilter( prevJob )
+        function obj = HRFconvolve( prevJob )
            obj.name = 'HRF Convolve';
          if nargin > 0
                obj.prevJob = prevJob;
