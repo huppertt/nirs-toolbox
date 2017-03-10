@@ -15,7 +15,7 @@ classdef KeepStims < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             for i = 1:length(data)
-                if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data'))
+                if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data') | isa(data(i),'dtseries.core.Data'))
                     stim = data(i).stimulus;
                     
                     % get values for stims we keep

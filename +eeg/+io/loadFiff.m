@@ -5,6 +5,14 @@ if(nargin<2)
     fs=250;
 end
 
+if(iscell(filename))
+    for i=1:length(filename)
+        data(i)=eeg.io.loadFiff(filename{i},fs);
+    end
+    return
+end
+
+
 %hdr=fiff_read_meas_info(filename);
 raw=fiff_setup_read_raw(filename);
 hdr=raw.info;
@@ -41,7 +49,7 @@ for i=1:size(aux,1)
     s=diff(aux(i,:));
     s=s-s(1);
     s=s./sqrt(var(s));
-    lst=find(s>20);
+    lst=find(s>5);
     lst(find(diff(lst)<50))=[];
     aux(i,:)=0;
     aux(i,[lst lst+1 lst+2])=1;
