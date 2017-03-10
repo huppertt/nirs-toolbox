@@ -17,7 +17,6 @@ end
 for i=1:length(filenames)
     f{i}=filenames{i}(1:strfind(filenames{i},'h.stc')-2);
 end
-f=unique(f);
 filenames2=cell(length(f),2);
 
 for i=1:length(f)
@@ -65,19 +64,22 @@ for iFile = 1:size(filenames,1)
         proj=speye(size(d,2),size(d,2));
         data(iFile).data=d;
     else
-    
-    lst=find(~any(isnan(d),1));
-    [u,s,v]=nirs.math.mysvd(d(:,lst));
-    proj=zeros(size(d,2),size(s,1));
-    proj(lst,:)=v;
-    proj=sparse(proj);
-    
-    data(iFile).data=u*s;
+        
+        lst=find(~any(isnan(d),1));
+        [u,s,v]=nirs.math.mysvd(d(:,lst));
+        proj=zeros(size(d,2),size(s,1));
+        proj(lst,:)=v;
+        proj=sparse(proj);
+        
+        data(iFile).data=u*s;
     end
     data(iFile).projectors=proj;
     data(iFile).cov=speye(size(data(iFile).data,2),size(data(iFile).data,2));
     
-    vertex=[1:size(d,2)]';
-    type=repmat(cellstr('cifti'),size(d,2),1);
+    vertex=[find(ismember(space(1).vertno,double(stcL.vertices+1)))';
+        find(ismember(space(2).vertno,double(stcR.vertices+1)))'];
+    surface=[ones(size(stcL.vertices)); 2*ones(size(stcR.vertices))];
+    type=repmat(cellstr('megstc'),size(d,2),1);
     data(iFile).mesh=dtseries.core.Mesh(mesh,table(vertex,type));
+    data(iFile).mesh.link=[data(iFile).mesh.link table(surface)];
 end
