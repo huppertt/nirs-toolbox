@@ -16,17 +16,23 @@ for iFile = 1:length(filenames)
     
     lst=find(ismember(c.brainstructure,find(ismember(c.brainstructurelabel,{'CORTEX_LEFT','CORTEX_RIGHT'}))));
     d=c.dtseries(lst,:)';
-    lst=find(~any(isnan(d),1));
-    [u,s,v]=nirs.math.mysvd(d(:,lst));
-    proj=zeros(size(d,2),size(s,1));
-    proj(lst,:)=v;
+    
+    vertex=[1:size(d,2)]';
+    lst=find([any(isnan(d),1) | all(d==0,1) | sqrt(var(d,[],1))<eps(1)*10]);
+    vertex(lst)=[];
+    d(:,lst)=[];
+    
+    [u,s,proj]=nirs.math.mysvd(d);
+    lst=find(diag(s)<eps(single(1)));
+    u(:,lst)=[]; s(lst,:)=[]; s(:,lst)=[]; v(lst,:)=[];
+    
     proj=sparse(proj);
     
     data(iFile).data=u*s;
     data(iFile).projectors=proj;
     data(iFile).cov=speye(size(s,1),size(s,1));
     
-    vertex=[1:size(d,2)]';
+    
     type=repmat(cellstr('cifti'),size(d,2),1);
     
     mesh=nirs.core.Mesh;

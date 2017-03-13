@@ -131,7 +131,7 @@ classdef Data
             Vall=sparse(size(obj.projectors,1),size(obj.data,2));
             ii=unique(obj.mesh.link.type);
             for i=1:length(ii)
-                Vall(:,ismember(obj.mesh.link.type,ii(i)))=obj.projectors;
+                Vall(ismember(obj.mesh.link.type,ii(i)),:)=obj.projectors;
             end
             
             t = obj.time;

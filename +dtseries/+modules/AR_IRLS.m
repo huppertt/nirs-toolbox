@@ -74,16 +74,17 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 S(i).mesh=data(i).mesh.mesh;
                 S(i).dfe  = stats.dfe(1);
                 
-                nVox=size(data(i).projectors,1);
-                ii=unique(data(i).mesh.link.type);
-                Vall=sparse(nVox*length(ii),size(data(i).data,2));
-                
-                for idx=1:length(ii)
-                    Vall((idx-1)*nVox+[1:nVox],ismember(data(i).mesh.link.type,ii(idx)))=data(i).projectors;
+                nVox=size(data(i).mesh.mesh.nodes);
+                if(nVox==0);
+                    nVox=max(data(i).mesh.link.vertex);
                 end
                 
+                Vall=sparse(nVox,size(data(i).data,2));
+                Vall(data(i).mesh.link.vertex,:)=data(i).projectors;
                 
                 ncond = length(names);
+                Vall=repmat(Vall,ncond,1);
+               
                 nchan=size(Vall,2);
                 S(i).beta=vec(stats.beta(1:ncond,:)*Vall');
                 covb = sparse(ncond*size(Vall,2),ncond*nchan);
@@ -94,7 +95,6 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 end
                 [Uu,Su,Vu]=nirs.math.mysvd(covb);
                 S(i).covb_chol = Vall*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
-                
                 
                 flds=unique(data(i).mesh.link.type);
                 tbl=[];
