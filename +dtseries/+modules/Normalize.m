@@ -32,6 +32,9 @@ classdef Normalize < nirs.modules.AbstractModule
                      lst=find(diag(s)<eps(single(1)));
                      u(:,lst)=[]; s(lst,:)=[]; s(:,lst)=[]; proj(:,lst)=[];
                     data(i).data=u*s;
+                     a=data.projectors'*proj;
+                    data(i).cov = a'*data.cov*a;
+                    
                     data(i).projectors=sparse(proj);
                 else
                     data(i).data=d*data(i).projectors;

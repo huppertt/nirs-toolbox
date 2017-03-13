@@ -74,7 +74,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 S(i).mesh=data(i).mesh.mesh;
                 S(i).dfe  = stats.dfe(1);
                 
-                nVox=size(data(i).mesh.mesh.nodes);
+                nVox=size(data(i).mesh.mesh.nodes,1);
                 if(nVox==0);
                     nVox=max(data(i).mesh.link.vertex);
                 end
