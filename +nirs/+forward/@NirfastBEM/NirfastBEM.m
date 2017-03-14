@@ -23,6 +23,18 @@ classdef NirfastBEM
         [J,meas] = jacobian( obj, type );
         [J,meas] = layeredJacobian( obj );
        
+        function obj = set.probe(obj,probe)
+            if(~isa(probe,'nirs.core.Probe1020'))
+                warning('probe must be a 3D registered probe');
+            end
+            if(all(probe.optodes.Z==0))
+                disp('warning: changing probe to 3D using "swap_reg" function');
+                probe=probe.swap_reg;
+            end
+            obj.probe=probe;
+        end
+        
+        
         function meshBEM=mesh2BEM(obj);
             meshBEM=nirs.core.Mesh;
             

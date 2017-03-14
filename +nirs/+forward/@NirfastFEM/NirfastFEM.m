@@ -22,6 +22,18 @@ classdef NirfastFEM
         [J,meas]    = jacobian( obj, type );
         mesh        = getNirfastMeshes( obj, type )
         
+        function obj = set.probe(obj,probe)
+            if(~isa(probe,'nirs.core.Probe1020'))
+                warning('probe must be a 3D registered probe');
+            end
+            if(all(probe.optodes.Z==0))
+                disp('warning: changing probe to 3D using "swap_reg" function');
+                probe=probe.swap_reg;
+            end
+            obj.probe=probe;
+        end
+        
+        
     end
     
 
