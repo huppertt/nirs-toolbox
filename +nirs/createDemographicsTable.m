@@ -50,7 +50,11 @@ function tbl = createDemographicsTable( data )
             % create struct
             if(isprop(demo,'keys'))
                 for j = 1:length(demo.keys)
+                    if(isa(demo.values{j},'Dictionary'))
+                         tbl(i).(demo.keys{j}) = {demo.values{j}};
+                    else
                     tbl(i).(demo.keys{j}) = demo.values{j};
+                    end
                 end
             end
         end
