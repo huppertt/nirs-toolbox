@@ -134,12 +134,16 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
             
             CoefficientNames=lm.CoefficientNames;
-            for i=1:length(CoefficientNames) 
-                CoefficientNames{i}=[CoefficientNames{i}(1:strfind(CoefficientNames{i},...
-                    'cond_')-1)...
-                    CoefficientNames{i}(strfind(CoefficientNames{i},...
-                    'cond_')+length('cond_'):end)]; 
-            end;
+            PredictorNames=lm.PredictorNames;
+            for i=1:length(CoefficientNames)
+                CoeffParts = strsplit(CoefficientNames{i},':');
+                for j = 1:length(CoeffParts)
+                    for k = 1:length(PredictorNames)
+                        CoeffParts{j} = strrep( CoeffParts{j} , [PredictorNames{k} '_'] , '' );
+                    end
+                end
+                CoefficientNames{i} = strjoin( CoeffParts , ':' );
+            end
 
             G.description = 'Group Level Connectivity';
             G.type=S(1).type;
@@ -160,7 +164,19 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 dfe=zeros(1,length(CoefficientNames)); 
                 for idx=1:length(S); 
                     for j=1:length(CoefficientNames);
-                        k=find(ismember(S(idx).conditions,CoefficientNames{j}));
+                        CoeffParts = strsplit( CoefficientNames{j} , ':' );
+                        
+                        % this subject rejection approach to dfe works for
+                        % categorical but not continuous predictors
+                        use_sub = 1;
+                        for p = 1:length(CoeffParts)
+                            if strcmp(PredictorNames{p},'cond'), cname=CoeffParts{p}; continue; end
+                            if ~isequal(CoeffParts{p},demo.(PredictorNames{p}){idx}), use_sub = 0; end
+                        end
+                        if use_sub == 0, continue; end
+                        
+                        k = find(ismember(S(idx).conditions,cname));
+
                         if(~isempty(k))
                             dfe(j)=dfe(j)+S(idx).dfe(k);
                         end
