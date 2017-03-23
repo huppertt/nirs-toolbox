@@ -8,6 +8,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         min_event_duration;  % minimum duration of events
         link;
         symetric;
+        cache_dir;  % (optional) directory to cache results (unset disables caching)
+        cache_rebuild;  % (optional) force rebuild of cached results (don't load previous results from cache, only save new results)
     end
     methods
         function obj = Hyperscanning( prevJob )
@@ -16,6 +18,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             obj.divide_events=false;
             obj.min_event_duration=30;
             obj.symetric=true;
+            obj.cache_dir='';
+            obj.cache_rebuild=false;
             if nargin > 0
                 obj.prevJob = prevJob;
             end
@@ -52,9 +56,10 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 end
             end
             
-            
+            connStats(1:height(obj.link))=nirs.core.sFCStats();
             
             for i=1:height(obj.link)
+                
                 idxA = obj.link.ScanA(i);
                 idxB = obj.link.ScanB(i);
                 
@@ -77,12 +82,6 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
                 dataA=dataA./(ones(length(time),1)*mad(dataA,1,1));
                 dataB=dataB./(ones(length(time),1)*mad(dataB,1,1));
-                
-                connStats(i)=nirs.core.sFCStats();
-                connStats(i).type = obj.corrfcn;
-                connStats(i).description= data(i).description;
-                connStats(i).probe=data(idxA).probe;
-                connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
                 
                 cond={};
                 if(obj.divide_events)
@@ -133,7 +132,29 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     cond={'rest'};
                 end
                 
+                connStats(i).type = obj.corrfcn;
+                connStats(i).description= data(i).description;
+                connStats(i).probe = nirs.util.createhyperscanprobe(data(idxA).probe);
+                connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
+                connStats(i).conditions=cond;
                 connStats(i).R=[];
+                
+                % Compute data hash and load cached result if match is found
+                clear hash cache_file
+                if exist(obj.cache_dir,'dir')
+                    hashopt.Method = 'SHA-256';
+                    tmpobj = obj; tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
+                    hash = DataHash( {dataA,dataB,tmpobj} , hashopt );
+                    cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
+                    if ~obj.cache_rebuild && exist(cache_file,'file')
+                        tmp = load(cache_file,'connStats');
+                        connStats(i).R = tmp.connStats.R;
+                        connStats(i).dfe = tmp.connStats.dfe;
+                        disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link)) ' (cached)'])
+                        continue;
+                    end
+                end
+                
                 for cIdx=1:length(mask)
                     tmp=data(idxA);
                     
@@ -154,9 +175,6 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                    
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
-                    if(cIdx==1)
-                        connStats(i).probe = nirs.util.createhyperscanprobe(connStats(i).probe);
-                    end
                     r(1:end/2,1:end/2)=0;
                     r(1+end/2:end,1+end/2:end)=0;
                     
@@ -165,9 +183,13 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     connStats(i).R(:,:,cIdx)=r;
                     
                 end
-                connStats(i).conditions=cond;
                 disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link))])
                 
+                if exist('cache_file','var')
+                    tmp = [];
+                    tmp.connStats = connStats(i);
+                    save(cache_file,'-struct','tmp');
+                end
                 
             end
             
