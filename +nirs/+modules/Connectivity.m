@@ -28,7 +28,7 @@ classdef Connectivity < nirs.modules.AbstractModule
                 connStats(i).probe=data(i).probe;
                 connStats(i).demographics=data(i).demographics;
      
-                cond={};
+                mask={}; cond={};
                 if(obj.divide_events)
                     
                     stim=data(i).stimulus;
