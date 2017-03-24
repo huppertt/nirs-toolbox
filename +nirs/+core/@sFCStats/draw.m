@@ -200,6 +200,7 @@ for cIdx=1:length(obj.conditions)
                     hold(ax,'on');
                     axis(ax,'off');
                     hh=getframe(ax);
+                    hh=getframe(ax); % For some reason the image is sometimes distorted the first time, but never the 2nd
                     hh=hh.cdata;
                     for i=1:length(s1)
                         s=scatter(h1,s1(i).XData(2),s1(i).YData(2),'filled','r','Sizedata',40);
