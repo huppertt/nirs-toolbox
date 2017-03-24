@@ -163,13 +163,13 @@ for cIdx=1:length(obj.conditions)
         for ii=1:length(utypesOrigin)
             for jj=1:length(utypesDest)
                 if(strcmp(utypesOrigin(ii),utypesDest(jj)))
-                    h1=subplot(2,length(utypesOrigin),ii);
+                    h1=subplot(2,length(utypesOrigin),ii,'Parent',f(cIdx));
                     s1=p.draw([],[],h1);
-                    cb=colorbar('EastOutside');
+                    cb=colorbar(h1,'EastOutside');
                     set(cb,'visible','off');
-                    h2=subplot(2,length(utypesOrigin),length(utypesOrigin)+ii);
+                    h2=subplot(2,length(utypesOrigin),length(utypesOrigin)+ii,'Parent',f(cIdx));
                     s2=p.draw([],[],h2);
-                    cb=colorbar('EastOutside');
+                    cb=colorbar(h2,'EastOutside');
                     set(cb,'visible','off');
                     
                     set(s1,'color',[.5 .5 .5]);
@@ -195,11 +195,10 @@ for cIdx=1:length(obj.conditions)
                     
                     p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
                     
-                    
-                    ax=axes('Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
+                    ax=axes(f(cIdx),'Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
                         'visible','off','Xlim',[-100 100],'Ylim',[-100 100]);
-                    hold on;
-                    axis off;
+                    hold(ax,'on');
+                    axis(ax,'off');
                     hh=getframe(ax);
                     hh=hh.cdata;
                     for i=1:length(s1)
@@ -273,13 +272,13 @@ for cIdx=1:length(obj.conditions)
                     end
                     set(ax,'YDir','reverse');
                     set(h2,'Linewidth',4)
-                    axis off;
+                    axis(ax,'off');
                     
                     pos=get(ax,'Position');
-                    cb=colorbar('EastOutside');
+                    cb=colorbar(ax,'EastOutside');
                     set(ax,'Position',pos);
-                    colormap(cmap);
-                    caxis([vrange(1), vrange(2)]);
+                    colormap(ax,cmap);
+                    caxis(ax,[vrange(1), vrange(2)]);
                     
                     
                     
