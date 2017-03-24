@@ -73,7 +73,7 @@ for cIdx=1:length(obj.conditions)
     end
     
     
-   
+    
     
     % significance mask
     if nargin < 4
@@ -98,7 +98,7 @@ for cIdx=1:length(obj.conditions)
     I=eye(sqrt(length(mask)));
     mask=mask.*(~I(:));
     
-     % range to show
+    % range to show
     if nargin < 3 || isempty(vrange)
         vmax    = max(abs(values(:).*mask(:)));
         vrange  = vmax*[-1 1];
@@ -131,36 +131,36 @@ for cIdx=1:length(obj.conditions)
     f(cIdx)=figure;
     
     if(ismember('hyperscan',obj.probe.link.Properties.VariableNames))
-       % Draw a hyperscan brain
-       p=obj.probe;
-       p.link=p.link(ismember(p.link.hyperscan,'A'),:);
-       
-       S={}; D={};
-       for i=1:height(p.link)
-            s=['000' num2str(p.link.source(i))];
-            S{i}=['Source-' s(end-3:end)];
-            d=['000' num2str(p.link.detector(i))];
-            D{i}=['Detector-' d(end-3:end)];
-       end
-            
-       p.optodes_registered=p.optodes_registered(ismember(p.optodes.Name,{S{:} D{:}}),:); 
-       p.optodes=p.optodes(ismember(p.optodes.Name,{S{:} D{:}}),:);
-       
-        p2=obj.probe;
-       p2.link=p2.link(ismember(p2.link.hyperscan,'B'),:);
-       
-       S={}; D={};
-       for i=1:height(p.link)
+        % Draw a hyperscan brain
+        p=obj.probe;
+        p.link=p.link(ismember(p.link.hyperscan,'A'),:);
+        
+        S={}; D={};
+        for i=1:height(p.link)
             s=['000' num2str(p.link.source(i))];
             S{i}=['Source-' s(end-3:end)];
             d=['000' num2str(p.link.detector(i))];
             D{i}=['Detector-' d(end-3:end)];
         end
-            
-       p2.optodes_registered=p2.optodes_registered(ismember(p2.optodes.Name,{S{:} D{:}}),:);
-       p2.optodes=p2.optodes(ismember(p2.optodes.Name,{S{:} D{:}}),:); 
-       
-      for ii=1:length(utypesOrigin)
+        
+        p.optodes_registered=p.optodes_registered(ismember(p.optodes.Name,{S{:} D{:}}),:);
+        p.optodes=p.optodes(ismember(p.optodes.Name,{S{:} D{:}}),:);
+        
+        p2=obj.probe;
+        p2.link=p2.link(ismember(p2.link.hyperscan,'B'),:);
+        
+        S={}; D={};
+        for i=1:height(p.link)
+            s=['000' num2str(p.link.source(i))];
+            S{i}=['Source-' s(end-3:end)];
+            d=['000' num2str(p.link.detector(i))];
+            D{i}=['Detector-' d(end-3:end)];
+        end
+        
+        p2.optodes_registered=p2.optodes_registered(ismember(p2.optodes.Name,{S{:} D{:}}),:);
+        p2.optodes=p2.optodes(ismember(p2.optodes.Name,{S{:} D{:}}),:);
+        
+        for ii=1:length(utypesOrigin)
             for jj=1:length(utypesDest)
                 if(strcmp(utypesOrigin(ii),utypesDest(jj)))
                     h1=subplot(2,length(utypesOrigin),ii);
@@ -178,28 +178,28 @@ for cIdx=1:length(obj.conditions)
                     set(h2,'Units','normalized');
                     set(h1,'Units','normalized');
                     
-                    if(flip(1)==1); 
+                    if(flip(1)==1);
                         set(h1,'Ydir','reverse');
                         set(h1,'Xdir','normal');
                     else
                         set(h1,'Ydir','normal');
-                         set(h1,'Xdir','reverse');
+                        set(h1,'Xdir','reverse');
                     end
-                       if(flip(2)==1); 
+                    if(flip(2)==1);
                         set(h2,'Ydir','reverse');
-                         set(h1,'Xdir','normal');
+                        set(h1,'Xdir','normal');
                     else
                         set(h2,'Ydir','normal');
-                         set(h1,'Xdir','reverse');
+                        set(h1,'Xdir','reverse');
                     end
                     
-                   p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
+                    p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
                     
                     
                     ax=axes('Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
                         'visible','off','Xlim',[-100 100],'Ylim',[-100 100]);
-                    hold on;   
-                     axis off;
+                    hold on;
+                    axis off;
                     hh=getframe(ax);
                     hh=hh.cdata;
                     for i=1:length(s1)
@@ -209,7 +209,7 @@ for cIdx=1:length(obj.conditions)
                         i2=p.link.source(i);
                         srcPos(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
                         srcPos(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
-                        delete(s); 
+                        delete(s);
                         
                         s=scatter(h1,s1(i).XData(1),s1(i).YData(1),'filled','r','Sizedata',40);
                         hh2=getframe(ax);
@@ -227,7 +227,7 @@ for cIdx=1:length(obj.conditions)
                         i2=p.link.source(i);
                         srcPos2(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
                         srcPos2(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
-                        delete(s); 
+                        delete(s);
                         
                         s=scatter(h2,s2(i).XData(1),s2(i).YData(1),'filled','r','Sizedata',40);
                         hh2=getframe(ax);
@@ -264,8 +264,8 @@ for cIdx=1:length(obj.conditions)
                     
                     X=[posOrig(:,1) posDest(:,1)];
                     Y=[posOrig(:,2) posDest(:,2)];
-                 
-                        
+                    
+                    
                     for idx=1:length(vals)
                         if(m(idx))
                             h2(end+1)=plot(ax,X(idx,:),Y(idx,:),'Color',colors(idx,:));
@@ -286,8 +286,8 @@ for cIdx=1:length(obj.conditions)
                 end
             end
         end
-       
-       
+        
+        
         
     else
         cnt=1;
