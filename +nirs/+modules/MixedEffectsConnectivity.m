@@ -135,11 +135,17 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
             CoefficientNames=lm.CoefficientNames;
             PredictorNames=lm.PredictorNames;
+            CondNames=cell(size(CoefficientNames));
             for i=1:length(CoefficientNames)
                 CoeffParts = strsplit(CoefficientNames{i},':');
                 for j = 1:length(CoeffParts)
                     for k = 1:length(PredictorNames)
-                        CoeffParts{j} = strrep( CoeffParts{j} , [PredictorNames{k} '_'] , '' );
+                        if ~isempty(strfind( CoeffParts{j} , PredictorNames{k} ))
+                            CoeffParts{j} = strrep( CoeffParts{j} , [PredictorNames{k} '_'] , '' );
+                            if strcmp(PredictorNames{k},'cond')
+                                CondNames{i} = CoeffParts{j};
+                            end
+                        end
                     end
                 end
                 CoefficientNames{i} = strjoin( CoeffParts , ':' );
@@ -166,16 +172,18 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                     for j=1:length(CoefficientNames);
                         CoeffParts = strsplit( CoefficientNames{j} , ':' );
                         
-                        % this subject rejection approach to dfe works for
-                        % categorical but not continuous predictors
+                        % Exclude subjects from DFE calculation if they
+                        % don't match categorical grouping predictor 
+                        % (e.g., Group~=Control, Gender~=Male, etc)
                         use_sub = 1;
                         for p = 1:length(CoeffParts)
-                            if strcmp(PredictorNames{p},'cond'), cname=CoeffParts{p}; continue; end
+                            if ~lm.VariableInfo.IsCategorical(PredictorNames{p}), continue; end
+                            if strcmp(PredictorNames{p},'cond'), continue; end
                             if ~isequal(CoeffParts{p},demo.(PredictorNames{p}){idx}), use_sub = 0; end
                         end
                         if use_sub == 0, continue; end
                         
-                        k = find(ismember(S(idx).conditions,cname));
+                        k = find(ismember(S(idx).conditions,CondNames{j}));
 
                         if(~isempty(k))
                             dfe(j)=dfe(j)+S(idx).dfe(k);

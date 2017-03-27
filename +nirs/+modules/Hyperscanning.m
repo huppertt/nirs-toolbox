@@ -143,7 +143,9 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 clear hash cache_file
                 if exist(obj.cache_dir,'dir')
                     hashopt.Method = 'SHA-256';
-                    tmpobj = obj; tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
+                    tmpobj = obj;
+                    tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
+                    tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
                     hash = DataHash( {dataA,dataB,tmpobj} , hashopt );
                     cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
                     if ~obj.cache_rebuild && exist(cache_file,'file')
