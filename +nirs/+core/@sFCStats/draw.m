@@ -58,11 +58,13 @@ for cIdx=1:length(obj.conditions)
             pval=tbl.pvalue;
             qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+            clabel = 'r-value';
         case('z')
             values=tbl.Z;
             pval=tbl.pvalue;
             qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+            clabel = 'Z';
         otherwise
             warning('type not recognized: using Correlation');
             values=tbl.R;
@@ -277,11 +279,16 @@ for cIdx=1:length(obj.conditions)
                     
                     pos=get(ax,'Position');
                     cb=colorbar(ax,'EastOutside');
+                    ylabel(cb,clabel);
                     set(ax,'Position',pos);
                     colormap(ax,cmap);
                     caxis(ax,[vrange(1), vrange(2)]);
                     
-                    
+                    if strcmp( utypesOrigin{ii} , utypesDest{ii} )
+                        title( utypesOrigin(ii) );
+                    else
+                        title( [utypesOrigin{ii} ' - ' utypesDest{ii} ] );
+                    end
                     
                 end
             end
