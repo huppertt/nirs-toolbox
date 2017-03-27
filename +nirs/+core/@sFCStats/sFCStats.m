@@ -33,6 +33,7 @@ classdef sFCStats
         p           % p-value (depends on model)
         Z           % Fisher-Z transform
         q
+        t
     end
     
     
@@ -43,14 +44,19 @@ classdef sFCStats
              Z(find(Z>6))=6;  % Fix the R=1 -> inf;  tanh(6) ~1 so cut there to keep the scale
              Z(find(Z<-6))=-6;
          end
-        
-         function p = get.p(obj)
+         
+         function t = get.t(obj)
              for idx=1:length(obj.conditions)
                  t(:,:,idx)=obj.R(:,:,idx)./sqrt((1-obj.R(:,:,idx).^2)/(max(obj.dfe(idx))-2));
-                 p(:,:,idx)=2*tcdf(-abs(t(:,:,idx)),max(obj.dfe(idx)));
              end
          end
-        
+         
+         function p = get.p(obj)
+             for idx=1:length(obj.conditions)
+                 p(:,:,idx)=2*tcdf(-abs(obj.t(:,:,idx)),max(obj.dfe(idx)));
+             end
+         end
+         
          function q = get.q(obj)
             p=obj.p;
             q=ones(size(p));
@@ -81,9 +87,9 @@ classdef sFCStats
                 cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
                 out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                     [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                    reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),...
+                    reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),...
                     'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
-                    'SourceDest','DetectorDest','TypeDest','R','Z','pvalue'})];
+                    'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue'})];
             end
         end
         
