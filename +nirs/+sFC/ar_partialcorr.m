@@ -37,5 +37,5 @@ else
     [R,p]=partialcorr(yfilt);
 end
 
-dfe = length(yfilt);
+dfe = mean(sum(mask)) - 2;
 

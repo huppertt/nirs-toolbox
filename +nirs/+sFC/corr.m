@@ -27,4 +27,4 @@ else
     end
 end
 
-dfe = length(data);
+dfe = mean(sum(mask)) - 2;

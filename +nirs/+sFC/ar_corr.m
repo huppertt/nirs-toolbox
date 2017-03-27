@@ -38,5 +38,5 @@ else
     [R,p]=nirs.math.corrcoef(yfilt,mask);
 end
 
-dfe = length(yfilt);
+dfe = mean(sum(mask)) - 2;
 

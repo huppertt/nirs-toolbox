@@ -32,4 +32,4 @@ else
     [r,p] = nirs.math.wavelet_coher(data,Fs,freq,wname);
 end
 
-dfe=size(data,1);
+dfe=size(data,1)-2;

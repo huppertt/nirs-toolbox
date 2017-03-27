@@ -25,4 +25,4 @@ else
     [R,p]=partialcorr(data);
 end
 
-dfe = length(data);
+dfe = length(data)-2;
