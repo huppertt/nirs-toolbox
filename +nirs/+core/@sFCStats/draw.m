@@ -267,6 +267,15 @@ for cIdx=1:length(obj.conditions)
                     X=[posOrig(:,1) posDest(:,1)];
                     Y=[posOrig(:,2) posDest(:,2)];
                     
+                    % Draw lines with largest magnitude on top
+                    if any(m)
+                        [~,sorted_ind] = sort(abs(vals));
+                        vals = vals(sorted_ind);
+                        m = m(sorted_ind);
+                        X = X(sorted_ind,:);
+                        Y = Y(sorted_ind,:);
+                        colors = colors(sorted_ind,:);
+                    end
                     
                     for idx=1:length(vals)
                         if(m(idx))
