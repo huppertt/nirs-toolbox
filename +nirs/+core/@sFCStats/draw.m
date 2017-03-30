@@ -55,33 +55,25 @@ for cIdx=1:length(obj.conditions)
         %              cmap=flipdim(colormap(autumn(2001)),1);
         case('r')
             values=tbl.R;
-            pval=tbl.pvalue;
-            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             clabel = 'r-value';
         case('z')
             values=tbl.Z;
-            pval=tbl.pvalue;
-            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             clabel = 'Z';
         case('t')
             values=tbl.t;
-            pval=tbl.pvalue;
-            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             clabel = 't-statistic';
         otherwise
             warning('type not recognized: using Correlation');
             values=tbl.R;
-            pval = tbl.pvalue;
-            qval=nirs.math.fdr(pval);
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             %cmap=flipdim(colormap(autumn(2001)),1);
     end
-    
-    
-    
+
+    pval=tbl.pvalue;
+    qval=nirs.math.BenjaminiHochberg(pval);
     
     % significance mask
     if nargin < 4
