@@ -172,10 +172,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             G.beta(lstKeep) = lm2.Coefficients.Estimate;
             G.covb(lstKeep,lstKeep) = lm2.CoefficientCovariance;
-            %G.dfe        = lm2.DFE;
+            G.dfe        = lm1.DFE;
             
-            [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
-            G.dfe=length(beta)-sum(U(:).*U(:));
+%             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
+%             G.dfe=length(beta)-sum(U(:).*U(:));
             
             G.probe      = S(1).probe;
             
@@ -186,7 +186,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.variables.Properties.VariableNames{4} = 'cond';
             G.description = ['Mixed Effects Model: ' obj.formula];
             
-            if(obj.include_diagnostics)
+            G.basis=S(1).basis;
+            
+          if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
                 yproj = beta - lm2.designMatrix('random')*lm2.randomEffects;
                 yproj=inv(W)*yproj;

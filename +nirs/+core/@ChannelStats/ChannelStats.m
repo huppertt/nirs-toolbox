@@ -51,9 +51,14 @@ classdef ChannelStats
     
     methods
         
-        function hrf=HRF(obj)
+        function hrf=HRF(obj,type)
         % function extracts the HRF from the stats variable
-            hrf=nirs.design.extractHRF(obj,obj.basis.base,obj.basis.stim,obj.basis.Fs);
+        
+            if(nargin<2)
+                type='hrf';
+            end
+        
+            hrf=nirs.design.extractHRF(obj,obj.basis.base,obj.basis.stim,obj.basis.Fs,type);
         end
         
         % unique conditions

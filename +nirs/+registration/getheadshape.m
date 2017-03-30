@@ -24,10 +24,10 @@ else
 end
 
 % Find the default arc lengths
-pt(1,:)=Pos(find(ismember(lower(tbl.Name),'lpa')),:);
-pt(2,:)=Pos(find(ismember(lower(tbl.Name),'rpa')),:);
+pt(1,:)=Pos(find(ismember(lower(tbl.Name),{'spmlpa','lpa'})),:);
+pt(2,:)=Pos(find(ismember(lower(tbl.Name),{'spmrpa','rpa'})),:);
 pt(3,:)=Pos(find(ismember(lower(tbl.Name),'cz')),:);
-pt(4,:)=Pos(find(ismember(lower(tbl.Name),'nas')),:);
+pt(4,:)=Pos(find(ismember(lower(tbl.Name),{'spmnas','nas'})),:);
 pt(5,:)=Pos(find(ismember(lower(tbl.Name),'iz')),:);
 
 AP_distance=norm(pt(4,:)-pt(5,:));

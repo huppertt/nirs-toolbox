@@ -133,7 +133,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 end
                 
                 connStats(i).type = obj.corrfcn;
-                connStats(i).description= data(i).description;
+                connStats(i).description= data(idxA).description;
                 connStats(i).probe = nirs.util.createhyperscanprobe(data(idxA).probe);
                 connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
                 connStats(i).conditions=cond;

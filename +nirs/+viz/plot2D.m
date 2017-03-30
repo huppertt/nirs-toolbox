@@ -47,21 +47,42 @@ for idx=1:length(utypes)
     else
         lstA=[1:size(data.data,2)];
         
-        title(aa,strvcat(utypes{:}));
+        %title(aa,strvcat(utypes{:}));
     end
     for j=1:length(lst)
         hold(a(j),'on');
         if(~isreal(data.data(:,lst(j))) & adderr)
-            errorbar(a(j),data.time,real(data.data(:,lst(j))),...
+            h{idx}(lst(j))=errorbar(a(j),data.time,real(data.data(:,lst(j))),...
                 imag(data.data(:,lst(j))));
         else
-            plot(a(j),data.time,real(data.data(:,lst(j))));
+            h{idx}(lst(j))=plot(a(j),data.time,real(data.data(:,lst(j))));
         end
         set(a(j),'xlim',[min(data.time) max(data.time)]);
         set(a(j),'ylim',[min(min(real(data.data(:,lstA)))) max(max(real(data.data(:,lstA))))]);
         axis(a(j),'off');
     end
    
+end
+
+for i=1:length(h)
+    lst=[];
+    for j=1:length(h{i})
+        if(strcmp(class(h{i}(j)),'matlab.graphics.GraphicsPlaceholder'))
+            lst=[lst j];
+        end
+        
+    end
+    h{i}(lst)=[];
+end
+
+for i=1:length(h)
+    if(~isempty(strfind(utypes{i},'hbo')))
+        set(h{i},'Color','r');
+    elseif(~isempty(strfind(utypes{i},'hbr')))
+        set(h{i},'Color','b');
+     elseif(~isempty(strfind(utypes{i},'hbt')))
+        set(h{i},'Color','g');
+    end
 end
 
 
