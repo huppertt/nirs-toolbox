@@ -44,6 +44,10 @@ if(nargin<5 || isempty(flip))
     flip=[1 1];
 end
 
+if(ismember('hyperscan',obj.probe.link.Properties.VariableNames))
+	obj.R(1:end/2,1:end/2,:) = nan;
+    obj.R(end/2+1:end,end/2+1:end,:) = nan;
+end
 
 for cIdx=1:length(obj.conditions)
     tbl=obj.table;
@@ -81,8 +85,8 @@ for cIdx=1:length(obj.conditions)
     qval=nirs.math.BenjaminiHochberg(pval);
     
     % significance mask
-    if nargin < 4
-        mask = ones(size(values)) > 0;
+    if nargin < 4 || isempty(thresh)
+        mask = ~isnan(values);
         
     elseif isscalar(thresh)
         mask = abs(values) > thresh;
