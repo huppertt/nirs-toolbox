@@ -180,17 +180,17 @@ for cIdx=1:length(obj.conditions)
                     
                     if(flip(1)==1);
                         set(h1,'Ydir','reverse');
-                        set(h1,'Xdir','normal');
+                        set(h1,'Xdir','reverse');
                     else
                         set(h1,'Ydir','normal');
-                        set(h1,'Xdir','reverse');
+                        set(h1,'Xdir','normal');
                     end
                     if(flip(2)==1);
                         set(h2,'Ydir','reverse');
-                        set(h2,'Xdir','normal');
+                        set(h2,'Xdir','reverse');
                     else
                         set(h2,'Ydir','normal');
-                        set(h2,'Xdir','reverse');
+                        set(h2,'Xdir','normal');
                     end
                     
                     p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
