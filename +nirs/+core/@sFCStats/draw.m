@@ -293,9 +293,15 @@ for cIdx=1:length(obj.conditions)
                     
                     pos=get(ax,'Position');
                     cb=colorbar(ax,'EastOutside');
-                    ylabel(cb,clabel);
                     set(ax,'Position',pos);
-                    colormap(ax,cmap);
+                    if ~any(m)
+                        colormap(ax,[0 0 0]);
+                        set(cb,'ytick',[0 1],'yticklabel',{'','n.s.'})
+                        ylabel(cb,' ');
+                    else
+                        colormap(ax,cmap);
+                        ylabel(cb,clabel);
+                    end
                     caxis(ax,[vrange(1), vrange(2)]);
                     
                     if strcmp( utypesOrigin{ii} , utypesDest{ii} )
