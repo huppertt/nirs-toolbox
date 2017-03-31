@@ -32,6 +32,11 @@ if(~isempty(strfind(vtype,'line')))
     vtype(strfind(vtype,'line')-1+[1:length('line')])=[];
 end
 
+if nargin < 3
+    vrange_arg = [];
+else
+    vrange_arg = vrange;
+end
 
 vtype(strfind(vtype,' '))=[];
 
@@ -99,9 +104,11 @@ for cIdx=1:length(obj.conditions)
     mask=mask.*(~I(:));
     
     % range to show
-    if nargin < 3 || isempty(vrange)
+    if isempty(vrange_arg)
         vmax    = max(abs(values(:).*mask(:)));
         vrange  = vmax*[-1 1];
+    else
+        vrange  = vrange_arg;
     end
     
     typesOrigin=tbl.TypeOrigin;
