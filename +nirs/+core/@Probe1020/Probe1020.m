@@ -108,6 +108,23 @@ classdef Probe1020 < nirs.core.Probe
         end
         function varargout=draw(obj,varargin)
             
+            if(ismember('hyperscan',obj.link.Properties.VariableNames))
+                p=obj;
+                p.link=p.link(ismember(p.link.hyperscan,'A'),:);
+
+                S={}; D={};
+                for i=1:height(p.link)
+                    s=['000' num2str(p.link.source(i))];
+                    S{i}=['Source-' s(end-3:end)];
+                    d=['000' num2str(p.link.detector(i))];
+                    D{i}=['Detector-' d(end-3:end)];
+                end
+
+                p.optodes_registered=p.optodes_registered(ismember(p.optodes.Name,{S{:} D{:}}),:);
+                p.optodes=p.optodes(ismember(p.optodes.Name,{S{:} D{:}}),:);
+                obj = p;
+            end
+            
             if(~isempty(strfind(obj.defaultdrawfcn,'zoom')))
                 obj.zoom=true;
             else
