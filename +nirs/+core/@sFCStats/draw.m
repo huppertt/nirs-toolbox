@@ -187,10 +187,10 @@ for cIdx=1:length(obj.conditions)
                     end
                     if(flip(2)==1);
                         set(h2,'Ydir','reverse');
-                        set(h1,'Xdir','normal');
+                        set(h2,'Xdir','normal');
                     else
                         set(h2,'Ydir','normal');
-                        set(h1,'Xdir','reverse');
+                        set(h2,'Xdir','reverse');
                     end
                     
                     p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
