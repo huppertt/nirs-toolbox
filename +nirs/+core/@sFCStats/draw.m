@@ -196,6 +196,10 @@ for cIdx=1:length(obj.conditions)
                     
                     if any(m)
                     
+                        link = p.link;
+                        link.X(:,1) = nan;
+                        link.Y(:,1) = nan;
+                        
                         hh=getframe(ax);
                         hh=getframe(ax); % For some reason the image is sometimes distorted the first time, but never the 2nd
                         hh=hh.cdata;
@@ -203,40 +207,38 @@ for cIdx=1:length(obj.conditions)
                             s=scatter(h1,s1(i).XData(2),s1(i).YData(2),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            i2=p.link.source(i);
-                            srcPos(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
-                            srcPos(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
+                            opt1PosX=median(b)/size(hh2.cdata,2)*210-105;
+                            opt1PosY=median(a)/size(hh2.cdata,1)*200-100;
                             delete(s);
 
                             s=scatter(h1,s1(i).XData(1),s1(i).YData(1),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            i2=p.link.detector(i);
-                            detPos(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
-                            detPos(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
+                            opt2PosX=median(b)/size(hh2.cdata,2)*210-105;
+                            opt2PosY=median(a)/size(hh2.cdata,1)*200-100;
                             delete(s);
 
+                            link.X(i) = (opt1PosX + opt2PosX) / 2;
+                            link.Y(i) = (opt1PosY + opt2PosY) / 2;
                         end
                         for i=1:length(s2)
                             s=scatter(h2,s2(i).XData(2),s2(i).YData(2),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            i2=p.link.source(i);
-                            srcPos2(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
-                            srcPos2(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
+                            opt1PosX=median(b)/size(hh2.cdata,2)*210-105;
+                            opt1PosY=median(a)/size(hh2.cdata,1)*200-100;
                             delete(s);
 
                             s=scatter(h2,s2(i).XData(1),s2(i).YData(1),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            i2=p.link.detector(i);
-                            detPos2(i2,1)=median(b)/size(hh2.cdata,2)*210-105;
-                            detPos2(i2,2)=median(a)/size(hh2.cdata,1)*200-100;
+                            opt2PosX=median(b)/size(hh2.cdata,2)*210-105;
+                            opt2PosY=median(a)/size(hh2.cdata,1)*200-100;
                             delete(s);
-
+                            
+                            link.X(length(s1)+i) = (opt1PosX + opt2PosX) / 2;
+                            link.Y(length(s1)+i) = (opt1PosY + opt2PosY) / 2;
                         end
-                        srcPos=[srcPos; srcPos2];
-                        detPos=[detPos; detPos2];
 
                         % map to colors
                         idx = bsxfun(@minus, vals', z);
@@ -244,29 +246,35 @@ for cIdx=1:length(obj.conditions)
                         colors = cmap(idx, :);
                         h2=[];
 
-                        posOrig=(srcPos(tbl.SourceOrigin(lst),:)+...
-                            detPos(tbl.DetectorOrigin(lst),:))/2;
-                        posDest=(srcPos(tbl.SourceDest(lst),:)+...
-                            detPos(tbl.DetectorDest(lst),:))/2;
-
-
-                        X=[posOrig(:,1) posDest(:,1)];
-                        Y=[posOrig(:,2) posDest(:,2)];
-
                         % Draw lines with largest magnitude on top
                         [~,sorted_ind] = sort(abs(vals));
                         vals = vals(sorted_ind);
                         m = m(sorted_ind);
-                        X = X(sorted_ind,:);
-                        Y = Y(sorted_ind,:);
                         colors = colors(sorted_ind,:);
+                        tbl = tbl(sorted_ind,:);
                     end
-                    
+                                       
                     for idx=1:length(vals)
                         if(m(idx))
-                            h2(end+1)=plot(ax,X(idx,:),Y(idx,:),'Color',colors(idx,:));
+                            
+                            source_origin = tbl.SourceOrigin(idx);
+                            source_dest = tbl.SourceDest(idx);
+                            detector_origin = tbl.DetectorOrigin(idx);
+                            detector_dest = tbl.DetectorDest(idx);
+                            
+                            origin_ind = find(link.source == source_origin & link.detector == detector_origin);
+                            dest_ind = find(link.source == source_dest & link.detector == detector_dest);
+                            
+                            X_origin = link.X( origin_ind );
+                            Y_origin = link.Y( origin_ind );
+                            X_dest = link.X( dest_ind );
+                            Y_dest = link.Y( dest_ind );
+
+                            h2(end+1)=plot(ax,[X_origin X_dest],[Y_origin Y_dest],'Color',colors(idx,:));
+                            
                         end
                     end
+
                     set(ax,'YDir','reverse');
                     set(h2,'Linewidth',4)
                     axis(ax,'off');
