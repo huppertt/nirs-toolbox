@@ -40,6 +40,9 @@ classdef AddDemographics < nirs.modules.AbstractModule
                 if(isempty(idx))
                     error(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
                 end
+                if(numel(idx)>1)
+                    error(['Duplicate entry: ' data(i).demographics(obj.varToMatch)]);
+                end
                     
                 % add demo info from row
                 for j = 1:length(lst)
