@@ -68,12 +68,15 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 % whitening transform
                 
 
-             
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
-                %W = blkdiag(W, pinv(s).^.5 * u');
-                w=sparse(diag(sqrt(1./(diag(s)+eps(1))))) * u';
-                W = sparse(blkdiag(W, w));
+                    L=chol(S(1).covb,'lower');
+                    L=sparse(L);
+                    w=inv(L);
+%                     [u, s, ~] = svd(S(i).covb, 'econ');
+%                     %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+%                     %W = blkdiag(W, pinv(s).^.5 * u');
+%                     w=sparse(diag(sqrt(1./(diag(s)+eps(1))))) * u';
+                    
+                 W = sparse(blkdiag(W, w));
                 dWTW = [dWTW; sqrt(diag(w'*w))];
                 %iW = blkdiag(iW, u*sqrt(s) );
                 
@@ -95,7 +98,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
             end
             
             probe=S(1).probe;
-            clear S;
+            %clear S;
             
             % sort
             [vars, idx] = sortrows(vars, {'source', 'detector', 'type'});
@@ -138,25 +141,23 @@ classdef GroupAverage < nirs.modules.AbstractModule
                         
             X    = W*X;
             beta = W*beta;
+             
+            
             
             %% fit the model
             if(obj.robustfit)
-                [G.beta,stats]=robustfit(full(X),beta,[],[],'off');
+                [G.beta,stats]=nirs.math.robustfit(full(X),beta,[],[],'off');
                 G.covb=stats.covb;
                 G.dfe= stats.dfe;
             else
+                nobs = length(beta);
+                [beta,X]=qr(X,beta,0);
                 xtx=X'*X;
                 xtxi=inv(xtx);
                 xbeta=X'*beta;
                 
                 G.beta = xtxi*xbeta;
-                
-                %[Q,R] = qr(X,0);
-                %G.beta = R\(Q'*beta);
-                %ri = R\eye(p);
-                %xtxi = ri*ri';
-                
-                nobs = length(beta);
+             
                 p = length(G.beta);
                 G.dfe = nobs-p;
                 
@@ -187,6 +188,9 @@ classdef GroupAverage < nirs.modules.AbstractModule
             G.variables.Properties.VariableNames{4} = 'cond';
             G.description = ['Mixed Effects Model: ' obj.formula];
            
+            G.basis=S(1).basis;
+            
+            
             
             if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
@@ -210,7 +214,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 end
                 mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
                 G.variables.model=mdl;
- 
+            
             end
             else
                 %Deal with averaging time courses together
