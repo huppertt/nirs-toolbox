@@ -57,7 +57,7 @@ function S = ttest(obj, c, b, names)
     S=obj;
     S.R=tanh(Z);
     S.conditions=names;
-    S.dfe=mean(bsxfun(@times,abs(c),obj.dfe));
+    S.dfe=sum(bsxfun(@times,abs(c),obj.dfe),2)' ./ sum(abs(c),2)';
     
     S.description = 'T-test';
 end
