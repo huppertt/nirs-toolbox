@@ -32,6 +32,8 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
                 ptype = '-dtiff';
             elseif strcmp(ext, 'jpg') || strcmp(ext, 'jpeg')
                 ptype = '-djpeg';
+            elseif strcmp(ext, 'png')
+                ptype = '-dpng';
             else
                 error('File extension not recognized.')
             end

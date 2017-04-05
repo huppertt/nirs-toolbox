@@ -29,6 +29,8 @@ for i = 1:length(h)
         ptype = '-dtiff';
     elseif strcmp(ext, 'jpg') || strcmp(ext, 'jpeg')
         ptype = '-djpeg';
+    elseif strcmp(ext, 'png')
+        ptype = '-dpng';
     else
         error('File extension not recognized.')
     end
