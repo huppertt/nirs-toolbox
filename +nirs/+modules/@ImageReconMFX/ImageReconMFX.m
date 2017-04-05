@@ -242,13 +242,20 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                    
             nRE = length(strfind(obj.formula,'|'));
             
-            %RUn a test to get the Fixed/Random matrices
-            warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            lm1 = fitlme([table(beta) tmpvars], obj.formula,'FitMethod', 'reml', 'CovariancePattern', repmat({'Isotropic'},nRE,1), 'dummyVarCoding',obj.dummyCoding);
-       
-            X = lm1.designMatrix('Fixed');
-            Z = lm1.designMatrix('Random');
-            
+            if(height(tmpvars)>1)
+                %RUn a test to get the Fixed/Random matrices
+                warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
+                lm1 = fitlme([table(beta) tmpvars], obj.formula,'FitMethod', 'reml', 'CovariancePattern', repmat({'Isotropic'},nRE,1), 'dummyVarCoding',obj.dummyCoding);
+                
+                X = lm1.designMatrix('Fixed');
+                Z = lm1.designMatrix('Random');
+            else
+                X=1;
+                Z=[];
+                lm1.CoefficientNames=cellstr(tmpvars.cond{1});
+                lm1.designMatrix=Dictionary;
+                lm1.designMatrix('Fixed')=X;
+            end
             %Now, lets make the full model
             XFull=[];
             ZFull=[];

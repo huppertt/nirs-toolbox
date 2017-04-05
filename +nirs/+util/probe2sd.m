@@ -15,6 +15,8 @@ function sd = probe2sd( probe )
     sd.MeasList(:,2) = probe.link.detector;
     sd.MeasList(:,4) = iWL;
     
+    sd.MeasListAct=ones(length(iWL),1);
+    
     sd.SrcPos = probe.srcPos;
     sd.DetPos = probe.detPos;
         

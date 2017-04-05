@@ -17,14 +17,19 @@ classdef AbstractModule
         % Every module automatically inherits the run function. This function
         % calls the previous module before performing its own
         % functionality.
-        function out = run( obj, input )
+        function out = run( obj, inputs )
+            
+            if(nargin<2)
+                inputs=[];
+            end
+            
             % if no prev job execute and return result
             if isempty( obj.prevJob )
-               out = obj.runThis( input );
+               out = obj.runThis( inputs );
                 
             % else execute prev job first
             else
-                out = obj.runThis( obj.prevJob.run( input ) );
+                out = obj.runThis( obj.prevJob.run(inputs ) );
             end
         end
         

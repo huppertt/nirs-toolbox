@@ -30,6 +30,9 @@ classdef PCAFilter < nirs.modules.AbstractModule
                     end
                     
                     if(obj.splittypes)
+                        if(~iscell(types))
+                            types=num2cell(types);
+                        end
                        lst=find(ismember(data(i).probe.link.type,types{tI})); 
                     else
                         lst=1:size(data(i).data,2);
