@@ -20,14 +20,22 @@ str(strfind(str,' '))=[];
 % Sort the variables so that the input order doesn't matter (B:A => A:B) and (D:B-C:B => B:D-B:C)
 sub_parts = strsplit(str,'-');
 for j = 1:length(sub_parts)
-    sub_parts{j} = strjoin(sort(strsplit(sub_parts{j},':')),':');
+    add_parts = strsplit(sub_parts{j},'+');
+    for k = 1:length(add_parts)
+        add_parts{k} = strjoin(sort(strsplit(add_parts{k},':')),':');
+    end
+    sub_parts{j} = strjoin(sort(add_parts),'+');
 end
 str = strjoin(sub_parts,'-');
 
 for i = 1:length(conditions)
     sub_parts = strsplit(conditions{i},'-');
     for j = 1:length(sub_parts)
-        sub_parts{j} = strjoin(sort(strsplit(sub_parts{j},':')),':');
+        add_parts = strsplit(sub_parts{j},'+');
+        for k = 1:length(add_parts)
+            add_parts{k} = strjoin(sort(strsplit(add_parts{k},':')),':');
+        end
+        sub_parts{j} = strjoin(sort(add_parts),'+');
     end
     conditions{i} = strjoin(sub_parts,'-');
 end
