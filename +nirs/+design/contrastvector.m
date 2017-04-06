@@ -22,7 +22,14 @@ sub_parts = strsplit(str,'-');
 for j = 1:length(sub_parts)
     add_parts = strsplit(sub_parts{j},'+');
     for k = 1:length(add_parts)
-        add_parts{k} = strjoin(sort(strsplit(add_parts{k},':')),':');
+        terms = strsplit(add_parts{k},':');
+        for l = length(terms):-1:1
+            if all(isstrprop(terms{l},'digit'))
+                terms{l-1} = [terms{l-1} ':' terms{l}];
+                terms(l)=[];
+            end
+        end
+        add_parts{k} = strjoin(sort(terms),':');
     end
     sub_parts{j} = strjoin(sort(add_parts),'+');
 end
@@ -33,7 +40,14 @@ for i = 1:length(conditions)
     for j = 1:length(sub_parts)
         add_parts = strsplit(sub_parts{j},'+');
         for k = 1:length(add_parts)
-            add_parts{k} = strjoin(sort(strsplit(add_parts{k},':')),':');
+            terms = strsplit(add_parts{k},':');
+            for l = length(terms):-1:1
+                if all(isstrprop(terms{l},'digit'))
+                    terms{l-1} = [terms{l-1} ':' terms{l}];
+                    terms(l)=[];
+                end
+            end
+            add_parts{k} = strjoin(sort(terms),':');
         end
         sub_parts{j} = strjoin(sort(add_parts),'+');
     end
