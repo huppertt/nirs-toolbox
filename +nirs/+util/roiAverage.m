@@ -246,7 +246,8 @@ else
     end
     
     q   = nirs.math.fdr( tbl.p );
-    tbl = [tbl table(q)];
+    [~,power] = nirs.math.MDC(tbl,.8,.05);
+    tbl = [tbl table(q) table(power)];
 end
 
 

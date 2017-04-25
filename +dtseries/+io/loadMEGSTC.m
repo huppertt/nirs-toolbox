@@ -76,8 +76,10 @@ for iFile = 1:size(filenames,1)
     data(iFile).projectors=proj;
     data(iFile).cov=speye(size(data(iFile).data,2),size(data(iFile).data,2));
     
-    vertex=[find(ismember(space(1).vertno,double(stcL.vertices+1)))';
-        find(ismember(space(2).vertno,double(stcR.vertices+1)))'];
+%     vertex=[find(ismember(space(1).vertno,double(stcL.vertices)))';
+%         find(ismember(space(2).vertno,double(stcR.vertices)))'];
+    vertex=[1:length(space(1).vertno) 1:length(space(2).vertno)]';
+    
     surface=[ones(size(stcL.vertices)); 2*ones(size(stcR.vertices))];
     type=repmat(cellstr('megstc'),size(d,2),1);
     data(iFile).mesh=dtseries.core.Mesh(mesh,table(vertex,type));
