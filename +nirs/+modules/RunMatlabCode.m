@@ -23,9 +23,12 @@ classdef RunMatlabCode < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             % columns of the table that arent varToMatch
-                
-            for i = 1:length(data)
-                data(i)=feval(obj.FunctionHandle,data(i));             
+            if(nargin(obj.FunctionHandle)==0)
+                feval(obj.FunctionHandle);
+            else
+                for i = 1:length(data)
+                    data(i)=feval(obj.FunctionHandle,data(i));
+                end
             end
         end
     

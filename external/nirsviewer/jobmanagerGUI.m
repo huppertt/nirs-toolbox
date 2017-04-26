@@ -612,6 +612,40 @@ set(handles.listbox_loaded,'UserData',jobs);
 update_tree(handles);
 
 
+% --------------------------------------------------------------------
+function uimenu_defaultjob_imagerecon_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_defaultjob_group (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+jobs=nirs.modules.default_modules.image_recon;
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+
+
+% --------------------------------------------------------------------
+function uimenu_defaultjob_writepaper_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_defaultjob_group (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+jobs=nirs.modules.default_modules.write_paper;
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+
+% --------------------------------------------------------------------
+function uimenu_defaultjob_FIR_Callback(hObject, eventdata, handles)
+% hObject    handle to uimenu_defaultjob_group (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+jobs=nirs.modules.default_modules.FIR_model;
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+
 % --- Executes on button press in pushbutton_run.
 function pushbutton_run_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_run (see GCBO)

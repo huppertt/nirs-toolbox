@@ -30,6 +30,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
         
         function G = runThis( obj, S )
             
+            if(length(S)<2)
+                G=S;
+                return;
+            end
+            
             % demographics info
             demo = nirs.createDemographicsTable( S );
             

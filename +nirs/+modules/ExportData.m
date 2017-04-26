@@ -17,6 +17,7 @@ classdef ExportData < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             assignin('base', obj.Output,data);
+            disp([ obj.Output ' created in workspace']);
         end
     end
     

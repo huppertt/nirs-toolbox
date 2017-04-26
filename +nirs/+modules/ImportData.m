@@ -4,6 +4,7 @@ classdef ImportData < nirs.modules.AbstractModule
     
     properties
         Input='raw';
+        override=false;
     end
     
     methods
@@ -16,7 +17,7 @@ classdef ImportData < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            if(isempty(data))
+            if(isempty(data) | obj.override)
                 data = evalin('base', obj.Input);
             else
                 disp('Import data module skipped: Data provided');

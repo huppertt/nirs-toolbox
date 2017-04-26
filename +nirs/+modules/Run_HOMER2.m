@@ -4,7 +4,7 @@ classdef Run_HOMER2 < nirs.modules.AbstractModule
     % Options:
     %     fcn - the homer function to run (needs to be file name to run)
     %           - should autopopulate the fields upin invoke of the fcn set
-    %           command
+    %           command including copying variable links from previous job steps
     
     % Known issues:  
     %    aux variables are not held in my toolbox at the moment.  
@@ -18,27 +18,45 @@ classdef Run_HOMER2 < nirs.modules.AbstractModule
         inputs={};
         outputs={};
         vars=[];
+        keepoutputs=false;
     end
     
+    
     methods
-        function obj = Run_HOMER2( prevJob )
+        function obj = Run_HOMER2( prevJob ,func)
             obj.name = 'Run generic HOMER2 function';
+            global HOMER2carryvars;
+            if(~obj.keepoutputs)
+                HOMER2carryvars=[];
+            end
             if nargin > 0
                 obj.prevJob = prevJob;
+                
             end
+            if(nargin>1)
+                obj.fcn=func;
+            end
+            
+            
         end
         
         function obj = set.fcn(obj,fcn)
             [I,O,vars] = getHOMER2inputs(fcn);
             obj.inputs=I;
             obj.outputs=O;
-            obj.vars=vars;
+            obj.vars=checkinher(obj,vars);
             obj.fcn=fcn;
+            
         end
         
         
         function data = runThis( obj, data )
+            global HOMER2carryvars;
+            if(isempty(obj.prevJob) & ~ obj.keepoutputs)
+                HOMER2carryvars=[];
+            end
             
+            obj.vars = getinher(obj,obj.vars);
             for i = 1:length(data)
                 varargin={};
                 for j=1:size(obj.inputs,1)
@@ -50,11 +68,15 @@ classdef Run_HOMER2 < nirs.modules.AbstractModule
                 
                 for j=1:size(obj.outputs,1)
                     data(i)=obj.outputs{j,2}(data(i),vargout{j});
+                    HOMER2carryvars=setfield(HOMER2carryvars,obj.outputs{j,1},vargout{j});
                 end
                 
             end
         end
+        
+        
     end
+   
     
 end
 
@@ -187,3 +209,47 @@ basis=Dictionary;
 basis('default')=b;
 [X, names] = nirs.design.createDesignMatrix( data.stimulus,data.time, basis);
 end
+
+function vars = checkinher(obj,vars)
+
+lst=nirs.modules.pipelineToList(obj);
+flds=fields(vars);
+for j=1:length(flds)
+    for i=length(lst)-1:-1:1
+        if(isa(lst{i},'nirs.modules.Run_HOMER2'))
+            if(isfield(lst{i}.vars,flds{j}) && ...
+                    isempty(strfind(lst{i}.vars.(flds{j}),'<linked>')))
+                vars=setfield(vars,flds{j},['<linked>:job-' num2str(i)]);
+            end
+             if(ismember(flds{j},{lst{i}.outputs{:,1}}))
+                vars=setfield(vars,flds{j},['<linked>:output-' num2str(i)]);
+            end
+        end
+    end
+end
+end
+
+
+function vars = getinher(obj,vars)
+lst=nirs.modules.pipelineToList(obj);
+flds=fields(vars);
+for j=1:length(flds)
+    if(~isempty(strfind(vars.(flds{j}),'<linked>')))
+        if(~isempty(strfind(vars.(flds{j}),'<linked>:job-')))
+            idx=str2num(vars.(flds{j})(strfind(vars.(flds{j}),'<linked>:job-')+...
+                length('<linked>:job-'):end));
+            v=getfield(lst{idx},'vars');
+            if(~isempty(strfind(v.(flds{j}),'<linked>')))
+                v=getinher(nirs.modules.listToPipeline({lst{1:idx}}),v);
+            end
+            
+        elseif(~isempty(strfind(vars.(flds{j}),'<linked>:output-')))
+            global HOMER2carryvars;
+            v=HOMER2carryvars;
+        end
+        
+        var.(flds{j})=v.(flds{j});
+    end
+end
+end
+
