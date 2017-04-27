@@ -23,11 +23,19 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
             obj.name = 'GLM via NIRS-SPM';
             obj.basis('default') = nirs.design.basis.Canonical();
             
+            if(isempty(which('spm_filter_HPF_LPF_WMDL')))
+                warning('NIRS-SPM not found on Matlab Path');
+            end
+            
             
         end
         
         function S = runThis( obj, data )
             vec = @(x) x(:);
+            
+            if(isempty(which('spm_filter_HPF_LPF_WMDL')))
+                error('NIRS-SPM not found on Matlab Path');
+            end
             
             for i = 1:length(data)
                 % get data

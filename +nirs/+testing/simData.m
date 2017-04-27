@@ -27,6 +27,9 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
     
     if nargin < 3 || isempty(beta)
         beta = 7*ones( length(stim.keys), 1 );
+    elseif(isstr(beta))
+        snr = str2num(beta(strfind(beta,'SNR:')+4:end));
+        beta=snr*sqrt(var(noise.data(:)));
     end
     
     if length(beta) == length(stim.keys)

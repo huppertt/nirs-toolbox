@@ -31,11 +31,11 @@ classdef Gamma
             h = h / sum(h);
             
             % convert stim vectors
-            s1 = s(1,:);
-            s = bsxfun( @minus, s, s1 );
+%             s1 = s(1,:);
+%             s = bsxfun( @minus, s, s1 );
             s = filter( h, 1, s );
             
-            s = bsxfun( @plus, s, s1 );
+           % s = bsxfun( @plus, s, s1 );
             
             out = s;
             

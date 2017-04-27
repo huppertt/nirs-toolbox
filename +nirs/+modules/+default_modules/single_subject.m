@@ -13,6 +13,6 @@ jobs.Output='Hb';
 jobs = nirs.modules.TrimBaseline( jobs );
 jobs.preBaseline   = 30;
 jobs.postBaseline  = 30;
-jobs = nirs.modules.AR_IRLS(jobs );
+jobs = nirs.modules.GLM(jobs );
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='SubjStats';
