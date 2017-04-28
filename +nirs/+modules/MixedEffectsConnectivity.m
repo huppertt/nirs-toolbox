@@ -167,31 +167,32 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 [n,m]=size(S(1).R);
                 Z=Coef;
                 G.R=tanh(Z);
-                dfe=zeros(1,length(CoefficientNames)); 
-                for idx=1:length(S); 
-                    for j=1:length(CoefficientNames);
-                        CoeffParts = strsplit( CoefficientNames{j} , ':' );
-                        
-                        % Exclude subjects from DFE calculation if they
-                        % don't match categorical grouping predictor 
-                        % (e.g., Group~=Control, Gender~=Male, etc)
-                        use_sub = 1;
-                        for p = 1:length(CoeffParts)
-                            if ~lm.VariableInfo.IsCategorical(PredictorNames{p}), continue; end
-                            if strcmp(PredictorNames{p},'cond'), continue; end
-                            if ~isequal(CoeffParts{p},demo.(PredictorNames{p}){idx}), use_sub = 0; end
-                        end
-                        if use_sub == 0, continue; end
-                        
-                        k = find(ismember(S(idx).conditions,CondNames{j}));
-
-                        if(~isempty(k))
-                            dfe(j)=dfe(j)+S(idx).dfe(k);
-                        end
-                    end; 
-                end;
-                dfe(find(dfe==0))=mean(dfe(find(dfe~=0)));
-                G.dfe=dfe; %/length(S);
+%                 dfe=zeros(1,length(CoefficientNames)); 
+%                 for idx=1:length(S); 
+%                     for j=1:length(CoefficientNames);
+%                         CoeffParts = strsplit( CoefficientNames{j} , ':' );
+%                         
+%                         % Exclude subjects from DFE calculation if they
+%                         % don't match categorical grouping predictor 
+%                         % (e.g., Group~=Control, Gender~=Male, etc)
+%                         use_sub = 1;
+%                         for p = 1:length(CoeffParts)
+%                             if ~lm.VariableInfo.IsCategorical(PredictorNames{p}), continue; end
+%                             if strcmp(PredictorNames{p},'cond'), continue; end
+%                             if ~isequal(CoeffParts{p},demo.(PredictorNames{p}){idx}), use_sub = 0; end
+%                         end
+%                         if use_sub == 0, continue; end
+%                         
+%                         k = find(ismember(S(idx).conditions,CondNames{j}));
+% 
+%                         if(~isempty(k))
+%                             dfe(j)=dfe(j)+S(idx).dfe(k);
+%                         end
+%                     end; 
+%                 end;
+%                 dfe(find(dfe==0))=mean(dfe(find(dfe~=0)));
+%                 G.dfe=dfe; %/length(S);
+                G.dfe(1:length(CoefficientNames)) = lm.DFE;
                 
              else
                 error('fix this part');
