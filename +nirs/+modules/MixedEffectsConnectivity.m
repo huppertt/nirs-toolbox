@@ -88,7 +88,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 warning('Random effects are currently not supported');
             end
             
-            corr=D(:,1);
+            corr=rand(size(D(:,1)));
             vars=[demoall table(corr,cond)];
             warning('off','stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit');
             
