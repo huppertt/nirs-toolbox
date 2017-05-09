@@ -188,6 +188,7 @@ for cIdx=1:length(obj.conditions)
                     
                     % this mask
                     m = mask(lst);
+                    d = tbl(lst,:);
                     
                     ax=axes(f(cIdx),'Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
                         'visible','off','Xlim',[-100 100],'Ylim',[-100 100]);
@@ -251,16 +252,16 @@ for cIdx=1:length(obj.conditions)
                         vals = vals(sorted_ind);
                         m = m(sorted_ind);
                         colors = colors(sorted_ind,:);
-                        tbl = tbl(sorted_ind,:);
+                        d = d(sorted_ind,:);
                     end
                                        
                     for idx=1:length(vals)
                         if(m(idx))
                             
-                            source_origin = tbl.SourceOrigin(idx);
-                            source_dest = tbl.SourceDest(idx);
-                            detector_origin = tbl.DetectorOrigin(idx);
-                            detector_dest = tbl.DetectorDest(idx);
+                            source_origin = d.SourceOrigin(idx);
+                            source_dest = d.SourceDest(idx);
+                            detector_origin = d.DetectorOrigin(idx);
+                            detector_dest = d.DetectorDest(idx);
                             
                             origin_ind = find(link.source == source_origin & link.detector == detector_origin);
                             dest_ind = find(link.source == source_dest & link.detector == detector_dest);
