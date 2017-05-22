@@ -17,43 +17,6 @@ for i=1:length(conditions)
 end
 str(strfind(str,' '))=[];
 
-% Sort the variables so that the input order doesn't matter (B:A => A:B) and (D:B-C:B => B:D-B:C)
-sub_parts = strsplit(str,'-');
-for j = 1:length(sub_parts)
-    add_parts = strsplit(sub_parts{j},'+');
-    for k = 1:length(add_parts)
-        terms = strsplit(add_parts{k},':');
-        for l = length(terms):-1:1
-            if all(isstrprop(terms{l},'digit'))
-                terms{l-1} = [terms{l-1} ':' terms{l}];
-                terms(l)=[];
-            end
-        end
-        add_parts{k} = strjoin(sort(terms),':');
-    end
-    sub_parts{j} = strjoin(sort(add_parts),'+');
-end
-str = strjoin(sub_parts,'-');
-
-for i = 1:length(conditions)
-    sub_parts = strsplit(conditions{i},'-');
-    for j = 1:length(sub_parts)
-        add_parts = strsplit(sub_parts{j},'+');
-        for k = 1:length(add_parts)
-            terms = strsplit(add_parts{k},':');
-            for l = length(terms):-1:1
-                if all(isstrprop(terms{l},'digit'))
-                    terms{l-1} = [terms{l-1} ':' terms{l}];
-                    terms(l)=[];
-                end
-            end
-            add_parts{k} = strjoin(sort(terms),':');
-        end
-        sub_parts{j} = strjoin(sort(add_parts),'+');
-    end
-    conditions{i} = strjoin(sub_parts,'-');
-end
-
 % take care of the simple case
 if(ismember(str,conditions))
     C=1*ismember(conditions,str)';
