@@ -35,7 +35,7 @@ end
 if(robust_flag)
     [R,p]=nirs.math.robust_corrcoef(yfilt,false,mask);
 else
-    [R,p]=nirs.math.corrcoef(yfilt,mask);
+    [R,p]=nirs.math.corrcoef(yfilt,false,mask);
 end
 
 dfe = mean(sum(mask)) - 2;

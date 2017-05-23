@@ -168,7 +168,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     
                     [ii,~]=find(dd~=0);
                     lstBad=[max(ii)+1:length(time)];
-                    lstBad=[lstBad 1:min(ii)]; 
+                    lstBad=[lstBad 1:min(ii)-1]; 
                     dd(lstBad,:)=[];
                     
                     tmp.time=time;

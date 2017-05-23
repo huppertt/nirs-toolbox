@@ -85,7 +85,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             nRE=length(strfind(obj.formula,'|'));
             
             if(nRE>0)
-                warning('Random effects are currently not supported');
+                warning('Random effects are fully tested');
             end
             
             corr=rand(size(D(:,1)));
@@ -99,32 +99,37 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
             lst=find(~any(isnan(X),2));
             
+            D=tanh(D);
+            if(nRE>0)
+                D=D-Z*inv(Z'*Z)*Z'*D;
+            end
             Coef = inv(X(lst,:)'*X(lst,:))*X(lst,:)'*D(lst,:);
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
+            Coef=atanh(Coef);
             
-%             Coef=[]; cnt=0;
-%             for idx=lst
-%                 if(obj.verbose)
-%                    if(round(100*idx/n)>cnt)
-%                        disp([num2str(round(100*idx/n)) '% complete']);
-%                        cnt=cnt+5;
-%                    end
-%                 end
-%                 corr=D(:,idx);
-%                 vars=[demo table(corr)];
+%             Coef=zeros(length(lst),length(lst),size(X,2)); cnt=0;
+%             for idx=1:length(lst)
+% %                 if(obj.verbose)
+% %                    if(round(100*idx/n)>cnt)
+% %                        disp([num2str(round(100*idx/n)) '% complete']);
+% %                        cnt=cnt+5;
+% %                    end
+% %                 end
+%                  corr=D(:,idx);
+%                  vars=[demoall table(corr)];
 %                 if(nRE>0)
 %                     lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
 %                         'FitMethod', 'ML');
 %                 else
 %                     lm = fitlm(vars,formula, 'dummyVarCoding',obj.dummyCoding);    
 %                 end
-%                 [i,j]=ind2sub([sqrt(size(D,2)) sqrt(size(D,2))],idx);
+%                 [i,j]=ind2sub([sqrt(size(D,2)) sqrt(size(D,2))],lst(idx));
 %                 Coef(i,j,:)=lm.Coefficients.Estimate;
 %                 if(sym)
 %                     Coef(j,i,:)=lm.Coefficients.Estimate;
 %                 end
 %             end
-%             
+            
            
             %Now sort back out
             if(isa(S(1),'nirs.core.sFCStats'))

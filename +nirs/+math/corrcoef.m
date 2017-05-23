@@ -39,6 +39,13 @@ for i=1:size(d,2)
         warning('off','stats:statrobustfit:IterationLimit')
         lst=find(mask(:,i) & mask(:,j));
         %r(i,j)=robustfit(d(lst,i),d(lst,j),'bisquare',[],'off');
+        
+        d(lst,i)=bsxfun(@minus,d(lst,i),mean(d(lst,i)));
+        d(lst,i)=bsxfun(@rdivide,d(lst,i),sqrt(var(d(lst,i))));
+        
+         d(lst,j)=bsxfun(@minus,d(lst,j),mean(d(lst,j)));
+        d(lst,j)=bsxfun(@rdivide,d(lst,j),sqrt(var(d(lst,j))));
+                
         r(i,j)=regress(d(lst,i),d(lst,j));
         cnt=cnt+1;
     end
@@ -51,7 +58,7 @@ end
 r=sign(r).*abs(sqrt(r.*r'));
 r=.5*(r+r');
 
-n=size(d,1);
+n=sum(mask(:,1));
 
 Tstat = r .* sqrt((n-2) ./ (1 - r.^2));
 p = 2*tpvalue(-abs(Tstat),n-2);

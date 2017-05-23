@@ -27,7 +27,7 @@ jobs.Input='raw';
 jobs=nirs.modules.RunMatlabCode(jobs);
 jobs.FunctionHandle=@()evalin('base','close all;');
 
-
+jobs = nirs.modules.FixNaNs(jobs);
 
 jobs=nirs.modules.RemoveStimless(jobs);
 jobs = nirs.modules.Resample(jobs);

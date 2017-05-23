@@ -1,7 +1,6 @@
 function h=bar_err(e,varargin)
 
 h=bar(varargin{:});
-e=e';
 
 hold on;
 pos=[];

@@ -351,7 +351,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
              n=size(V,2);
             %VtV=V'*V;
             VtV=speye(n,n);
-           ncond=length(conds);
+           ncond=length(lm1.CoefficientNames);
             for i=1:length(flds)*ncond
                 Q{i}=[];
                 for j=1:i-1

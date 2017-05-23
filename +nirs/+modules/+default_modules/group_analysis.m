@@ -5,6 +5,7 @@ function jobs = group_analysis
 jobs=nirs.modules.ImportData();
 jobs.Input='raw';
 jobs=nirs.modules.RemoveStimless(jobs);
+jobs = nirs.modules.FixNaNs(jobs);
 jobs = nirs.modules.Resample(jobs);
 jobs.Fs = 5; % resample to 5 Hz
  jobs = nirs.modules.OpticalDensity( jobs );
