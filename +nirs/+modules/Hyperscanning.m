@@ -146,7 +146,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     tmpobj = obj;
                     tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
                     tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
-                    hash = DataHash( {dataA,dataB,tmpobj} , hashopt );
+                    hash = DataHash( {dataA,dataB,tmpobj,mask} , hashopt );
                     cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
                     if ~obj.cache_rebuild && exist(cache_file,'file')
                         tmp = load(cache_file,'connStats');
