@@ -46,7 +46,7 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
 %                     X = nirs.design.trend.legendre(t, 2);
 %                     ymoco = ymoco - X*(X\ymoco);
 %                     
-                    ymoco = ymoco + m;
+                    ymoco = ymoco - median(ymoco) + m;
                     
                     data(i).data(:,j) = ymoco;
                 end
