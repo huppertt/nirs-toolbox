@@ -15,7 +15,7 @@ end
 
 
 d=bsxfun(@minus,d,median(d,1));
-d=bsxfun(@rdivide,d,sqrt(2)*mad(d,1,1));
+d=bsxfun(@rdivide,d,1.4826*mad(d,1,1));
 
 
 % all pairwise combinations
@@ -38,14 +38,8 @@ for i=1:size(d,2)
         end
         warning('off','stats:statrobustfit:IterationLimit')
         lst=find(mask(:,i) & mask(:,j));
-        %r(i,j)=robustfit(d(lst,i),d(lst,j),'bisquare',[],'off');
-        
-        d(lst,i)=bsxfun(@minus,d(lst,i),mean(d(lst,i)));
-        d(lst,i)=bsxfun(@rdivide,d(lst,i),sqrt(var(d(lst,i))));
-        
-         d(lst,j)=bsxfun(@minus,d(lst,j),mean(d(lst,j)));
-        d(lst,j)=bsxfun(@rdivide,d(lst,j),sqrt(var(d(lst,j))));
-                
+         
+                     
         r(i,j)=regress(d(lst,i),d(lst,j));
         cnt=cnt+1;
     end
@@ -61,8 +55,8 @@ r=.5*(r+r');
 n=sum(mask(:,1));
 
 Tstat = r .* sqrt((n-2) ./ (1 - r.^2));
-p = 2*tpvalue(-abs(Tstat),n-2);
-p=tril(p,-1)+tril(p,-1)'+eye(size(p));
+p = 2*nirs.math.tpvalue(-abs(Tstat),n-2);
+p=p+eye(size(p));
 
 end
 
@@ -73,38 +67,3 @@ r = r/s/4.685;
 w = (1 - r.^2) .* (r < 1 & r > -1);
 end
 
-
-
-function p = tpvalue(x,v)
-%TPVALUE Compute p-value for t statistic.
-
-normcutoff = 1e7;
-if length(x)~=1 && length(v)==1
-    v = repmat(v,size(x));
-end
-
-% Initialize P.
-p = NaN(size(x));
-nans = (isnan(x) | ~(0<v)); % v == NaN ==> (0<v) == false
-
-% First compute F(-|x|).
-%
-% Cauchy distribution.  See Devroye pages 29 and 450.
-cauchy = (v == 1);
-p(cauchy) = .5 + atan(x(cauchy))/pi;
-
-% Normal Approximation.
-normal = (v > normcutoff);
-p(normal) = 0.5 * erfc(-x(normal) ./ sqrt(2));
-
-% See Abramowitz and Stegun, formulas 26.5.27 and 26.7.1.
-gen = ~(cauchy | normal | nans);
-p(gen) = betainc(v(gen) ./ (v(gen) + x(gen).^2), v(gen)/2, 0.5)/2;
-
-% Adjust for x>0.  Right now p<0.5, so this is numerically safe.
-reflect = gen & (x > 0);
-p(reflect) = 1 - p(reflect);
-
-% Make the result exact for the median.
-p(x == 0 & ~nans) = 0.5;
-end

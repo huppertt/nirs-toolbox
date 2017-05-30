@@ -77,61 +77,6 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 dataA=dataA(1:length(time),:);
                 dataB=dataB(1:length(time),:);
                 
-                dataA=dataA-ones(length(time),1)*mean(dataA,1);
-                dataB=dataB-ones(length(time),1)*mean(dataB,1);
-                
-                dataA=dataA./(ones(length(time),1)*mad(dataA,1,1));
-                dataB=dataB./(ones(length(time),1)*mad(dataB,1,1));
-                
-                cond={};
-                if(obj.divide_events)
-                    stimNames=unique(horzcat(data(idxA).stimulus.keys, data(idxB).stimulus.keys));
-                    stim=Dictionary;
-                    for idx=1:length(stimNames)
-                        onsets=[];
-                        dur=[];
-                        s=data(idxA).stimulus(stimNames{idx});
-                        if(~isempty(s))
-                            onsets=[onsets s.onset];
-                            dur=[dur s.dur];
-                        end
-%                         s=data(idxB).stimulus(stimNames{idx});
-%                         if(~isempty(s))
-%                             onsets=[onsets; s.onset];
-%                             dur=[dur; s.dur];
-%                         end
-                        ss=nirs.design.StimulusEvents;
-                        ss.name=stimNames{idx};
-                        ss.onset=onsets;
-                        ss.dur=dur;
-                        ss.amp=ones(size(dur));
-                        stim(stimNames{idx})=ss;
-                    end
-                    
-                    
-                    Basis=Dictionary;
-                    Basis('default')=nirs.design.basis.BoxCar;
-                    [X, names] = nirs.design.createDesignMatrix(stim,time,Basis);
-                    mask={};
-                    if(~isempty(find(sum(abs(X),2)==0)))
-                        mask{1}=1*(sum(abs(X),2)==0);
-                        cond{1}='rest';
-                    end
-                    
-                    for idx=1:size(X,2);
-                        if(~all(X(:,idx)==0))
-                            mask{end+1}=(X(:,idx)>0)*1;
-                            cond{end+1}=names{idx};
-                        else
-                            disp(['discluding stimulus: ' names{idx}]);
-                        end
-                    end
-                    
-                else
-                    mask={ones(length(time),1)};
-                    cond={'rest'};
-                end
-                
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= data(idxA).description;
                 connStats(i).probe = nirs.util.createhyperscanprobe(data(idxA).probe);
@@ -139,59 +84,97 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 connStats(i).conditions=cond;
                 connStats(i).R=[];
                 
-                % Compute data hash and load cached result if match is found
-                clear hash cache_file
-                if exist(obj.cache_dir,'dir')
-                    hashopt.Method = 'SHA-256';
-                    tmpobj = obj;
-                    tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
-                    tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
-                    hash = DataHash( {dataA,dataB,tmpobj,mask} , hashopt );
-                    cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
-                    if ~obj.cache_rebuild && exist(cache_file,'file')
-                        tmp = load(cache_file,'connStats');
-                        connStats(i).R = tmp.connStats.R;
-                        connStats(i).dfe = tmp.connStats.dfe;
-                        disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link)) ' (cached)'])
-                        continue;
-                    end
-                end
+              if(obj.divide_events)
+              else
+                  tmp=nirs.core.Data;
+                  tmp.data=[dataA; dataB];
+                  tmp.time=time;
+                 
+                  lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
+                  tmp.data(lst,:)=[];
+                  tmp.time(lst)=[];
+                  [r,p,dfe]=obj.corrfcn(tmp);
+                  
+                  if(obj.symetric)
+                      tmp=nirs.core.Data;
+                      tmp.data=[dataB; dataA];
+                      tmp.time=time;
+                      
+                      lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
+                      tmp.data(lst,:)=[];
+                      tmp.time(lst)=[];
+                      r=atanh((tanh(r)+tanh(obj.corrfcn(tmp)))/2);
+                  end
+                  
+                  connStats(i).dfe=dfe;
+                  connStats(i).R=r;
+                  connStats(i).conditions=cellstr('rest');
+              end
+              
+%                     stim=data(i).stimulus;
+%                     cnt=1;
+%                     for idx=1:length(stim.keys)
+%                         s=stim(stim.keys{idx});
+%                         lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
+%                         if(length(lst)>0)
+%                             s.onset=s.onset(lst);
+%                             s.dur=s.dur(lst);
+%                             
+%                             disp(['Spliting condition: ' stim.keys{idx}]);
+%                             r=zeros(size(data(i).data,2),size(data(i).data,2),length(s.onset));
+%                             dfe=zeros(length(s.onset),1);
+%                             for j=1:length(s.onset)
+%                                 disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
+%                                 lstpts=find(data(i).time>s.onset(j)+obj.ignore &...
+%                                     data(i).time<s.onset(j)+s.dur(j)-obj.ignore);
+%                                 tmp=data(i);
+%                                 tmp.data=data(i).data(lstpts,:);
+%                                 tmp.time=data(i).time(lstpts);
+%                                 [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
+%                             end
+%                             
+%                             connStats(i).dfe(cnt)=sum(dfe);
+%                             connStats(i).R(:,:,cnt)=atanh(mean(tanh(r),3));
+%                             connStats(i).conditions{cnt}=stim.keys{idx};
+%                             cnt=cnt+1;
+%                         else
+%                             disp(['Skipping condition: ' stim.keys{idx} ...
+%                                 ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
+%                         end
+%                         
+%                     end
+% 
+%                 else
+
+%                 end
+
                 
-                for cIdx=1:length(mask)
-                    tmp=data(idxA);
-                    
-                    dd=[dataA dataB]+(1i)*(mask{cIdx}*ones(1,size(dataA,2)*2));
-                    if(obj.symetric)
-                        Z=zeros(40,size(dd,2));
-                        dd=[dd; Z; [dataB dataA]+(1i)*(mask{cIdx}*ones(1,size(dataA,2)*2))];
-                    end
-                    
-                    [ii,~]=find(dd~=0);
-                    lstBad=[max(ii)+1:length(time)];
-                    lstBad=[lstBad 1:min(ii)-1]; 
-                    dd(lstBad,:)=[];
-                    
-                    tmp.time=time;
-                    tmp.time(lstBad)=[];
-                    tmp.data=dd;
-                   
-                    [r,p,dfe]=obj.corrfcn(tmp);
-                    
-                    r(1:end/2,1:end/2)=0;
-                    r(1+end/2:end,1+end/2:end)=0;
-                    
-                    
-                    connStats(i).dfe(cIdx)=dfe;
-                    connStats(i).R(:,:,cIdx)=r;
-                    
-                end
+                % Compute data hash and load cached result if match is found
+%                 clear hash cache_file
+%                 if exist(obj.cache_dir,'dir')
+%                     hashopt.Method = 'SHA-256';
+%                     tmpobj = obj;
+%                     tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
+%                     tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
+%                     hash = DataHash( {dataA,dataB,tmpobj,mask} , hashopt );
+%                     cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
+%                     if ~obj.cache_rebuild && exist(cache_file,'file')
+%                         tmp = load(cache_file,'connStats');
+%                         connStats(i).R = tmp.connStats.R;
+%                         connStats(i).dfe = tmp.connStats.dfe;
+%                         disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link)) ' (cached)'])
+%                         continue;
+%                     end
+%                 end
+                
+   
                 disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link))])
                 
-                if exist('cache_file','var')
-                    tmp = [];
-                    tmp.connStats = connStats(i);
-                    save(cache_file,'-struct','tmp');
-                end
+%                 if exist('cache_file','var')
+%                     tmp = [];
+%                     tmp.connStats = connStats(i);
+%                     save(cache_file,'-struct','tmp');
+%                 end
                 
             end
             

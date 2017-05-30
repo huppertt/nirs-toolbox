@@ -47,13 +47,19 @@ classdef sFCStats
          
          function t = get.t(obj)
              for idx=1:length(obj.conditions)
-                 t(:,:,idx)=obj.R(:,:,idx)./sqrt((1-obj.R(:,:,idx).^2)/(max(obj.dfe(idx))-2));
+                 n=max(obj.dfe(idx));
+                 t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
+                 
              end
          end
          
          function p = get.p(obj)
              for idx=1:length(obj.conditions)
-                 p(:,:,idx)=2*tcdf(-abs(obj.t(:,:,idx)),max(obj.dfe(idx)));
+                 
+                 p = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe(idx)));
+                 p=tril(p,-1)+tril(p,-1)'+eye(size(p));
+                 
+              
              end
          end
          

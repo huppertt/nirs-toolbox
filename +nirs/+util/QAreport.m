@@ -24,8 +24,9 @@ end
 
 t=struct;
 if(isa(data,'nirs.core.ChannelStats'));
-    t.description=data.description;
-    
+    if(~isempty(data.description))
+        t.description=data.description;
+    end
     type=unique(data.variables.type);
     
     for i=1:length(type)
@@ -42,8 +43,32 @@ if(isa(data,'nirs.core.ChannelStats'));
     
     
 
-else
+elseif(isa(data,'nirs.core.Data'))
+    if(~isempty(data.description))
+        t.description=data.description;
+    end
+    type=unique(data.probe.link.type);
     
+    for i=1:length(type)
+        if(~iscellstr(type))
+            lst=find(ismember(data.probe.link.type,type(i)));
+            tt=num2str(type(i));
+        else
+            lst=find(ismember(data.probe.link.type,type{i}));
+            tt=type{i};
+        end
+        
+        d=data.data(:,lst);
+        sni=nirs.math.structnoiseindex(d);
+        t=setfield(t,['MedianVar_' tt],median(var(d,[],1)));
+        t=setfield(t,['MaxVar_' tt],max(var(d,[],1)));
+        t=setfield(t,['MinVar_' tt],min(var(d,[],1)));
+        
+        t=setfield(t,['MedianSNI_' tt],median(sni));
+        t=setfield(t,['MaxSNI_' tt],max(sni));
+        t=setfield(t,['MinSNI_' tt],min(sni));
+        t=setfield(t,['NumBadChannels_' tt],length(find(sni<2)));
+    end
 end
 
 tbl=struct2table(t);

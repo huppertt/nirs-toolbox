@@ -120,9 +120,9 @@ classdef FixedEffects < nirs.modules.AbstractModule
             tmp = vars(lst == 1, :);
             
             beta = randn(size(tmp,1), 1);
+            obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,false);
             
-            nRE=max(1,length(strfind(obj.formula,'|')));
-            lm1 = fitlme([table(beta) tmp], obj.formula,'dummyVarCoding',...
+           lm1 = fitlme([table(beta) tmp], obj.formula,'dummyVarCoding',...
                 obj.dummyCoding);
             
             X = lm1.designMatrix('Fixed');

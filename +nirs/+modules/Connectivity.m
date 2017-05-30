@@ -6,6 +6,7 @@ classdef Connectivity < nirs.modules.AbstractModule
         corrfcn;  % function to use to compute correlation (see +nirs/+sFC for options)
         divide_events;  % if true will parse into multiple conditions
         min_event_duration;  % minimum duration of events
+        ignore;
     end
     methods
         function obj = Connectivity( prevJob )
@@ -13,6 +14,7 @@ classdef Connectivity < nirs.modules.AbstractModule
            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'4xFs',true);  %default to use AR-whitened robust correlation
            obj.divide_events=false;
            obj.min_event_duration=30;
+           obj.ignore=10;
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -32,47 +34,51 @@ classdef Connectivity < nirs.modules.AbstractModule
                 if(obj.divide_events)
                     
                     stim=data(i).stimulus;
+                    cnt=1;
                     for idx=1:length(stim.keys)
                         s=stim(stim.keys{idx});
-                        lst=find(s.dur<obj.min_event_duration);
-                        s.onset(lst)=[];
-                        s.dur(lst)=[];
-                        s.amp(lst)=[];
-                        s.amp(:)=1;
-                        stim(stim.keys{idx})=s;
-                    end
-                    
-                    Basis=Dictionary;
-                    Basis('default')=nirs.design.basis.BoxCar;
-                    [X, names] = nirs.design.createDesignMatrix(stim,data(i).time,Basis);
-                    mask{1}=1*(sum(abs(X),2)==0);
-                    cond{1}='rest';
-                    
-                    for idx=1:size(X,2);
-                        if(~all(X(:,idx)==0))
-                            mask{end+1}=X(:,idx);
-                            cond{end+1}=names{idx};
+                        lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
+                        if(length(lst)>0)
+                            s.onset=s.onset(lst);
+                            s.dur=s.dur(lst);
+                            
+                            disp(['Spliting condition: ' stim.keys{idx}]);
+                            r=zeros(size(data(i).data,2),size(data(i).data,2),length(s.onset));
+                            dfe=zeros(length(s.onset),1);
+                            for j=1:length(s.onset)
+                                disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
+                                lstpts=find(data(i).time>s.onset(j)+obj.ignore &...
+                                    data(i).time<s.onset(j)+s.dur(j)-obj.ignore);
+                                tmp=data(i);
+                                tmp.data=data(i).data(lstpts,:);
+                                tmp.time=data(i).time(lstpts);
+                                [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
+                            end
+                            
+                            connStats(i).dfe(cnt)=sum(dfe);
+                            connStats(i).R(:,:,cnt)=atanh(mean(tanh(r),3));
+                            connStats(i).conditions{cnt}=stim.keys{idx};
+                            cnt=cnt+1;
                         else
-                            disp(['discluding stimulus: ' names{idx}]);
+                            disp(['Skipping condition: ' stim.keys{idx} ...
+                                ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
                         end
+                        
                     end
-                
+
                 else
-                    mask={ones(size(data(i).data,1),1)};
-                    cond={'rest'};
-                end
-                
-                for cIdx=1:length(mask)
                     tmp=data(i);
-                    tmp.data=tmp.data-ones(size(tmp.data,1),1)*mean(tmp.data,1);
-                    tmp.data=tmp.data+(1i)*(mask{cIdx}*ones(1,size(tmp.data,2)));
+                    lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
+                    tmp.data(lst,:)=[];
+                    tmp.time(lst)=[];
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
-                    connStats(i).dfe(cIdx)=dfe;
-                    connStats(i).R(:,:,cIdx)=r;
-                    
+                    connStats(i).dfe=dfe;
+                    connStats(i).R=r;
+                    connStats(i).conditions=cellstr('rest');
                 end
-                connStats(i).conditions=cond;
+                
+                
                 disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
             end
         end

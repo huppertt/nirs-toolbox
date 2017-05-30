@@ -18,5 +18,5 @@ elseif(isa(Stats,'table'))
     talpha = tinv(1-alpha/side,Stats.DF-2);
     mdc = Stats.SE.*(t2beta+talpha);
     talpha2 = tinv(1-Stats.p/side,Stats.DF-2);
-    pwr=tcdf(Stats.T-talpha2,Stats.DF-2);
+    pwr=tcdf(abs(Stats.T)-talpha2,Stats.DF-2);
 end

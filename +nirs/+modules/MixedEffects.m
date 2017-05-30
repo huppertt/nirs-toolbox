@@ -102,6 +102,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             nRE=max(1,length(strfind(obj.formula,'|')));
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
+            
+            obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
+            
             lm1 = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
                 obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
