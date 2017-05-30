@@ -56,8 +56,8 @@ classdef sFCStats
          function p = get.p(obj)
              for idx=1:length(obj.conditions)
                  
-                 p = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe(idx)));
-                 p=tril(p,-1)+tril(p,-1)'+eye(size(p));
+                 p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe(idx)));
+                 p(:,:,idx)=tril(p(:,:,idx),-1)+tril(p(:,:,idx),-1)'+eye(size(p(:,:,idx)));
                  
               
              end

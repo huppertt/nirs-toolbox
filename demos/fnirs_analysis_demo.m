@@ -284,7 +284,7 @@ hb = j.run( raw );
 % Now, let's start a new job and run the GLM model 
 
 % This is the recommended first-level GLM module.
-j = nirs.modules.AR_IRLS();  % remember, creating a job with no input will start a new job.  
+j = nirs.modules.GLM();  % remember, creating a job with no input will start a new job.  
 % We could have just kept adding the the old job if we had wanted to
 % We can see that this job has a number of fields
 %  disp(j)

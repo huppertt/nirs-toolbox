@@ -23,8 +23,7 @@ else
 end
 
 if(~isreal(data))
-    mask=(imag(data)>0);
-    
+    mask=(imag(data)>0);   
 else
     mask=ones(size(data));
 end
@@ -33,7 +32,7 @@ end
 
 
 if(robust_flag)
-    [R,p]=nirs.math.robust_corrcoef(yfilt,false,mask);
+    [R,p]=nirs.math.robust_corrcoef2(yfilt,false,mask);
 else
     [R,p]=nirs.math.corrcoef(yfilt,false,mask);
 end

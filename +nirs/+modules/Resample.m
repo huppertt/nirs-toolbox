@@ -29,7 +29,7 @@ classdef Resample < nirs.modules.AbstractModule
                     
                     
                     
-                    if(length(t)<10000)
+                    if(length(t)<10000 | ~isint(obj.Fs))
                         N = floor((t(end)-t(1)) * obj.Fs);
                         new_t = t(1) + (0:N-1)' / obj.Fs;
                         

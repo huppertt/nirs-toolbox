@@ -46,7 +46,7 @@ classdef KeepStims < nirs.modules.AbstractModule
                     % new stimulus
                     data(i).stimulus = Dictionary(keys(lst), vals(lst));
                     
-                    if any( obj.required & ~lst )
+                    if any( obj.required(:) & ~lst(:) )
                         bad_subjects(i) = true;
                     end
                     

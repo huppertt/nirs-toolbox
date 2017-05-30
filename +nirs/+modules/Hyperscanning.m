@@ -8,17 +8,21 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         min_event_duration;  % minimum duration of events
         link;
         symetric;
+        verbose;
+        ignore;  % seconds at start/end of each scan or block to ignore
         cache_dir;  % (optional) directory to cache results (unset disables caching)
         cache_rebuild;  % (optional) force rebuild of cached results (don't load previous results from cache, only save new results)
     end
     methods
         function obj = Hyperscanning( prevJob )
             obj.name = 'Hyperscanning';
-            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'4xFs',true);  %default to use AR-whitened robust correlation
+            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'12xFs',true);  %default to use AR-whitened robust correlation
             obj.divide_events=false;
             obj.min_event_duration=30;
             obj.symetric=true;
+            obj.ignore=10;
             obj.cache_dir='';
+            obj.verbose=false;
             obj.cache_rebuild=false;
             if nargin > 0
                 obj.prevJob = prevJob;
@@ -81,104 +85,107 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 connStats(i).description= data(idxA).description;
                 connStats(i).probe = nirs.util.createhyperscanprobe(data(idxA).probe);
                 connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
-                connStats(i).conditions=cond;
                 connStats(i).R=[];
                 
-              if(obj.divide_events)
-              else
-                  tmp=nirs.core.Data;
-                  tmp.data=[dataA; dataB];
-                  tmp.time=time;
-                 
-                  lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
-                  tmp.data(lst,:)=[];
-                  tmp.time(lst)=[];
-                  [r,p,dfe]=obj.corrfcn(tmp);
-                  
-                  if(obj.symetric)
-                      tmp=nirs.core.Data;
-                      tmp.data=[dataB; dataA];
-                      tmp.time=time;
-                      
-                      lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
-                      tmp.data(lst,:)=[];
-                      tmp.time(lst)=[];
-                      r=atanh((tanh(r)+tanh(obj.corrfcn(tmp)))/2);
-                  end
-                  
-                  connStats(i).dfe=dfe;
-                  connStats(i).R=r;
-                  connStats(i).conditions=cellstr('rest');
-              end
-              
-%                     stim=data(i).stimulus;
-%                     cnt=1;
-%                     for idx=1:length(stim.keys)
-%                         s=stim(stim.keys{idx});
-%                         lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
-%                         if(length(lst)>0)
-%                             s.onset=s.onset(lst);
-%                             s.dur=s.dur(lst);
-%                             
-%                             disp(['Spliting condition: ' stim.keys{idx}]);
-%                             r=zeros(size(data(i).data,2),size(data(i).data,2),length(s.onset));
-%                             dfe=zeros(length(s.onset),1);
-%                             for j=1:length(s.onset)
-%                                 disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
-%                                 lstpts=find(data(i).time>s.onset(j)+obj.ignore &...
-%                                     data(i).time<s.onset(j)+s.dur(j)-obj.ignore);
-%                                 tmp=data(i);
-%                                 tmp.data=data(i).data(lstpts,:);
-%                                 tmp.time=data(i).time(lstpts);
-%                                 [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
-%                             end
-%                             
-%                             connStats(i).dfe(cnt)=sum(dfe);
-%                             connStats(i).R(:,:,cnt)=atanh(mean(tanh(r),3));
-%                             connStats(i).conditions{cnt}=stim.keys{idx};
-%                             cnt=cnt+1;
-%                         else
-%                             disp(['Skipping condition: ' stim.keys{idx} ...
-%                                 ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
-%                         end
-%                         
-%                     end
-% 
-%                 else
-
-%                 end
-
+                if(obj.divide_events)
+                    stim=data(idxA).stimulus;
+                    cnt=1;
+                    for idx=1:length(stim.keys)
+                        s=stim(stim.keys{idx});
+                        lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
+                        if(length(lst)>0)
+                            s.onset=s.onset(lst);
+                            s.dur=s.dur(lst);
+                            
+                            if(obj.verbose)
+                                disp(['Spliting condition: ' stim.keys{idx}]);
+                            end
+                            n1=size(dataA,2)+size(dataB,2);
+                            r=zeros(n1,n1,length(s.onset));
+                            dfe=zeros(length(s.onset),1);
+                            for j=1:length(s.onset)
+                                if(obj.verbose)
+                                    disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
+                                end
+                                lstpts=find(time>s.onset(j)+obj.ignore &...
+                                    time<s.onset(j)+s.dur(j)-obj.ignore);
+                                tmp=nirs.core.Data;
+                                tmp.data=[dataA(lstpts,:) dataB(lstpts,:)];
+                                tmp.time=time(lstpts);
+                                [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
+                                
+                                if(obj.symetric)
+                                    r(:,:,j)=atanh((tanh(r(:,:,j))+tanh(squeeze(r(:,:,j))'))/2);
+                                    
+                                end
+                            end
+                            connStats(i).dfe(cnt)=sum(dfe);
+                            connStats(i).R(:,:,cnt)=atanh(mean(tanh(r),3));
+                            connStats(i).conditions{cnt}=stim.keys{idx};
+                            cnt=cnt+1;
+                            
+                        else
+                            disp(['Skipping condition: ' stim.keys{idx} ...
+                                ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
+                            
+                        end
+                        
+                    end
+                    
+                    
+                else
+                    tmp=nirs.core.Data;
+                    tmp.data=[dataA dataB];
+                    tmp.time=time;
+                    
+                    lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
+                    tmp.data(lst,:)=[];
+                    tmp.time(lst)=[];
+                    [r,p,dfe]=obj.corrfcn(tmp);
+                    
+                    if(obj.symetric)
+                        r=atanh((tanh(r)+tanh(r'))/2);
+                    end
+                    
+                    connStats(i).dfe=dfe;
+                    connStats(i).R=r;
+                    connStats(i).conditions=cellstr('rest');
+                end
+                
+                
                 
                 % Compute data hash and load cached result if match is found
-%                 clear hash cache_file
-%                 if exist(obj.cache_dir,'dir')
-%                     hashopt.Method = 'SHA-256';
-%                     tmpobj = obj;
-%                     tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
-%                     tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
-%                     hash = DataHash( {dataA,dataB,tmpobj,mask} , hashopt );
-%                     cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
-%                     if ~obj.cache_rebuild && exist(cache_file,'file')
-%                         tmp = load(cache_file,'connStats');
-%                         connStats(i).R = tmp.connStats.R;
-%                         connStats(i).dfe = tmp.connStats.dfe;
-%                         disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link)) ' (cached)'])
-%                         continue;
-%                     end
-%                 end
+                %                 clear hash cache_file
+                %                 if exist(obj.cache_dir,'dir')
+                %                     hashopt.Method = 'SHA-256';
+                %                     tmpobj = obj;
+                %                     tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
+                %                     tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
+                %                     hash = DataHash( {dataA,dataB,tmpobj,mask} , hashopt );
+                %                     cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
+                %                     if ~obj.cache_rebuild && exist(cache_file,'file')
+                %                         tmp = load(cache_file,'connStats');
+                %                         connStats(i).R = tmp.connStats.R;
+                %                         connStats(i).dfe = tmp.connStats.dfe;
+                %                         disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link)) ' (cached)'])
+                %                         continue;
+                %                     end
+                %                 end
                 
-   
+                connStats(i).R(1:end/2,1:end/2,:)=0;
+                connStats(i).R(1+end/2:end,1+end/2:end,:)=0;
+                
                 disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link))])
                 
-%                 if exist('cache_file','var')
-%                     tmp = [];
-%                     tmp.connStats = connStats(i);
-%                     save(cache_file,'-struct','tmp');
-%                 end
+                %                 if exist('cache_file','var')
+                %                     tmp = [];
+                %                     tmp.connStats = connStats(i);
+                %                     save(cache_file,'-struct','tmp');
+                %                 end
                 
             end
             
         end
     end
 end
-        
+
