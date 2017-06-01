@@ -85,7 +85,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             nRE=length(strfind(obj.formula,'|'));
             
             if(nRE>0)
-                warning('Random effects are fully tested');
+                warning('Random effects are not fully tested');
             end
             
             corr=rand(size(D(:,1)));
