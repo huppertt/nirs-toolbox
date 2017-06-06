@@ -16,7 +16,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
     methods
         function obj = Hyperscanning( prevJob )
             obj.name = 'Hyperscanning';
-            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'12xFs',true);  %default to use AR-whitened robust correlation
+            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'18xFs',true);  %default to use AR-whitened robust correlation
             obj.divide_events=false;
             obj.min_event_duration=30;
             obj.symetric=true;

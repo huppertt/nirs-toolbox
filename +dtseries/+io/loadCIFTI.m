@@ -10,7 +10,7 @@ if ischar( filenames )
     filenames = {filenames};
 end
 if ischar( surf )
-    filenames = {surf};
+   surf = {surf};
 end
 
 

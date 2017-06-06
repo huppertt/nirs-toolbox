@@ -63,7 +63,8 @@ classdef ImageStats
         
         % t statistic calculation
         function tstat = get.tstat( obj )
-            tstat = obj.beta ./ sqrt(sum(obj.covb_chol.^2,2));
+            se=sqrt(sum(obj.covb_chol.^2,2));
+            tstat = obj.beta ./ se;
             tstat(find(isnan(tstat)))=0;
         end
         

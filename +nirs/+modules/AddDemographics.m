@@ -22,10 +22,23 @@ classdef AddDemographics < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
+            
+              %remove a few bad rows (bad excel format)
+            f=obj.demoTable.Properties.VariableNames;
+            for i=1:length(f)
+                if(~isempty(strfind(f{i},'Var')))
+                    obj.demoTable.(f{i})=[];
+                end
+            end
+
+            
             % columns of the table that arent varToMatch
             colNames = obj.demoTable.Properties.VariableNames;
             lst = find( ~strcmp( obj.varToMatch, colNames ) );
                 
+          
+            
+            
             for i = 1:length(data)
 
                 

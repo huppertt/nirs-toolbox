@@ -88,6 +88,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 nchan=size(Vall,2);
                 S(i).beta=vec(stats.beta(1:ncond,:)*Vall');
                 covb = sparse(ncond*size(Vall,2),ncond*nchan);
+                Vall=kron(speye(ncond,ncond),Vall);
                 for id=1:ncond
                     for id2=1:ncond
                         covb((id-1)*nchan+[1:nchan],(id2-1)*nchan+[1:nchan])=sparse(W*diag(squeeze(stats.covb(id,id2,:)))*W');
@@ -95,6 +96,9 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 end
                 [Uu,Su,Vu]=nirs.math.mysvd(covb);
                 S(i).covb_chol = Vall*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
+                
+%                 se=sqrt(sum(S(i).covb_chol.^2,2));
+%                 S.covb_chol(find(se<max(se)/100),:)=Inf;
                 
                 flds=unique(data(i).mesh.link.type);
                 tbl=[];
