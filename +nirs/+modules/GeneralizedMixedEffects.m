@@ -169,7 +169,7 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
           end      
           for j=1:size(Z,2)
              s=setfield(s,['Z' num2str(j)],Z(:,j));
-                formula2=[formula2 ' +(' num2str(j) '|Z' num2str(j) ')']; 
+                formula2=[formula2 ' +(1|Z' num2str(j) ')']; 
           end
               %% fit the model
           glm=fitglme(struct2table(s),formula2);
