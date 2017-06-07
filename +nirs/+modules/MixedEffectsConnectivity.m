@@ -89,7 +89,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
             
             corr=rand(size(D(:,1)));
-            vars=[demoall table(corr,cond)];
+            vars=[table(corr,cond) demoall];
             warning('off','stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit');
             
             lm = fitlme(vars,formula, 'dummyVarCoding',obj.dummyCoding,...
