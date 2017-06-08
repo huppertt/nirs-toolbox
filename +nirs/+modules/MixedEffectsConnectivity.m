@@ -189,7 +189,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                         for p = 1:length(CoeffParts)
                             if ~lm.VariableInfo.IsCategorical(PredictorNames{p}), continue; end
                             if strcmp(PredictorNames{p},'cond'), continue; end
-                            if ~isequal(CoeffParts{p},demo.(PredictorNames{p}){idx}), use_sub = 0; end
+                            vals = demo.(PredictorNames{p});
+                            if iscell(vals), val = vals{idx}; else, val = vals(idx); end
+                            if ~isequal(CoeffParts{p},val), use_sub = 0; end
                         end
                         if use_sub == 0, continue; end
                         
