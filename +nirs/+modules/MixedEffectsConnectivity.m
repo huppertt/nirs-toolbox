@@ -99,13 +99,11 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
             lst=find(~any(isnan(X),2));
             
-            D=tanh(D);
             if(nRE>0)
                 D=D-Z*inv(Z'*Z)*Z'*D;
             end
             Coef = inv(X(lst,:)'*X(lst,:))*X(lst,:)'*D(lst,:);
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
-            Coef=atanh(Coef);
             
 %             Coef=zeros(length(lst),length(lst),size(X,2)); cnt=0;
 %             for idx=1:length(lst)
