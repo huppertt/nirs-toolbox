@@ -68,10 +68,15 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             cond={};
             cnt=1;
             demoall=demo(1,:);
+            mask = triu(true(sqrt(n)));
             for i=1:length(S) 
                
                 for cIdx=1:length(S(i).conditions)
-                    D(cnt,:)=real(reshape(S(i).(fld)(:,:,cIdx),[],1))';
+                    slice = S(i).(fld)(:,:,cIdx);
+                    if issymmetric(slice)
+                        slice(mask) = nan;
+                    end
+                    D(cnt,:)=real(reshape(slice,[],1))';
                     cond{cnt,1}=S(i).conditions{cIdx};
                     demoall(cnt,:)=demo(i,:);
                     cnt=cnt+1;
@@ -104,6 +109,18 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
             Coef = inv(X(lst,:)'*X(lst,:))*X(lst,:)'*D(lst,:);
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
+            
+            % Zero out diagonal and copy lower triangle to upper if it was
+            % masked due to symmetry
+            for cIdx = 1:size(Coef,3)
+                slice = Coef(:,:,cIdx);
+                if all(isnan(slice(mask)))
+                    sliceT = slice';
+                    slice(mask) = sliceT(mask);
+                end
+                slice(1:size(slice,1)+1:end) = 0;
+                Coef(:,:,cIdx) = slice;
+            end
             
 %             Coef=zeros(length(lst),length(lst),size(X,2)); cnt=0;
 %             for idx=1:length(lst)
