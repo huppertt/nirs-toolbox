@@ -69,7 +69,7 @@ classdef sFCStats
             for idx=1:length(obj.conditions)
                 pcond = p(:,:,idx);
                 qcond = ones(size(pcond));
-                if issymmetric(pcond)
+                if nansum(nansum(pcond-pcond')) == 0
                     mask = triu(true(size(pcond)));
                 else
                     mask = eye(size(pcond,1));
