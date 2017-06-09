@@ -66,8 +66,21 @@ classdef sFCStats
          function q = get.q(obj)
             p=obj.p;
             q=ones(size(p));
-            lst=find(p~=1);  
-            q(lst)=nirs.math.BenjaminiHochberg(p(lst));
+            for idx=1:length(obj.conditions)
+                pcond = p(:,:,idx);
+                qcond = ones(size(pcond));
+                if issymmetric(pcond)
+                    mask = triu(true(size(pcond)));
+                else
+                    mask = eye(size(pcond,1));
+                end
+                pcond(mask) = 1;
+                lst=find(pcond~=1);  
+                qcond(lst)=nirs.math.BenjaminiHochberg(pcond(lst));
+                qcondT = qcond';
+                qcond(mask) = qcondT(mask);
+                q(:,:,idx) = qcond;
+            end
          end
          
          
