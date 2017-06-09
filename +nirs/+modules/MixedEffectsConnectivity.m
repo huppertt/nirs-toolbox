@@ -106,10 +106,14 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             Coef = nan(size(X,2),size(D,2));
             lstChan=find(~any(isnan(D),1) & ~all(D==0,1));
             
-            for ind = 1:length(lstChan)
-                lm2 = fitlmematrix(X,D(:,lstChan(ind)),Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
-                Coef(:,lstChan(ind)) = lm2.Coefficients.Estimate;
+            tmpCoef = nan(size(X,2),length(lstChan));
+            tmpD = D(:,lstChan);
+            parfor ind = 1:length(lstChan)
+                lm2 = fitlmematrix(X,tmpD(:,ind),Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+                tmpCoef(:,ind) = lm2.Coefficients.Estimate;
             end
+            Coef(:,lstChan) = tmpCoef;
+            
 
 %             % Manual approach
 %             lst=find(~any(isnan(X),2));
