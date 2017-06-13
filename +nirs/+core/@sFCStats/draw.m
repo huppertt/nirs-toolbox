@@ -406,5 +406,6 @@ for cIdx=1:length(obj.conditions)
         end
     end
     set(f(cIdx),'Name',obj.conditions{cIdx},'NumberTitle','off')
+    supertitle(f(cIdx),obj.conditions{cIdx});
 end
 
