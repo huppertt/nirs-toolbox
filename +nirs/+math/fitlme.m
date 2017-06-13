@@ -5,7 +5,7 @@ q = size(Z,2);
 
 Iq = spdiags(ones(q,1),0,q,q);
 
-[R,status,S] = chol(Z'*Z + Iq);
+[R,status,S] = chol(sparse(Z'*Z + Iq));
 
 Q1 = ((X'*Z)*S) / R;
 R1R1t = X'*X - Q1*Q1';

@@ -58,7 +58,10 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
               if(isa(S(1),'nirs.core.sFCStats'))
                   fld='Z';
-                  sym=(norm(S(1).Z-S(1).Z')<eps(1)*10);
+                  Z = S(1).Z;
+                  ZT = permute(Z,[2 1 3:ndims(Z)]);
+                  L2norm = sqrt(sum(sum((Z-ZT).^2,1),2));
+                  sym=all(L2norm<eps(1)*10);
               else
                   fld='F';
                   sym=false;
@@ -127,7 +130,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             lst=find(~any(isnan(X),2));
             [Q,R] = qr(X(lst,:),0);
             if(size(Z,2)>0)
-                [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst),Z(lst,:));
+                [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst,:),Z(lst,:));
                 resid = D(lst,:)-X(lst,:)*Coef-Z(lst,:)*bhat;
             else
                 Coef = R\(Q'*D(lst,:));
