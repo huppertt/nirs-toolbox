@@ -56,7 +56,7 @@ classdef Connectivity < nirs.modules.AbstractModule
                             end
                             
                             connStats(i).dfe(cnt)=sum(dfe);
-                            connStats(i).R(:,:,cnt)=atanh(mean(tanh(r),3));
+                            connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
                             connStats(i).conditions{cnt}=stim.keys{idx};
                             cnt=cnt+1;
                         else
