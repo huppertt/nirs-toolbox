@@ -26,14 +26,16 @@ classdef sFCStats
         % Results storage
         R               % correlation value (depends on model)
         dfe          	% degrees of freedom
-       
+        ZstdErr            %holds error covariance
+        
     end
     
     properties ( Dependent = true )       
         p           % p-value (depends on model)
         Z           % Fisher-Z transform
         q
-        t
+        t               %holds t-statistic value
+         
     end
     
     
@@ -48,8 +50,11 @@ classdef sFCStats
          function t = get.t(obj)
              for idx=1:length(obj.conditions)
                  n=max(obj.dfe(idx));
-                 t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
-                 
+                 if(isempty(obj.ZstdErr))
+                     t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
+                 else
+                     t(:,:,idx)=obj.Z(:,:,idx)./obj.ZstdErr(:,:,idx);
+                 end
              end
          end
          
@@ -66,22 +71,25 @@ classdef sFCStats
          function q = get.q(obj)
             p=obj.p;
             q=ones(size(p));
-            for idx=1:length(obj.conditions)
-                pcond = p(:,:,idx);
-                qcond = ones(size(pcond));
-                if nansum(nansum(pcond-pcond')) == 0
-                    mask = triu(true(size(pcond)));
-                else
-                    mask = eye(size(pcond,1));
-                end
-                pcond(mask) = 1;
-                lst=find(pcond~=1);  
-                qcond(lst)=nirs.math.BenjaminiHochberg(pcond(lst));
-                qcondT = qcond';
-                qcond(mask) = qcondT(mask);
-                q(:,:,idx) = qcond;
+            
+            sym = (norm(reshape(obj.Z,size(obj.Z,1),[])-reshape(permute(obj.Z,[2 1 3]),size(obj.Z,1),[]))<eps(1)*10);
+            
+            if(sym)
+                mask=repmat(triu(true(size(p,1)),1),1,size(p,3));
+            else
+                mask=repmat(true(size(p,1)) & (eye(size(p,1))~=1),1,size(p,3));
             end
-         end
+            lst=find(mask);
+            q(lst)=nirs.math.BenjaminiHochberg(p(lst));
+           
+            if(sym)
+                for i=1:size(q,3)
+                    q(:,:,i)=min(q(:,:,i),squeeze(q(:,:,i))');
+                end
+            end
+            
+            
+        end
          
          
         function out = table( obj )

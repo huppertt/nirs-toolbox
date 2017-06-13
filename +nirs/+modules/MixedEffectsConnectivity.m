@@ -19,7 +19,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
       end
     
     methods
-        function obj = MixedEffects( prevJob )
+        function obj = MixedEffectsConnectivity( prevJob )
             obj.name = 'Mixed Effects Model for Connectivity';
             if nargin > 0
                 obj.prevJob = prevJob;
@@ -58,7 +58,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             
               if(isa(S(1),'nirs.core.sFCStats'))
                   fld='Z';
-                  sym=true;
+                  sym=(norm(S(1).Z-S(1).Z')<eps(1)*10);
               else
                   fld='F';
                   sym=false;
@@ -68,7 +68,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             cond={};
             cnt=1;
             demoall=demo(1,:);
-            mask = triu(true(sqrt(n)));
+            mask = triu(true(sqrt(n)),1);
             for i=1:length(S) 
                
                 for cIdx=1:length(S(i).conditions)
@@ -102,27 +102,51 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             X = lm.designMatrix('Fixed');
             Z = lm.designMatrix('Random');
             
-            
-            Coef = nan(size(X,2),size(D,2));
-            lstChan=find(~any(isnan(D),1) & ~all(D==0,1));
-            
-            tmpCoef = nan(size(X,2),length(lstChan));
-            tmpD = D(:,lstChan);
-            parfor ind = 1:length(lstChan)
-                lm2 = fitlmematrix(X,tmpD(:,ind),Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
-                tmpCoef(:,ind) = lm2.Coefficients.Estimate;
-            end
-            Coef(:,lstChan) = tmpCoef;
-            
+%             
+%             Coef = nan(size(X,2),size(D,2));
+%             lstChan=find(~any(isnan(D),1) & ~all(D==0,1));
+%             
+%             lm2 = fitlmematrix(X,dd,Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+%             
+%             
+%              for ind = 1:length(lstChan)
+%                  disp(ind)
+%                  lm2 = fitlmematrix(X,D(:,lstChan(ind)),Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+%                  Coef(:,lstChan(ind)) = lm2.Coefficients.Estimate;
+%              end
 
-%             % Manual approach
-%             lst=find(~any(isnan(X),2));
-%             if(nRE>0)
-%                 D=D-Z*inv(Z'*Z)*Z'*D;
-%             end
-%             Coef = inv(X(lst,:)'*X(lst,:))*X(lst,:)'*D(lst,:);
+            for i=1:length(S)
+                SE(i) = 1/sqrt(S(i).dfe-3);
+            end
+            W=diag(1./SE);
+            X=W*X;
+            D=W*D;
+            Z=W*Z;
+            
+            % Manual approach
+            lst=find(~any(isnan(X),2));
+            [Q,R] = qr(X(lst,:),0);
+            if(size(Z,2)>0)
+                [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst),Z(lst,:));
+                resid = D(lst,:)-X(lst,:)*Coef-Z(lst,:)*bhat;
+            else
+                Coef = R\(Q'*D(lst,:));
+                resid = D(lst,:)-X(lst,:)*Coef;
+            end
+            
+           
+                        
+           
+            nobs=length(lst);
+            p=size(X,2);
+            dfe = nobs-p;
+            mse = sum(resid.^2,1)/dfe;
+            ri = R\eye(p);
+            xtxi = ri*ri';
+            StdErr = sqrt(xtxi*mse);
             
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
+            StdErr = reshape(StdErr',sqrt(n),sqrt(n),size(X,2));
             
             % Zero out diagonal and copy lower triangle to upper if it was
             % masked due to symmetry
@@ -134,16 +158,27 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 end
                 slice(1:size(slice,1)+1:end) = 0;
                 Coef(:,:,cIdx) = slice;
+                
+                 slice = StdErr(:,:,cIdx);
+                if all(isnan(slice(mask)))
+                    sliceT = slice';
+                    slice(mask) = sliceT(mask);
+                end
+                slice(1:size(slice,1)+1:end) = 0;
+                StdErr(:,:,cIdx) = slice;
+                
+                
             end
+            
+             CoefficientNames=lm.CoefficientNames;
             
             %Now sort back out
-            if(isa(S(1),'nirs.core.sFCStats'))
-                G = nirs.core.sFCStats();
-            else
-                error('fix this');
-            end
+            G = nirs.core.sFCStats();
+            G.type=S(1).type;
+            G.conditions=CoefficientNames;
+
             
-            CoefficientNames=lm.CoefficientNames;
+           
             PredictorNames=lm.PredictorNames;
             CondNames=cell(size(CoefficientNames));
             for i=1:length(CoefficientNames)
@@ -162,9 +197,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
 
             G.description = 'Group Level Connectivity';
-            G.type=S(1).type;
+            
             G.probe=S(1).probe;
-            G.conditions=CoefficientNames;
+            
             
             %  Labels=strcat(repmat('Labels_',length(Labels),1),Labels);
             if(ismember('condition',vars.Properties.VariableNames))
@@ -173,16 +208,12 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             else
                 nConds=1;
             end
-            if(isa(S(1),'nirs.core.sFCStats'))
+            
                 [n,m]=size(S(1).R);
-                Z=Coef;
-                G.R=tanh(Z);
+                G.R=tanh(Coef);
+                G.ZstdErr = StdErr;
                 
-                
-                
-                
-                dfe=zeros(1,length(CoefficientNames)); 
-                for idx=1:length(S); 
+               for idx=1:length(S); 
                     for j=1:length(CoefficientNames);
                         CoeffParts = strsplit( CoefficientNames{j} , ':' );
                         
@@ -201,26 +232,11 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                         
                         k = find(ismember(S(idx).conditions,CondNames{j}));
 
-                        if(~isempty(k))
-                            dfe(j)=dfe(j)+S(idx).dfe(k);
-                        end
+                      
                     end; 
                 end;
-                dfe(find(dfe==0))=mean(dfe(find(dfe~=0)));
-                G.dfe=dfe; %/length(S);
-                %G.dfe(1:length(CoefficientNames)) = lm.DFE;
-                
-             else
-                error('fix this part');
-                [n,m]=size(S(1).Grangers);
-                % lst=find(ismember(lmG.CoefficientNames,Labels));
-                Gr=Coef;
-                dfe1=S(1).dfe1; for idx=2:length(S); dfe1=dfe1+S(idx).dfe1; end;
-                dfe2=S(1).dfe2; for idx=2:length(S); dfe2=dfe2+S(idx).dfe2; end;
-                G.dfe2=dfe2/length(S);
-                G.dfe1=dfe1/length(S);
-                G=G.GtoF(Gr);
-            end
+                G.dfe=dfe; 
+    
             
         end
     end

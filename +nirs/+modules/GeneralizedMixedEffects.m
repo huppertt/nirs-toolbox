@@ -140,7 +140,6 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
             end
             
             
-            
             W(lstBad,:)=[];
             W(:,lstBad)=[];
             X(lstBad,:)=[];
@@ -159,20 +158,22 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
                 warning('Model is unstable');
             end
             lstKeep=find(~all(X==0));
-           
+          
+          [tmp,bhat,~]=nirs.math.fitlme(X,beta,Z);  
+          beta = beta-Z*bhat;  
+            
           s=struct;  
           s.beta=beta;
           formula2='beta ~ -1';
           for j=1:size(X,2)
                 s=setfield(s,['X' num2str(j)],X(:,j));
-                formula2=[formula2 ' +X' num2str(j)]; 
-          end      
-          for j=1:size(Z,2)
-             s=setfield(s,['Z' num2str(j)],Z(:,j));
-                formula2=[formula2 ' +(1|Z' num2str(j) ')']; 
+                formula2=[formula2 '+X' num2str(j)]; 
           end
-              %% fit the model
-          glm=fitglme(struct2table(s),formula2);
+         
+%          lm=fitlmematrix(X,beta,Z,[]);
+          
+          %% fit the model
+          glm=fitglm(struct2table(s),formula2,'dummyVarCoding',obj.dummyCoding);
            
              cnames = lm1.CoefficientNames(:);
             for idx=1:length(cnames);
@@ -205,38 +206,36 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
             
           if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
-                yproj = beta - lm2.designMatrix('random')*lm2.randomEffects;
-                yproj=inv(W)*yproj;
-                
-                
+                             
                 [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
                 vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
                 if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
                 btest=[]; models=cell(height(G.variables),1);
-                for idx=1:max(lst)                   
-                        ll=find(lst == idx);
-                        tmp = vars(ll, :);
-                        beta = yproj(ll);
-                        w=full(dWTW(ll));
-                        
-                       mdl{idx} = fitlm([table(beta) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',w.^2,'dummyVarCoding','full');
-                          
-                       
-                       btest=[btest; mdl{idx}.Coefficients.Estimate];
-                       
-                        for j=1:length(mdl{idx}.CoefficientNames)
-                            cc=mdl{idx}.CoefficientNames{j};
-                            if(isempty(find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)))))
-                                if(~isempty(strfind(cc,'cond_')))
-                                    cc=cc(strfind(cc,'cond_')+length('cond_'):end);
-                                else
-                                    cc=cc(min(strfind(cc,'_'))+1:end);
-                                end
-                            end
-                            id=find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)) & ...
-                                ismember(G.variables.detector,sd.Var2(idx)) & ismember(G.variables.type,sd.Var3{idx}));
-                           models{id}=mdl{idx};
-                       end
+                
+               
+                
+             for idx=1:max(lst)
+                    ll=find(lst == idx);
+                    x=X(ll,:);
+                    s=struct;
+                    s.beta=beta(ll);
+                    formula2='beta ~ -1';
+                    for j=1:size(x,2)
+                        if(any(full(x(:,j))~=0))
+                        s=setfield(s,['X' num2str(j)],x(:,j));
+                        formula2=[formula2 '+X' num2str(j)];
+                        end
+                    end
+                    
+                    mdl{idx} = fitglm(struct2table(s),formula2,'dummyVarCoding',obj.dummyCoding);
+                    
+                    btest=[btest; mdl{idx}.Coefficients.Estimate];
+                    
+                    for j=1:length(mdl{idx}.CoefficientNames)
+                        cc=mdl{idx}.CoefficientNames{j};
+                        id=find(ismember(glm.CoefficientNames',cc));
+                        models{id}=mdl{idx};
+                    end
                 end
                 %mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
                 G.variables.model=models;

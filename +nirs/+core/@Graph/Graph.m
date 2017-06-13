@@ -57,6 +57,7 @@ classdef Graph
         
         function obj = weightededge(obj)
             cnt=1;
+            orig=[]; value=[]; dest=[]; directional=[];
             obj.nodeInfo.value(:)=1;
             for i=1:size(obj.adjacency,1)
                 for j=1:size(obj.adjacency,2)

@@ -53,6 +53,15 @@ function S = ttest(obj, c, b, names)
             Z(i,j,:)=c*squeeze(obj.Z(i,j,:));
         end
     end
+    if(~isempty(obj.ZstdErr))
+        for i=1:size(obj.ZstdErr,1)
+            for j=1:size(obj.ZstdErr,2)
+                ZstdErr(i,j,:)=sqrt(c*diag(squeeze(obj.ZstdErr(i,j,:)).^2)*c');
+            end
+        end
+        obj.ZstdErr=ZstdErr;
+    end
+    
     
     S=obj;
     S.R=tanh(Z);
