@@ -115,12 +115,12 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                 [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
                                 
                                 if(obj.symetric)
-                                    r(:,:,j)=atanh((tanh(r(:,:,j))+tanh(squeeze(r(:,:,j))'))/2);
+                                    r(:,:,j)=tanh((atanh(r(:,:,j))+atanh(squeeze(r(:,:,j))'))/2);
                                     
                                 end
                             end
                             connStats(i).dfe(cnt)=sum(dfe);
-                            connStats(i).R(:,:,cnt)=atanh(mean(tanh(r),3));
+                            connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
                             connStats(i).conditions{cnt}=stim.keys{idx};
                             cnt=cnt+1;
                             
@@ -144,7 +144,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
                     if(obj.symetric)
-                        r=atanh((tanh(r)+tanh(r'))/2);
+                        r=tanh((atanh(r)+atanh(r'))/2);
                     end
                     
                     connStats(i).dfe=dfe;
