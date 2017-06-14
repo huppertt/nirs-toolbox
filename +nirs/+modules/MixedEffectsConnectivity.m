@@ -131,7 +131,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             [Q,R] = qr(X(lst,:),0);
             if(size(Z,2)>0)
                 [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst,:),Z(lst,:));
-                resid = D(lst,:)-X(lst,:)*Coef-Z(lst,:)*bhat;
+                resid = D(lst,:)-X(lst,:)*Coef;
             else
                 Coef = R\(Q'*D(lst,:));
                 resid = D(lst,:)-X(lst,:)*Coef;
