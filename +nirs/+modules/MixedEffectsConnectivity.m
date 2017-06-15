@@ -142,7 +142,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
            
             nobs=length(lst);
             p=size(X,2);
-            dfe = nobs-p;
+            dfe = nobs-p+1;
             mse = sum(resid.^2,1)/dfe;
             ri = R\eye(p);
             xtxi = ri*ri';
