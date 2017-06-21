@@ -165,9 +165,16 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
           s=struct;  
           s.beta=beta;
           formula2='beta ~ -1';
+          coefnames = matlab.lang.makeValidName(lm1.CoefficientNames);
+          ncoef = length(coefnames);
+          chanlbls = unique(vars(:,2:4),'stable','rows');
+          
           for j=1:size(X,2)
-                s=setfield(s,['X' num2str(j)],X(:,j));
-                formula2=[formula2 '+X' num2str(j)]; 
+                coef = mod(j-1,ncoef)+1;
+                channel = (j-coef)/ncoef + 1;
+                lbl=sprintf('%s_S%02i_D%02i_%s',coefnames{coef},chanlbls.source(channel),chanlbls.detector(channel),chanlbls.type{channel});
+                s=setfield(s,lbl,X(:,j));
+                formula2=[formula2 '+' lbl]; 
           end
          
 %          lm=fitlmematrix(X,beta,Z,[]);
@@ -206,41 +213,10 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
             
           if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
-                             
-                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
-                vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
-                if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
-                btest=[]; models=cell(height(G.variables),1);
                 
-               
-                
-             for idx=1:max(lst)
-                    ll=find(lst == idx);
-                    x=X(ll,:);
-                    s=struct;
-                    s.beta=beta(ll);
-                    formula2='beta ~ -1';
-                    for j=1:size(x,2)
-                        if(any(full(x(:,j))~=0))
-                        s=setfield(s,['X' num2str(j)],x(:,j));
-                        formula2=[formula2 '+X' num2str(j)];
-                        end
-                    end
-                    
-                    mdl{idx} = fitglm(struct2table(s),formula2,'dummyVarCoding',obj.dummyCoding);
-                    
-                    btest=[btest; mdl{idx}.Coefficients.Estimate];
-                    
-                    for j=1:length(mdl{idx}.CoefficientNames)
-                        cc=mdl{idx}.CoefficientNames{j};
-                        id=find(ismember(glm.CoefficientNames',cc));
-                        models{id}=mdl{idx};
-                    end
-                end
-                %mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
-                G.variables.model=models;
+                G.variables.model=repmat({glm},[height(G.variables) 1]);
  
-            end
+          end
             
                         
         end
