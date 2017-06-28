@@ -6,12 +6,17 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
 
     properties
         tune = 5; % number of standard deviations to define an outlier
+        verbose;
+        cache_dir;  % (optional) directory to cache results (unset disables caching)
+        cache_rebuild;  % (optional) force rebuild of cached results (don't load previous results from cache, only save new results)
     end
     
     methods
         function obj = BaselineCorrection( prevJob )
            obj.name = 'Correct Baseline Shifts';
-           
+           obj.verbose = false;
+           obj.cache_dir='';
+           obj.cache_rebuild=false;
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -20,6 +25,23 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
         function data = runThis( obj, data )
             
             for i = 1:length(data)
+                
+                % Compute data hash and load cached result if match is found
+                clear hash cache_file
+                if exist(obj.cache_dir,'dir')
+                    hashopt.Method = 'SHA-256';
+                    hash = DataHash( { data(i).data , data(i).time , obj.tune } , hashopt );
+                    cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
+                    if ~obj.cache_rebuild && exist(cache_file,'file')
+                        tmp = load(cache_file,'data');
+                        data(i).data = tmp.data;
+                        if obj.verbose
+                            disp(['Finished ' num2str(i) ' of ' num2str(length(data)) ' (cached)']);
+                        end
+                        continue;
+                    end
+                end
+                
                 for j = 1:size(data(i).data, 2)
                     y   = data(i).data(:,j);
                     Fs  = data(i).Fs;
@@ -49,6 +71,16 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
                     ymoco = ymoco - median(ymoco) + m;
                     
                     data(i).data(:,j) = ymoco;
+                end
+                
+                if obj.verbose
+                    disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
+                end
+                
+                if exist('cache_file','var')
+                    tmp = [];
+                    tmp.data = data(i).data;
+                    save(cache_file,'-struct','tmp');
                 end
             end
             
