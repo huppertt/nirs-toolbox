@@ -115,22 +115,11 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                 [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
                                 
                                 if(obj.symetric)
-                                    %r(:,:,j)=tanh((atanh(r(:,:,j))+atanh(squeeze(r(:,:,j))'))/2);
-                                    b1=r(1:end/2,end/2+1:end,j);
-                                    b2=r(end/2+1:end,1:end/2,j);
-                                    bb=tanh((atanh(b1)+atanh(b2))/2);
-                                    %bb=(b1+b2)/2;
-                                    r(1:end/2,end/2+1:end,j)=bb;
-                                    r(end/2+1:end,1:end/2,j)=bb;
-                                    
-                                    b1=r(1:end/2,1:end/2,j);
-                                    b2=r(end/2+1:end,1:end/2+1:end,j);
-                                    bb=tanh((atanh(b1)+atanh(b2))/2);
-                                    %bb=(b1+b2)/2;
-                                    r(1:end/2,1:end/2,j)=bb;
-                                    r(end/2+1:end,end/2+1:end,j)=bb;
-                                    
-                                    
+                                    aa=r(1:end/2,1:end/2,j);
+                                    ab=r(1:end/2,end/2+1:end,j);
+                                    ba=r(end/2+1:end,1:end/2,j);
+                                    bb=r(end/2+1:end,end/2+1:end,j);
+                                    r(:,:,j) = real(tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 ));
                                 end
                             end
                             connStats(i).dfe(cnt)=sum(dfe);
@@ -158,7 +147,11 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
                     if(obj.symetric)
-                        r=tanh((atanh(r)+atanh(r'))/2);
+                        aa=r(1:end/2,1:end/2);
+                        ab=r(1:end/2,end/2+1:end);
+                        ba=r(end/2+1:end,1:end/2);
+                        bb=r(end/2+1:end,end/2+1:end);
+                        r = real(tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 ));
                     end
                     
                     connStats(i).dfe=dfe;
