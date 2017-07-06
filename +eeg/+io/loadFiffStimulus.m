@@ -1,4 +1,4 @@
-function stim = loadFiffStimulus(filename)
+function [stim aux,time] = loadFiffStimulus(filename)
 % This function will read the stimulus info from MEG Fiff files
 
 if(iscell(filename))
@@ -12,10 +12,16 @@ end
 %hdr=fiff_read_meas_info(filename);
 raw=fiff_setup_read_raw(filename);
 hdr=raw.info;
-aux=fiff_read_raw_segment(raw,0,1E6,find(cat(hdr.chs.kind)==3));
+
+for i=1:length(hdr.chs)
+    k(i)=hdr.chs(i).kind;
+end
+
+aux=fiff_read_raw_segment(raw,0,1E6,find(k~=1));
 time=[0:size(aux,2)-1]'/hdr.sfreq;
 stim=findstim(aux,hdr.sfreq,time);
-
+aux=aux';
+time=time';
 end
 
 function stim = findstim(aux,fs,t)

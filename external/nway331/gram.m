@@ -1,4 +1,4 @@
-function [A,B,C]=gram(X1,X2,F);
+function [A,B,C]=nway_gram(X1,X2,F);
 
 %GRAM generalized rank annihilation method
 %

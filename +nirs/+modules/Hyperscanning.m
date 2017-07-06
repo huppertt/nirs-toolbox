@@ -115,7 +115,21 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                 [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
                                 
                                 if(obj.symetric)
-                                    r(:,:,j)=tanh((atanh(r(:,:,j))+atanh(squeeze(r(:,:,j))'))/2);
+                                    %r(:,:,j)=tanh((atanh(r(:,:,j))+atanh(squeeze(r(:,:,j))'))/2);
+                                    b1=r(1:end/2,end/2+1:end,j);
+                                    b2=r(end/2+1:end,1:end/2,j);
+                                    bb=tanh((atanh(b1)+atanh(b2))/2);
+                                    %bb=(b1+b2)/2;
+                                    r(1:end/2,end/2+1:end,j)=bb;
+                                    r(end/2+1:end,1:end/2,j)=bb;
+                                    
+                                    b1=r(1:end/2,1:end/2,j);
+                                    b2=r(end/2+1:end,1:end/2+1:end,j);
+                                    bb=tanh((atanh(b1)+atanh(b2))/2);
+                                    %bb=(b1+b2)/2;
+                                    r(1:end/2,1:end/2,j)=bb;
+                                    r(end/2+1:end,end/2+1:end,j)=bb;
+                                    
                                     
                                 end
                             end

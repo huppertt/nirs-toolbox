@@ -1,4 +1,4 @@
-function [Factors,it,err,corcondia]=parafac(X,Fac,Options,const,OldLoad,FixMode,Weights);
+function [Factors,it,err,corcondia,model]=parafac(X,Fac,Options,const,OldLoad,FixMode,Weights);
 
 % PARAFAC multiway parafac model
 %
@@ -1303,6 +1303,8 @@ if showfit~=-1
         disp(' Algorithm stopped for some mysterious reason')
     end
 end
+
+model=reshape(model,DimX);
 
 function swloads = signswtch(loads,X);
 

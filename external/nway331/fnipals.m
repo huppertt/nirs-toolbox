@@ -57,7 +57,7 @@ function [T,P]=fnipals(X,w,T)
 ConvLim=1e-12;
 WarnLim=1e-4;
 ConvLimMiss=100*ConvLim;
-ItMax=100;
+ItMax=5000;
 
 filename='fnipals.m';
 

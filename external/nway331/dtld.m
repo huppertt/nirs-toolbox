@@ -87,14 +87,14 @@ end
 
 
 % Compress data into a 2 x F x F array. Only 10 iterations are used since exact SL fit is insignificant; only obtaining good truncated bases is important
-[Factors,Gt]=tucker(reshape(X,DimX),Fac,[0 0 0 0 NaN 10]);
+[Factors,Gt]=tucker(reshape(X,DimX),Fac,[0 0 0 0 NaN 50]);
 % Convert to old format
 Gt = reshape(Gt,size(Gt,1),prod(size(Gt))/size(Gt,1));
 
 [At,Bt,Ct]=fac2let(Factors);
 
 % Fit GRAM to compressed data
-[Bg,Cg,Ag]=gram(reshape(Gt(1,:),f,f),reshape(Gt(2,:),f,f),F);
+[Bg,Cg,Ag]=nway_gram(reshape(Gt(1,:),f,f),reshape(Gt(2,:),f,f),F);
 
 % De-compress data and find A
 
@@ -118,6 +118,5 @@ elseif SmallMode == 3
 end
 
 fit = sum(sum(abs(X - AA*krb(CC,BB).').^2));
-if ~DontShowOutput
-  disp([' DTLD fitted raw data with a sum-squared error of ',num2str(fit)])
-end
+
+disp([' DTLD fitted raw data with a sum-squared error of ',num2str(fit)])
