@@ -75,13 +75,13 @@ function S = ttest(obj, c, b, names)
     beta = bsxfun( @minus , beta , b );
     
     % output
-    S = obj;
-
-    S.beta  = beta;
-    S.covb  = covb;
-
+    S = nirs.core.sFCStats;
+    S.type = obj.type;
+    S.probe = obj.probe;
+    S.demographics = obj.demographics;
     S.conditions=names;
-    S.dfe=dfe;
-    
+    S.R = beta;
+    S.ZstdErr = sqrt(covb);
+    S.dfe = dfe;   
     S.description = 'T-test';
 end
