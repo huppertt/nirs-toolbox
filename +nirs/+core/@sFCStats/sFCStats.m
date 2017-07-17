@@ -72,22 +72,33 @@ classdef sFCStats
             p=obj.p;
             q=ones(size(p));
             
-            sym = (norm(reshape(obj.Z,size(obj.Z,1),[])-reshape(permute(obj.Z,[2 1 3]),size(obj.Z,1),[]))<eps(1)*10);
+            
+            if mod(size(p,1),2)==0 % Dont check for symmetry if odd # of channels
+                hyper = obj.Z(1:end/2,end/2+1:end,:); % select the between-subject portion of matrix
+                sym = (norm(reshape(hyper,size(hyper,1),[])-reshape(permute(hyper,[2 1 3]),size(hyper,1),[]))<eps(1)*10);
+            else
+                sym = false;
+            end
             
             if(sym)
-                mask=repmat(triu(true(size(p,1)),1),1,size(p,3));
+                mask=repmat(triu(true(size(p,1)),size(p,1)/2),1,1,size(p,3));
             else
-                mask=repmat(true(size(p,1)) & (eye(size(p,1))~=1),1,size(p,3));
+                mask=repmat(triu(true(size(p,1)),1),1,1,size(p,3));
             end
             lst=find(mask);
             q(lst)=nirs.math.BenjaminiHochberg(p(lst));
            
             if(sym)
                 for i=1:size(q,3)
-                    q(:,:,i)=min(q(:,:,i),squeeze(q(:,:,i))');
+                    hyper = q(1:end/2,end/2+1:end,i);
+                    hyper = min(hyper,hyper');
+                    q(1:end/2,end/2+1:end,i) = hyper;
                 end
             end
-            
+
+            for i=1:size(q,3)
+                q(:,:,i)=min(q(:,:,i),q(:,:,i)');
+            end
             
         end
          
