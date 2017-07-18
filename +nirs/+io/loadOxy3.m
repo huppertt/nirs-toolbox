@@ -50,4 +50,9 @@ end
 
 raw.description=which(filename);
 
+lst=find(any(raw.data==1,1));
+raw.data(lst,:)=[];
+raw.time(lst)=[];
+
+
 end

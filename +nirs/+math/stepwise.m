@@ -3,7 +3,7 @@ function [b, r, bic] = stepwise(X, y)
     [Q,R] = qr(X,0); % note that the zero is very important for performance
     invR = pinv(R);
     
-    n = length(y);
+    n = size(y,1);
     bic = zeros(size(X,2),1);
     for i = 1:length(bic)
         % get residual for each fit

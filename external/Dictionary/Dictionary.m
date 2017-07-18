@@ -273,7 +273,8 @@ classdef Dictionary
         
         % rehash indices
         function obj = rehash( obj )
-            obj.TABLE_SIZE  = max(1024, uint64(4 * length(obj.keys)));
+            %obj.TABLE_SIZE  = max(1024, uint64(4 * length(obj.keys)));
+            obj.TABLE_SIZE  = max(1024, 4 * length(obj.keys));
             obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
             for k = 1:length(obj.keys)
                    i = obj.getindex(obj.keys{k});

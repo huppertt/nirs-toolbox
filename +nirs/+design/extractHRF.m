@@ -71,7 +71,7 @@ t=[0:1/Fs:(max(duration)+lenHRF)*length(conditions)];
 
 stimulus=Dictionary();
 for idx=1:length(conditions)
-    stim=nirs.design.StimulusEvents(conditions{idx},(idx-1)*(duration(idx)+lenHRF)+1/Fs,duration(idx),1);
+    stim=nirs.design.StimulusEvents(conditions{idx},0,duration(idx),1);
     stimulus(conditions{idx})=stim;
 end
 
@@ -118,7 +118,7 @@ HRF.time=t(1:npts);
 data=[];
 link=table;
 for idx=1:length(conditions)
-    lstT=fix([(idx-1)*(duration(idx)+lenHRF)*Fs+[1:npts]]);
+    lstT=[1:npts];
     typ={};
     typ2={};
     if(ismember(lower(type),'hrf'))

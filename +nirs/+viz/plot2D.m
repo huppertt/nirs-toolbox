@@ -24,23 +24,41 @@ for idx=1:length(utypes)
         
         
         aa=axes('parent',f,'units','normalized','position',[0 0 1 1]);
-        l=data.probe.draw;
+        if(isa(data.probe,'nirs.core.Probe1020'))
+             data.probe.defaultdrawfcn='2D';
+        end
+            l=data.probe.draw;
+            axis off
+        aa=get(l(1),'parent');
+        
         axis tight;
         axis(aa,'off')
         set(l,'color',[.85 .85 .85]);
-        set(gca,'Position',[0.1 0.1 .8 .8]);
+        set(gca,'Position',[.05 .05 .9 .9]);
         title(utypes{idx});
-        
+        sd=get(gcf,'InnerPosition');
+        sd=sd(3)/20;
+        set(aa,'units','pixels');
+        hold on;
         for j=1:length(lst)
             dIdx=data.probe.link.detector(lst(j));
             sIdx=data.probe.link.source(lst(j));
             
-            p = .5*(data.probe.srcPos(sIdx,:)+data.probe.detPos(dIdx,:));
-            p(:,3)=1;
-            p=p*tform;
-            pos=[p(1)-edges(1) p(2)-edges(2) edges(1)*2 edges(2)*2];
-            a(j)=axes('parent',f,'units','normalized','position',pos);
+            p = data.probe.srcPos(sIdx,:)-.5*(data.probe.srcPos(sIdx,:)-data.probe.detPos(dIdx,:));
+            
+            xl=get(aa,'XLim');
+            ip=get(aa,'Position');
+            x=(p(1)-xl(1))/(xl(2)-xl(1))*ip(3)+ip(1);
+            
+            yl=get(aa,'yLim');
+            ip=get(aa,'Position');
+            y=(p(2)-mean(yl))/diff(yl)*ip(4)/2+ip(4)/2+ip(2);
+            
+             a(j)=axes;
+            set(a(j),'units','pixels','position',[x-sd/2 y-sd/2 sd sd]);
+            set(a(j),'units','normalized');
         end
+       set(aa,'units','normalized');
         lstA=lst;
         
       

@@ -29,6 +29,7 @@ for i=1:length(fileExt)
     for iFile = 1:length( files )
         
         % load using load function
+        disp(['Loading: ' files(iFile).name ]);
         tmp = loadFunc{i}( files(iFile).name );
         
        
