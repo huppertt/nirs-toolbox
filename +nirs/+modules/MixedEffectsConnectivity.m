@@ -16,6 +16,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
         formula = 'R ~ -1 + cond';
         dummyCoding = 'full';
         centerVars = true;
+        robust = false;
       end
     
     methods
@@ -130,7 +131,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             lst=find(~any(isnan(X),2));
             [Q,R] = qr(X(lst,:),0);
             if(size(Z,2)>0)
-                [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst,:),Z(lst,:));
+                [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst,:),Z(lst,:),obj.robust);
                 resid = D(lst,:)-X(lst,:)*Coef;
             else
                 Coef = R\(Q'*D(lst,:));

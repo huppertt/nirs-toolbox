@@ -16,6 +16,7 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
         formula = 'R ~ -1 + cond';
         dummyCoding = 'full';
         centerVars = true;
+        robust = false;
       end
     
     methods
@@ -104,15 +105,44 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
             
             Coef = nan(size(X,2),size(D,2));
             CovB = nan(size(X,2),size(X,2),size(D,2));
-            lstChan=find(~any(isnan(D),1) & ~all(D==0,1));
+            lstChan=find( ~any(isnan(D),1) & ~all(D==0,1) & ~all(D==1,1) );
             
             tmpCoef = nan(size(X,2),length(lstChan));
             tmpCovB = nan(size(X,2),size(X,2),length(lstChan));
             tmpD = D(:,lstChan);
             parfor ind = 1:length(lstChan)
-                lm2 = fitlmematrix(X,tmpD(:,ind),Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+                
+                lm2 = lm;
+                w=speye(size(X,1),size(X,1));
+
+                D = sqrt(eps(class(X)));
+                b0 = zeros(1,size(X,2));
+                b = ones(1,size(X,2));
+                iter=1;
+                
+                while((iter<100) & any(abs(b-b0) > D*max(abs(b),abs(b0))))
+
+                    lm2 = fitlmematrix(w*X,w*tmpD(:,ind),w*Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+                    
+                    if(~obj.robust)
+                        break;
+                    end
+
+                    resid=lm2.residuals;
+                    s = mad(resid, 0) / 0.6745;
+                    r = resid/s/4.685;
+                    w = (1 - r.^2) .* (r < 1 & r > -1);
+                    w=sparse(diag(w));
+                    b0=b;
+                    b=lm2.Coefficients.Estimate;
+                    
+                    iter=iter+1;
+
+                end
+
                 tmpCoef(:,ind) = lm2.Coefficients.Estimate;
                 tmpCovB(:,:,ind) = lm2.CoefficientCovariance;
+                
             end
             Coef(:,lstChan) = tmpCoef;
             CovB(:,:,lstChan) = tmpCovB;
