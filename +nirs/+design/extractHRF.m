@@ -79,7 +79,8 @@ end
 tbl=Stats.table;
 tbl=sortrows(tbl,{'source','detector','type','cond'});
 
-cnames=tbl.cond(1:size(X,2));
+cnames=unique(tbl.cond);
+cnamesOrig=cnames;
 for i=1:length(cnames)
    l=strfind(cnames{i},':');
     if(~isempty(l))
@@ -95,13 +96,52 @@ for i=1:length(cnames)
     end
 end
 
+cnt=1; n={};
+for i=1:length(cnames)
+    for j=1:length(names)
+        if(~isempty(strfind(cnames{i},names{j})))
+            n{cnt}=cnames{i}(length(names{j})+1:end);
+            cnt=cnt+1;
+        end
+    end
+end
+n=unique(n);
+n2={}; cnt=1;
+c={};
+X = repmat(X,1,length(n));
+for i=1:length(n)
+    for j=1:length(names)
+        n2{cnt,1}=[names{j} n{i}];
+        cnt=cnt+1;
+    end
+    for j=1:length(conditions)
+        c{end+1}=[conditions{j} n{i}];
+    end
+end
+names=n2;
+conditions2=c;
 
-[i,lst]=ismember(names,cnames);
+lstC={};
+for i=1:length(conditions2)
+    nI=mod(i-1,length(conditions))+1;
+    cI=floor((i)/(length(n)+1))+1;
+     lstC{i}=[];
+    for j=1:length(names)
+        nn=['000' num2str(j)];
+        nn=nn(end-1:end);
+        for k=1:length(names)
+            if(~isempty(strfind(names{k},nn)) & ~isempty(strfind(names{k},n{nI})) & ~isempty(strfind(names{k},conditions{cI})))
+                lstC{i}=[lstC{i} k];
+            end
+        end
+    end
+    
+end
 
-beta=reshape(tbl.beta,size(X,2),[]);
-Hbeta=X*beta(lst,:);
-tstat=reshape(tbl.tstat,size(X,2),[]);
-Htstat=X*tstat(lst,:);
+
+
+[i,lst2]=ismember(names,cnames);
+l=unique(tbl(:,1:3));
 
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
@@ -112,37 +152,30 @@ HRF=nirs.core.Data();
 HRF.description=['HRF from basis: ' Stats.description];
 HRF.probe=Stats.probe;
 HRF.time=t(1:npts);
+lstT=[1:npts];
 
-[~,lst]=sortrows(HRF.probe.link,{'source','detector','type'});
-
-data=[];
 link=table;
-for idx=1:length(conditions)
-    lstT=[1:npts];
-    typ={};
-    typ2={};
-    if(ismember(lower(type),'hrf'))
-        data=[data Hbeta(lstT,lst) ];
-         typ=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx}]},height(HRF.probe.link),1));
-    end
-    if(ismember(lower(type),'tstat'))
-        data=[data  Htstat(lstT,lst)];
-        typ2=strcat(HRF.probe.link.type(lst),repmat({[':' conditions{idx} ':tstat' ]},height(HRF.probe.link),1));
-   
-    end
-        
-    linktmp=repmat(HRF.probe.link,length(type),1);
-    linktmp.type=vertcat(typ,typ2);
-    link=[link; linktmp];
-end
+data=[];
 
-n=height(tbl)/length(HRF.probe.link.type)/length(conditions);
-% link=tbl(1:n:end,1:4);
-% for i=1:height(link)
-%     link.cond{i}=link.cond{i}(1:max(strfind(link.cond{i},'_'))-1);
-% end
-% link.type=strcat(link.type,repmat({':'},height(link),1),link.cond);
-% link.cond=[];
+
+for i=1:height(l)
+     lst=find(tbl.source==l.source(i) & tbl.detector==l.detector(i) & ismember(tbl.type,l.type{i}));
+     [~,or]=ismember({cnamesOrig{lst2}},tbl(lst,:).cond);
+     for j=1:length(conditions2)
+         Hbeta=X(lstT,lstC{j})*tbl.beta(lst(or(lstC{j})),:);
+         Htstat=X(lstT,lstC{j})*tbl.tstat(lst(or(lstC{j})),:);
+         if(ismember(lower(type),'hrf'))
+             data=[data Hbeta ];
+             
+         end
+         if(ismember(lower(type),'tstat'))
+             data=[data  Htstat];
+             
+         end
+         link=[link; table(l.source(i),l.detector(i),cellstr([l.type{i} '_' conditions2{j}]),'VariableNames',{'source','detector','type'})]; 
+         
+     end
+end
 
 HRF.probe.link=link;
 HRF.data=data;

@@ -1,4 +1,4 @@
-function h = plot2d(data,samefig,adderr)
+function h = plot2d(data,adderr)
 % This function plots the time-series data in a spatial arrangement
 % according to the probe layout
 
@@ -8,65 +8,61 @@ function h = plot2d(data,samefig,adderr)
 utypes = unique(data.probe.link.type);
 
 if(nargin<2)
-    samefig=false;
-end
-if(nargin<3)
     adderr=false;
 end
 
+types={};
+for i=1:length(utypes)
+    types{i}=utypes{i}(min(strfind(utypes{i},'_'))+1:end);
+end
+[~,~,figIdx]=unique(types);
+for idx=1:length(unique(figIdx))
+    figs(idx)=figure;
+    set(figs(idx),'color','w');
+    aa(idx)=axes('parent',figs(idx),'units','normalized','position',[0 0 1 1]);
+    if(isa(data.probe,'nirs.core.Probe1020'))
+        data.probe.defaultdrawfcn='2D';
+    end
+    l=data.probe.draw;
+    axis off
+    aa(idx)=get(l(1),'parent');
+    
+    axis tight;
+    axis(aa(idx),'off')
+    set(l,'color',[.85 .85 .85]);
+    set(gca,'Position',[.05 .05 .9 .9]);
+   % title(utypes{idx});
+    sd=get(gcf,'Position');
+    sd=sd(3)/20;
+    set(aa(idx),'units','pixels');
+end
 
 a=[];
 for idx=1:length(utypes)
     lst=find(ismember(data.probe.link.type,utypes{idx}));
-    if(~samefig || isempty(a))
-        f=figure;
-        set(f,'color','w');
+    
+    figure(figs(figIdx(idx)));
+    hold on;
+    lst=find(ismember(data.probe.link.type,utypes{idx}));
+    for j=1:length(lst)
+        dIdx=data.probe.link.detector(lst(j));
+        sIdx=data.probe.link.source(lst(j));
         
+        p = data.probe.srcPos(sIdx,:)-.5*(data.probe.srcPos(sIdx,:)-data.probe.detPos(dIdx,:));
         
-        aa=axes('parent',f,'units','normalized','position',[0 0 1 1]);
-        if(isa(data.probe,'nirs.core.Probe1020'))
-             data.probe.defaultdrawfcn='2D';
-        end
-            l=data.probe.draw;
-            axis off
-        aa=get(l(1),'parent');
+        xl=get(aa(figIdx(idx)),'XLim');
+        ip=get(aa(figIdx(idx)),'Position');
+        x=(p(1)-xl(1))/(xl(2)-xl(1))*ip(3)+ip(1);
         
-        axis tight;
-        axis(aa,'off')
-        set(l,'color',[.85 .85 .85]);
-        set(gca,'Position',[.05 .05 .9 .9]);
-        title(utypes{idx});
-        sd=get(gcf,'InnerPosition');
-        sd=sd(3)/20;
-        set(aa,'units','pixels');
-        hold on;
-        for j=1:length(lst)
-            dIdx=data.probe.link.detector(lst(j));
-            sIdx=data.probe.link.source(lst(j));
-            
-            p = data.probe.srcPos(sIdx,:)-.5*(data.probe.srcPos(sIdx,:)-data.probe.detPos(dIdx,:));
-            
-            xl=get(aa,'XLim');
-            ip=get(aa,'Position');
-            x=(p(1)-xl(1))/(xl(2)-xl(1))*ip(3)+ip(1);
-            
-            yl=get(aa,'yLim');
-            ip=get(aa,'Position');
-            y=(p(2)-mean(yl))/diff(yl)*ip(4)/2+ip(4)/2+ip(2);
-            
-             a(j)=axes;
-            set(a(j),'units','pixels','position',[x-sd/2 y-sd/2 sd sd]);
-            set(a(j),'units','normalized');
-        end
-       set(aa,'units','normalized');
-        lstA=lst;
+        yl=get(aa(figIdx(idx)),'yLim');
+        ip=get(aa(figIdx(idx)),'Position');
+        y=(p(2)-mean(yl))/diff(yl)*ip(4)/2+ip(4)/2+ip(2);
         
-      
-    else
-        lstA=[1:size(data.data,2)];
-        
-        %title(aa,strvcat(utypes{:}));
+        a(j)=axes;
+        set(a(j),'units','pixels','position',[x-sd/2 y-sd/2 sd sd]);
+        set(a(j),'units','normalized');
     end
+    
     for j=1:length(lst)
         hold(a(j),'on');
         if(~isreal(data.data(:,lst(j))) & adderr)
@@ -76,12 +72,14 @@ for idx=1:length(utypes)
             h{idx}(lst(j))=plot(a(j),data.time,real(data.data(:,lst(j))));
         end
         set(a(j),'xlim',[min(data.time) max(data.time)]);
-        set(a(j),'ylim',[min(min(real(data.data(:,lstA)))) max(max(real(data.data(:,lstA))))]);
+        set(a(j),'ylim',[min(min(real(data.data(:,lst)))) max(max(real(data.data(:,lst))))]);
         axis(a(j),'off');
     end
-   
+    %title(types{idx});
+    set(gcf,'Name',types{idx});
+    set(gcf,'NumberTitle','off');  
 end
-
+set(aa,'units','normalized');
 for i=1:length(h)
     lst=[];
     for j=1:length(h{i})
