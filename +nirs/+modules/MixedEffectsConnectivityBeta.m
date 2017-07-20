@@ -134,8 +134,7 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
 
                     r = y - X * b - Z*lm2.randomEffects;
                     
-                    rs = sort(abs(r));
-                    s = median(rs(max(1,size(X,2)):end)) / 0.6745;
+                    s = mad(r,0) / .6745;
                     r = r ./ (s*4.685);
                     w = (1 - r.^2) .* (r < 1 & r > -1);
                     w=sparse(diag(w));
