@@ -115,7 +115,6 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
                 lm2 = lm;
                 w=speye(size(X,1),size(X,1));
 
-                h = min( .9999 , diag( X*pinv(X'*X)*X' ) );
                 D = sqrt(eps(class(X)));
                 b0 = zeros(1,size(X,2));
                 b = ones(1,size(X,2));
@@ -133,8 +132,7 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
                         break;
                     end
 
-                    resid = y - X * b - Z*lm2.randomEffects;
-                    r = resid ./ sqrt(1-h);
+                    r = y - X * b - Z*lm2.randomEffects;
                     
                     rs = sort(abs(r));
                     s = median(rs(max(1,size(X,2)):end)) / 0.6745;
