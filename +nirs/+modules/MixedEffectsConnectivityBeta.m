@@ -115,26 +115,32 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
                 lm2 = lm;
                 w=speye(size(X,1),size(X,1));
 
+                h = min( .9999 , diag( X*pinv(X'*X)*X' ) );
                 D = sqrt(eps(class(X)));
                 b0 = zeros(1,size(X,2));
                 b = ones(1,size(X,2));
+                y = tmpD(:,ind);
+                
                 iter=1;
                 
-                while((iter<100) & any(abs(b-b0) > D*max(abs(b),abs(b0))))
+                while((iter<50) & any(abs(b-b0) > D*max(abs(b),abs(b0))))
 
-                    lm2 = fitlmematrix(w*X,w*tmpD(:,ind),w*Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+                    b0=b;
+                    lm2 = fitlmematrix(w*X,w*y,w*Z ,[],'CovariancePattern','Isotropic','FitMethod','ML');
+                    b=lm2.Coefficients.Estimate;
                     
                     if(~obj.robust)
                         break;
                     end
 
-                    resid=lm2.residuals;
-                    s = mad(resid, 0) / 0.6745;
-                    r = resid/s/4.685;
+                    resid = y - X * b - Z*lm2.randomEffects;
+                    r = resid ./ sqrt(1-h);
+                    
+                    rs = sort(abs(r));
+                    s = median(rs(max(1,size(X,2)):end)) / 0.6745;
+                    r = r ./ (s*4.685);
                     w = (1 - r.^2) .* (r < 1 & r > -1);
                     w=sparse(diag(w));
-                    b0=b;
-                    b=lm2.Coefficients.Estimate;
                     
                     iter=iter+1;
 
@@ -146,13 +152,6 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
             end
             Coef(:,lstChan) = tmpCoef;
             CovB(:,:,lstChan) = tmpCovB;
-
-%             % Manual approach
-%             lst=find(~any(isnan(X),2));
-%             if(nRE>0)
-%                 D=D-Z*inv(Z'*Z)*Z'*D;
-%             end
-%             Coef = inv(X(lst,:)'*X(lst,:))*X(lst,:)'*D(lst,:);
             
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
             CovB=reshape(permute(CovB,[3 1 2]),sqrt(n),sqrt(n),size(X,2),size(X,2));
