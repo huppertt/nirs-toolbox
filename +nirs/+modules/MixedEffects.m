@@ -176,7 +176,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             b = ones(length(lstKeep),1);
             iter=1;
           
-            while((iter<5) & any(abs(b-b0) > D*max(abs(b),abs(b0))))
+            while((iter<50) & any(abs(b-b0) > D*max(abs(b),abs(b0))))
                 lm2 = fitlmematrix(w*X(:,lstKeep),w*beta, w*Z, [], 'CovariancePattern','Isotropic', ...
                     'FitMethod', 'ML');
                 
@@ -184,7 +184,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     break;
                 end
                 
-                resid=lm2.residuals;
+                resid = beta - X * b - Z*lm2.randomEffects;
+                
                 s = mad(resid, 0) / 0.6745;
                 r = resid/s/4.685;
                 w = (1 - r.^2) .* (r < 1 & r > -1);
