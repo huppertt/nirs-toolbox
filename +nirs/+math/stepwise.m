@@ -12,7 +12,7 @@ function [b, r, bic] = stepwise(X, y)
         
         % calculate information criterion
         LL = -n/2*log( 2*pi*var(r) ) - n/2; % log-likelihood
-        bic(i) = -LL + i/2*log(n);
+        bic(i) = -2*LL + i*log(n);
     end
     
     % optimal model order
