@@ -60,7 +60,9 @@ classdef Resample < nirs.modules.AbstractModule
                 end
             end
         end
-        
+        function result = isint(val)
+            result = (val == round(val));
+        end
     end
     
 end
