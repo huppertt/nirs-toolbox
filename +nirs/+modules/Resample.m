@@ -25,11 +25,8 @@ classdef Resample < nirs.modules.AbstractModule
                     % resample data
                     d = data(i).data;
                     t = data(i).time;
-                    
-                    
-                    
-                    
-                    if(length(t)<10000 | ~isint(obj.Fs))
+                                         
+                    if(length(t)<100000)
                         N = floor((t(end)-t(1)) * obj.Fs);
                         new_t = t(1) + (0:N-1)' / obj.Fs;
                         
@@ -47,21 +44,17 @@ classdef Resample < nirs.modules.AbstractModule
                     else
                         % The data is too large, use the resample function
                         % instead
-                        d=resample(d,obj.Fs,fix(data(i).Fs));
-                        
+                        [P,Q] = rat(obj.Fs/data(i).Fs);
+                        d=resample(d,P,Q);
+
                         N = size(d,1);
-                        new_t = t(1) + (0:N-1)' / obj.Fs*data(i).Fs/fix(data(i).Fs);
-                        
+                        new_t = t(1) + (0:N-1)' / obj.Fs;    
                     end
-                    
                     
                     data(i).data = d;
                     data(i).time = new_t;
                 end
             end
-        end
-        function result = isint(val)
-            result = (val == round(val));
         end
     end
     
