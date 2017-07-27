@@ -82,7 +82,7 @@ for cIdx=1:length(obj.conditions)
     end
 
     pval=tbl.pvalue;
-    qval=nirs.math.BenjaminiHochberg(pval);
+    qval=tbl.qvalue;
     
     % significance mask
     if nargin < 4 || isempty(thresh)
@@ -190,7 +190,7 @@ for cIdx=1:length(obj.conditions)
                     m = mask(lst);
                     d = tbl(lst,:);
                     
-                    ax=axes(f(cIdx),'Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
+                    ax=axes('parent',f(cIdx),'Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
                         'visible','off','Xlim',[-100 100],'Ylim',[-100 100]);
                     hold(ax,'on');
                     axis(ax,'off');

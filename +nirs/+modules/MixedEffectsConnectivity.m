@@ -119,8 +119,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
 %                  Coef(:,lstChan(ind)) = lm2.Coefficients.Estimate;
 %              end
 
+            SE=[];
             for i=1:length(S)
-                SE(i) = 1/sqrt(S(i).dfe-3);
+                SE = [SE; 1./sqrt(S(i).dfe(:)-3)];
             end
             W=diag(1./SE);
             X=W*X;
@@ -130,6 +131,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             % Manual approach
             lst=find(~any(isnan(X),2));
             [Q,R] = qr(X(lst,:),0);
+                        
             if(size(Z,2)>0)
                 [Coef,bhat,~]=nirs.math.fitlme(X(lst,:),D(lst,:),Z(lst,:),obj.robust);
                 resid = D(lst,:)-X(lst,:)*Coef;
@@ -138,7 +140,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 resid = D(lst,:)-X(lst,:)*Coef;
             end
             
-           
+            
                         
            
             nobs=length(lst);
@@ -147,7 +149,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             mse = sum(resid.^2,1)/dfe;
             ri = R\eye(p);
             xtxi = ri*ri';
-            StdErr = sqrt(xtxi*mse);
+            StdErr = sqrt(diag(xtxi)*mse);
             
             Coef=reshape(Coef',sqrt(n),sqrt(n),size(X,2));
             StdErr = reshape(StdErr',sqrt(n),sqrt(n),size(X,2));

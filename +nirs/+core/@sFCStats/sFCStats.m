@@ -49,7 +49,7 @@ classdef sFCStats
          
          function t = get.t(obj)
              for idx=1:length(obj.conditions)
-                 n=max(obj.dfe(idx));
+                 n=max(obj.dfe);
                  if(isempty(obj.ZstdErr))
                      t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
                  else
@@ -61,7 +61,7 @@ classdef sFCStats
          function p = get.p(obj)
              for idx=1:length(obj.conditions)
                  
-                 p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe(idx)));
+                 p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe));
                  p(:,:,idx)=tril(p(:,:,idx),-1)+tril(p(:,:,idx),-1)'+eye(size(p(:,:,idx)));
                  
               
@@ -125,9 +125,10 @@ classdef sFCStats
                 cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
                 out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                     [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                    reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),...
+                    reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
+                    reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
                     'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
-                    'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue'})];
+                    'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
             end
         end
         
