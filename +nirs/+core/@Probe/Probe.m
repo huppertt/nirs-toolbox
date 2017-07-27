@@ -28,6 +28,10 @@ classdef Probe
         detPos      % ndet x 3 array of detector positions (mm)
     end
     
+    properties(Hidden = true)
+        fixeddistances
+    end
+    
     methods
         function obj = Probe( srcPos, detPos, link )
             %% Probe - Creates a probe object.
@@ -38,6 +42,8 @@ classdef Probe
             %     link   - (optional) a table containing the columns 'source', 'detector', 
             %              and 'type' describing the the connections between sources 
             %              and detectors
+            
+            fixeddistances=[];
             
             Names=cell(0,1);
             Pos=zeros(0,3);
@@ -107,12 +113,19 @@ classdef Probe
         function d = get.distances( obj )
             %% distances - Calculates measurement distance for each channel.
         
+            
             isrc = obj.link.source;
             idet = obj.link.detector;
             
             vec = obj.srcPos(isrc,:) - obj.detPos(idet,:);
-            
             d = sqrt( sum( vec.^2,2 ) );
+            
+            if(~isempty(obj.fixeddistances))
+                if(any((d-obj.fixeddistances)~=0))
+                    warning('probe distances do not match layout');
+                end
+                d=obj.fixeddistances;
+            end
         end
         
         function obj = swapSD( obj )
