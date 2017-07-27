@@ -119,7 +119,9 @@ classdef ChannelStats
             se = sqrt(diag(obj.covb));
             dfe = obj.dfe * ones(size(p));
             
-            out = [obj.variables table(beta, se, tstat, dfe, p, q)];
+            [~,power] = nirs.math.MDC(obj,.8,.05);
+            
+            out = [obj.variables table(beta, se, tstat, dfe, p, q,power)];
         end
         
         function out = sorted( obj, colsToSortBy )

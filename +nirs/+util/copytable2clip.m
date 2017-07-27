@@ -1,6 +1,11 @@
 function copytable2clip(tbl)
 % This function copys a table object to the clipboard
 
+if(ismember('model',tbl.Properties.VariableNames) && isa(tbl.model{1},'LinearModel'))
+    tbl.model=[];
+end
+
+
 DD={};
 flds = tbl.Properties.VariableNames;
 for i=1:length(flds)

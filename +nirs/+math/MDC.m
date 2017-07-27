@@ -12,7 +12,7 @@ if(isa(Stats,'nirs.core.ChannelStats'))
     %Stats.beta./(sqrt(diag(Stats.covb))=t2beta+talpha;
     
     talpha2 = tinv(1-Stats.p/side,Stats.dfe-2);
-    pwr=tcdf(Stats.tstat-talpha2,Stats.dfe-2);
+    pwr=tcdf(abs(Stats.tstat)-talpha2,Stats.dfe-2);
 elseif(isa(Stats,'table'))
     t2beta = tinv(beta,Stats.DF-2);
     talpha = tinv(1-alpha/side,Stats.DF-2);
