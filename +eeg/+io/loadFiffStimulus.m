@@ -19,6 +19,7 @@ end
 
 aux=fiff_read_raw_segment(raw,0,1E6,find(k~=1));
 time=[0:size(aux,2)-1]'/hdr.sfreq;
+aux=sum(aux(1:3,:),1);
 stim=findstim(aux,hdr.sfreq,time);
 aux=aux';
 time=time';

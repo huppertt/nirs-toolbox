@@ -127,6 +127,20 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
             
             G.demographics=S(1).demographics;
             
+            n={}; b={}; cnt=1;
+            for i=1:length(S)
+                for j=1:S(i).basis.stim.count;
+                    n{cnt}=S(i).basis.stim.values{j}.name;
+                    b{cnt}=S(i).basis.stim.values{j};
+                    cnt=cnt+1;
+                end
+            end
+            [~,j]=unique(n);
+            G.basis=S(1).basis;
+            G.basis.stim=Dictionary;
+            for i=1:length(j)
+                G.basis.stim(n{j(i)})=b{j(i)};
+            end
             
             
                         
