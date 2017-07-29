@@ -30,6 +30,9 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
         
         function G = runThis( obj,data )
             
+            if(isempty(obj.basis.nVox))
+                obj.basis.nVox=size(obj.mesh.nodes,1);
+            end
             
             % Mask of the reconstruction volume
             if(~isempty(obj.mask))
@@ -93,10 +96,13 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
             
             
             d=[];
-            W=zeros(size(data,2));
+            W=[];
             for idx=1:length(data)
                 
-                 W=W+cov(data(i).data);
+                %estimate noise on this data
+                N=cov(data(i).data);
+                
+                 W=blkdiag(W,N);
                 
                 key = data(i).demographics('subject');
                 if(~Lfwdmodels.iskey(key))
@@ -118,6 +124,7 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
             X=q'*xlocal;
             d=r;
             
+           
             [u, s, ~] = svd(W, 'econ');
             W=diag(1./diag(eps(1)+sqrt(s))) * u';
             
@@ -144,7 +151,8 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
             R={speye(size(d,1),size(d,1))};
             
             Beta0= zeros(size(X,2),1);
-            [lambda,Beta,Stats]=nirs.math.REML(d,X(:,lst2),Beta0(lst2),R,Q);
+
+            [lambda,Beta,Stats]=nirs.math.REML(d,X(:,lst2),Beta0(lst2),R,Q,30);
             
             V=obj.basis.fwd*V(:,lst);
             

@@ -6,6 +6,15 @@ function [lambda,Beta,Stats]=REML(Y,X,Beta_prior,Qn,Qp,maxIter,lambda,jump);
 %       brain images. London: Academic; 2007.
 %
 
+[~,s,~]=nirs.math.mysvd(Y);
+s1=max(diag(s));
+Y=Y/s1;
+[~,s,~]=nirs.math.mysvd(X);
+s2=max(diag(s));
+X=X/s2;
+
+Beta_prior=Beta_prior*s2/s1;
+
 Beta=[];
 Stats=[];
 
@@ -143,7 +152,9 @@ else
         for i = 1:size(Q,1)
             PQ = PQ_i{i};
             PQt=PQ';
-            g(i,1) = -0.5*trace(PQ)*exp(lambda(i)) + norm(0.5*PY'*Q{i}*PY,1)*exp(lambda(i));
+            [u,s]=nirs.math.mysvd(Q{i});
+            nn= 0.5*norm(PY'*u*sqrt(s))^2;
+            g(i,1) = -0.5*trace(PQ)*exp(lambda(i)) +nn*exp(lambda(i));
             for j = i:size(Q,1)
                 PQj = PQ_i{j};
                 H(i,j) = -0.5*sum(sum(PQt.*PQj))*exp(lambda(i)+lambda(j));
@@ -228,16 +239,16 @@ ssr = normest(yhat - ybar)^2;  % regression sum of squares
 sst = normest(Y - ybar)^2;     % total sum of squares;
 mse = sse./length(yhat);
 
-Stats.tstat.mse=mse;
+Stats.tstat.mse=mse*s2/s1;
 
 lambda=max(lambda,log(tolr));
 lambda=min(lambda,log(1/tolr));
 
-Stats.tstat.beta=Beta;
+Stats.tstat.beta=Beta*s2/s1;
 Stats.tstat.covb=XtXi/mse;
 Stats.tstat.dfe=size(X,2);
 Stats.tstat.t=[];
-Stats.tstat.mse=mse;
+
 Stats.tstat.pval=2*tcdf(-abs(full(Stats.tstat.t)),Stats.tstat.dfe);
 
 clear Beta_prior CY C_beta_y Cn Cp Qn Qp X X2 iCe residuals ybar yhat 

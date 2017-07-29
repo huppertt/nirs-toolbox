@@ -130,8 +130,16 @@ for i=1:length(conditions2)
         nn=['000' num2str(j)];
         nn=nn(end-1:end);
         for k=1:length(names)
-            if(~isempty(strfind(names{k},nn)) & ~isempty(strfind(names{k},n{nI})) & ~isempty(strfind(names{k},conditions{cI})))
-                lstC{i}=[lstC{i} k];
+            if(~isempty(n{nI}))
+                if(~isempty(strfind(names{k},nn)) & ~isempty(strfind(names{k},n{nI})) &...
+                        ~isempty(strfind(names{k},conditions{cI})))
+                    lstC{i}=[lstC{i} k];
+                end
+            else
+                 if(~isempty(strfind(names{k},nn)) &...
+                        ~isempty(strfind(names{k},conditions{cI})))
+                    lstC{i}=[lstC{i} k];
+                end
             end
         end
     end

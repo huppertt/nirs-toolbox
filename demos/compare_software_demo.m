@@ -91,7 +91,7 @@ List=nirs.modules.pipelineToList(jobs);
 %     [1x1 nirs.modules.ExportData    ] - save the SubjStats variable to the workspace
 
 % Let's change the resample module (3rd entry)
-List{3}.Fs=1;  % In the paper, I used 4Hz, but the ReML code in NIRS-SPM will run as O(N^3) 
+List{4}.Fs=1;  % In the paper, I used 4Hz, but the ReML code in NIRS-SPM will run as O(N^3) 
 % and so 4Hz will take a real long time to run.  Again, let's use something smaller just to get the 
 % flavor of the comparision.
 
@@ -99,13 +99,13 @@ List{3}.Fs=1;  % In the paper, I used 4Hz, but the ReML code in NIRS-SPM will ru
 
 % ------------------------------------------------------
 % First, the OLS model (as implemented in HOMER).  
-List{8}=nirs.modules.OLS;  % Change the module from the default of the AR-IRLS model to the OLS version
+List{9}=nirs.modules.OLS;  % Change the module from the default of the AR-IRLS model to the OLS version
 % Change the list back to a job object and store as the first entry in a vector 
 jobs(1) = nirs.modules.listToPipeline(List);
 
 % ------------------------------------------------------
 % Second, let's use the AR-IRLS model as described in Barker et al 2013.
-List{8}=nirs.modules.AR_IRLS;
+List{9}=nirs.modules.AR_IRLS;
 % Let's keep all the defaults.  Note this uses a BIC selected AR model
 %  AR_IRLS with properties:
 %     basis: [1x1 Dictionary]
@@ -117,7 +117,7 @@ jobs(2) = nirs.modules.listToPipeline(List);  %Store to the second entry in the 
 
 % ------------------------------------------------------
 % Third, let's use the NIRS-SPM model
-List{8}=nirs.modules.NIRS_SPM_GLM;  % Change the module to use the wrapper for NIRS-SPM
+List{9}=nirs.modules.NIRS_SPM_GLM;  % Change the module to use the wrapper for NIRS-SPM
 % The NIRS-SPM job has a number of options. 
 %   NIRS_SPM_GLM with properties:
 %        spm_hpf: 'DCT,128'    - High pass filter options {wavelet or DCT}
@@ -140,7 +140,7 @@ jobs(3) = nirs.modules.listToPipeline(List);
 
 % ------------------------------------------------------
 % Now, let's do a second version with the MDL wavelet method instead 
-List{8}.spm_hpf='wavelet';  % MDL method
+List{9}.spm_hpf='wavelet';  % MDL method
 %       spm_hpf: 'wavelet'
 %       spm_lpf: 'none'
 %       spm_cVi: 'AR(1)'
@@ -149,9 +149,9 @@ jobs(4) = nirs.modules.listToPipeline(List);
 
 % ------------------------------------------------------
 % Now, the DCT and low-pass filter
-List{8}.spm_hpf='DCT';  % MDL method
-List{8}.spm_lpf='hrf';  % MDL method
-List{8}.spm_cVi='none';  % MDL method
+List{9}.spm_hpf='DCT';  % MDL method
+List{9}.spm_lpf='hrf';  % MDL method
+List{9}.spm_cVi='none';  % MDL method
 %        spm_hpf: 'DCT'
 %        spm_lpf: 'hrf'
 %        spm_cVi: 'AR(1)'
@@ -159,9 +159,9 @@ jobs(5) = nirs.modules.listToPipeline(List);
 
 % ------------------------------------------------------
 % Finally, just the DCT with no AR model    
-List{8}.spm_hpf='DCT';  % MDL method
-List{8}.spm_lpf='none';  % MDL method
-List{8}.spm_cVi='none';  % MDL method
+List{9}.spm_hpf='DCT';  % MDL method
+List{9}.spm_lpf='none';  % MDL method
+List{9}.spm_cVi='none';  % MDL method
 %        spm_hpf: 'DCT'
 %        spm_lpf: 'none'
 %        spm_cVi: 'none'

@@ -1,4 +1,4 @@
-function tbl = roiAverage( data, R, names )
+function [tbl] = roiAverage( data, R, names )
 
 if(~iscell(R)); R={R}; end;
 
@@ -14,6 +14,7 @@ end
 
 %First deal with the NaN values;
 data=data.sorted;
+
 % sort probe
 link = data(1).probe.link;
 [link, ilink] = sortrows(link, {'type','source', 'detector'});
@@ -174,9 +175,96 @@ if(isa(data,'nirs.core.Data'))
         d(cnt).data = data.data*c;
         d(cnt).time=data.time;
         d(cnt).stimulus=data.stimulus;
+       
+        d(cnt).probe=nirs.core.ProbeROI(names);
+       
         cnt=cnt+1;
     end
     tbl=d;
+    
+elseif(isa(data,'nirs.core.sFCStats'))
+     % loop over conditions
+    varnames = {'ROI_To','ROI_From', 'Contrast', 'R','Z','SE', 'DF', 'T', 'p'};
+    tbl = table;
+
+    
+    [vars, ivars] = sortrows(data.probe.link, {'source', 'detector', 'type'});
+    Z = data.Z(ivars,ivars,:);
+    if(~isempty(data.ZstdErr))
+        covZ = data.ZstdErr(ivars, ivars,:).^2;
+    else
+        covZ=[];
+    end
+    
+    
+     % unique conditions
+    uconds = unique(data.conditions, 'stable');
+
+    
+    % change ROIs to sorted indices
+    for i = 1:length(R)
+        R{i} = ilink(R{i});
+    end
+    if(~exist('ContVect'))
+        for i = 1:length(R)
+            ContVect{i} = 1/length(find(R{i}));
+        end
+    end
+    
+    typ=zeros(length(names),1);
+    for i=1:length(names)
+        for j=1:length(types)
+            if(~isempty(strfind(names{i},types{j})))
+                typ(i)=j;
+            end
+        end
+    end
+    
+    for i = 1:length(uconds)
+        
+        b = Z(:,:,i);
+        if(isempty(covZ))
+            C=eye(size(Z,1));
+        else
+            C=covZ(:,:,i);
+        end
+       
+        
+        for j = 1:length(R)
+            for j2=1:length(R)
+                
+                if(typ(j)==typ(j2))
+                    
+                    % contrast vector
+                    c = zeros(size(b));
+                    c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
+                    c=c/sum(c(:));
+                    CC=diag(C(:));
+                    
+                    c2=c-diag(diag(c));  %remove the self terms
+                    
+                    broi    = c2(:)'*b(:);
+                    se      = sqrt(c(:)'*CC*c(:));
+                    t       = broi / se;
+                    df      = data.dfe;
+                    p       = 2*tcdf(-abs(t),df);
+                    
+                    rroi=tanh(broi);
+                    
+                    tmp = cell2table({names{j},names{j2} uconds{i}, rroi,broi, se, df, t, p});
+                    tmp.Properties.VariableNames = varnames;
+                    
+                    
+                    tbl = [tbl; tmp];
+                end
+            end
+        end
+    end
+    
+    q   = nirs.math.fdr( tbl.p );
+    [~,power] = nirs.math.MDC(tbl,.8,.05);
+    tbl = [tbl table(q) table(power)];
+    
     
 else
     
@@ -249,7 +337,6 @@ else
     [~,power] = nirs.math.MDC(tbl,.8,.05);
     tbl = [tbl table(q) table(power)];
 end
-
 
 end
 

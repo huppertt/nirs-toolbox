@@ -26,8 +26,10 @@ classdef sFCStats
         % Results storage
         R               % correlation value (depends on model)
         dfe          	% degrees of freedom
-        ZstdErr            %holds error covariance
+    end
         
+   properties ( Hidden = true )     
+        ZstdErr            %holds error covariance    
     end
     
     properties ( Dependent = true )       
@@ -100,6 +102,26 @@ classdef sFCStats
                 q(:,:,i)=min(q(:,:,i),q(:,:,i)');
             end
             
+         end
+         
+           function out = sorted( obj, colsToSortBy )
+            %% sorted - returns sorted stats by columns in variables
+            out = obj;
+            if nargin < 2
+                colsToSortBy = {'source', 'detector', 'type'};
+            end
+            
+            if(length(obj)>1)
+                for idx=1:length(obj)
+                    out(idx)=sorted(obj(idx),colsToSortBy);
+                end
+                return
+            end
+            [out.probe.link, idx] = sortrows(out.probe.link, colsToSortBy);
+            out.R = obj.R(idx,idx,:);
+            if(~isempty(obj.ZstdErr))
+                out.obj.ZstdErr = obj.obj.ZstdErr(idx, idx,:);
+            end
         end
          
          

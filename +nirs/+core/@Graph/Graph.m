@@ -134,6 +134,10 @@ classdef Graph
                 cmap(:)=0;
             end
             
+            if(isempty(c))
+                c=1;
+            end
+            
             cIdx=linspace(-c,c,size(cmap,1));
             
             for i=1:height(obj.edgeInfo)
@@ -175,7 +179,7 @@ classdef Graph
             hold on;
             for i=1:height(obj.nodeInfo)
                 for j=1:3; col(j) = interp1(cIdx,cmap(:,j),obj.nodeInfo.value(i)); end;
-                
+                col(isnan(col))=0;
                 s=scatter3(obj.nodeInfo.X(i),obj.nodeInfo.Y(i),obj.nodeInfo.Z(i),64,col,'filled');
                 
             end

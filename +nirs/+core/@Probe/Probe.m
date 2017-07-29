@@ -44,6 +44,8 @@ classdef Probe
             %              and detectors
             
             fixeddistances=[];
+            regionnames={};
+            isregionofinterest=false;
             
             Names=cell(0,1);
             Pos=zeros(0,3);

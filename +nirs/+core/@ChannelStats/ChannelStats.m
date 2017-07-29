@@ -121,7 +121,15 @@ classdef ChannelStats
             
             [~,power] = nirs.math.MDC(obj,.8,.05);
             
-            out = [obj.variables table(beta, se, tstat, dfe, p, q,power)];
+            variab=obj.variables;
+            
+            if(isa(obj.probe,'nirs.core.ProbeROI'))
+                [~,i]=ismember(variab(:,1:3),obj.probe.link);
+                variab=[table({obj.probe.RegionNames{i}}','VariableNames',{'Region'}) variab];
+                variab.source=[];
+                variab.detector=[];
+            end
+            out = [variab table(beta, se, tstat, dfe, p, q,power)];
         end
         
         function out = sorted( obj, colsToSortBy )

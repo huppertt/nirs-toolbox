@@ -255,16 +255,16 @@ classdef Dictionary
             b = getByteStreamFromArray(key);
             i = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
             
-            i = mod(i, obj.TABLE_SIZE) + 1;
+            i = mod(i, obj.TABLE_SIZE) + uint64(1);
             
             % while full and keys don't match
             while obj.indices(i) && ~isequal(b, getByteStreamFromArray(obj.keys{obj.indices(i)}))
                     % increment index; 
                     % wrap to beginning if necessary
                     if i == obj.TABLE_SIZE
-                        i = 1;
+                        i = uint64(1);
                     else
-                        i = i + 1;
+                        i = i + uint64(1);
                     end
             end
             
@@ -273,8 +273,8 @@ classdef Dictionary
         
         % rehash indices
         function obj = rehash( obj )
-            %obj.TABLE_SIZE  = max(1024, uint64(4 * length(obj.keys)));
-            obj.TABLE_SIZE  = max(1024, 4 * length(obj.keys));
+            obj.TABLE_SIZE  = max(uint64(1024), uint64(4 * length(obj.keys)));
+            %obj.TABLE_SIZE  = max(1024, 4 * length(obj.keys));
             obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
             for k = 1:length(obj.keys)
                    i = obj.getindex(obj.keys{k});
