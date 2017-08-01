@@ -22,8 +22,15 @@ end
 
 
 link=probe.link;
-link.source=link.source+size(probe.srcPos,1);
-link.detector=link.detector+size(probe.detPos,1);
+if iscell(link.source)
+    for i=1:height(link)
+        link.source{i}=link.source{i}+size(probe.srcPos,1);
+        link.detector{i}=link.detector{i}+size(probe.detPos,1);
+    end
+else
+    link.source=link.source+size(probe.srcPos,1);
+    link.detector=link.detector+size(probe.detPos,1);
+end
 
 probeShift.link=link;
 

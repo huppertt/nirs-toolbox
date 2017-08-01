@@ -294,6 +294,7 @@ classdef Probe1020 < nirs.core.Probe
             lstD=find(ismember(obj.optodes.Type,'Detector'));
             scatter3(Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b')
             
+            h=[];
             for i=1:height(link)
                 if iscell(link.source(i))
                     source = link.source{i};

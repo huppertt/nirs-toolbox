@@ -137,7 +137,8 @@ classdef ROIMaker
         end
         
         % Returns a [#channel x #ROI] binary projection matrix
-        function mapping = getMapping( obj )
+        function mapping = getMapping( obj , scale )
+            if nargin<2, scale = false; end
             chanlink = obj.probeChannel.link;
             roilink = obj.probeROI.link;
             num_chan = height(chanlink);
@@ -146,7 +147,11 @@ classdef ROIMaker
             mapping = zeros(num_chan,num_ROI);
             for i = 1:num_ROI
                 inds = obj.getChannelInds(roilink.source{i},roilink.detector{i},roilink.type{i});
-                mapping(inds,i) = 1/sum(inds);
+                if scale
+                    mapping(inds,i) = 1/sum(inds);
+                else
+                    mapping(inds,i) = 1;
+                end
             end
         end
         
@@ -170,14 +175,14 @@ classdef ROIMaker
             dataROI = dataChannel;
             switch class(dataChannel)
                 case {'nirs.core.Data'}
-                    projmat = obj.getMapping;
+                    projmat = obj.getMapping(true);
                     for i = 1:length(dataChannel)
                         dataROI(i).probe = probe;
                         dataROI(i).data = zscore(dataChannel(i).data) * projmat;
                     end
                     
                 case {'nirs.core.ChannelStats'}
-                    projmat = obj.getMapping;
+                    projmat = obj.getMapping(true);
                     for i = 1:length(dataChannel)
                         dataROI(i).probe = probe;
                         conds = unique(dataChannel(i).variables.cond,'stable');
@@ -191,36 +196,38 @@ classdef ROIMaker
                     end
                     
                 case {'nirs.core.sFCStats'}
-                    projmat = obj.getMapping;
+                    projmat = obj.getMapping(false);
                     for i = 1:length(dataChannel)
                         
                         dataROI(i).probe = probe;
                         numconds = length(dataChannel(i).conditions);
                         ROI_size = [size(projmat,2) size(projmat,2) numconds];
-                        
-                        % Transform R values
-                        R_nan_Channel = isnan(dataChannel(i).R);
-                        R_nan_ROI = zeros(ROI_size);
-                        dataChannel(i).R(R_nan_Channel) = 0;
+                        goodvals = ~isnan(dataChannel(i).R);
+                        dataChannel(i).R(~goodvals) = 0;
                         dataROI(i).R = zeros(ROI_size);
-                        for j = 1:length(dataChannel(i).conditions)
-                            dataROI(i).R(:,:,j) = projmat' * dataChannel(i).R(:,:,j) * projmat;
-                            R_nan_ROI(:,:,j) = projmat' * R_nan_Channel(:,:,j) * projmat;
-                        end
-                        dataROI(i).R(R_nan_ROI~=0) = nan;
                         
-                        % Transform ZstdErr if it exists
-                        if ~isempty(dataChannel(i).ZstdErr)
-                            Z_nan_Channel = isnan(dataChannel(i).ZstdErr);
-                            Z_nan_ROI = zeros(ROI_size);
-                            dataChannel(i).ZstdErr(Z_nan_Channel) = 0;
-                            dataROI(i).ZstdErr = zeros(ROI_size);
-                            for j = 1:length(dataChannel(i).conditions)
-                                dataROI(i).ZstdErr(:,:,j) = projmat' * dataChannel(i).ZstdErr(:,:,j) * projmat;
-                                Z_nan_ROI(:,:,j) = projmat' * Z_nan_Channel(:,:,j) * projmat;
-                            end
-                            dataROI(i).ZstdErr(Z_nan_ROI~=0) = nan;
+                        % Average Z-transformed R-values
+                        for j = 1:length(dataChannel(i).conditions)
+                            Z = projmat' * dataChannel(i).Z(:,:,j) * projmat; % ROI sum of channel Z-values
+                            numnotnan = projmat' * goodvals(:,:,j) * projmat; % ROI sum of channel NaNs
+                            Z = Z ./ numnotnan; % Sum to mean of non-nanvals
+                            dataROI(i).R(:,:,j) = tanh( Z ); % Z-to-R
                         end
+                        
+                        % Average StdErr
+                        if ~isempty(dataChannel(i).ZstdErr)
+                            
+                            dataChannel(i).ZstdErr(~goodvals) = 0;
+                            dataROI(i).ZstdErr = zeros(ROI_size);
+                                                   
+                            for j = 1:length(dataChannel(i).conditions)
+                                ZstdErr = projmat' * dataChannel(i).ZstdErr(:,:,j).^2 * projmat; % ROI sum of channel values
+                                numnotnan(:,:,j) = projmat' * goodvals(:,:,j) * projmat; % ROI sum of channel NaNs
+                                dataROI(i).ZstdErr(:,:,j) = sqrt(ZstdErr ./ numnotnan); % Mean of non-nanvals
+                            end
+                            
+                        end
+                        
                     end
                     
                 otherwise
