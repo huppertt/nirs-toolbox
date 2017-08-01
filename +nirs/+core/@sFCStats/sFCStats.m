@@ -152,6 +152,28 @@ classdef sFCStats
                     'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
                     'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
             end
+            
+            % Expand ROI-pairs to channel-pairs
+            if iscell(link.source) || iscell(link.detector)
+                out2 = table({},[],[],{},[],[],{},[],[],[],[],[],'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
+                        'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'});
+                for i=1:height(out)
+                    tmprow = out(i,:);
+                    tmprow.SourceOrigin = nan; tmprow.DetectorOrigin = nan;
+                    tmprow.SourceDest = nan; tmprow.DetectorDest = nan;
+                    for j=1:length(out.SourceOrigin{i})
+                        for k=1:length(out.SourceDest{i})
+                            out2(end+1,:) = tmprow;
+                            out2.SourceOrigin(end) = out.SourceOrigin{i}(j);
+                            out2.DetectorOrigin(end) = out.DetectorOrigin{i}(j);
+                            out2.SourceDest(end) = out.SourceDest{i}(k);
+                            out2.DetectorDest(end) = out.DetectorDest{i}(k);
+                        end
+
+                    end
+                end
+                out = out2;
+            end
         end
         
         function grph=graph(obj,vtype,thresh,flip)

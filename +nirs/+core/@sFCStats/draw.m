@@ -115,6 +115,25 @@ for cIdx=1:length(obj.conditions)
         vrange  = vrange_arg;
     end
     
+    % Expand ROI link to channel
+    if iscell(obj.probe.link.source)
+        link = obj.probe.link;
+        link2 = table([],[],{},'VariableNames',{'source','detector','type'});
+        hyper = '';
+        for i=1:height(link)
+            for j=1:length(link.source{i})
+                link2(end+1,:) = table(link.source{i}(j),link.detector{i}(j),link.type(i));
+                if ismember('hyperscan',link.Properties.VariableNames)
+                    hyper(end+1,1) = link.hyperscan(i);
+                end
+            end
+        end
+        if ismember('hyperscan',link.Properties.VariableNames)
+            link2.hyperscan = hyper;
+        end
+        obj.probe.link = link2;
+    end
+    
     typesOrigin=tbl.TypeOrigin;
     typesDest=tbl.TypeDest;
     

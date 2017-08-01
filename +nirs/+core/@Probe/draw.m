@@ -8,12 +8,12 @@ function varargout=draw( obj, colors, lineStyles, axis_handle )
     %     axis_handle - (optional) handle to axis to the plot to
         
     % sd pairs
-    link = unique( [obj.link.source obj.link.detector], 'rows' );
+    link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
 
     s = obj.srcPos;
     d = obj.detPos;
     
-    n = size(link, 1);
+    n = height(link);
     
     if nargin < 2 || isempty(colors)
        colors = repmat([0.3 0.5 1], [n 1]);
@@ -47,14 +47,21 @@ function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
     axes(axis_handle);
     hold on;
     
-    for iChan = 1:size(link,1)
-        iSrc = link(iChan,1);
-        iDet = link(iChan,2);
+    for iChan = 1:height(link)
+        if iscell(link.source(iChan))
+            iSrc = link.source{iChan};
+            iDet = link.detector{iChan};
+        else
+            iSrc = link.source(iChan);
+            iDet = link.detector(iChan);
+        end
 
-        x = [s(iSrc,1) d(iDet,1)]';
-        y = [s(iSrc,2) d(iDet,2)]';
+        for j = 1:length(iSrc)
+            x = [s(iSrc(j),1) d(iDet(j),1)]';
+            y = [s(iSrc(j),2) d(iDet(j),2)]';
 
-        h(iChan) = line(x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
+            h(iChan) = line(x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
+        end
         
         set(h(iChan),'UserData',[iSrc iDet]);
     end

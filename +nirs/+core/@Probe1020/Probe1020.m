@@ -114,10 +114,19 @@ classdef Probe1020 < nirs.core.Probe
 
                 S={}; D={};
                 for i=1:height(p.link)
-                    s=['000' num2str(p.link.source(i))];
-                    S{i}=['Source-' s(end-3:end)];
-                    d=['000' num2str(p.link.detector(i))];
-                    D{i}=['Detector-' d(end-3:end)];
+                    if iscell(p.link.source(i))
+                        source = p.link.source{i};
+                        detector = p.link.detector{i};
+                    else
+                        source = p.link.source(i);
+                        detector = p.link.detector(i);
+                    end
+                    for j=1:length(source)
+                        s=['000' num2str(source(j))];
+                        S{end+1}=['Source-' s(end-3:end)];
+                        d=['000' num2str(detector(j))];
+                        D{end+1}=['Detector-' d(end-3:end)];
+                    end
                 end
 
                 p.optodes_registered=p.optodes_registered(ismember(p.optodes.Name,{S{:} D{:}}),:);
@@ -253,10 +262,10 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         function varargout=draw3d(obj,colors, lineStyles, axis_handle)
-            link = unique( [obj.link.source obj.link.detector], 'rows' );
+            link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
             
             
-            n = size(link, 1);
+            n = height(link);
             
             if nargin < 2 || isempty(colors)
                 colors = repmat([0.3 0.5 1], [n 1]);
@@ -285,11 +294,20 @@ classdef Probe1020 < nirs.core.Probe
             lstD=find(ismember(obj.optodes.Type,'Detector'));
             scatter3(Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b')
             
-            for i=1:size(link,1)
-                s=link(i,1);
-                d=link(i,2);
-                h(i)=line(Pos([lstS(s) lstD(d)],1),Pos([lstS(s) lstD(d)],2),Pos([lstS(s) lstD(d)],3),'Color', colors(i, :), lineStyles{i, :});
-                set(h(i),'UserData',[s d]);
+            for i=1:height(link)
+                if iscell(link.source(i))
+                    source = link.source{i};
+                    detector = link.detector{i};
+                else
+                    source = link.source(i);
+                    detector = link.detector(i);
+                end
+                for j=1:length(source)
+                    s = source(j);
+                    d = detector(j);
+                    h(i)=line(Pos([lstS(s) lstD(d)],1),Pos([lstS(s) lstD(d)],2),Pos([lstS(s) lstD(d)],3),'Color', colors(i, :), lineStyles{i, :});
+                    set(h(i),'UserData',[s d]);
+                end
             end
             
             axis equal;
@@ -301,8 +319,8 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         function varargout=draw1020interp(obj,colors, lineStyles, axis_handle)
-            link = unique( [obj.link.source obj.link.detector], 'rows' );
-            n = size(link, 1);
+            link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+            n = height(link);
             if nargin < 2 || isempty(colors)
                 colors = repmat([0.3 0.5 1], [n 1]);
             elseif size(colors,1) == 1
@@ -330,27 +348,38 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,3)=obj.optodes_registered.Z(lst);
             
             [x,y]=obj.convert2d(Pos);
-            for i=1:size(link,1)
-                s=link(i,1);
-                d=link(i,2);
-                xylink(i,1)=mean(x([lstS(s) lstD(d)]));
-                xylink(i,2)=mean(y([lstS(s) lstD(d)]));
-                
+            xylink = [];
+            xycolors = [];
+            for i=1:height(link)
+                if iscell(link.source(i))
+                    source = link.source{i};
+                    detector = link.detector{i};
+                else
+                    source = link.source(i);
+                    detector = link.detector(i);
+                end
+                for j = 1:length(source)
+                    s=source(j);
+                    d=detector(j);
+                    xylink(end+1,1)=mean(x([lstS(s) lstD(d)]));
+                    xylink(end,2)=mean(y([lstS(s) lstD(d)]));
+                    xycolors(end+1,:) = colors(i,:);
+                end
             end
             
             xlim=get(axis_handle,'XLim');
             ylim=get(axis_handle,'YLim');
             [x2,y2]=meshgrid(xlim(1):xlim(2),ylim(1):ylim(2));
             
-            F = scatteredInterpolant(xylink(:,1),xylink(:,2),colors(:,1),'nearest','none');
+            F = scatteredInterpolant(xylink(:,1),xylink(:,2),xycolors(:,1),'nearest','none');
             cm(:,:,1)=reshape(F(x2(:),y2(:)),size(x2));
-            F.Values=colors(:,2);
+            F.Values=xycolors(:,2);
             cm(:,:,2)=reshape(F(x2(:),y2(:)),size(x2));
-            F.Values=colors(:,3);
+            F.Values=xycolors(:,3);
             cm(:,:,3)=reshape(F(x2(:),y2(:)),size(x2));
             
             
-            k=dsearchn(colors,reshape(cm,[],3));
+            k=dsearchn(xycolors,reshape(cm,[],3));
             k=reshape(k,size(cm,1),size(cm,2));
             lst=find(ismember(k,find(strcmp(lineStyles(:,2),'--'))));
             
@@ -381,12 +410,12 @@ classdef Probe1020 < nirs.core.Probe
             % Code to draw the probe in 10-20 space
             
             if(~isempty(obj.link))
-                link = unique( [obj.link.source obj.link.detector], 'rows' );
+                link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
             else
                 link=[];
             end
             
-            n = size(link, 1);
+            n = height(link);
             
             if nargin < 2 || isempty(colors)
                 colors = repmat([0.3 0.5 1], [n 1]);
@@ -428,11 +457,20 @@ classdef Probe1020 < nirs.core.Probe
                 lstD=find(ismember(obj.optodes.Type,'Detector'));
                 scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b')
                 
-                for i=1:size(link,1)
-                    s=link(i,1);
-                    d=link(i,2);
-                    h(i)=line(x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'Color', colors(i, :), lineStyles{i, :});
-                    set(h(i),'UserData',[s d]);
+                for i=1:height(link)
+                    if iscell(link.source(i))
+                        source = link.source{i};
+                        detector = link.detector{i};
+                    else
+                        source = link.source(i);
+                        detector = link.detector(i);
+                    end
+                    for j=1:length(source)
+                        s = source(j);
+                        d = detector(j);
+                        h(i)=line(x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'Color', colors(i, :), lineStyles{i, :});
+                        set(h(i),'UserData',[s d]);
+                    end
                 end
                 %%
             else
