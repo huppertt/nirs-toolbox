@@ -66,6 +66,10 @@ for i=1:length(conditions)
     else
         names{i}=conditions{i};
     end
+    block_ind = strfind(conditions{i},'◄');
+    if ~isempty(block_ind)
+        conditions{i} = conditions{i}(1:block_ind-1);
+    end
 end
 names=unique(names);
 

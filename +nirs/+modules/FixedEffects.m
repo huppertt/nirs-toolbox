@@ -117,6 +117,13 @@ classdef FixedEffects < nirs.modules.AbstractModule
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
             %% design mats
+            for c = 1:height(vars)
+                block_ind = strfind(vars.cond{c},'◄');
+                if ~isempty(block_ind)
+                    vars.cond{c} = vars.cond{c}(1:block_ind-2);
+                end
+            end
+            
             tmp = vars(lst == 1, :);
             
             beta = randn(size(tmp,1), 1);

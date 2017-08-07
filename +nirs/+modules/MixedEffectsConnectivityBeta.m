@@ -79,6 +79,10 @@ classdef MixedEffectsConnectivityBeta < nirs.modules.AbstractModule
                     end
                     D(cnt,:)=real(reshape(Coef_slice,[],1))';
                     cond{cnt,1}=S(i).conditions{cIdx};
+                    bind = strfind(cond{cnt,1},'◄');
+                    if ~isempty(bind)
+                        cond{cnt,1} = cond{cnt,1}(1:bind-2);
+                    end
                     demoall(cnt,:)=demo(i,:);
                     cnt=cnt+1;
                 end

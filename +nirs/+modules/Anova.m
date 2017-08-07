@@ -60,6 +60,13 @@ classdef Anova < nirs.modules.AbstractModule
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
             %% loop through
+            for c = 1:height(vars)
+                block_ind = strfind(vars.cond{c},'◄');
+                if ~isempty(block_ind)
+                    vars.cond{c} = vars.cond{c}(1:block_ind-2);
+                end
+            end
+            
             variables = table([],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'});
             F = []; df1 = []; df2 = [];
             for iChan = 1:max(lst)
