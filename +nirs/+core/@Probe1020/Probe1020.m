@@ -262,8 +262,11 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         function varargout=draw3d(obj,colors, lineStyles, axis_handle)
-            link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
-            
+            if isnumeric(obj.link.type)
+                link = obj.link(obj.link.type==obj.link.type(1),1:2);
+            else
+                link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+            end
             
             n = height(link);
             
@@ -320,7 +323,11 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         function varargout=draw1020interp(obj,colors, lineStyles, axis_handle)
-            link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+            if isnumeric(obj.link.type)
+                link = obj.link(obj.link.type==obj.link.type(1),1:2);
+            else
+                link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+            end
             n = height(link);
             if nargin < 2 || isempty(colors)
                 colors = repmat([0.3 0.5 1], [n 1]);
@@ -411,7 +418,11 @@ classdef Probe1020 < nirs.core.Probe
             % Code to draw the probe in 10-20 space
             
             if(~isempty(obj.link))
-                link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+                if isnumeric(obj.link.type)
+                    link = obj.link(obj.link.type==obj.link.type(1),1:2);
+                else
+                    link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+                end
             else
                 link=[];
             end

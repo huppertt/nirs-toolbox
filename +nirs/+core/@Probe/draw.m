@@ -8,7 +8,11 @@ function varargout=draw( obj, colors, lineStyles, axis_handle )
     %     axis_handle - (optional) handle to axis to the plot to
         
     % sd pairs
-    link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+    if isnumeric(obj.link.type)
+        link = obj.link(obj.link.type==obj.link.type(1),1:2);
+    else
+        link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+    end
 
     s = obj.srcPos;
     d = obj.detPos;
@@ -46,7 +50,7 @@ end
 function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
     axes(axis_handle);
     hold on;
-    
+    h = [];
     for iChan = 1:height(link)
         if iscell(link.source(iChan))
             iSrc = link.source{iChan};
