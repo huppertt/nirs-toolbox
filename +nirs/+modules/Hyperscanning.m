@@ -73,13 +73,17 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 timeB = data(idxB).time+obj.link.OffsetB(i);
                 
                 % Make sure we are using the same time base
-                time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))];
-                for id=1:size(dataA,2)
-                    dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
-                    dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
+                if isequal(timeA,timeB)
+                    time = timeA;
+                else
+                    time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))];
+                    for id=1:size(dataA,2)
+                        dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
+                        dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
+                    end
+                    dataA=dataA(1:length(time),:);
+                    dataB=dataB(1:length(time),:);
                 end
-                dataA=dataA(1:length(time),:);
-                dataB=dataB(1:length(time),:);
                 
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= data(idxA).description;
