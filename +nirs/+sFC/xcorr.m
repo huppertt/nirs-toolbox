@@ -1,7 +1,11 @@
-function [R,p,dfe]=xcorr(data,maxlags)
+function [R,p,dfe]=xcorr(data,maxlags,robust_flag)
 
 if(nargin<2)
     maxlags=[];
+end
+
+if(nargin<3)
+    robust_flag=true;
 end
 
 if(~isempty(strfind(class(data),'.core.Data')))
@@ -22,6 +26,10 @@ else
     mask=ones(size(data));
 end
 
-[R,p]=nirs.math.xcorrcoef(data,maxlags,mask);
+if robust_flag
+    [R,p]=nirs.math.robust_xcorrcoef(data,maxlags,mask);
+else
+    [R,p]=nirs.math.xcorrcoef(data,maxlags,mask);
+end
 
 dfe = mean(sum(mask)) - 2;
