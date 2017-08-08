@@ -1,0 +1,15 @@
+function specs = thisgetspecs(this)
+%THISGETSPECS   Get the specs.
+
+%   Copyright 2005-2011 The MathWorks, Inc.
+
+specs.Fpass               = this.Fpass;
+specs.Fstop               = this.Fstop;
+specs.Apass               = NaN;
+specs.Astop               = NaN;
+specs.FrequencyFactor     = this.FrequencyFactor;
+specs.Power               = this.Power;
+specs.CICRateChangeFactor = this.CICRateChangeFactor;
+
+
+% [EOF]

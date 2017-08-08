@@ -1,0 +1,52 @@
+<productinfo
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="http://www.mathworks.com/namespace/info/v1/info.xsd">
+<?xml-stylesheet type="text/xsl" href="http://www.mathworks.com/namespace/info/v1/info.xsl"?>
+
+<matlabrelease>13</matlabrelease>
+<name>Signal Processing</name>
+<type>toolbox</type>
+<icon>$toolbox/matlab/icons/matlabicon.gif</icon>
+<help_location>$docroot/toolbox/signal</help_location>
+
+<list>
+
+<listitem>
+<label>Filter Design &amp; Analysis Tool (fdatool)</label>
+<callback>fdatool</callback>
+<icon>$toolbox/signal/sigtools/private/fdatoolicon.gif</icon>
+</listitem>
+
+<listitem>
+<label>Signal Processing Tool (sptool)</label>
+<callback>sptool</callback>
+<icon>$toolbox/matlab/icons/figureicon.gif</icon>
+</listitem>
+
+<listitem>
+<label>Window Design &amp; Analysis Tool (wintool)</label>
+<callback>wintool</callback>
+<icon>$toolbox/signal/sigtools/private/wintoolicon.gif</icon>
+</listitem>
+
+<listitem>
+<label>Help</label>
+<callback>doc signal</callback>
+<icon>$toolbox/matlab/icons/book_mat.gif</icon>
+</listitem>
+
+<listitem>
+<label>Demos</label>
+<callback>demo toolbox Signal</callback>
+<icon>$toolbox/matlab/icons/demoicon.gif</icon>
+</listitem>
+
+<listitem>
+<label>Product Page (Web)</label>
+<callback>web http://www.mathworks.com/products/signal/ -browser;</callback>
+<icon>$toolbox/matlab/icons/webicon.gif</icon>
+</listitem>
+
+</list>
+
+</productinfo>
