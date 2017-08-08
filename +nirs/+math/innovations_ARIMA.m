@@ -20,6 +20,8 @@ end
 
 
 % model selection
+yfilt = Y;
+ARIMA_mdl = cell(1,size(Y,2));
 for i = 1:n
     % fit AR model
     
@@ -32,7 +34,7 @@ for i = 1:n
     
     mdl=arima(Pmax,nI,nMA);
     mdl=estimate(mdl,y,'Display','off');
-    yfilt(:,i)=mdl.filter(y);
+    yfilt(:,i)=mdl.infer(y);
     ARIMA_mdl{i}=mdl;
 end
 
