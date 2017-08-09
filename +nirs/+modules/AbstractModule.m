@@ -4,7 +4,7 @@ classdef AbstractModule
     properties
         name    = ''; % name of the module for convenience
         prevJob = []; % the module preceding this module in the pipeline
-        
+        citation ='';
     end
     
     methods( Abstract )
@@ -17,6 +17,44 @@ classdef AbstractModule
         % Every module automatically inherits the run function. This function
         % calls the previous module before performing its own
         % functionality.
+        
+        function varargout = cite(obj)
+            j=nirs.modules.pipelineToList(obj);
+            cnt=1;
+            for i=1:length(j)
+                
+                s=j{i}.citation;
+                if(~iscellstr(s)); s=cellstr(s); end;
+                for l=1:length(s)
+                    ss='';
+                    for k=1:100:length(s{1});
+                        ss=sprintf('%s\n%s',ss,s{l}(k:min(k+99,length(s{l}))));
+                    end;
+                    if(length(ss)>0)
+                        ss(1)=[];
+                        
+                    end
+                    out(cnt)=cellstr(ss);
+                    name{cnt}=j{i}.name;
+                    cnt=cnt+1;
+                end
+            end
+            [out,list]=unique(out);
+            if(nargout==0)
+                disp('Citations:');
+                for i=length(out):-1:1
+                    
+                    if(~isempty(out{i}))
+                        disp('-----------------')
+                        disp(name{list(i)});
+                        disp(out{i});
+                    end
+                end
+            else
+                varargout{1}=out;
+            end
+        end
+        
         function out = run( obj, inputs )
             
             if(nargin<2)

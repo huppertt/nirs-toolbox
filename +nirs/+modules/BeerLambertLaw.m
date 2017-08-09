@@ -18,6 +18,8 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
            if nargin > 0
                obj.prevJob = prevJob;
            end
+           obj.citation='Extinction coef from: Jacques, Steven L. "Optical properties of biological tissues: a review." Physics in medicine and biology 58.11 (2013): R37.';
+           
         end
         
         function data = runThis( obj, data )

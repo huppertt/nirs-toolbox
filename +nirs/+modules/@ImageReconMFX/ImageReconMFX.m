@@ -31,6 +31,10 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             prior.hbr=zeros(nVox,1);
             obj.prior('default')=prior;
             
+            obj.citation{1}='Abdelnour, F., B. Schmidt, and T. J. Huppert. "Topographic localization of brain activation in diffuse optical imaging using spherical wavelets." Physics in medicine and biology 54.20 (2009): 6383.';
+            obj.citation{2}='Abdelnour, F., & Huppert, T. (2011). A random-effects model for group-level analysis of diffuse optical brain imaging. Biomedical optics express, 2(1), 1-25.';
+            obj.citation{3}='Abdelnour, F., Genovese, C., & Huppert, T. (2010). Hierarchical Bayesian regularization of reconstructions for diffuse optical tomography using multiple priors. Biomedical optics express, 1(4), 1084-1103.';
+            
         end
         
         function G = runThis( obj,S )

@@ -27,6 +27,10 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
             
             obj.name = 'GLM via AR(P)-IRLS';
             obj.basis('default') = nirs.design.basis.Canonical();
+            obj.citation=['Barker, Jeffrey W., Ardalan Aarabi, and Theodore J. Huppert.'...
+                '"Autoregressive model based algorithm for correcting motion and serially '...
+                'correlated errors in fNIRS." Biomedical optics express 4.8 (2013): 1366-1379.'];
+            
         end
         
         function S = runThis( obj, data )

@@ -26,6 +26,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
             if(isempty(which('spm_filter_HPF_LPF_WMDL')))
                 warning('NIRS-SPM not found on Matlab Path');
             end
+            obj.citation='Ye, J. C., Tak, S., Jang, K. E., Jung, J., & Jang, J. (2009). NIRS-SPM: statistical parametric mapping for near-infrared spectroscopy. Neuroimage, 44(2), 428-447.';
             
             
         end
