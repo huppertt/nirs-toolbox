@@ -56,7 +56,7 @@ function S = ttest(obj, c, b, names)
     ncon = size(c,2);
     dfe = zeros(1,ncon);
     beta = zeros([size(obj.beta,1) size(obj.beta,2) ncon]);
-    covb = zeros([size(obj.beta,1) size(obj.beta,2) ncon ncon]);
+    covb = zeros([size(obj.beta,1) size(obj.beta,2) ncon]);
     
     for cIdx = 1:size(c,2)
         
@@ -68,7 +68,7 @@ function S = ttest(obj, c, b, names)
         
         % new covariance
         tmpCT = permute(tmpC,[1 2 4 3]);
-        covb(:,:,cIdx,cIdx) = sum(sum( bsxfun( @times , bsxfun( @times , obj.covb , tmpC ) , tmpCT ) ,4),3);
+        covb(:,:,cIdx) = sum(sum( bsxfun( @times , bsxfun( @times , obj.covb , tmpC ) , tmpCT ) ,4),3);
 
     end
     
