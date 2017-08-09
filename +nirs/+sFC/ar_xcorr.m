@@ -1,4 +1,7 @@
-function [R,p,dfe]=ar_xcorr(data,modelorder,maxlags,robust_flag)
+function [R,p,dfe]=ar_xcorr(data,modelorder,maxlags,robust_flag,avg_method)
+if(nargin<5)
+    avg_method = 'max';
+end
 
 if(nargin<4)
     robust_flag=true;
@@ -42,6 +45,22 @@ if(robust_flag)
     [R,p]=nirs.math.robust_xcorrcoef(yfilt,maxlags,mask);
 else
     [R,p]=nirs.math.xcorrcoef(yfilt,maxlags,mask);
+end
+
+switch lower(avg_method)
+    case 'max'
+        for i=1:size(R,1)
+            for j=1:size(R,2)
+                ind = find(abs(R(i,j,:))==max(abs(R(i,j,:))),1);
+                R(i,j,1) = R(i,j,ind);
+                p(i,j,1) = p(i,j,ind);
+            end
+        end
+        R = R(:,:,1);
+        p = p(:,:,1);
+    case 'mean'
+        R = mean(R,3);
+        p = mean(p,3);
 end
 
 dfe = mean(sum(mask)) - 2;
