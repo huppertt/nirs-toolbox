@@ -30,6 +30,7 @@ classdef OLS < nirs.modules.AbstractGLM
             
             obj.name = 'GLM via OLS';
             obj.basis('default') = nirs.design.basis.Canonical();
+            obj.citation='Huppert, T. J., Diamond, S. G., Franceschini, M. A., & Boas, D. A. (2009). HomER: a review of time-series analysis methods for near-infrared spectroscopy of the brain. Applied optics, 48(10), D280-D298.';
         end
         
         function S = runThis( obj, data )

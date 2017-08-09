@@ -18,6 +18,8 @@ classdef Connectivity < nirs.modules.AbstractModule
            if nargin > 0
                obj.prevJob = prevJob;
            end
+           obj.citation='Santosa, H., Aarabi, A., Perlman, S. B., & Huppert, T. J. (2017). Characterization and correction of the false-discovery rates in resting state connectivity using functional near-infrared spectroscopy. Journal of Biomedical Optics, 22(5), 055002-055002.';
+           
         end
         
         function connStats = runThis( obj, data )
