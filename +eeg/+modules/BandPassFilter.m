@@ -42,7 +42,7 @@ classdef BandPassFilter < nirs.modules.AbstractModule
                     t=data(i).time;
                     N = floor((t(end)-t(1)) * obj.lowpass*2);
                     new_t = t(1) + (0:N-1)' / (obj.lowpass*2);
-                    d = interp1(t,d,new_t,'linear');
+                  d = interp1(t,d,new_t,'linear');
                     data(i).time=new_t;
                 end
                 

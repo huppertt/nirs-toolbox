@@ -18,7 +18,7 @@ for idx=1:length(nirsin)
     [yfilt,f] = nirs.math.innovations(nirsin(idx).data,20,true);
     [yfilt2,f2] = nirs.math.innovations(eegin(idx).data,20,true);
     
-    lags=fix(eegin(idx).Fs/nirsin(idx).Fs);
+    lags=round(eegin(idx).Fs/nirsin(idx).Fs);
     
     
     yfilt(find(nirsin(idx).time>min(nirsin(idx).time(end),eegin(idx).time(end))),:)=[];
@@ -30,9 +30,15 @@ for idx=1:length(nirsin)
         X=[X yfilt2(i:lags:end,:)];
     end
     
+    yfilt(size(X,1)+1:size(yfilt,1),:)=[];
+    
     [A,B,R,U,V,stats]=canoncorr(yfilt,X);
     
     lst=find(stats.p<0.05);
+    
+    if length(lst) < 4
+        lst = [1 2 3];
+    end
     
     %U = (X - repmat(mean(X),N,1))*A and
     % Xhat=U*inv(A)+repmat(mean(X),N,1)
@@ -70,5 +76,7 @@ for idx=1:length(nirsin)
     
     nirsout(idx).data=nirsout(idx).data+ones(size(nirsout(idx).data,1),1)*ndc;
     eegout(idx).data=eegout(idx).data+ones(size(eegout(idx).data,1),1)*edc;
+    
+    %disp (['Finished ' num2str(idx) ' out of ' num2str(length(nirsin))]);
   
 end

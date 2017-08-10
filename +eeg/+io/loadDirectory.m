@@ -1,10 +1,10 @@
 function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
 
 if nargin < 4,
-    fileExt  = {'.vhdr','.fif'};
+    fileExt  = {'.vhdr','.fif','.txt'};
 end
 if nargin < 3,
-    loadFunc = {@(file)eeg.io.loadBrainVision(file,100) @(file)eeg.io.loadFiff(file,100)};
+    loadFunc = {@(file)eeg.io.loadBrainVision(file,100),@(file)eeg.io.loadFiff(file,100),@(file)eeg.io.loadOpenBCI(file,250)};
 end
 
 if(~iscell(fileExt)); fileExt={fileExt}; end;

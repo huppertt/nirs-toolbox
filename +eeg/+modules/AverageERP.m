@@ -32,11 +32,11 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 
                 basis=obj.basis;
                 if(isa(basis,'nirs.design.basis.FIR'))
-                    nWin = (obj.time_window(2)-obj.time_window(1))*data.Fs;
+                    nWin = (obj.time_window(2)-obj.time_window(1))*data(i).Fs;
                     basis.binwidth=1;
                     basis.nbins=nWin;
                     basis.isIRF=false;
-                     nWin=max(-obj.time_window(1),0)*data(i).Fs;
+                    nWin=max(-obj.time_window(1),0)*data(i).Fs;
                 else
                     nWin=[];
                 end
@@ -47,6 +47,10 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 [X, names] = obj.createX( data(i),model);
                 C = obj.getTrendMatrix( t );
                 
+                X(1:nWin,:)=[];
+                C(1:nWin,:)=[];
+                X=[X; zeros(nWin,size(X,2))];
+                C=[C; zeros(nWin,size(C,2))];
                
                 
                 % check model
@@ -105,7 +109,7 @@ classdef AverageERP < eeg.modules.AbstractGLM
                         s=nirs.design.StimulusEvents;
                         s.name=ss.name;
                         s.dur=mean(ss.dur);
-                        s.onset=0;
+                        s.onset=-obj.time_window(1);
                         s.amp=1;
                         stim(data(i).stimulus.keys{j})=s;
                     end

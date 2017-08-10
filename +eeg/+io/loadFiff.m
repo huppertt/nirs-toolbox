@@ -17,7 +17,9 @@ end
 raw=fiff_setup_read_raw(filename);
 hdr=raw.info;
 d=fiff_read_raw_segment(raw);
-aux=d(find(cat(hdr.chs.kind)==3),:);
+a={hdr.chs.kind};
+for i=1:length(a); kind(i)=a{i}; end;
+aux=d(find(kind==3),:);
 
 if(fs<hdr.sfreq/2)
     n=round(hdr.sfreq/fs);
@@ -54,8 +56,15 @@ for i=1:size(aux,1)
     aux(i,:)=0;
     aux(i,[lst lst+1 lst+2])=1;
     onsets{i}=lst;
-end
     
+    lst=find(s<-5);
+    if(~isempty(lst))
+        lst(find(diff(lst)<50))=[];
+        offsets{i}=lst;
+    end
+end
+offsets{end+1}=t(end);
+
 [r,p]=corrcoef(aux');
 
 for i=1:size(aux,1)
@@ -66,12 +75,13 @@ end
 i=unique(i);
 
 for j=1:length(i)
-    if(length(onsets{i(j)})>30)
+    if(length(onsets{i(j)})>0)
         st=nirs.design.StimulusEvents;
         st.name=['aux_' num2str(i(j))];
         k=dsearchn(t,onsets{i(j)}'/fs);
+         k1=dsearchn(t,offsets{i(j)}'/fs);
         st.onset=t(k);
-        st.dur=ones(size(st.onset))*2*mean(diff(t));
+        st.dur=t(k1)-t(k);
         st.amp=ones(size(st.onset));
         stim(st.name)=st;
     end
