@@ -11,7 +11,7 @@ if(nargin<4)
 end
 
 if(nargin<5)
-    verbose=false;
+    verbose=true;
 end
 
 if(verbose)
@@ -32,9 +32,14 @@ for i = 1:n
     y1 = mean(Y(:,i));
     y = bsxfun(@minus,Y(:,i),y1);
     
-    mdl=arima(Pmax,nI,nMA);
+    mdl=arima(0,nI,nMA);
     mdl=estimate(mdl,y,'Display','off');
-    yfilt(:,i)=mdl.infer(y);
+    y=mdl.infer(y); 
+    a = nirs.math.ar_fit(y, Pmax);
+    
+    f=[1; -a(2:end)];
+    yfilt(:,i) = filter(f, 1, y);
+    try; mdl.AR=num2cell(a); end;
     ARIMA_mdl{i}=mdl;
 end
 

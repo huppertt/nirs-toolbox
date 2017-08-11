@@ -10,6 +10,12 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         symetric;
         verbose;
         ignore;  % seconds at start/end of each scan or block to ignore
+        
+    end
+    properties(Hidden=true)
+        % I like to hide options that I don't want the average person
+        % playing with
+        
         cache_dir;  % (optional) directory to cache results (unset disables caching)
         cache_rebuild;  % (optional) force rebuild of cached results (don't load previous results from cache, only save new results)
     end

@@ -273,8 +273,13 @@ classdef Dictionary
         
         % rehash indices
         function obj = rehash( obj )
-            obj.TABLE_SIZE  = max(uint64(1024), uint64(4 * length(obj.keys)));
-            %obj.TABLE_SIZE  = max(1024, 4 * length(obj.keys));
+            if(verLessThan('matlab', '9.2'))
+                obj.TABLE_SIZE  = max(uint64(1024), uint64(4 * length(obj.keys)));
+            else
+                % The max(uint64) compltetly locks up matlab on vr > 2017
+                % (Matlab 9.2)
+                obj.TABLE_SIZE  = max(1024, 4 * length(obj.keys));
+            end
             obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
             for k = 1:length(obj.keys)
                    i = obj.getindex(obj.keys{k});
