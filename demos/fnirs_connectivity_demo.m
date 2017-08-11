@@ -18,7 +18,7 @@ root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 % Before we look at the toolbox, let's look at the problem of
 % serially-correlated errors in a time series.
 
-num_iter=100;  % number of iterations to run
+num_iter=20;  % number of iterations to run
 num_timepts=1000;
 
 fs=[.5 1 4 20];  % Let's try a few sample rates too
@@ -54,7 +54,7 @@ for i=1:length(fs)
         R(3,iter)=r(1,2);
         P(3,iter)=p(1,2);
         
-        
+       
     end
     
     % and display some info about the results

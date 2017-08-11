@@ -1,7 +1,7 @@
 function [r,p] = xcorrcoef( d , maxlags , verbose , mask )
 
 if(nargin<2 || isempty(maxlags))
-    maxlags=size(d,1);
+    maxlags=size(d,1)/2;
 end
 
 if(nargin<3 || isempty(verbose))

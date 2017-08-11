@@ -1,6 +1,6 @@
 function [R,p,dfe]=ar_xcorr(data,modelorder,maxlags,robust_flag,avg_method)
 if(nargin<5)
-    avg_method = 'max';
+    avg_method = 'mean';
 end
 
 if(nargin<4)
@@ -47,8 +47,13 @@ else
     [R,p]=nirs.math.xcorrcoef(yfilt,maxlags,mask);
 end
 
+
+
+
 switch lower(avg_method)
     case 'max'
+        dfe = mean(sum(mask)) - 2;
+
         for i=1:size(R,1)
             for j=1:size(R,2)
                 ind = find(abs(R(i,j,:))==max(abs(R(i,j,:))),1);
@@ -59,9 +64,21 @@ switch lower(avg_method)
         R = R(:,:,1);
         p = p(:,:,1);
     case 'mean'
-        R = mean(R,3);
-        p = mean(p,3);
+        dfe = mean(sum(mask))*size(R,3) - 2;
+
+        R = tanh(mean(atanh(R),3));
+        R=sign(real(R)).*abs(R);  % the 1's on the diag cause some issues
+        Tstat = R .* sqrt((dfe-2) ./ (1 - R.^2));
+        p = 2*nirs.math.tpvalue(-abs(Tstat),dfe-2);
+        p=p+eye(size(p));
+   case 'median'
+        dfe = mean(sum(mask))*size(R,3) - 2;
+
+        R = tanh(median(atanh(R),3));
+        R=sign(real(R)).*abs(R);  % the 1's on the diag cause some issues
+        Tstat = R .* sqrt((dfe-2) ./ (1 - R.^2));
+        p = 2*nirs.math.tpvalue(-abs(Tstat),dfe-2);
+        p=p+eye(size(p));     
 end
 
-dfe = mean(sum(mask)) - 2;
 
