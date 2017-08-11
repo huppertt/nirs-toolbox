@@ -47,6 +47,10 @@ end
 
 [data,f] = nirs.math.innovations(data,p);
 
+% Mask out boundary values
+for ch = 1:size(data,2)
+    data(1:length(f{ch})) = nan;
+end
 
 if(robust_flag)
     [r,p] = nirs.math.robust_wavelet_coher(data,Fs,freq,wname);

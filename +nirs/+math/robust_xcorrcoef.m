@@ -11,6 +11,8 @@ end
 if(nargin<4)
     mask=ones(size(d));
 end
+mask = mask & ~isnan(d);
+d(isnan(d)) = 0;
 
 [M,N] = size(d);
 maxlags = ceil(maxlags);

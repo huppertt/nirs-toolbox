@@ -31,6 +31,11 @@ end
 
 [yfilt,f] = nirs.math.innovations(real(data),p);
 
+% Mask out boundary values
+for ch = 1:size(yfilt,2)
+    yfilt(1:length(f{ch})) = nan;
+end
+
 if(robust_flag)
     [R,p]=nirs.math.robust_corrcoef(yfilt);
 else

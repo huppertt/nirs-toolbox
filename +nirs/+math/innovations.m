@@ -2,7 +2,7 @@ function [yfilt,f] = innovations(Y,Pmax,verbose)
 % This removes auto-correlation and returns the innvations model;
 
 [m, n] = size(Y);
-
+Pmax = min(m,Pmax);
 X = []; lst = [];
 
 if(nargin<3)
@@ -15,6 +15,8 @@ end
 
 
 % model selection
+yfilt = nan(size(Y));
+f = cell(1,size(Y,2));
 for i = 1:n
     % fit AR model
     
