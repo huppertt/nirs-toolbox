@@ -42,18 +42,17 @@ lst(find(diff(lst)<50))=[];
 aux(:,1)=0;
 aux([lst lst+1 lst+2],1)=1;
 onsets=lst;
-onsets2 = onsets;
-onsets2([2:2:end]) = [];
-durs = diff(onsets);
-durs([2:2:end]) = [];
+%onsets2 = onsets;
+%onsets2([2:2:end]) = [];
+%durs = diff(onsets);
+%durs([2:2:end]) = [];
 
 if(length(onsets)>30)
         st=nirs.design.StimulusEvents;
         st.name=['aux'];
-        k=dsearchn(t,onsets2/Fs_raw);
+        k=dsearchn(t,onsets/Fs_raw);
         st.onset=t(k);
-        k2=dsearchn(t,durs/Fs_raw);
-        st.dur=t(k2);
+        st.dur=ones(size(st.onset))*2*mean(diff(t));
         st.amp=ones(size(st.dur));
         stim(st.name)=st;
 end
