@@ -427,7 +427,11 @@ classdef Probe1020 < nirs.core.Probe
                 link=[];
             end
             
-            n = height(link);
+            if(isa(link,'table'))
+                n = height(link);
+            else
+                n=size(link,1);
+            end
             
             if nargin < 2 || isempty(colors)
                 colors = repmat([0.3 0.5 1], [n 1]);
