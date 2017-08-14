@@ -20,6 +20,13 @@ d=resample(double(d'),1,n)';
 fs=250/n;
 
 data=eeg.core.Data;
+data.probe=eeg.core.Probe;
+
+nchan=size(d,2);
+
+data.probe.link=table([1:nchan]',...
+    repmat({'eeg'},nchan,1),'VariableNames',{'electrode','type'});
+
 data.data=d;
 data.time=[0:size(d,1)-1]/fs;
 data.description=which(filename);

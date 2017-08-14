@@ -19,6 +19,11 @@ classdef Probe
             % Args:
             %     labels - name of 10-20 points
             
+            if(nargin==0)
+                obj.link=table;
+                return
+            end
+            
             tbl=nirs.util.list_1020pts('?');
             lst=[];
             for i=1:length(labels)
@@ -33,7 +38,7 @@ classdef Probe
             obj.link=table(electrode,type);
             
         end
-        
+                
         function varargout=draw(obj, colors, lineStyles, axis_handle )
             
             n=height(obj.electrodes);

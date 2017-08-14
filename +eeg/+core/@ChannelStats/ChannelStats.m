@@ -62,7 +62,15 @@ classdef ChannelStats
         
         function erp=ERP(obj)
         % function extracts the ERP from the stats variable
-            erp=eeg.design.extractERP(obj,obj.basis.base,obj.basis.stim,obj.basis.Fs);
+        erp=[];
+        for i=1:length(obj)
+            if(isempty(erp))
+                erp=eeg.design.extractERP(obj(i),obj(i).basis.base,obj(i).basis.stim,obj(i).basis.Fs);
+            else
+                erp=[erp; eeg.design.extractERP(obj(i),obj(i).basis.base,obj(i).basis.stim,obj(i).basis.Fs)];
+
+            end
+        end
         end
         
         % t statistic calculation

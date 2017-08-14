@@ -10,6 +10,15 @@ if(nargin<3 || isempty(basis))
     basis('default')=nirs.design.basis.Canonical;
 end
 
+if(~isa(basis,'Dictionary'))
+    b=Dictionary;
+    b('default')=basis;
+    basis=b;
+    clear b;
+end
+
+    
+
 Sall=[];
 
 for i=1:length(data)
@@ -51,7 +60,15 @@ end
 
 varargout{1}=Sall;
 if(nargout>1)
-    varargout{2}=Sall.HRF;
+    if(~isempty(strfind(class(Sall(1).probe),'nirs')))
+        varargout{2}=Sall.HRF;
+    elseif(~isempty(strfind(class(Sall(1).probe),'eeg')))
+        varargout{2}=Sall.ERP;
+    else
+        warning('unsupported data type');
+        varargout{2}=[];
+    end
+        
 end
 
 return
