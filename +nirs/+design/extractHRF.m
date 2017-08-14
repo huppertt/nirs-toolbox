@@ -139,7 +139,9 @@ for i=1:length(conditions2)
                  if(~isempty(strfind(names{k},nn)) &...
                         ~isempty(strfind(names{k},conditions{cI})))
                     lstC{i}=[lstC{i} k];
-                end
+                 elseif(strcmp(names{k},conditions{cI}))
+                     lstC{i}=k;
+                 end
             end
         end
     end
@@ -166,8 +168,16 @@ link=table;
 data=[];
 
 
+
 for i=1:height(l)
-     lst=find(tbl.source==l.source(i) & tbl.detector==l.detector(i) & ismember(tbl.type,l.type{i}));
+    if(isa(l.type,'cell'))
+        ltype=l.type{i};
+        ltype2=ltype;
+    else
+        ltype=l.type(i);
+        ltype2=num2str(ltype);
+    end
+     lst=find(tbl.source==l.source(i) & tbl.detector==l.detector(i) & ismember(tbl.type,ltype));
      [~,or]=ismember({cnamesOrig{lst2}},tbl(lst,:).cond);
      for j=1:length(conditions2)
          Hbeta=X(lstT,lstC{j})*tbl.beta(lst(or(lstC{j})),:);
@@ -180,7 +190,7 @@ for i=1:height(l)
              data=[data  Htstat];
              
          end
-         link=[link; table(l.source(i),l.detector(i),cellstr([l.type{i} '_' conditions2{j}]),'VariableNames',{'source','detector','type'})]; 
+         link=[link; table(l.source(i),l.detector(i),cellstr([ltype2 '_' conditions2{j}]),'VariableNames',{'source','detector','type'})]; 
          
      end
 end

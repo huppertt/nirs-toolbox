@@ -57,8 +57,14 @@ classdef ChannelStats
             if(nargin<2)
                 type='hrf';
             end
-        
-            hrf=nirs.design.extractHRF(obj,obj.basis.base,obj.basis.stim,obj.basis.Fs,type);
+            hrf=[];
+            for i=1:length(obj)
+                if(isempty(hrf))
+                    hrf=nirs.design.extractHRF(obj(i),obj(i).basis.base,obj(i).basis.stim,obj(i).basis.Fs,type);
+                else
+                    hrf=[hrf;nirs.design.extractHRF(obj(i),obj(i).basis.base,obj(i).basis.stim,obj(i).basis.Fs,type)];
+                end
+            end
         end
         
         % unique conditions

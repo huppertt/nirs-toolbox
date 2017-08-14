@@ -12,7 +12,14 @@ function data = loadDotNirs( filenames )
         try
             % load data as a struct
             d = load( filenames{iFile}, '-mat' );
-
+           
+            
+            d.d=nirs.util.fixnan(d.d);
+            d.s=nirs.util.fixnan(d.s);
+            if(isfield(d,'aux'))
+                d.aux=nirs.util.fixnan(d.aux);
+            end
+            
             % put into data class
             thisFile = nirs.core.Data();
             thisFile.description = filenames{iFile};
@@ -64,8 +71,7 @@ function data = loadDotNirs( filenames )
                 % defaut naming convention
                 stims = Dictionary();
                 d.s = nirs.util.aux2stim(d);
-                % d.s=d.aux(:,1);
-                 for idx=1:size(d.s,2)
+                for idx=1:size(d.s,2)
                      try
                          s = nirs.design.StimulusEvents();
                          
