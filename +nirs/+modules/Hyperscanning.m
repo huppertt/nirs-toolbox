@@ -132,7 +132,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                     ab=r(1:end/2,end/2+1:end,j);
                                     ba=r(end/2+1:end,1:end/2,j);
                                     bb=r(end/2+1:end,end/2+1:end,j);
-                                    r(:,:,j) = real(tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 ));
+                                    r(:,:,j) = tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 );
                                 end
                             end
                             connStats(i).dfe(cnt)=sum(dfe);
@@ -164,7 +164,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                         ab=r(1:end/2,end/2+1:end);
                         ba=r(end/2+1:end,1:end/2);
                         bb=r(end/2+1:end,end/2+1:end);
-                        r = real(tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 ));
+                        r = tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 );
                     end
                     
                     connStats(i).dfe=dfe;

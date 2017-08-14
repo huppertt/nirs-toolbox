@@ -62,6 +62,7 @@ for i = 1:N
     end
 end
 
+r(abs(r)>1) = fix(r(abs(r)>1));
 n=sum(mask(:,1));
 
 Tstat = r .* sqrt((n-2) ./ (1 - r.^2));
