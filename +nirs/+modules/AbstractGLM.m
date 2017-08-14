@@ -31,6 +31,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
         % print progress
         function printProgress(obj, n, N)
             if obj.verbose
+                nirs.util.flushstdout(1);
                 fprintf( 'Finished %4i of %4i.\n', n, N )
             end
         end  

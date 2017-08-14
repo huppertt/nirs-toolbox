@@ -30,6 +30,12 @@ function [b, r, crit] = stepwise(X, y, criterion)
             otherwise
                 error('Unknown model selection criterion: %s',criterion);
         end
+        
+        if(i>5 && min(crit(i-2:i))>min(crit(1:i-3)))
+            %disp(['     stopping: ' num2str(i)] );
+            break
+        end
+        
     end
     
     % optimal model order

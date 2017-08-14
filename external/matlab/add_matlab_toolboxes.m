@@ -13,7 +13,7 @@ for i=1:length(fold)
         g=genpath(fullfile(matlabroot,'toolbox',fold(i).name));
         addpath(g);
         
-        if(strcmp(fold(i).name,'stats'))
+        if(exist(fullfile(matlabroot,'toolbox',fold(i).name,'eml')))
             %this causes issues if the 
             % toolbox/stats/eml/exprnd.m
             % overshadows 

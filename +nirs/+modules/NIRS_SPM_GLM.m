@@ -169,7 +169,14 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 cond = repmat(names(:)', [nchan 1]);
                 cond = cond(:);
                 
-                S(i) = nirs.core.ChannelStats();
+                if(isempty(~strfind(class(probe),'nirs')))
+                    S(i) = nirs.core.ChannelStats();
+                elseif(isempty(~strfind(class(probe),'eeg')))
+                    S(i) = eeg.core.ChannelStats();
+                else
+                    warning('unsupported data type');
+                    S(i) = nirs.core.ChannelStats();
+                end
                 
                 S(i).variables = [link table(cond)];
                 S(i).beta = beta;
