@@ -6,7 +6,8 @@ if(~isfield(data,'aux'))
     return
 end
 
-hasmarks=any(bsxfun(@rdivide,bsxfun(@minus,data.aux,median(data.aux)),mad(data.aux))>20);
+deltaAux = abs(diff(data.aux));
+hasmarks=any(bsxfun(@rdivide,bsxfun(@minus,deltaAux,median(deltaAux)),mad(deltaAux))>1000);
 if any(hasmarks)
     cnt=1; bin=zeros(length(data.t),0);
     ss=zeros(length(data.t),0);
