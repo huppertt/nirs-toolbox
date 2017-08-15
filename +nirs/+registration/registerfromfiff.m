@@ -34,6 +34,17 @@ function probe1020=registerfromfiff(fiff,probe)
 
 digpts=eeg.io.readFIFFdigpts(fiff);
 
+lstHPI=find(ismember(digpts.kind,'HPI'));
+lstEEG=find(ismember(digpts.kind,'EEG'));
+lstextra=find(ismember(digpts.kind,'extra'));
+
+digpts=[digpts(1:3,:); digpts(lstHPI,:); digpts(lstEEG,:); digpts(lstextra,:)];
+
+for i=8:height(digpts)-1
+    a=[digpts.X(i) digpts.Y(i) digpts.Z(i)];
+    b=[digpts.X(i+1) digpts.Y(i+1) digpts.Z(i+1)];
+    dist(i+1)=norm(a-b);
+end
 pts1020=nirs.util.list_1020pts('?');
 
 [loca,locb]=ismember(pts1020.Name,digpts.kind);
@@ -55,9 +66,9 @@ p2=(r * p(:,1:3)' + t*ones(1,size(p,1)))';
 lst=[8:8+height(probe.optodes)-1];
 
 % remove the short distances 
-sdist=probe.distances<25;
+%sdist=probe.distances<25;
 
-lst(size(probe.srcPos,1)+probe.link.detector(sdist))=lst(probe.link.source(sdist));
+%lst(size(probe.srcPos,1)+probe.link.detector(sdist))=lst(probe.link.source(sdist));
 
 
 optodes_reg=probe.optodes;
