@@ -40,11 +40,29 @@ lstextra=find(ismember(digpts.kind,'extra'));
 
 digpts=[digpts(1:3,:); digpts(lstHPI,:); digpts(lstEEG,:); digpts(lstextra,:)];
 
-for i=8:height(digpts)-1
-    a=[digpts.X(i) digpts.Y(i) digpts.Z(i)];
-    b=[digpts.X(i+1) digpts.Y(i+1) digpts.Z(i+1)];
-    dist(i+1)=norm(a-b);
+while(1)
+    for i=8:height(digpts)-1
+        a=[digpts.X(i) digpts.Y(i) digpts.Z(i)];
+        b=[digpts.X(i+1) digpts.Y(i+1) digpts.Z(i+1)];
+        dist(i)=norm(a-b);
+    end
+    for i=1:height(probe.optodes)-1
+        a=[probe.optodes.X(i) probe.optodes.Y(i)];
+        b=[probe.optodes.X(i+1) probe.optodes.Y(i+1)];
+        dist2(i+7)=norm(a-b);
+        
+    end
+    
+    lst=[8:8+height(probe.optodes)-2];
+    if(any(abs(dist(lst)-dist2(lst))>90))
+        warning('removed duplicate point');
+        digpts(1+lst(min(find(abs(dist(lst)-dist2(lst))>90))),:)=[];
+    else
+        break;
+    end
 end
+
+
 pts1020=nirs.util.list_1020pts('?');
 
 [loca,locb]=ismember(pts1020.Name,digpts.kind);
