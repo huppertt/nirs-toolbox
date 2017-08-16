@@ -228,6 +228,10 @@ classdef ROIMaker
                             
                         end
                         
+                        % Maintain symmetry
+                        dataROI(i).R = (dataROI(i).R + permute(dataROI(i).R,[2 1 3])) ./ 2;
+                        dataROI(i).ZstdErr = (dataROI(i).ZstdErr + permute(dataROI(i).ZstdErr,[2 1 3])) ./ 2;
+                        
                     end
                     
                 case {'nirs.core.sFCBetaStats'}
@@ -265,6 +269,10 @@ classdef ROIMaker
                             end
                             
                         end
+                        
+                        % Maintain symmetry
+                        dataROI(i).beta = (dataROI(i).beta + permute(dataROI(i).beta,[2 1 3])) ./ 2;
+                        dataROI(i).covb = (dataROI(i).covb + permute(dataROI(i).covb,[2 1 3])) ./ 2;
                         
                     end
                     
