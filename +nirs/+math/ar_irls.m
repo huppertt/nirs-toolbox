@@ -88,6 +88,7 @@ function stats = ar_irls( d,X,Pmax,tune )
         % and it's less than the max number of iterations
         while norm(B-B0)/norm(B0) > 1e-2 && iter < maxiter
             % store the last fit
+            
             B0 = B;
             
             % get the residual
@@ -110,7 +111,7 @@ function stats = ar_irls( d,X,Pmax,tune )
             
             iter = iter + 1;
         end
-        
+        fprintf(1,'.');
         %  Satterthwaite estimate of model DOF
         [U,~,~]=nirs.math.mysvd(diag(S.w)*Xf);
         stats.dfe = length(yf)-sum(U(:).*U(:));

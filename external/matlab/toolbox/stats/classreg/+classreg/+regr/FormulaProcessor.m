@@ -646,7 +646,19 @@ end
 function [str,tree] = parseStr(f,str)
     % Parse the formula string
     str = strtrim(str);
-    treestruct = f.p.parse(str);
+   
+    global runTedsParser;
+    if(isempty(runTedsParser))
+        runTedsParser=false;
+    end
+    
+    if(~runTedsParser) 
+       treestruct = f.p.parse(str);
+    else
+       treestruct = classreg.regr.myPEGparser(str,...
+           f.p.rulemap);
+   end
+    
     tree = treestruct.tree;
     if isempty(tree) || tree(3,1) < length(str)
         error(message('stats:classreg:regr:LinearFormula:BadString', str));

@@ -427,8 +427,20 @@ end
 function [str,tree] = parseStr(str)
     % Parse the formula string
     str = strtrim(str);
+   
+   global runTedsParser;
+    if(isempty(runTedsParser))
+        runTedsParser=false;
+    end
     
-    treestruct = classreg.regr.LinearMixedFormula.p.parse(str);
+    if(~runTedsParser) 
+       treestruct = classreg.regr.LinearMixedFormula.p.parse(str);
+    else
+        treestruct = classreg.regr.myPEGparser(str,...
+           classreg.regr.LinearMixedFormula.p.rulemap);
+   end
+
+    
     tree = treestruct.tree;
      if isempty(tree) || tree(3,1) < length(str)
          error(message('stats:classreg:regr:LinearFormula:BadString', str));
