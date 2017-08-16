@@ -427,11 +427,12 @@ end
 function [str,tree] = parseStr(str)
     % Parse the formula string
     str = strtrim(str);
+    
     treestruct = classreg.regr.LinearMixedFormula.p.parse(str);
     tree = treestruct.tree;
-    if isempty(tree) || tree(3,1) < length(str)
-        error(message('stats:classreg:regr:LinearFormula:BadString', str));
-    end
+     if isempty(tree) || tree(3,1) < length(str)
+         error(message('stats:classreg:regr:LinearFormula:BadString', str));
+     end
 end
 
 function b = uniqueLocal(a)

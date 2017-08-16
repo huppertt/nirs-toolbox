@@ -245,9 +245,17 @@ if strcmp(dist,'min') % Minkowski distance
     end
 end
 
+try; 
+    pdistmex(1,dist,additionalArg); 
+    forceNoMex=false;
+catch
+    forceNoMex=true; 
+end
+
+
 % Call a mex file to compute distances for the standard distance measures
 % and full real double or single data.
-if ~strcmp(dist,'usr') && (isfloat(X) && ~issparse(X)) % ~usr => ~complex
+if ~forceNoMex && ( ~strcmp(dist,'usr') && (isfloat(X) && ~issparse(X))) % ~usr => ~complex
     additionalArg = cast(additionalArg,class(X));
     Y = pdistmex(X',dist,additionalArg);
     

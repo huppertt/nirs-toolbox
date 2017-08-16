@@ -15,7 +15,9 @@ function data = loadDotNirs( filenames )
            
             
             d.d=nirs.util.fixnan(d.d);
-            d.s=nirs.util.fixnan(d.s);
+            if(isfield(d,'s'))
+                d.s=nirs.util.fixnan(d.s);
+            end
             if(isfield(d,'aux'))
                 d.aux=nirs.util.fixnan(d.aux);
             end
