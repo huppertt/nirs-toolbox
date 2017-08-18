@@ -18,9 +18,6 @@ link=rawInten.probe.link;
 link.type=[];
 [link,~,b]=unique(link);
 
-
-
-
 [lb,ub]=nirs.muscle.findPulseAC(rawInten.data,rawInten.Fs);
 
 for i=1:height(link)
