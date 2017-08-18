@@ -37,8 +37,17 @@ for i=1:height(link)
     % extinction coefficients
     E = ext(:,clist);
         
-    SpO2(:,i)=(E(1,2)-R*E(2,2))./(R*(E(2,1)-E(2,2))+(E(1,2)-E(1,1)));
+    SO2(:,i)=(E(1,2)-R*E(2,2))./(R*(E(2,1)-E(2,2))+(E(1,2)-E(1,1)));
 end
 
-SpO2=min(SpO2,1);
-SpO2=max(SpO2,0);
+SO2=min(SO2,1);
+SO2=max(SO2,0);
+
+SpO2 = rawInten;
+SpO2.data=SO2;
+SpO2.probe.link=link;
+SpO2.probe.link.type=repmat({'SpO2'},height(link),1);
+
+
+
+

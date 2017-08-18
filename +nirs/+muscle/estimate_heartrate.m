@@ -1,4 +1,4 @@
-function [HR,Power]=estimate_heartrate(hb)
+function [HRV,Power]=estimate_heartrate(hb)
 
 if(length(hb)>1)
     for i=1:length(rawInten)
@@ -8,6 +8,12 @@ if(length(hb)>1)
 end
 
 lst=find(ismember(hb.probe.link.type,'hbo'));
+
+if(isempty(lst))
+    error('data must contain HbO2 and Hb variables');
+end
+
+d=hb.data(:,lst);
 
 [fa,fb]=butter(4,[.5]*2/hb.Fs,'high');
 d=filtfilt(fa,fb,d);
@@ -31,3 +37,10 @@ for i=1:size(d,2)
 end
 HR=HR'*60;  % BPM
 Power=Power';
+
+HRV = hb;
+HRV.data=HR;
+HRV.probe.link=hb.probe.link(lst,:);
+HRV.probe.link.type=repmat({'HRV'},length(lst),1);
+
+
