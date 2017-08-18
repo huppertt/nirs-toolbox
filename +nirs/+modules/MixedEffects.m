@@ -18,7 +18,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         centerVars = true;
         include_diagnostics=false;
         robust=false;
-        
+        weighted=true;
     end
     
     methods
@@ -60,7 +60,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
             vars = table();
             for i = 1:length(S)
                 % coefs
-                b = [b; S(i).beta];
+                if contains(obj.formula(1:strfind(obj.formula,'~')-1),'tstat')
+                    b = [b; S(i).tstat];
+                else
+                    b = [b; S(i).beta];
+                end
                 
                 % whitening transform
                 
@@ -112,8 +116,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
             
             obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
+            respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
-            lm1 = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
+            lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
                 obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
             X = lm1.designMatrix('Fixed');
@@ -123,6 +128,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             X = kron(speye(nchan), X);
             Z = kron(speye(nchan), Z);
+            
+            if ~obj.weighted
+                W = speye(size(X,1));
+                iW = speye(size(X,1));
+            end
             
             %% put them back in the original order
             vars(idx,:) = vars;
@@ -259,7 +269,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                        beta = yproj(ll);
                         
                        ww=w(ll).*full(dWTW(ll));
-                       mdl{idx} = fitlm([table(beta) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',ww.^2,'dummyVarCoding','full');
+                       mdl{idx} = fitlm([table(beta,'VariableNames',{respvar}) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',ww.^2,'dummyVarCoding','full');
                           
                        
                        btest=[btest; mdl{idx}.Coefficients.Estimate];

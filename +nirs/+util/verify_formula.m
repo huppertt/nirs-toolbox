@@ -9,9 +9,9 @@ formula(strfind(formula,' '))=[];
 
 treestruct = classreg.regr.LinearMixedFormula(formula);
 
-if(~strcmp(treestruct.ResponseName,'beta') & ...
+if(~any(strcmp(treestruct.ResponseName,{'beta','tstat'})) & ...
         ~ismember(treestruct.ResponseName,ds.Properties.VariableNames))
-    error('formula should use ''beta'' as the response');
+    error('formula should use ''beta'' or ''tstat'' as the response');
 end
 
 lst=find(~ismember(treestruct.PredictorNames,ds.Properties.VariableNames));
