@@ -55,8 +55,7 @@ if(verbose)
 end
 % Section 2.3 Eqn 6
 % r = sqrt(b1*b2)
-r=sign(r).*abs(sqrt(r.*r'));
-r=.5*(r+r');
+r=sign(r+r').*abs(sqrt(r.*r'));
 r(abs(r)>1) = fix(r(abs(r)>1));
 
 n=sum(mask(:,1));
