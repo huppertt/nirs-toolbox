@@ -1,4 +1,4 @@
-function draw( obj, vtype, vrange, thresh,figH)
+function f = draw( obj, vtype, vrange, thresh,figH)
     %% draw - Draws channelwise values on a probe.
     % Args:
     %     vtype   - either 'beta' or 'tstat'
@@ -41,7 +41,14 @@ function draw( obj, vtype, vrange, thresh,figH)
         mask = obj.(s{1}) < str2double(s{2});
     end
     
-    
+    visible='on';
+    callers = dbstack(1);
+    if ~isempty(callers)
+        if strcmp(callers(1).name,'printAll')
+            visible='off';
+        end
+    end
+            
     % meas types
     types = obj.variables.type;
 
@@ -59,9 +66,12 @@ function draw( obj, vtype, vrange, thresh,figH)
     % colormap
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
+    
+    hind = 0;
   
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
+            hind = hind + 1;
             lst = strcmp( types, utypes(iType) ) & ...
                 strcmp( obj.variables.cond, uconds(iCond) );
             
@@ -86,16 +96,17 @@ function draw( obj, vtype, vrange, thresh,figH)
                     lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', 4};
                 end
             end
+                        
+            if(nargin<5)
+                f(hind)=figure('Visible',visible);
+            else
+                f(hind)=figH;
+            end
             
-           if(nargin<5)
-            f=figure;
-           else
-               f=figH;
-           end
-            set(f,'name',[utypes{iType} ' : ' uconds{iCond}]);
-            obj.probe.draw(colors, lineStyles);
+            set(f(hind),'name',[utypes{iType} ' : ' uconds{iCond}]);
+            a = axes(f(hind));
+            obj.probe.draw(colors, lineStyles,a);
             c = colorbar; colormap(cmap); caxis(vrange);
-            a = gca;
             
             ap = get(a, 'Position');
             
