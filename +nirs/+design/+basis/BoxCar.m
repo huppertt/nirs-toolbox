@@ -13,7 +13,11 @@ classdef BoxCar
             nLag = Fs*obj.lagTime;
             
             lst=find(s~=0);
-            for i=1:Fs*obj.irf_dur; s(lst+i,:)=max(s(lst+i,:),s(lst,:)); end;
+            for i=1:Fs*obj.irf_dur; 
+                if(max(lst+i)<length(s))
+                    s(lst+i,:)=max(s(lst+i,:),s(lst,:)); 
+                end
+            end;
             
             out = [zeros(nLag,1); s(1:end-nLag)];
                         

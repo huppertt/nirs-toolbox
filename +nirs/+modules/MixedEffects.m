@@ -60,7 +60,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             vars = table();
             for i = 1:length(S)
                 % coefs
-                if contains(obj.formula(1:strfind(obj.formula,'~')-1),'tstat')
+                if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
                     b = [b; S(i).tstat];
                 else
                     b = [b; S(i).beta];

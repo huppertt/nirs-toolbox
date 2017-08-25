@@ -6,7 +6,8 @@ function pFlow = estimate_pFlow(hb)
 
 if(length(hb)>1)
     for i=1:length(hb)
-        pCBF(i) = nirs.muscle.estimate_rFlow(hb(i));
+        disp(i)
+        pFlow(i) = nirs.muscle.estimate_pFlow(hb(i));
     end
     return;
 end

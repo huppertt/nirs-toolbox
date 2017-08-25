@@ -169,7 +169,7 @@ if(isa(data,'nirs.core.Data'))
             c(:,i)=c(:,i)/sum(c(:,i));
         end
         d(cnt)=nirs.core.Data;
-        d(cnt).description=['ROI average' namesOld{floor(idx/length(types))+1}];
+        d(cnt).description=['ROI average' namesOld{floor((idx-1)/length(types))+1}];
         d(cnt).probe=nirs.core.Probe(NaN(1,3),NaN(1,3),table(repmat(1,length(types),1),...
             repmat(1,length(types),1),types,'VariableNames',{'source','detector','type'}));
         d(cnt).data = data.data*c;

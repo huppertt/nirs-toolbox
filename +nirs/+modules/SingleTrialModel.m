@@ -27,6 +27,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
             
             obj.name = 'Single Trial GLM Model';
             obj.basis('default') = nirs.design.basis.Canonical();
+            obj.goforit=true;
         end
         
         function S = runThis( obj, data )
@@ -50,13 +51,29 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 end
                 d = d(:, idx);
                 
+                 % get experiment design
+                [X, names] = obj.createX( data(i) );
+                C = obj.getTrendMatrix( t );
                 
+                X(find(isnan(X)))=0;
                 
                 % split the conditions to create the random effects model
                 keys=data(i).stimulus.keys;
                 ttests={}; cnt=1;
                 for k=1:length(keys)
                     name=keys{k};
+                    
+                    %if including multiple terms per condition
+                    str2={};
+                    for id=1:length(names)
+                        if(~isempty(strfind(names{id},[name ':'])))
+                            str2{end+1}=names{id}(strfind(names{id},[name ':'])+1:end);
+                        end
+                    end
+                    if(isempty(str2))
+                        str2{1}='';
+                    end
+                    
                     stim=data(i).stimulus(name);
                     disp(['Split ' name ' into ' num2str(length(stim.onset)) ' trials']);
                     for l=1:length(stim.onset)
@@ -64,19 +81,21 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                         stim.dur([1:l-1 l+1:end])=[];
                         stim.amp([1:l-1 l+1:end])=[];
                         stim.onset([1:l-1 l+1:end])=[];
-                        data(i).stimulus([name ':trial' num2str(l)])=stim;
-                        ttests{cnt,1}=[name '+' name ':trial' num2str(l)];
-                        ttests{cnt,2}=[name ':trial' num2str(l)];
-                        cnt=cnt+1;
+                        data(i).stimulus([name '_trial' num2str(l)])=stim;
+                        for id=1:length(str2)
+                            ttests{cnt,1}=[name str2{id} '+' name '_trial' num2str(l) str2{id}];
+                            ttests{cnt,2}=[name '_trial' num2str(l) str2{id}];
+                            cnt=cnt+1;
+                        end
                     end
                 end
                 
+               
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
                 
                 X(find(isnan(X)))=0;
-
                
                 
                 % run regression

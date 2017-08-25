@@ -20,6 +20,13 @@ link.type=[];
 
 [lb,ub]=nirs.muscle.findPulseAC(rawInten.data,rawInten.Fs);
 
+if(iscell(rawInten.probe.link.type))
+for i=1:height(rawInten.probe.link)
+    type(i,1)=str2num(rawInten.probe.link.type{i});
+end
+rawInten.probe.link.type=type;
+end
+
 for i=1:height(link)
     chaIdx=find(b==i);
     R=(ub(:,chaIdx)-lb(:,chaIdx))./mean(.5*(ub(:,chaIdx)+lb(:,chaIdx)));

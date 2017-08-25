@@ -96,22 +96,33 @@ for i=1:length(cnames)
     end
 end
 
+
+for j=1:length(cnames)
+    cnames{j}(end+1)='&';   % mark the end so stim1 and stim10 are not mistaken
+end
+for j=1:length(names)
+    names{j}(end+1)='&';
+end
+
 cnt=1; n={};
 for i=1:length(cnames)
     for j=1:length(names)
         if(~isempty(strfind(cnames{i},names{j})))
             n{cnt}=cnames{i}(length(names{j})+1:end);
             cnt=cnt+1;
+           
         end
     end
 end
+no=n;
 n=unique(n);
+
 n2={}; cnt=1;
 c={};
 X = repmat(X,1,length(n));
 for i=1:length(n)
     for j=1:length(names)
-        n2{cnt,1}=[names{j} n{i}];
+        n2{cnt,1}=[names{j}(1:end-1) n{i}];
         cnt=cnt+1;
     end
     for j=1:length(conditions)
@@ -120,35 +131,44 @@ for i=1:length(n)
 end
 names=n2;
 conditions2=c;
-
 lstC={};
 for i=1:length(conditions2)
-    nI=mod(i-1,length(conditions))+1;
-    cI=floor((i)/(length(n)+1))+1;
+    
+    if(length(n)==1)
+        nI=i;
+        cI=i;
+    else
+        nI=mod(i-1,length(conditions))+1;
+        cI=floor((i)/(length(n)+1))+1;
+    end
      lstC{i}=[];
     for j=1:length(names)
         nn=['000' num2str(j)];
         nn=nn(end-1:end);
+        nn=[':' nn];
         for k=1:length(names)
-            if(~isempty(n{nI}))
-                if(~isempty(strfind(names{k},nn)) & ~isempty(strfind(names{k},n{nI})) &...
-                        ~isempty(strfind(names{k},conditions{cI})))
+            if(~isempty(no{nI}))
+                if(~isempty(strfind(names{k},nn)) & ~isempty(strfind(names{k},no{nI})) &...
+                        ~isempty(strfind(names{k},[conditions{cI}])))
                     lstC{i}=[lstC{i} k];
                 end
             else
                  if(~isempty(strfind(names{k},nn)) &...
-                        ~isempty(strfind(names{k},conditions{cI})))
+                        ~isempty(strfind(names{k},[conditions{cI} ':'])))
                     lstC{i}=[lstC{i} k];
-                 elseif(strcmp(names{k},conditions{cI}))
+                 elseif(strcmp(names{k},[conditions{cI}]))
                      lstC{i}=k;
                  end
             end
         end
     end
-    
+    lstC{i}=unique(lstC{i});
 end
 
-
+for i=1:length(cnames)
+    cnames{i}(end)=[];   % mark the end so stim1 and stim10 are not mistaken
+end
+   
 
 [i,lst2]=ismember(names,cnames);
 l=unique(tbl(:,1:3));
