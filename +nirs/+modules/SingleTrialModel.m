@@ -20,7 +20,9 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
 % Note: 
 %     trend_func must at least return a constant term unless all baseline periods are
 %     specified explicitly in the stimulus design with BoxCar basis functions
-    
+    properties
+        randomeffectsmodel=true;
+    end
     methods
         function obj = SingleTrialModel( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
@@ -67,7 +69,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                     str2={};
                     for id=1:length(names)
                         if(~isempty(strfind(names{id},[name ':'])))
-                            str2{end+1}=names{id}(strfind(names{id},[name ':'])+1:end);
+                            str2{end+1}=names{id}(strfind(names{id},[name ':'])+length([name]):end);
                         end
                     end
                     if(isempty(str2))
@@ -76,21 +78,34 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                     
                     stim=data(i).stimulus(name);
                     disp(['Split ' name ' into ' num2str(length(stim.onset)) ' trials']);
+                    
+                    if(obj.randomeffectsmodel)
+                        stimulus=data(i).stimulus;
+                    else
+                        stimulus=Dictionary;
+                    end
                     for l=1:length(stim.onset)
                         stim=data(i).stimulus(name);
                         stim.dur([1:l-1 l+1:end])=[];
                         stim.amp([1:l-1 l+1:end])=[];
                         stim.onset([1:l-1 l+1:end])=[];
-                        data(i).stimulus([name '_trial' num2str(l)])=stim;
+                        stimulus([name '_trial' num2str(l)])=stim;
                         for id=1:length(str2)
-                            ttests{cnt,1}=[name str2{id} '+' name '_trial' num2str(l) str2{id}];
-                            ttests{cnt,2}=[name '_trial' num2str(l) str2{id}];
+                            if(obj.randomeffectsmodel)
+                                ttests{cnt,1}=[name str2{id} '+' name '_trial' num2str(l) str2{id}];
+                                ttests{cnt,2}=[name '_trial' num2str(l) str2{id}];
+                            else
+                                ttests{cnt,1}=[name '_trial' num2str(l) str2{id}];
+                                ttests{cnt,2}=[name '_trial' num2str(l) str2{id}];
+                            end
+                            
                             cnt=cnt+1;
                         end
                     end
+                    data(i).stimulus=stimulus;
                 end
                 
-               
+                
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
@@ -102,7 +117,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
-                    lst=find(diag(s)>max(diag(s))/1E8);
+                    lst=nirs.math.sig_eigens(s,0.05);
                     V=V(:,lst);
                     
                     stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );

@@ -6,6 +6,20 @@ function [lambda,Beta,Stats]=REML(Y,X,Beta_prior,Qn,Qp,maxIter,lambda,jump);
 %       brain images. London: Academic; 2007.
 %
 
+if(nargin<3 || isempty(Beta_prior))
+    Beta_prior=zeros(size(X,2),1);
+end
+if(nargin<4 || isempty(Qn))
+    Qn{1}=sparse(eye(size(Y,1)));
+end
+if(nargin<5 || isempty(Qp))
+    Qp{1}=sparse(eye(size(X,2)));
+end
+if(nargin<6 || isempty(maxIter))
+    maxIter=50;
+end
+
+
 [~,s,~]=nirs.math.mysvd(Y);
 s1=max(diag(s));
 Y=Y/s1;
