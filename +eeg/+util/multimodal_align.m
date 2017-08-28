@@ -1,32 +1,62 @@
-function [nirsout,eegout]=multimodalfusion(nirsin,eegin);
+function [nirsout,eegout]=multimodal_align(nirsin,eegin);
 %This function aligns (with time-dillation) EEG and NIRS data based on
 %common stimulus events
 
+nirsout=nirsin;
+eegout=eegin;
+
 for idx=1:length(nirsin)
     
-    x=lsqnonlin(@timedil,[0 0]);
-    nirsout(idx)=nirsin(idx);    
-    eegout(idx)=eegin(idx);
-    eegout(idx).time=eegout(idx).time+x(1)+x(2)*eegout(idx).time;
+    stimEEG=nirs.getStimNames(eegin(idx));
+    stimNIRS=nirs.getStimNames(nirsin(idx));
     
-end
-
-    function cost=timedil(b)
-        
-        [X1, names1] = nirs.design.createDesignMatrix(nirsin(idx).stimulus,nirsin(idx).time);
-        [X2, names2] = nirs.design.createDesignMatrix(eegin(idx).stimulus,nirsin(idx).time+b(1)+b(2)*nirsin(idx).time);
-        X1=X1/max(X1(:));
-        X2=X2/max(X2(:));
-        
-        lstBad1=~ismember(names1,names2);
-        lstBad2=~ismember(names1,names2);
-        X1(:,lstBad1)=[];
-        X2(:,lstBad2)=[];
-        cost=min(min(corrcoef(sum(X1,2),sum(X2,2))));
+    stim=intersect(stimEEG,stimNIRS);
+    onsetEEG=[]; onsetNIRS=[];
+    for i=1:length(stim)
+        s=eegin(idx).stimulus(stim{i});
+        onsetEEG=[onsetEEG; s.onset(:)];
+        s=nirsin(idx).stimulus(stim{i});
+        onsetNIRS=[onsetNIRS; s.onset(:)];
     end
-
-[X1, names1] = nirs.design.createDesignMatrix(nirsout(1).stimulus,nirsin(1).time);
-[X2, names2] = nirs.design.createDesignMatrix(eegout(1).stimulus,nirsin(1).time);
-X1=X1/max(X1(:));
-X2=X2/max(X2(:));
+    [onsetEEG,orE]=sort(onsetEEG);
+    [onsetNIRS, orN]=sort(onsetNIRS);
+    
+    ndiff=inf;
+    while(1)
+    %iter closet point
+        [k,d]=dsearchn(onsetNIRS,onsetEEG);
+        
+        lst=find(~abs(d>median(d)+1.2*std(d)));
+        
+        
+        if(norm(abs(d))<ndiff)
+            ndiff=norm(abs(d));
+        else
+            break
+        end
+        Y=onsetEEG(lst);
+        X=[];
+        X(:,1)=onsetNIRS(k(lst));
+        X(:,2)=1;
+        b=inv(X'*X)*X'*Y;
+        onsetEEG=(onsetEEG-b(2))/b(1);
+     
+    end
+    onsetNIRS(orN)=onsetNIRS;
+    onsetEEG(orE)=onsetEEG;
+    cntN=0; cntE=0;
+    for i=1:length(stim)
+        s=eegin(idx).stimulus(stim{i});
+        s.onset=onsetEEG(cntE+[1:length(s.onset)]);
+        cntE=cntE+length(s.onset);
+        eegout(idx).stimulus(stim{i})=s;
+        
+        s=nirsin(idx).stimulus(stim{i});
+        s.onset=onsetNIRS(cntN+[1:length(s.onset)]);
+        cntN=cntN+length(s.onset);
+        nirsout(idx).stimulus(stim{i})=s;
+        
+    end
+    
+    
 end
