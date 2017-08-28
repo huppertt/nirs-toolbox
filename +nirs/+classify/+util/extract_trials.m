@@ -7,7 +7,15 @@ if(nargin<2 || isempty(type))
 end
 if(nargin<3 || isempty(basis))
     basis=Dictionary;
-    basis('default')=nirs.design.basis.Canonical;
+    
+     if(~isempty(strfind(class(data(1).probe),'nirs')))
+            basis('default')=nirs.design.basis.Canonical;
+     elseif(~isempty(strfind(class(data(1).probe),'eeg')))
+            basis('default')=eeg.design.basis.ERP;
+     else
+         warning('unsupported data type');
+         return
+     end
 end
 
 if(~isa(basis,'Dictionary'))
@@ -49,6 +57,7 @@ for i=1:length(data)
             S(j).demographics=d.demographics;
             S(j).demographics('trial')=j;
             S(j).demographics('file')=i;
+            S(j).demographics('condition')=key;
         end
         if(isempty(Sall))
             Sall=S(:);
