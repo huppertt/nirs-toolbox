@@ -23,7 +23,7 @@ classdef ApproxSlab
                 %warning('probe must be a 3D registered probe');
                 %ok for the approxslab function to do this.
             elseif(all(probe.optodes.Z==0))
-                disp('warning: changing probe to 3D using "swap_reg" function');
+              %  disp('warning: changing probe to 3D using "swap_reg" function');
                 probe=probe.swap_reg;
             end
             obj.probe=probe;

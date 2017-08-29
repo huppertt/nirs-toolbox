@@ -10,10 +10,10 @@ if(nargin<3 || isempty(Beta_prior))
     Beta_prior=zeros(size(X,2),1);
 end
 if(nargin<4 || isempty(Qn))
-    Qn{1}=sparse(eye(size(Y,1)));
+    Qn{1}=speye(size(Y,1),size(Y,1));
 end
 if(nargin<5 || isempty(Qp))
-    Qp{1}=sparse(eye(size(X,2)));
+    Qp{1}=speye(size(X,2),size(X,2));
 end
 if(nargin<6 || isempty(maxIter))
     maxIter=50;
@@ -73,7 +73,7 @@ if(size(X,1)<size(X,2))
     Beta_prior=V'*Beta_prior;
     [lambda,Beta,Stats]=nirs.math.REML(Y,U*S,Beta_prior,Qn,Qp2,maxIter);
 
-    if(jump)
+    if(jump | nargout==1)
         return
     end
     

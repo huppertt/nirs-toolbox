@@ -38,6 +38,19 @@ end
 probe1=datatarget.probe;
 probe2=datamovable.probe;
 
+if(isa(probe1,'nirs.core.Probe1020'))
+    probe1b=nirs.core.Probe;
+    probe1b.optodes=probe1.optodes;
+    probe1b.link=probe1.link;
+    probe1=probe1b;
+end
+if(isa(probe2,'nirs.core.Probe1020'))
+    probe2b=nirs.core.Probe;
+    probe2b.optodes=probe2.optodes;
+    probe2b.link=probe2.link;
+    probe2=probe2b;
+end
+
 
 
 minX = min(min(probe1.optodes.X),min(probe2.optodes.X));
@@ -79,8 +92,11 @@ J2=FwdModel2.jacobian;
 J2=J2.mua;
 
 %% TODO- replace this with a better inverse solution
-a1=pinv(J1)*datatargT;
-a2=pinv(J2)*datamovT;
+
+[iJ1 a1] = nirs.math.inverse(J1,datatargT);
+
+[iJ2 a2] = nirs.math.inverse(J2,datamovT);
+
 
 [optimizer, metric] = imregconfig('multimodal');
 optimizer.MaximumIterations = 50;
@@ -108,7 +124,7 @@ end
 FwdModel2.mesh=mesh2;
 J2=FwdModel2.jacobian;
 J2=J2.mua;
-a2=J1*pinv(J2);
+a2=J1*iJ2;
 
 
 n=length(datamovable.beta)/size(a2,1);

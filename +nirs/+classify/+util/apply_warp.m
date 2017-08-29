@@ -35,6 +35,14 @@ end
 
 FwdModel=nirs.forward.ApproxSlab;
 
+if(isa(probe,'nirs.core.Probe1020'))
+    probe2=nirs.core.Probe;
+    probe2.optodes=probe.optodes;
+    probe2.link=probe.link;
+    probe=probe2;
+end
+
+
 FwdModel.prop=nirs.media.tissues.brain(.7,50,lambda);
 FwdModel.Fm=0;
 FwdModel.probe=probe;
