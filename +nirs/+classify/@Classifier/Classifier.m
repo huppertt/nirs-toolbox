@@ -37,7 +37,7 @@ classdef Classifier
                 if(nargin<2)
                     training_labels={};
                 else
-                    training_labels=varargin{2}
+                    training_labels=varargin{2};
                 end
                 if(nargin<3 || isempty(varargin{3}))
                     model='treebagger';
@@ -60,7 +60,7 @@ classdef Classifier
             
           if(~ ismember(lower(model),allowed) )
               disp('Model must be one of the following:')
-              disp(allowed)
+              disp(allowed);
               return
           end
            obj.model = model;
@@ -76,7 +76,12 @@ classdef Classifier
             switch(lower(obj.model))
                 case('treebagger')
                     n=length(unique(obj.training_labels))*2;
-                    obj.trainedmodel=TreeBagger(n,obj.training_data,obj.training_labels,'OOBPrediction','on');
+                    try
+                        obj.trainedmodel=TreeBagger(n,obj.training_data,obj.training_labels,'OOBPrediction','on');
+                    catch
+                        % version 2015b 
+                        obj.trainedmodel=TreeBagger(n,obj.training_data,obj.training_labels,'oobpred','on');
+                    end
             end
             
         end
@@ -89,6 +94,16 @@ classdef Classifier
                 acc=length(find(pred==obj.training_labels))/length(pred);
             end        
         end
+        
+        function acc = predacc(obj,data,labels)
+            pred=obj.predict(data);
+            if(isa(pred,'cell'))
+                acc=length(find(strcmp(pred,labels)))/length(pred);
+            else
+                acc=length(find(pred==labels))/length(pred);
+            end    
+        end
+        
         
         function pred = predict(obj,data)
             

@@ -104,7 +104,11 @@ function f = draw( obj, vtype, vrange, thresh,figH)
             end
             
             set(f(hind),'name',[utypes{iType} ' : ' uconds{iCond}]);
-            a = axes(f(hind));
+            a = get(f(hind),'CurrentAxes');
+            if(isempty(a))
+                figure(f(hind))
+                a=axes;
+            end
             obj.probe.draw(colors, lineStyles,a);
             c = colorbar; colormap(cmap); caxis(vrange);
             
