@@ -1,5 +1,5 @@
 classdef BandPassFilter < nirs.modules.AbstractModule
-%% KurtoisFilter - Removes principal components reducing spatial covariance.
+%% SImple Band pass filter
 %
 % Options:
 %     ncomp - % number of components to remove
