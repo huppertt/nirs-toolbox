@@ -34,6 +34,11 @@ classdef KeepStims < nirs.modules.AbstractModule
                     
                     % get values for stims we keep
                     keys = obj.listOfStims;
+                    if(isempty(keys))
+                        data(i).stimulus=Dictionary;
+                        continue;
+                    end
+                    
                     vals = stim( keys );
                     
                     if ~iscell(vals)

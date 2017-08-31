@@ -17,6 +17,15 @@ classdef RemoveStimless < nirs.modules.AbstractModule
                 if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data'))
                     if ~isempty(data(i).stimulus.keys)
                         lst(i) = true;
+                        
+                        on=[];
+                        for j=1:data(i).stimulus.count
+                            ss=data(i).stimulus.values{j};
+                            on=[on; ss.onset(:)];
+                        end
+                        if(all(on> max(data(i).time)))
+                            lst(i)=false;
+                        end
                     end
                 else
                     if ~isempty(data(i).conditions)

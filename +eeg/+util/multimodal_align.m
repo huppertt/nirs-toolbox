@@ -1,6 +1,17 @@
-function [nirsout,eegout]=multimodal_align(nirsin,eegin);
+function varargout=multimodal_align(data1,data2);
 %This function aligns (with time-dillation) EEG and NIRS data based on
 %common stimulus events
+
+if(isa(data1,'eeg.core.Data'))
+    eegin=data1;
+    nirsin=data2;
+    changeEEG=true;
+else
+    eegin=data2;
+    nirsin=data1;
+    changeEEG=false;
+end
+
 
 nirsout=nirsin;
 eegout=eegin;
@@ -42,7 +53,12 @@ for idx=1:length(nirsin)
         X(:,1)=onsetNIRS(k(lst));
         X(:,2)=1;
         b=inv(X'*X)*X'*Y;
-        onsetEEG=(onsetEEG-b(2))/b(1);
+        
+        if(changeEEG)
+            onsetEEG=(onsetEEG-b(2))/b(1);
+        else
+            onsetNIRS=b(1)*onsetNIRS+b(2);
+        end
      
     end
     onsetNIRS(orN)=onsetNIRS;
@@ -63,3 +79,12 @@ for idx=1:length(nirsin)
     
     
 end
+
+if(changeEEG)
+    varargout{1}=eegout;
+    varargout{2}=nirsout;
+else
+    varargout{1}=nirsout;
+    varargout{2}=eegout;
+end
+
