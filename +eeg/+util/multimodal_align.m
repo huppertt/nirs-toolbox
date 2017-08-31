@@ -21,10 +21,13 @@ for idx=1:length(nirsin)
     [onsetEEG,orE]=sort(onsetEEG);
     [onsetNIRS, orN]=sort(onsetNIRS);
     
+    
+    
+    
     ndiff=inf;
     while(1)
     %iter closet point
-        [k,d]=dsearchn(onsetNIRS,onsetEEG);
+        [k,d]=dsearchn(onsetNIRS-median(onsetNIRS),onsetEEG-median(onsetEEG));
         
         lst=find(~abs(d>median(d)+1.2*std(d)));
         
