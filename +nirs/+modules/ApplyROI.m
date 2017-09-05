@@ -10,9 +10,12 @@ classdef ApplyROI < nirs.modules.AbstractModule
 %
 % Options: 
 %     listOfROIs - [#ROI x 3] table of ROIs (source, detector, name)
+%     weighted   - logical (False); Option to enable variance-weighted averaging
+%                                   (currently only supported for time series)
 
     properties
         listOfROIs = table({},{},{},'VariableNames',{'sources','detectors','names'});
+        weighted = false;
     end
     
     methods
@@ -40,13 +43,25 @@ classdef ApplyROI < nirs.modules.AbstractModule
                 error('No ROIs detected in probeROI');
             end
             
+            if obj.weighted && ~any(strcmp({'nirs.core.Data'},class(dataChannel)))
+                error('Weighted option is only supported for these classes: nirs.core.Data');
+            end
+            
             dataROI = dataChannel;
             switch class(dataChannel)
                 case {'nirs.core.Data'}
                     projmat = obj.getMapping(oldprobe,probe,true);
                     for i = 1:length(dataChannel)
+                        tmpprojmat = projmat;
+                        if obj.weighted
+                            % Weights are the inverse of the robust standard deviation.  
+                            % We apply to the mapping matrix and rescale so each column/ROI sums to 1
+                            weights = 1 ./ (1.4826 * mad( dataChannel(i).data ));
+                            tmpprojmat = bsxfun( @times , tmpprojmat , weights' );
+                            tmpprojmat = bsxfun( @rdivide , tmpprojmat , sum(tmpprojmat) );
+                        end
                         dataROI(i).probe = probe;
-                        dataROI(i).data = zscore(dataChannel(i).data) * projmat;
+                        dataROI(i).data = dataChannel(i).data * tmpprojmat;
                     end
                     
                 case {'nirs.core.ChannelStats'}
