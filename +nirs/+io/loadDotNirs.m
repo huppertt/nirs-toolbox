@@ -82,6 +82,9 @@ function data = loadDotNirs( filenames )
                          s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
                          
                             s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
+                            if(isempty( s.dur))
+                                s.dur=ones(size(s.onset));
+                            end
                             s.amp=ones(size(s.dur));
                          if(~isempty(s.onset))
                              stims(s.name)=s;

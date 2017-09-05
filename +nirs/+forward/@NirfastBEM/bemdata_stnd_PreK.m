@@ -1,4 +1,4 @@
-function [data,u,mesh]= bemdata_stnd_PreK(mesh,frequency,K,myargs)
+function [data,u,mesh]= bemdata_stnd_PreK(obj,mesh,frequency,K,myargs)
 
 %% error checking
 if frequency < 0
@@ -16,7 +16,7 @@ if isfield(mesh,'region')==0
 end
 
 verbose=0;
-if nargin==4
+if nargin==5
     if isfield(myargs,'verbose')
         verbose=myargs.verbose;
     end
