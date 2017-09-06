@@ -1,13 +1,13 @@
-Wd = function (matvec)
+function Wd =MATVEC_to_WARP(matvec)
 %take a 12 param matvec, typically WARPDRIVE_MATVEC_INV_000000 and
 %change it to a WARP_DATA
 %Used to test transformations needed to make AFNI use 3dWarpDrive's output
 %as a TLRC transform
 
-if (nargin == 0) matvec = [];
+if (nargin == 0), matvec = []; end;
 
 if (isempty(matvec)),
-   WARNING: Using preset matvecs!\n\n');
+   %WARNING: Using preset matvecs!\n\n');
    %test case, matvecs from DemoSubj_SurfVol_Alnd_Exp_at2+tlrc
    if (0),
       matvec = [  0.9709206    -0.04199445     0.01165925     -0.7014965     

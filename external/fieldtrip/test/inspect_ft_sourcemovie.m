@@ -107,7 +107,7 @@ cfg.parameter = 'pow';
 % memreq          = 150*1024^2;    % requires ~150 MB
 % timreq          = 15;            % requires ~3 seconds
 % sourceIntNormSurf = qsubcellfun(@ft_sourceinterpolate, repmat({cfg}, nfreq, ntime), sourceIntNorm, repmat({cortex}, nfreq, ntime), 'memreq', memreq, 'timreq', timreq);
-sourceTFR
+%sourceTFR
 % for this one it is faster to run it locally than to go through the file system
 sourceIntNormSurf = cellfun(@ft_sourceinterpolate, repmat({cfg}, nfreq, ntime), sourceIntNorm, repmat({cortex}, nfreq, ntime),'uniformoutput', false);
 
@@ -116,7 +116,7 @@ if false
   cfg.funparameter = 'pow';
   cfg.method = 'surface';
   ft_sourceplot(cfg, sourceIntNormSurf{1,1});
-endsourceTFR
+end%sourceTFR
 
 %%
 

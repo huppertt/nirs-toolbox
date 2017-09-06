@@ -1,0 +1,381 @@
+<deployment-project plugin="plugin.toolbox" plugin-version="1.0">
+  <configuration file="/Users/admin/Desktop/nirs-toolbox/nirs-toolbox.prj" location="/Users/admin/Desktop/nirs-toolbox" name="nirs-toolbox" target="target.toolbox" target-name="Package Toolbox">
+    <param.appname>nirs-toolbox</param.appname>
+    <param.authnamewatermark>Theodore Huppert</param.authnamewatermark>
+    <param.email>huppertt@upmc.edu</param.email>
+    <param.company>University of Pittsburgh</param.company>
+    <param.summary>NIRS analysis toolbox</param.summary>
+    <param.description />
+    <param.screenshot />
+    <param.version>1.0</param.version>
+    <param.output>${PROJECT_ROOT}/nirs-toolbox.mltbx</param.output>
+    <param.products.name>
+      <item>MATLAB</item>
+      <item>Curve Fitting Toolbox</item>
+      <item>Statistics and Machine Learning Toolbox</item>
+      <item>Signal Processing Toolbox</item>
+      <item>Wavelet Toolbox</item>
+      <item>Image Processing Toolbox</item>
+      <item>Neural Network Toolbox</item>
+      <item>Econometrics Toolbox</item>
+      <item>Simulink Design Optimization</item>
+      <item>System Identification Toolbox</item>
+      <item>Optimization Toolbox</item>
+      <item>MATLAB Report Generator</item>
+      <item>Simulink</item>
+      <item>SystemTest</item>
+      <item>Robust Control Toolbox</item>
+      <item>Symbolic Math Toolbox</item>
+      <item>DO Qualification Kit</item>
+      <item>SimBiology</item>
+      <item>Control System Toolbox</item>
+      <item>MATLAB Runtime - Core</item>
+      <item>Image Acquisition Toolbox</item>
+      <item>Computer Vision System Toolbox</item>
+      <item>DSP System Toolbox</item>
+      <item>Fixed-Point Designer</item>
+      <item>MATLAB Coder</item>
+      <item>Bioinformatics Toolbox</item>
+      <item>Mapping Toolbox</item>
+      <item>Fuzzy Logic Toolbox</item>
+      <item>MATLAB Compiler</item>
+      <item>Parallel Computing Toolbox</item>
+      <item>MATLAB Distributed Computing Server</item>
+      <item>Simulink Control Design</item>
+    </param.products.name>
+    <param.products.id>
+      <item>1</item>
+      <item>60</item>
+      <item>19</item>
+      <item>8</item>
+      <item>35</item>
+      <item>17</item>
+      <item>12</item>
+      <item>125</item>
+      <item>127</item>
+      <item>4</item>
+      <item>6</item>
+      <item>44</item>
+      <item>2</item>
+      <item>77</item>
+      <item>5</item>
+      <item>15</item>
+      <item>129</item>
+      <item>103</item>
+      <item>3</item>
+      <item>35000</item>
+      <item>78</item>
+      <item>96</item>
+      <item>24</item>
+      <item>91</item>
+      <item>135</item>
+      <item>83</item>
+      <item>11</item>
+      <item>23</item>
+      <item>28</item>
+      <item>80</item>
+      <item>94</item>
+      <item>85</item>
+    </param.products.id>
+    <param.products.version>
+      <item>8.5</item>
+      <item>3.5.1</item>
+      <item>10.0</item>
+      <item>7.0</item>
+      <item>4.14.1</item>
+      <item>9.2</item>
+      <item>8.3</item>
+      <item>3.2</item>
+      <item>2.7</item>
+      <item>9.2</item>
+      <item>7.2</item>
+      <item>4.1</item>
+      <item>8.5</item>
+      <item>2.6.9</item>
+      <item>5.3</item>
+      <item>6.2</item>
+      <item>2.5</item>
+      <item>5.2</item>
+      <item>9.9</item>
+      <item>8.5</item>
+      <item>4.9</item>
+      <item>6.2</item>
+      <item>9.0</item>
+      <item>5.0</item>
+      <item>2.8</item>
+      <item>4.5.1</item>
+      <item>4.1</item>
+      <item>2.2.21</item>
+      <item>6.0</item>
+      <item>6.6</item>
+      <item>6.6</item>
+      <item>4.2</item>
+    </param.products.version>
+    <param.platforms />
+    <param.guid>1f2523bb-140d-47bb-b61f-f2a66f5dc8ac</param.guid>
+    <param.exclude.filters>% List files contained in your toolbox folder that you would like to exclude
+% from packaging.  Excludes should be listed relative to the toolbox folder.
+% Some examples of how to specify excludes are provided below:
+%
+% A single file in the toolbox folder:
+% .svn
+%
+% A single file in a subfolder of the toolbox folder:
+% example/.svn
+%
+% All files in a subfolder of the toolbox folder:
+% example/*
+%
+% All files of a certain name in all subfolders of the toolbox folder:
+ **/.*
+%
+% All files matching a pattern in all subfolders of the toolbox folder:
+% **/*.bak
+%</param.exclude.filters>
+    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;examples&gt;
+   &lt;exampleCategory name="toolbox_wavelet_meshes"&gt;
+      &lt;example name="content" type="html"&gt;
+         &lt;file type="source"&gt;/external/toolbox_wavelet_meshes/html/content.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/toolbox_wavelet_meshes/content.m&lt;/file&gt;
+         &lt;file type="thumbnail"&gt;/external/toolbox_wavelet_meshes/html/content.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_01.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_02.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_03.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_04.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_05.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_06.png&lt;/file&gt;
+         &lt;file type="image"&gt;/external/toolbox_wavelet_meshes/html/content_07.png&lt;/file&gt;
+      &lt;/example&gt;
+   &lt;/exampleCategory&gt;
+   &lt;exampleCategory name="doc"&gt;
+      &lt;example name="A1_tensor_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/A1_tensor_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/A1_tensor_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="A2_sptensor_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/A2_sptensor_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/A2_sptensor_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="B1_tenmat_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/B1_tenmat_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/B1_tenmat_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="B2_sptenmat_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/B2_sptenmat_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/B2_sptenmat_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="C_ttensor_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/C_ttensor_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/C_ttensor_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="D_ktensor_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/D_ktensor_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/D_ktensor_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="M1_multiply_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/M1_multiply_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/M1_multiply_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="N_nvecs_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/N_nvecs_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/N_nvecs_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="Q_collapse_scale_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/Q_collapse_scale_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/Q_collapse_scale_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+      &lt;example name="T_algorithms_doc" type="html"&gt;
+         &lt;file type="source"&gt;/external/tensor_toolbox_2.1/doc/html/T_algorithms_doc.html&lt;/file&gt;
+         &lt;file type="main"&gt;/external/tensor_toolbox_2.1/doc/T_algorithms_doc.m&lt;/file&gt;
+         &lt;file type="thumbnail"/&gt;
+      &lt;/example&gt;
+   &lt;/exampleCategory&gt;
+&lt;/examples&gt;</param.examples>
+    <param.demosxml />
+    <param.apps />
+    <param.docs>${PROJECT_ROOT}/external/nway331/info.xml</param.docs>
+    <unset>
+      <param.description />
+      <param.screenshot />
+      <param.version />
+      <param.output />
+      <param.platforms />
+      <param.demosxml />
+      <param.apps />
+    </unset>
+    <fileset.rootdir>
+      <file>/Users/admin/Desktop/nirs-toolbox</file>
+    </fileset.rootdir>
+    <fileset.rootfiles>
+      <file>${PROJECT_ROOT}/+dtseries</file>
+      <file>${PROJECT_ROOT}/+eeg</file>
+      <file>${PROJECT_ROOT}/+nirs</file>
+      <file>${PROJECT_ROOT}/Contents.m</file>
+      <file>${PROJECT_ROOT}/demos</file>
+      <file>${PROJECT_ROOT}/demos.xml</file>
+      <file>${PROJECT_ROOT}/external</file>
+    </fileset.rootfiles>
+    <fileset.depfun.included>
+      <file>${MATLAB_ROOT}/toolbox/local/restoredefaultpath.m</file>
+      <file>${MATLAB_ROOT}/toolbox/local/userpath.m</file>
+      <file>${MATLAB_ROOT}/toolbox/matlab/demos/watchoff.m</file>
+      <file>${MATLAB_ROOT}/toolbox/matlab/demos/watchon.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_copy_tree.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_define_constants.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_dir_tree_find.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_end_block.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_end_file.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_find_evoked.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_finish_writing_raw.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_invert_transform.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_list_dir_tree.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_make_dir_tree.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_open.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_pick_channels.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_pick_channels_evoked.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_pick_info.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_pick_types.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_pick_types_evoked.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_bad_channels.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_ctf_comp.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_epochs.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_events.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_evoked.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_evoked_all.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_meas_info.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_mri.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_named_matrix.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_proj.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_raw_segment.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_raw_segment_times.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_tag.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_read_tag_info.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_setup_read_raw.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_split_name_list.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_start_block.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_start_file.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_start_writing_raw.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_transform_eeg_chs.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_transform_meg_chs.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_ch_info.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_coord_trans.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_ctf_comp.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_dig_point.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_double.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_evoked.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_float.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_float_matrix.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_float_sparse_rcs.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_id.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_int.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_name_list.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_named_matrix.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_proj.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_raw_buffer.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_raw_segment.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/fiff_write_string.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_add_coil_defs.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_block_diag.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_combine_xyz.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_compensate_to.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_file_name.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_find_source_space_hemi.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_fread3.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_fwrite3.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_get_current_comp.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_load_coil_def.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_make_compensator.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_make_projector.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_make_projector_info.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_mesh_edges.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_omit_first_line.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_patch_info.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_prepare_inverse_operator.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_bem_surfaces.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_cov.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_curvature.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_epoch.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_events.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_inverse_operator.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_label_file.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_morph_map.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_source_spaces.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_stc_file.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_surface.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_read_w_file.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_rt_client.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_rt_cmd_client.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_rt_data_client.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_rt_define_commands.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_set_current_comp.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_transform_source_space_to.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_transpose_named_matrix.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_write_cov.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_write_events.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_write_inverse_sol_stc.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_write_stc_file.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_write_surface.m</file>
+      <file>/Users/admin/Desktop/toolbox-extra/spm12/external/mne/mne_write_w_file.m</file>
+    </fileset.depfun.included>
+    <fileset.depfun.excluded />
+    <fileset.package />
+    <build-deliverables>
+      <file location="/Users/admin/Desktop/nirs-toolbox" name="nirs-toolbox.mltbx" optional="false">/Users/admin/Desktop/nirs-toolbox/nirs-toolbox.mltbx</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>/Applications/MATLAB_R2015a.app</root>
+      <toolboxes>
+        <toolbox name="matlabhdlcoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="embeddedcoder" />
+        <toolbox name="matlabcoder" />
+      </toolboxes>
+      <toolbox>
+        <matlabhdlcoder>
+          <enabled>true</enabled>
+        </matlabhdlcoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <embeddedcoder>
+          <enabled>true</enabled>
+        </embeddedcoder>
+      </toolbox>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>true</unix>
+      <mac>true</mac>
+      <windows>false</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.11.6</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>maci64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
