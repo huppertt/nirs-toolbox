@@ -43,27 +43,35 @@ X=X(:,l);
 X   = [ones(size(X,1),1) X];
 lst = [0 0; lst];
 
-for j = 1:n
-    for i = 1:n
-        
+[G,F,df1,df2,p] = deal(nan(n));
+
+for i = 1:n
+
+    % unrestricted model
+    uind = ( ~(lst(:,1)==i & lst(:,2)==0));
+    LstU = lst(uind,:);
+    Xu = X(:,uind);
+    
+    iXu = inv(Xu'*Xu)*Xu';
+    
+    % unrestricted model (all terms)
+    a   = iXu * Y(:,i);
+    ru  = Y(:,i) - Xu*a;
+    
+    for j = 1:n
+    
         % restricted model
-        rLst = find(lst(:,1)~=j & ~(lst(:,1)==i & lst(:,2)==0));
-        %unrestricted model
-        uLst = find( ~(lst(:,1)==i & lst(:,2)==0));
+        LstR = (LstU(:,1)~=j);
+        Xr = Xu(:,LstR);
         
-        iXu = inv(X(:,uLst)'*X(:,uLst))*X(:,uLst)';
-        iXr = inv(X(:,rLst)'*X(:,rLst))*X(:,rLst)';
-        
-        % unrestricted model (all terms)
-        a   = iXu * Y(:,i);
-        ru  = Y(:,i) - X(:,uLst)*a;
+        iXr = inv(Xr'*Xr)*Xr';
         
         % restricted model (no j terms)
         a  = iXr * Y(:,i);
-        rr = Y(:,i) - X(:,rLst)*a;
+        rr = Y(:,i) - Xr*a;
         
         G(i,j)      = log(mad(rr)/mad(ru));
-        df1(i,j)    = size(X,2)-length(rLst);
+        df1(i,j)    = size(X,2)-sum(LstR);
         df2(i,j) 	= size(X,1) - size(X,2);
         F(i,j)      = ((mad(rr)^2-mad(ru)^2)/df1(i,j))/(mad(ru)^2/df2(i,j));
         F(i,j)      = max(F(i,j),0);
