@@ -71,7 +71,7 @@ classdef Data
         
         function out = get.Fs( obj )
             if length(obj.time) > 1
-                out = 1 / ( obj.time(2) - obj.time(1) );
+                out = 1 / mean(diff( obj.time ));
             else
                 out = NaN;
             end
