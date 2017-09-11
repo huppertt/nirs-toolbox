@@ -33,7 +33,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 % unique source-detector pairs
                 [~,~,idx] = unique([p.link.source p.link.detector],'rows','stable');
-                
+               clear type;
                 for j = 1:max(idx)
                     lst = idx == j;
                     
