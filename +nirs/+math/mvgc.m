@@ -58,6 +58,8 @@ for i = 1:n
     a   = iXu * Y(:,i);
     ru  = Y(:,i) - Xu*a;
     
+    SSEu = mad(ru)^2;
+    
     for j = 1:n
     
         % restricted model
@@ -70,15 +72,19 @@ for i = 1:n
         a  = iXr * Y(:,i);
         rr = Y(:,i) - Xr*a;
         
-        G(i,j)      = log(mad(rr)/mad(ru));
-        df1(i,j)    = size(X,2)-sum(LstR);
-        df2(i,j) 	= size(X,1) - size(X,2);
-        F(i,j)      = ((mad(rr)^2-mad(ru)^2)/df1(i,j))/(mad(ru)^2/df2(i,j));
+        SSEr = mad(rr)^2;
+        
+        G(i,j)      = log(SSEr/SSEu);
+        df1(i,j)    = size(Xu,2)-sum(LstR);
+        df2(i,j)    = size(Xu,1)-length(ll)-size(Xu,2);
+        F(i,j)      = ((SSEr-SSEu)/df1(i,j))/(SSEu/df2(i,j));
         F(i,j)      = max(F(i,j),0);
         p(i,j)      = fcdf(1/F(i,j), df2(i,j), df1(i,j));
         
     end
     
+end
+
 end
 
 
