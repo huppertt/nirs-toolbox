@@ -45,16 +45,41 @@ lst = [0 0; lst];
 
 [G,F,df1,df2,p] = deal(nan(n));
 
-for i = 1:n
+% Create unrestricted models (same for all channels if no zero lag)
+if ~includeZeroLag
+    iXu = inv(X'*X)*X';
+end
 
-    % unrestricted model
-    uind = ( ~(lst(:,1)==i & lst(:,2)==0));
-    LstU = lst(uind,:);
-    Xu = X(:,uind);
+% Create restricted models (1 per channel if no 0-lag, 1/channel^2 if 0-lag)
+% Todo: A better way for 0-lag is to compute the inv(Xr'*Xr) of restricted model once for each channel,
+%       then remove the effect of self 0-lag as needed (https://emtiyaz.github.io/Writings/OneColInv.pdf)
+if ~includeZeroLag
+    iXrs = zeros([size(X,2)-Pmax size(X,1) n]);
+    for j = 1:n
+        % restricted model
+        LstR = lst(:,1)~=j;
+        Xr = X(:,LstR);
+
+        iXrs(:,:,j) = inv(Xr'*Xr)*Xr'; 
+    end
+end
+
+for i = 1:n
     
-    iXu = inv(Xu'*Xu)*Xu';
+    % solve unrestricted model (all terms)
+    if includeZeroLag
+        
+        uind = ( ~(lst(:,1)==i & lst(:,2)==0));
+        LstU = lst(uind,:);
+        Xu = X(:,uind);
+
+        iXu = inv(Xu'*Xu)*Xu';
+        
+    else
+        LstU = lst;
+        Xu = X;
+    end
     
-    % unrestricted model (all terms)
     a   = iXu * Y(:,i);
     ru  = Y(:,i) - Xu*a;
     
@@ -66,7 +91,11 @@ for i = 1:n
         LstR = (LstU(:,1)~=j);
         Xr = Xu(:,LstR);
         
-        iXr = inv(Xr'*Xr)*Xr';
+        if includeZeroLag
+            iXr = inv(Xr'*Xr)*Xr';
+        else
+            iXr = iXrs(:,:,j);
+        end
         
         % restricted model (no j terms)
         a  = iXr * Y(:,i);

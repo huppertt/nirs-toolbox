@@ -21,7 +21,7 @@ end
 
 
 if(ischar(modelorder))
-    Pmax = Fs*str2double(modelorder(1:strfind(modelorder,'x')-1));
+    Pmax = ceil(Fs*str2double(modelorder(1:strfind(modelorder,'x')-1)));
 else
     Pmax = modelorder;
 end
