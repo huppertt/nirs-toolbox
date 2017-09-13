@@ -18,7 +18,7 @@ Y=Y-(ones(size(Y,1),1)*mean(Y,1));
  
 [m, n] = size(Y);
 X = []; lst = [];
-% model selection
+
 for i = 1:n
     
     % column indices for channel i
@@ -32,9 +32,6 @@ for i = 1:n
     X(:,idx) = nirs.math.lagmatrix(Y(:,i), s:Pmax);
 end
 
-
-
-
 %Remove an DC shifts in the data
 l=find(~all(X==ones(size(X,1),1)*X(1,:)));
 X=X(:,l);
@@ -42,6 +39,19 @@ X=X(:,l);
 % add a constant term
 X   = [ones(size(X,1),1) X];
 lst = [0 0; lst];
+
+% model selection
+Xall = []; Yall = [];
+for i = 1:n
+    chan_inds = lst(:,1) == i;
+    Xall = [Xall; X(:,chan_inds)];
+    Yall = [Yall; Y(:,i)];
+end
+[~, ~, crit] = nirs.math.stepwise( Xall , Yall , 'BIC' );
+Pmax = find(crit==min(crit),1,'first');
+badlags = lst(:,2)>Pmax;
+X(:,badlags) = [];
+lst(badlags,:) = [];
 
 [G,F,df1,df2,p] = deal(nan(n));
 
@@ -83,7 +93,7 @@ for i = 1:n
     a   = iXu * Y(:,i);
     ru  = Y(:,i) - Xu*a;
     
-    SSEu = mad(ru)^2;
+    SSEu = var(ru);
     
     for j = 1:n
     
@@ -101,10 +111,10 @@ for i = 1:n
         a  = iXr * Y(:,i);
         rr = Y(:,i) - Xr*a;
         
-        SSEr = mad(rr)^2;
+        SSEr = var(rr);
         
         G(i,j)      = log(SSEr/SSEu);
-        df1(i,j)    = size(Xu,2)-sum(LstR);
+        df1(i,j)    = size(Xu,2)-size(Xr,2);
         df2(i,j)    = size(Xu,1)-length(ll)-size(Xu,2);
         F(i,j)      = ((SSEr-SSEu)/df1(i,j))/(SSEu/df2(i,j));
         F(i,j)      = max(F(i,j),0);
