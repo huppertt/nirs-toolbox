@@ -53,7 +53,7 @@ badlags = lst(:,2)>Pmax;
 X(:,badlags) = [];
 lst(badlags,:) = [];
 
-[G,F,df1,df2,p] = deal(nan(n));
+G = nan(n);
 
 % Create unrestricted models (same for all channels if no zero lag)
 if ~includeZeroLag
@@ -113,16 +113,18 @@ for i = 1:n
         
         SSEr = var(rr);
         
-        G(i,j)      = log(SSEr/SSEu);
-        df1(i,j)    = size(Xu,2)-size(Xr,2);
-        df2(i,j)    = size(Xu,1)-length(ll)-size(Xu,2);
-        F(i,j)      = ((SSEr-SSEu)/df1(i,j))/(SSEu/df2(i,j));
-        F(i,j)      = max(F(i,j),0);
-        p(i,j)      = fcdf(1/F(i,j), df2(i,j), df1(i,j));
-        
+        G(i,j) = log(SSEr/SSEu);
+
     end
     
 end
+
+df1 = Pmax * (n-1);          % Number of cross (non-auto) predictors [unrestricted parameters - restricted]
+df2 = (m-Pmax) - (n*Pmax+1); % Effective observations (obs-order) - full # of predictors
+
+F = (exp(G)-1) .* (df2/df1); % F = (SSEr-SSEu)/df1 / SSEu/df2 = (SSEr-SSEu)/SSEu * df2/df1
+                             % (SSEr-SSEu)/SSEu = SSEr/SSEu - 1 = exp(G) - 1
+p = 1 - fcdf(F,df1,df2);
 
 end
 
