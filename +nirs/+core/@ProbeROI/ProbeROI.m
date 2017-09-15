@@ -42,19 +42,19 @@ classdef ProbeROI < nirs.core.Probe
             warning('off','MATLAB:table:RowsAddedExistingVars');
             for i=1:numsrc
                 s=['0000' num2str(i)];
-                obj.optodes.Name{i}=['Src-' s(end-4:end)];
-                obj.optodes.X(i)=NaN;
-                obj.optodes.Y(i)=NaN;
-                obj.optodes.Z(i)=NaN;
-                obj.optodes.Type{i}='Source';
-                obj.optodes.Units{i}='mm';
+                obj.optodes.Name{i,1}=['Src-' s(end-3:end)];
+                obj.optodes.X(i,1)=NaN;
+                obj.optodes.Y(i,1)=NaN;
+                obj.optodes.Z(i,1)=NaN;
+                obj.optodes.Type{i,1}='Source';
+                obj.optodes.Units{i,1}='mm';
             end
-            obj.optodes.Name{numsrc+1}='Det-0001';
-            obj.optodes.X(numsrc+1)=NaN;
-            obj.optodes.Y(numsrc+1)=NaN;
-            obj.optodes.Z(numsrc+1)=NaN;
-            obj.optodes.Type{numsrc+1}='Detector';
-            obj.optodes.Units{numsrc+1}='mm';
+            obj.optodes.Name{numsrc+1,1}='Det-0001';
+            obj.optodes.X(numsrc+1,1)=NaN;
+            obj.optodes.Y(numsrc+1,1)=NaN;
+            obj.optodes.Z(numsrc+1,1)=NaN;
+            obj.optodes.Type{numsrc+1,1}='Detector';
+            obj.optodes.Units{numsrc+1,1}='mm';
             
             
             obj.link=table(src,ones(length(regionnames),1),type,...

@@ -1,4 +1,4 @@
-function [tbl] = roiAverage( data, R, names )
+function [tbl] = roiAverage( data, R, names ,splitrois)
 
 if(~iscell(R)); R={R}; end;
 
@@ -9,6 +9,11 @@ if(nargin<3 && ~exist('names'))
 end
 if ischar( names )
     names = {names};
+end
+
+if(nargin<4)
+    % put all roi time courses in a single object or split
+    splitrois=false;
 end
 
 
@@ -103,12 +108,12 @@ if(length(data)>1)
         tbl=nirs.core.Data;
         tbl(1)=[];
         for idx=1:length(data)
-            tbl=[tbl; nirs.util.roiAverage(data(idx),R)'];
+            tbl=[tbl; nirs.util.roiAverage(data(idx),R,names,splitrois)'];
         end
     else
         tbl=[];
         for idx=1:length(data)
-            thistbl=nirs.util.roiAverage(data(idx),R);
+            thistbl=nirs.util.roiAverage(data(idx),R,names,splitrois);
             description = {data(idx).description};
             fileIdx=idx;
             thistbl = [repmat(table(fileIdx,description),height(thistbl),1) thistbl];
@@ -176,10 +181,22 @@ if(isa(data,'nirs.core.Data'))
         d(cnt).time=data.time;
         d(cnt).stimulus=data.stimulus;
        
-        d(cnt).probe=nirs.core.ProbeROI(names);
+        d(cnt).probe=nirs.core.ProbeROI({names{idx:idx+length(types)-1}});
        
         cnt=cnt+1;
     end
+    
+    if(~splitrois)
+        %combine the time courses into a single object
+        dd=d(1);
+        for i=2:length(d)
+            dd.data=[dd.data d(i).data];
+            dd.probe.RegionNames={dd.probe.RegionNames{:}; d(i).probe.RegionNames{:}}; 
+        end
+        dd.probe.RegionNames=names;
+        d=dd;
+    end
+    
     tbl=d;
     
 elseif(isa(data,'nirs.core.sFCStats'))
@@ -277,7 +294,7 @@ else
     uconds = unique(vars.cond, 'stable');
     
     % loop over conditions
-    varnames = {'ROI', 'Contrast', 'Beta', 'SE', 'DF', 'T', 'p'};
+    varnames = {'ROI', 'Contrast','Beta', 'SE', 'DF', 'T', 'p'};
     tbl = table;
     
     
@@ -296,6 +313,7 @@ else
         b = beta(lst);
         C = covb(lst,lst);
         
+      
         for j = 1:length(R)
             % contrast vector
             c = zeros(size(b));
@@ -308,8 +326,7 @@ else
             df      = data.dfe;
             p       = 2*tcdf(-abs(t),df);
             
-            
-            tmp = cell2table({names{j}, uconds{i}, broi, se, df, t, p});
+            tmp = cell2table({names{j}, uconds{i},  broi, se, df, t, p});
             tmp.Properties.VariableNames = varnames;
             
             if(ismember('model',vars.Properties.VariableNames))

@@ -171,6 +171,7 @@ end
    
 
 [i,lst2]=ismember(names,cnames);
+lst2(lst2==0)=[];
 l=unique(tbl(:,1:3));
 
 % Cut off all the zeros at the end
