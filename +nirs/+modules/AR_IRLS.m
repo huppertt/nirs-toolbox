@@ -131,7 +131,9 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 S(i).basis.stim=stim;
                 
                 % print progress
-                obj.printProgress( i, length(data) )
+                if(obj.verbose)
+                 obj.printProgress( i, length(data) )
+                end
             end
 
         end
