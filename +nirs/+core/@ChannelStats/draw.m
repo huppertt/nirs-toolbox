@@ -48,55 +48,40 @@ function f = draw( obj, vtype, vrange, thresh,figH)
             visible='off';
         end
     end
-            
+    
     % meas types
-    types = obj.variables.type;
-
+    if(length(obj)>1)
+        types=vertcat(obj.variables);
+        types=types.type;
+    else
+        types = obj.variables.type;
+    end
     % convert to strings for consistency in loop below
     if any(isnumeric(types))
         types = cellfun(@(x) {num2str(x)}, num2cell(types));
     end
-
+    
     % unique types
     utypes = unique(types, 'stable');
-    
     % unique conditions
-    uconds = unique(obj.variables.cond, 'stable');
     
+    if(length(obj)>1)
+        cond=vertcat(obj.variables);
+        cond=cond.cond;
+        uconds = unique(cond, 'stable');
+    else
+        uconds = unique(obj.variables.cond, 'stable');
+    end
     % colormap
     [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
     
     hind = 0;
-  
+    
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
             hind = hind + 1;
-            lst = strcmp( types, utypes(iType) ) & ...
-                strcmp( obj.variables.cond, uconds(iCond) );
             
-            % values
-            vals = values(lst);
-            
-            % this mask
-            m = mask(lst);
-            
-            % map to colors
-            idx = bsxfun(@minus, vals', z);
-            [~, idx] = min(abs(idx), [], 1);
-            
-            colors = cmap(idx, :);
-            
-            % line styles
-            lineStyles = {};
-            for i = 1:length(idx)
-                if m(i)
-                    lineStyles(i,:) = {'LineStyle', '-', 'LineWidth', 8};
-                else
-                    lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', 4};
-                end
-            end
-                        
             if(nargin<5)
                 f(hind)=figure('Visible',visible);
             else
@@ -104,12 +89,55 @@ function f = draw( obj, vtype, vrange, thresh,figH)
             end
             
             set(f(hind),'name',[utypes{iType} ' : ' uconds{iCond}]);
-            a = get(f(hind),'CurrentAxes');
-            if(isempty(a))
-                figure(f(hind))
-                a=axes;
-            end
-            obj.probe.draw(colors, lineStyles,a);
+            
+            for ii=1:length(obj)
+                
+                if(length(obj)>1)
+                    n=ceil(sqrt(length(obj)));
+                    a=subplot(n,n,ii);
+                else
+                    a = get(f(hind),'CurrentAxes');
+                end
+                
+                types = obj(ii).variables.type;
+                if any(isnumeric(types))
+                    types = cellfun(@(x) {num2str(x)}, num2cell(types));
+                end
+                
+                lst = strcmp( types, utypes(iType) ) & ...
+                    strcmp( obj(ii).variables.cond, uconds(iCond) );
+                if(isempty(lst))
+                    continue;
+                end
+                % values
+                vals = values(lst);
+                
+                % this mask
+                m = mask(lst);
+                
+                % map to colors
+                idx = bsxfun(@minus, vals', z);
+                [~, idx] = min(abs(idx), [], 1);
+                
+                colors = cmap(idx, :);
+                
+                % line styles
+                lineStyles = {};
+                for i = 1:length(idx)
+                    if m(i)
+                        lineStyles(i,:) = {'LineStyle', '-', 'LineWidth', 8};
+                    else
+                        lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', 4};
+                    end
+                end
+                
+                
+                if(isempty(a))
+                    figure(f(hind))
+                    a=axes;
+                end
+                obj(ii).probe.draw(colors, lineStyles,a);
+          
             c = colorbar; colormap(cmap); caxis(vrange);
             
             ap = get(a, 'Position');
@@ -120,6 +148,7 @@ function f = draw( obj, vtype, vrange, thresh,figH)
             set(a, 'Position', ap);
             
             title([utypes{iType} ' : ' uconds{iCond}], 'Interpreter','none')
+            end
         end
     end
 end
