@@ -45,9 +45,19 @@ classdef Canonical
                 db = 1e-6 * b1;
                 
                 ha = (h - obj.getImpulseResponse(a1+da, b1, a2, b2, c, t) )/da;
-                hb = (h - obj.getImpulseResponse(a1, b1+db, a2, b2, c, t) )/da;
+                hb = (h - obj.getImpulseResponse(a1, b1+db, a2, b2, c, t) )/db;
                 
-                out = [out filter(ha, 1, s) filter(hb, 1, s)];
+                % orthogonalize
+                [Q,R] = qr([h ha hb],0);
+                R = diag(diag(R));
+                R(R<0)=-1;
+                R(R>0)=1;
+                QR = Q*R;
+                h = QR(:,1);
+                ha = QR(:,2);
+                hb = QR(:,3);
+                
+                out = [filter(h, 1, s) filter(ha, 1, s) filter(hb, 1, s)];
             end
             
         end
