@@ -47,9 +47,9 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 % make sure data is in order
                 
                 if(~isempty(strfind(class(probe),'nirs')))
-                    [probe.link, idx] = sortrows(probe.link, {'source', 'detector','type'});
+                    [probe.link, idx] = nirs.util.sortrows(probe.link, {'source', 'detector','type'});
                 elseif(~isempty(strfind(class(probe),'eeg')))
-                    [probe.link, idx] = sortrows(probe.link, {'electrode','type'});
+                    [probe.link, idx] = nirs.util.sortrows(probe.link, {'electrode','type'});
                 else
                     error('data type not supported');
                 end

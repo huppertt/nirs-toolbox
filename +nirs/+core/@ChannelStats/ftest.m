@@ -48,7 +48,7 @@ function S = ftest(obj, m)
     cond = repmat( cond(:), [nchan 1] );
 
     link = repmat( obj.probe.link, [size(m,1) 1] );
-    link = sortrows(link, {'source', 'detector', 'type'});
+    link = nirs.util.sortrows(link, {'source', 'detector', 'type'});
     
     S = nirs.core.ChannelFStats();
     S.variables = [link table(cond)];

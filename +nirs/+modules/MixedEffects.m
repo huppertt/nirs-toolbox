@@ -94,10 +94,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             
             % sort
-            [vars, idx] = sortrows(vars, {'source', 'detector', 'type'});
+            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
             
             % list for first source
-            [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
             %% design mats
@@ -234,7 +234,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.probe      = S(1).probe;
             
             sd = repmat(sd, [length(unique(cnames)) 1]);
-            sd = sortrows(sd, {'source', 'detector', 'type'});
+            sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
             
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{4} = 'cond';
@@ -259,7 +259,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 %Create a diagnotistcs table of the adjusted data
                 yproj = betaOrig - Zorig*lm2.randomEffects;
                 w=diag(w);                
-                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
                 vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
                 if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
                 btest=[]; models=cell(height(G.variables),1);

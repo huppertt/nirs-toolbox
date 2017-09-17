@@ -47,7 +47,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 probe = data(i).probe;
                 
                 % make sure data is in order
-                [probe.link, idx] = sortrows(probe.link, {'source', 'detector','type'});
+                [probe.link, idx] = nirs.util.sortrows(probe.link, {'source', 'detector','type'});
                 d = d(:, idx);
                 
                 % get experiment design

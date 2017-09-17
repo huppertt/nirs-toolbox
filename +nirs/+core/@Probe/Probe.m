@@ -119,8 +119,15 @@ classdef Probe
             isrc = obj.link.source;
             idet = obj.link.detector;
             
-            vec = obj.srcPos(isrc,:) - obj.detPos(idet,:);
-            d = sqrt( sum( vec.^2,2 ) );
+            if iscell(isrc)
+                for i = 1:length(isrc)
+                    vec = obj.srcPos(isrc{i},:) - obj.detPos(idet{i},:);
+                    d(i,1) = mean(sqrt(sum(vec.^2,2)));
+                end
+            else
+                vec = obj.srcPos(isrc,:) - obj.detPos(idet,:);
+                d = sqrt( sum( vec.^2,2 ) );
+            end
             
             if(~isempty(obj.fixeddistances))
                 if(any((d-obj.fixeddistances)~=0))

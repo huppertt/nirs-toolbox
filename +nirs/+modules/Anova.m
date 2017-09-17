@@ -53,10 +53,10 @@ classdef Anova < nirs.modules.AbstractModule
             end
             
             % sort
-            [vars, idx] = sortrows(vars, {'source', 'detector', 'type', 'cond'});
+            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type', 'cond'});
             
             % list for first source
-            [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
             %% loop through

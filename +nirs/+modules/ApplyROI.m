@@ -173,8 +173,11 @@ classdef ApplyROI < nirs.modules.AbstractModule
             name = obj.listOfROIs.names;
             link = probe.link;
             types = unique(link.type,'stable');
-            
-            link = table({},{},{},{},'VariableNames',{'source','detector','type','ROI'});
+            if isnumeric(types)
+                link = table({},{},[],{},'VariableNames',{'source','detector','type','ROI'});
+            else
+                link = table({},{},{},{},'VariableNames',{'source','detector','type','ROI'});
+            end
             for i = 1:length(source)
                 for j = 1:length(types)
                     link(end+1,:) = table(source(i),detector(i),types(j),name(i));
@@ -204,7 +207,11 @@ classdef ApplyROI < nirs.modules.AbstractModule
             chanlink = probeChannel.link;
             inds = false(height(chanlink),1);
             for i = 1:length(s)
-                inds = inds | (chanlink.source==s(i) & chanlink.detector==d(i) & strcmpi(chanlink.type,t));
+                if isnumeric(t)
+                    inds = inds | (chanlink.source==s(i) & chanlink.detector==d(i) & chanlink.type == t);
+                else
+                    inds = inds | (chanlink.source==s(i) & chanlink.detector==d(i) & strcmp(chanlink.type,t));
+                end
             end
         end
         
@@ -218,7 +225,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
             
             mapping = zeros(num_chan,num_ROI);
             for i = 1:num_ROI
-                inds = obj.getChannelInds(probeChannel,roilink.source{i},roilink.detector{i},roilink.type{i});
+                inds = obj.getChannelInds(probeChannel,roilink.source{i},roilink.detector{i},roilink.type(i));
                 if scale
                     mapping(inds,i) = 1/sum(inds);
                 else

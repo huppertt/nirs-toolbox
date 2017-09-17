@@ -23,7 +23,7 @@ classdef MultiVarGLM < nirs.modules.AbstractGLM
                 
                 % sort data
                 link = data(i).probe.link;
-                [link, idx] = sortrows( link, {'source', 'detector', 'type'} );
+                [link, idx] = nirs.util.sortrows( link, {'source', 'detector', 'type'} );
                 
                 d = d(:,idx);
                 
@@ -44,7 +44,7 @@ classdef MultiVarGLM < nirs.modules.AbstractGLM
                     probe.link = repmat(link(lst,:), [2 1]);
                     type = repmat( {'hbo', 'hbr'}, [sum(lst) 1]);
                     probe.link.type = type(:);
-                    probe.link = sortrows(probe.link, {'source', 'detector', 'type'});
+                    probe.link = nirs.util.sortrows(probe.link, {'source', 'detector', 'type'});
                 end
                 
                 % outputs
@@ -53,7 +53,7 @@ classdef MultiVarGLM < nirs.modules.AbstractGLM
                 S(i) = nirs.core.ChannelStats();
                 S(i).description    = data(i).description;
                 
-                [tbl, idx] = sortrows(tbl, {'cond', 'source', 'detector', 'type'});
+                [tbl, idx] = nirs.util.sortrows(tbl, {'cond', 'source', 'detector', 'type'});
                 
                 
                 S(i).variables    	= tbl;

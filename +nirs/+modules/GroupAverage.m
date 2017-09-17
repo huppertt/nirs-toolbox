@@ -106,10 +106,10 @@ classdef GroupAverage < nirs.modules.AbstractModule
             %clear S;
             
             % sort
-            [vars, idx] = sortrows(vars, {'source', 'detector', 'type'});
+            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
             
             % list for first source
-            [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
             
             %% design mats
@@ -194,7 +194,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
             G.probe      = probe;
             
             sd = repmat(sd, [length(unique(cnames)) 1]);
-            sd = sortrows(sd, {'source', 'detector', 'type'});
+            sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
             
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{4} = 'cond';
@@ -220,7 +220,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 yproj = beta;
                 yproj=inv(W)*yproj;
                 
-                [sd, ~,lst] = unique(table(vars.source, vars.detector, vars.type), 'rows', 'stable');
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
                 
                 btest=[];
                 for idx=1:max(lst)                   
@@ -260,7 +260,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 for i=1:height(tbl)
                     tbl.data{i}(end+1:ntps)=NaN;
                 end
-                [link,~,idx]=unique(table(tbl.source,tbl.detector,tbl.type,'VariableNames',{'source','detector','type'}));
+                [link,~,idx]=nirs.util.uniquerows(table(tbl.source,tbl.detector,tbl.type,'VariableNames',{'source','detector','type'}));
                 data=zeros(ntps,height(link));
                 for i=1:height(link)
                     lst=find(idx==i);

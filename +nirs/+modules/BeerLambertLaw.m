@@ -28,11 +28,11 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 p = data(i).probe;
                 
                 % sort channels
-                [p.link, idx] = sortrows(p.link,{'source','detector','type'});
+                [p.link, idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
                 d = d(:,idx);
                 
                 % unique source-detector pairs
-                [~,~,idx] = unique([p.link.source p.link.detector],'rows','stable');
+                [~,~,idx] = nirs.util.uniquerows(table([p.link.source p.link.detector]));
                clear type;
                 for j = 1:max(idx)
                     lst = idx == j;
@@ -62,7 +62,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 end
                 
                 p.link.type = type;
-                [p.link,idx] = sortrows(p.link,{'source','detector','type'});
+                [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
                 
                 data(i).data  = d(:,idx);
                 data(i).probe = p;
