@@ -7,39 +7,22 @@ function [b, r, crit] = stepwise(X, y, criterion)
     invR = pinv(R);
     
     n = size(y,1);
-    crit = zeros(size(X,2),1);
-    for i = 1:length(crit)
+    LL = nan(size(X,2),1);
+    for i = 1:length(LL)
         % get residual for each fit
         b = invR(1:i,1:i) * Q(:,1:i)' * y;
         r = y - X(:,1:i)*b;
         
-        % calculate information criterion
-        LL = -n/2*log( 2*pi*mean(r.^2) ) - n/2; % log-likelihood
-        
-        switch upper(criterion)
-            case 'BIC'
-                crit(i) = -2*LL + i*log(n);                  % BIC
-            case 'AIC'
-                crit(i) = -2*LL + 2*i;                       % AIC
-            case 'AICC'
-                crit(i) = -2*LL + 2*i + 2*i*(i+1)/(n-i-1);   % AICc
-            case 'CAIC'
-                crit(i) = -2*LL + i*(1+log(n));              % CAIC
-            case 'MAX'
-                crit(i) = -i;
-            otherwise
-                error('Unknown model selection criterion: %s',criterion);
-        end
-        
-        if(i>5 && min(crit(i-2:i))>min(crit(1:i-3)))
-            %disp(['     stopping: ' num2str(i)] );
-            break
-        end
-        
+        % calculate log-likelihood
+        LL(i) = -n/2*log( 2*pi*mean(r.^2) ) - n/2;
+                
     end
     
+    % Calculate information criterion
+    crit = nirs.math.infocrit( LL , n , (1:length(LL))' , criterion );
+    
     % optimal model order
-    [~, N] = min( crit ); 
+    [~, N] = nanmin( crit ); 
     
     % finally, our output
     b = invR(1:N,1:N) * Q(:,1:N)'*y;
