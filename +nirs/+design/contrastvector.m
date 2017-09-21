@@ -86,9 +86,9 @@ for idx=1:length(cond)
     else
         lst=[];
         for i=1:length(indices{idx})
-            l=strfind(conditions{idx},':');
+            l=strfind(cond{idx},':');
             if(isempty(l))
-                l=length(conditions{idx});
+                l=length(cond{idx});
             else
                 l=l-1;
             end

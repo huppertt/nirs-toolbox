@@ -46,9 +46,10 @@ for i=1:length(raw)
     
     SNI{i}=nirs.math.structnoiseindex(raw(i).data);
     n=length(find(SNI{i}>3));
-    lst1=find(raw(i).probe.link.type==830);
+    types=unique(raw(i).probe.link.type);
+    lst1=find(raw(i).probe.link.type==types(1));
     
-    lst2=find(raw(i).probe.link.type==690);
+    lst2=find(raw(i).probe.link.type==types(2));
     
     Number_of_Good_Channels{i,1}=sprintf('%d%s (%d of %d)',100*n/length(SNI{i}),'%',n,length(SNI{i}));
     DataQuality_830{i,1}=sprintf('%0.1f [%0.1f-%0.1f]',median(SNI{i}(lst1)),min(SNI{i}(lst1)),max(SNI{i}(lst1)));
@@ -105,24 +106,24 @@ for i=1:length(raw)
     title([filenames{i}]);
      
      
-    lst1=find(raw(i).probe.link.type==830);
+    lst1=find(raw(i).probe.link.type==types(1));
     lst=dsearchn(sp',SNI{i}(lst1)');
     s=subplot(length(raw)+1,4,[4+4*(i-1)+3]);
     raw(i).probe.draw(c(lst,:),[],s)
     colormap(c);
     set(s,'clim',[0 mS])
     colorbar
-    title(['SNI 830nm']);
+    title(['SNI ' num2str(types(1))]);
     
     
-    lst1=find(raw(i).probe.link.type==690);
+    lst1=find(raw(i).probe.link.type==types(2));
     lst=dsearchn(sp',SNI{i}(lst1)');
     s=subplot(length(raw)+1,4,[4+4*(i-1)+4]);
     raw(i).probe.draw(c(lst,:),[],s)
     colormap(c);
     set(s,'clim',[0 mS])
     colorbar
-     title(['SNI 690nm']);
+       title(['SNI ' num2str(types(2))]);
 end
 
 if(saveflag)

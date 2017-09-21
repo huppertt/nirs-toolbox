@@ -140,19 +140,19 @@ if(registerprobe)
     probe1020=nirs.util.registerprobe1020(probe);
     
     
-    BEM(1)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh.nodes(:,2:end),...
-        probeInfo.geom.NIRxHead.mesh.belems(:,2:end),[]);
+    BEM(1)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh.nodes(:,end-2:end),...
+        probeInfo.geom.NIRxHead.mesh.belems(:,end-2:end),[]);
     %BEM(1)=reducemesh(BEM(1),.25);
     BEM(1).transparency=.2;
     BEM(1).fiducials=fid_1020;
     
-    BEM(2)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh1.nodes(:,2:end),...
-        probeInfo.geom.NIRxHead.mesh1.belems(:,2:end),[]);
+    BEM(2)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh1.nodes(:,end-2:end),...
+        probeInfo.geom.NIRxHead.mesh1.belems(:,end-2:end),[]);
     %BEM(2)=reducemesh(BEM(2),.25);
     BEM(2).transparency=.2;
     
-    BEM(3)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh2.nodes(:,2:end),...
-        probeInfo.geom.NIRxHead.mesh2.belems(:,2:end),[]);
+    BEM(3)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh2.nodes(:,end-2:end),...
+        probeInfo.geom.NIRxHead.mesh2.belems(:,end-2:end),[]);
     %BEM(3)=reducemesh(BEM(3),.25);
     BEM(3).transparency=1;
     

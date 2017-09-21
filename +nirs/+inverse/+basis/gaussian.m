@@ -22,7 +22,7 @@ classdef gaussian
             end
             
             n=size(mesh.nodes,1);
-            Mtx = zeros(n,n);
+            Mtx = sparse(n,n);
             i=[mesh.faces(:,1); mesh.faces(:,1); mesh.faces(:,2); mesh.faces(:,2);...
                 mesh.faces(:,3); mesh.faces(:,3)];
             j=[mesh.faces(:,2); mesh.faces(:,3); mesh.faces(:,3); mesh.faces(:,1);...
