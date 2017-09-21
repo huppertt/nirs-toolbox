@@ -11,44 +11,48 @@ if(includeZeroLag)
 else
     s=1;
 end
+orders = s:Pmax;
+q = length(orders);
+
+% Center data
+Y = bsxfun( @minus , Y , nanmean(Y) );
 
 %% Create design matrix
-[m, n] = size(Y);
-X = []; lst = [];
+[m, n, o] = size(Y); % [ time x channel x trial ]
+X = zeros(m,n*q,o);
 
-for i = 1:n
-    
-    % column indices for channel i
-    ll=s:Pmax;
-    idx = size(lst,1)+1:size(lst,1)+length(ll);    
-    % keep track of them
-    lst(idx,1) = i;
-    lst(idx,2) = ll;
-    
-    % design matrix
-    X(:,idx) = nirs.math.lagmatrix(Y(:,i), s:Pmax);
+for i = 1:n   
+    for j = 1:o
+        inds = (i-1)*q+1 : i*q;
+        X(:,inds,j) = nirs.math.lagmatrix( Y(:,i,j) , orders );
+    end
 end
 
-X = [ones(size(X,1),1) X];
-lst = [0 0; lst];
+lst = [reshape(repmat(1:n,[q 1]),[],1) repmat(orders',n,1)];
+
+% Temporally concatenate trials
+X = reshape( permute( X , [2 1 3] ) , [n*q m*o] )'; % [m n*q o] -> [m*o n*q]
+Y = reshape( permute( Y , [2 1 3] ) , [n m*o] )';   % [m n o] -> [m*o n]
+t = repmat( 1:m , 1 , o )';
 
 %% Perform model order selection
 % Calculate log-likelihood for each model order
 % TODO - Behavior here currently doesn't reflect when includeZeroLag is true
 LogL = nan(Pmax,1);
 for i = 1:Pmax
-    time_inds = (i+1):m;
+    N = o*(m-i);
+    time_inds = t>i;
     regr_inds = (lst(:,2)<=i);
     tmpX = X(time_inds,regr_inds);
     tmpY = Y(time_inds,:);
     b = tmpX \ tmpY;
     E = tmpY - tmpX*b;
-    DSIG = det((E'*E)/(m-i-1));
-    LogL(i) = -((m-i)/2) * log(DSIG);
+    DSIG = det((E'*E)/(N-1));
+    LogL(i) = -(N/2) * log(DSIG);
 end
 
 % Find model order with best information criterion
-crit = nirs.math.infocrit( LogL ,  m-(1:Pmax)' , n^2 * (1:Pmax)' , 'AICc' );
+crit = nirs.math.infocrit( LogL ,  o*(m-orders') , n^2 * orders' , 'AICc' );
 Pmax = find(crit==nanmin(crit),1,'first');
 
 % Prune higher model orders
@@ -111,7 +115,7 @@ end
 G = bsxfun( @minus , log(SSEr) , log(SSEu) );
 
 df1 = Pmax * (n-1);          % Number of cross (non-auto) predictors [unrestricted parameters - restricted]
-df2 = (m-Pmax) - (n*Pmax);   % Effective observations (obs-order) - full # of predictors
+df2 = o*(m-Pmax) - (n*Pmax); % Effective observations (obs-order) - full # of predictors
 
 F = (exp(G)-1) .* (df2/df1); % F = (SSEr-SSEu)/df1 / SSEu/df2 = (SSEr-SSEu)/SSEu * df2/df1
                              % (SSEr-SSEu)/SSEu = SSEr/SSEu - 1 = exp(G) - 1

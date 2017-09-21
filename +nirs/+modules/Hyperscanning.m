@@ -10,7 +10,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         symetric;
         verbose;
         ignore;  % seconds at start/end of each scan or block to ignore
-        
+        multitrial; % flag to enable computing once per condition rather than averaging over blocks/trials
     end
     properties(Hidden=true)
         % I like to hide options that I don't want the average person
@@ -27,6 +27,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             obj.min_event_duration=30;
             obj.symetric=true;
             obj.ignore=10;
+            obj.multitrial=false; 
             obj.cache_dir='';
             obj.verbose=false;
             obj.cache_rebuild=false;
@@ -48,7 +49,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     hyperscanfiles=nirs.createDemographicsTable(data).hyperscan;
                     
                     for i=1:length(hyperscanfiles); if(isempty(hyperscanfiles{i})); hyperscanfiles{i}=''; end; end;
-                    uniquefiles=unique(cellstr(vertcat(hyperscanfiles{:})));
+                    uniquefiles=unique(hyperscanfiles);
                     [ia,ib]=ismember(hyperscanfiles,uniquefiles);
                     
                     for i=1:length(uniquefiles)
@@ -116,18 +117,36 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             n1=size(dataA,2)+size(dataB,2);
                             r=zeros(n1,n1,length(s.onset));
                             dfe=zeros(length(s.onset),1);
-                            for j=1:length(s.onset)
-                                if(obj.verbose)
-                                    disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
+                            tmp=nirs.core.Data;
+                            if obj.multitrial % 3-D stack of blocks to calc FC once
+                                dur = min(s.dur);
+                                for j=1:length(s.onset)
+                                    if(obj.verbose)
+                                        disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
+                                    end
+                                    lstpts=find(time>s.onset(j)+obj.ignore &...
+                                        time<s.onset(j)+dur-obj.ignore);
+
+                                    tmp.data(:,:,j)=[dataA(lstpts,:) dataB(lstpts,:)];
                                 end
-                                lstpts=find(time>s.onset(j)+obj.ignore &...
-                                    time<s.onset(j)+s.dur(j)-obj.ignore);
-                                tmp=nirs.core.Data;
-                                tmp.data=[dataA(lstpts,:) dataB(lstpts,:)];
                                 tmp.time=time(lstpts);
-                                [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
+                                [r,p,dfe]=obj.corrfcn(tmp);
                                 
-                                if(obj.symetric)
+                            else  % Iterate over each block to calc FC
+                                for j=1:length(s.onset)
+                                    if(obj.verbose)
+                                        disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
+                                    end
+                                    lstpts=find(time>s.onset(j)+obj.ignore &...
+                                        time<s.onset(j)+s.dur(j)-obj.ignore);
+                                    tmp.data=[dataA(lstpts,:) dataB(lstpts,:)];
+                                    tmp.time=time(lstpts);
+                                    [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
+                                end
+                            end
+                            
+                            if(obj.symetric)
+                                for j = 1:size(r,3)
                                     aa=r(1:end/2,1:end/2,j);
                                     ab=r(1:end/2,end/2+1:end,j);
                                     ba=r(end/2+1:end,1:end/2,j);
@@ -135,6 +154,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                     r(:,:,j) = tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 );
                                 end
                             end
+                                
                             connStats(i).dfe(cnt)=sum(dfe);
                             connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
                             connStats(i).conditions{cnt}=stim.keys{idx};
