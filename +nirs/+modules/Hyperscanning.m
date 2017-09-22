@@ -146,13 +146,21 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             end
                             
                             if(obj.symetric)
-                                for j = 1:size(r,3)
-                                    aa=r(1:end/2,1:end/2,j);
-                                    ab=r(1:end/2,end/2+1:end,j);
-                                    ba=r(end/2+1:end,1:end/2,j);
-                                    bb=r(end/2+1:end,end/2+1:end,j);
-                                    r(:,:,j) = tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 );
+                                r = atanh(r); % r-to-Z
+                                if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
+                                    r = exp(2*r); % Z-to-F
                                 end
+                                for j = 1:size(r,3)
+                                    aa=r(1:end/2,1:end/2,j);            % within subject A
+                                    ab=r(1:end/2,end/2+1:end,j);        % from A to B
+                                    ba=r(end/2+1:end,1:end/2,j);        % from B to A
+                                    bb=r(end/2+1:end,end/2+1:end,j);    % within subject B
+                                    r(:,:,j) = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
+                                end
+                                if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
+                                    r = log(r)/2; % F-to-Z
+                                end
+                                r = tanh(r); % Z-to-r
                             end
                                 
                             connStats(i).dfe(cnt)=sum(dfe);
@@ -180,11 +188,19 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     [r,p,dfe]=obj.corrfcn(tmp);
                     
                     if(obj.symetric)
-                        aa=r(1:end/2,1:end/2);
-                        ab=r(1:end/2,end/2+1:end);
-                        ba=r(end/2+1:end,1:end/2);
-                        bb=r(end/2+1:end,end/2+1:end);
-                        r = tanh( ( atanh([aa ab; ba bb]) + atanh([bb ba; ab aa]) ) ./ 2 );
+                        r = atanh(r); % r-to-Z
+                        if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
+                            r = exp(2*r); % Z-to-F
+                        end
+                        aa=r(1:end/2,1:end/2);            % within subject A
+                        ab=r(1:end/2,end/2+1:end);        % from A to B
+                        ba=r(end/2+1:end,1:end/2);        % from B to A
+                        bb=r(end/2+1:end,end/2+1:end);    % within subject B
+                        r = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
+                        if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
+                            r = log(r)/2; % F-to-Z
+                        end
+                        r = tanh(r); % Z-to-r
                     end
                     
                     connStats(i).dfe=dfe;
