@@ -119,18 +119,18 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             dfe=zeros(length(s.onset),1);
                             tmp=nirs.core.Data;
                             if obj.multitrial % 3-D stack of blocks to calc FC once
-                                dur = min(s.dur);
+                                dur = min(s.dur) - 2*obj.ignore;
                                 nsamp = floor( dur * data(idxA).Fs );
                                 tmp.data = zeros([nsamp 2*size(dataA,2) length(s.onset)]);
                                 for j=1:length(s.onset)
                                     if(obj.verbose)
                                         disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
                                     end
-                                    lstpts=find(time>s.onset(j)+obj.ignore &...
-                                        time<s.onset(j)+dur-obj.ignore);
-                                    tmp.data(:,:,j)=[dataA(lstpts(1:nsamp),:) dataB(lstpts(1:nsamp),:)];
+                                    startpt = find(time>(s.onset(j)+obj.ignore),1,'first');
+                                    lstpts=startpt:(startpt+nsamp-1);
+                                    tmp.data(:,:,j)=[dataA(lstpts,:) dataB(lstpts,:)];
                                 end
-                                tmp.time=time(lstpts(1:nsamp));
+                                tmp.time=time(lstpts);
                                 [r,p,dfe]=obj.corrfcn(tmp);
                                 
                             else  % Iterate over each block to calc FC
