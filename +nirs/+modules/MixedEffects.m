@@ -19,6 +19,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         include_diagnostics=false;
         robust=false;
         weighted=true;
+        verbose=false;
     end
     
     methods
@@ -187,30 +188,46 @@ classdef MixedEffects < nirs.modules.AbstractModule
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
             
             w=speye(size(X,1),size(X,1));
+
+            lm2 = fitlmematrix(w*X(:,lstKeep),w*beta, w*Z, [], 'CovariancePattern','Isotropic', ...
+                'FitMethod', 'ML');
             
-            D = sqrt(eps(class(X)));
-            b0 = zeros(length(lstKeep),1);
-            b = ones(length(lstKeep),1);
-            iter=1;
-          
-            while((iter<50) & any(abs(b-b0) > D*max(abs(b),abs(b0))))
-                lm2 = fitlmematrix(w*X(:,lstKeep),w*beta, w*Z, [], 'CovariancePattern','Isotropic', ...
-                    'FitMethod', 'ML');
+            if obj.robust
                 
-                if(~obj.robust)
-                    break;
+                iter=1;    
+                D = sqrt(eps(class(X)));
+                b = lm2.Coefficients.Estimate;
+                
+                % Adjust by leverage to account for prior weight differences in design matrix
+                lev = diag( full(X) * pinv(full(X)) );
+                adj = 1 ./ sqrt(1-min(.9999,lev));
+                
+                while iter<50
+
+                    % Calculate residuals and weights from previous iteration
+                    resid = beta - X * b - Z*lm2.randomEffects;
+                    resid = resid .* adj;
+                    s = median(abs(resid)) / 0.6745;
+                    r = resid/s/4.685;
+                    w = (1 - r.^2) .* (r < 1 & r > -1);
+                    w=sparse(diag(w));
+                    b0=b;
+                    
+                    % Re-estimate using new weights
+                    lm2 = fitlmematrix(w*X(:,lstKeep),w*beta, w*Z, [], 'CovariancePattern','Isotropic', ...
+                        'FitMethod', 'ML');
+                    b=lm2.Coefficients.Estimate;
+                    
+                    if obj.verbose
+                        disp(['Robust fit iteration ' num2str(iter) ' : ' num2str(max(abs(b-b0)))]);
+                    end
+                    iter=iter+1;
+                    
+                    % Terminate if estimated coefficients have converged
+                    if ~any(abs(b-b0) > D*max(abs(b),abs(b0)))
+                        break
+                    end
                 end
-                
-                resid = beta - X * b - Z*lm2.randomEffects;
-                
-                s = mad(resid, 0) / 0.6745;
-                r = resid/s/4.685;
-                w = (1 - r.^2) .* (r < 1 & r > -1);
-                w=sparse(diag(w));
-                b0=b;
-                b=lm2.Coefficients.Estimate;
-                disp(['Robust fit iteration ' num2str(iter) ' : ' num2str(max(abs(b-b0)))]);
-                iter=iter+1;
             end
             
             cnames = lm1.CoefficientNames(:);
