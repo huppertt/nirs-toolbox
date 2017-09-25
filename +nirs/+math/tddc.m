@@ -17,7 +17,7 @@ tmp = diff(signal);
 [~,rank] = sort(ind);
 
 %% Get distribution parameters
-mu = 0;
+mu = median(tmp);
 sigma = 1.4826 .* mad(tmp,1);
 pd = makedist('normal','mu',mu,'sigma',sigma);
 

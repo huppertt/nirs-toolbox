@@ -41,9 +41,9 @@ classdef TDDC < nirs.modules.AbstractModule
                 
                 % Merge corrected low w/ original high, restoring original
                 % mean
-                low = bsxfun( @minus , low , mean(low) );
-                high = bsxfun( @minus , high , mean(high) );
-                data(i).data = bsxfun( @plus , low+high , mean(data(i).data) );
+                low = bsxfun( @minus , low , median(low) );
+                high = bsxfun( @minus , high , median(high) );
+                data(i).data = bsxfun( @plus , low+high , median(data(i).data) );
                 
             end
             
