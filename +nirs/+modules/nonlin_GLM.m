@@ -38,7 +38,7 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
             
              vec = @(x) x(:);
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 % get data
                 d=data(i).data;
                 Fs=data(i).Fs;

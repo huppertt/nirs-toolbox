@@ -18,7 +18,7 @@ classdef DiscardStimWrongCount < nirs.modules.AbstractModule
             
             if isempty(obj.listOfCounts), warning('No list of stimulus counts specified. Skipping.'); return; end
                        
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 stimnames = data(i).stimulus.keys;
                 

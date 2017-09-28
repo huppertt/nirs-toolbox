@@ -23,7 +23,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 d = data(i).data;
                 p = data(i).probe;
                 

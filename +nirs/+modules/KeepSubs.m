@@ -22,7 +22,7 @@ classdef KeepSubs < nirs.modules.AbstractModule
             
             keepers = true(size(data));
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 demo = data(i).demographics;
                 

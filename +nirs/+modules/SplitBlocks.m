@@ -13,7 +13,7 @@ classdef SplitBlocks < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 keys = data(i).stimulus.keys;
                 for j = 1:length(keys)
                     stim = data(i).stimulus(keys{j});

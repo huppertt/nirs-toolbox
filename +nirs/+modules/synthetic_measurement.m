@@ -19,7 +19,7 @@ classdef synthetic_measurement < nirs.modules.AbstractModule
             else
                 probe=obj.commonprobe;
             end
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 disp([num2str(i) ' of ' num2str(length(data))]);
                 data(i)=synthetic_meas(data(i),probe);
             end
@@ -36,7 +36,7 @@ ndet=0;
 nsrc=0;
 link=[];
 optodes=[];
-for i=1:length(data)
+for i = 1:numel(data)
     thislink=data(i).probe.link;
     thislink.source=thislink.source+nsrc;
     thislink.detector=thislink.detector+ndet;
@@ -77,7 +77,7 @@ if(isa(data(1).probe,'nirs.core.Probe1020'))
     warning('this will not work if the underlying probe mesh differ');
     
     optodes=[];
-    for i=1:length(data)
+    for i = 1:numel(data)
         thislink=data(i).probe.link;
         thislink.source=thislink.source+nsrc;
         thislink.detector=thislink.detector+ndet;

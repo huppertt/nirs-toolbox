@@ -20,7 +20,7 @@ classdef TDDC < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
             
                 % Separate into high and low frequency components
                 Wn = obj.lowpass_cutoff * 2/data(i).Fs;

@@ -14,7 +14,7 @@ classdef MultiVarGLM < nirs.modules.AbstractGLM
         end
         
         function S = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
        
                 % get data
                 d  = data(i).data;

@@ -24,7 +24,7 @@ classdef WaveletFilter < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 for j = 1:size(data(i).data, 2)
                     y = data(i).data(:,j);
 

@@ -32,7 +32,7 @@ classdef FixStims < nirs.modules.AbstractModule
             
             assert(isa(data,'nirs.core.Data'),'Intended for nirs.core.Data objects');
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 conds = data(i).stimulus.keys;
                 for j = 1:size(obj.listOfChanges,1)

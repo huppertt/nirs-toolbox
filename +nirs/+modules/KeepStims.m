@@ -27,7 +27,7 @@ classdef KeepStims < nirs.modules.AbstractModule
             end
             bad_subjects = false(size(data));
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data') | isa(data(i),'dtseries.core.Data'))
                     stim = data(i).stimulus;

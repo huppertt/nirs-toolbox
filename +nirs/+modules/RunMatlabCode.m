@@ -26,7 +26,7 @@ classdef RunMatlabCode < nirs.modules.AbstractModule
             if(nargin(obj.FunctionHandle)==0)
                 feval(obj.FunctionHandle);
             else
-                for i = 1:length(data)
+                for i = 1:numel(data)
                     data(i)=feval(obj.FunctionHandle,data(i));
                 end
             end

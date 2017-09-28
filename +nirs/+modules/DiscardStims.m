@@ -20,7 +20,7 @@ classdef DiscardStims < nirs.modules.AbstractModule
             stimNames = nirs.getStimNames(data);
             disc=[];
             % loop through and remove stims
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data'))
                     data(i).stimulus = data(i).stimulus.remove( obj.listOfStims );
                 elseif(isa(data(i),'nirs.core.sFCStats'))

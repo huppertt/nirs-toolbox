@@ -37,7 +37,7 @@ classdef GLMResiduals < nirs.modules.AbstractModule
            
             S = obj.GLMjob.run( data );
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 t       = data(i).time;
                 stims   = data(i).stimulus;

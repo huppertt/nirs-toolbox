@@ -15,7 +15,7 @@ classdef RemoveShortScans< nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             lstbad=[];
-            for i = 1:length(data)
+            for i = 1:numel(data)
               if((max(data(i).time)-min(data(i).time))<obj.mintime)
                   lstbad=[lstbad; i];
               end

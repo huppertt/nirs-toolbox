@@ -20,7 +20,7 @@ classdef PCAFilter < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 types=unique(data(i).probe.link.type);
                 for tI=1:length(types)

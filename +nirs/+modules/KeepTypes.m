@@ -19,7 +19,7 @@ classdef KeepTypes < nirs.modules.AbstractModule
             if isempty(obj.types), warning('No types specified. Skipping.'); return; end
             if ischar(obj.types), obj.types = {obj.types}; end
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 switch class(data)
                     case {'nirs.core.Data','nirs.core.sFCStats'}

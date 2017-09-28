@@ -17,7 +17,7 @@ classdef Grangers < nirs.modules.AbstractModule
         
         function connStats = runThis( obj, data )
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 if(isempty(obj.modelorder))
                     pMax=data(i).Fs*4;
                 else

@@ -23,7 +23,7 @@ classdef Connectivity < nirs.modules.AbstractModule
         end
         
         function connStats = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                
                 connStats(i)=nirs.core.sFCStats();

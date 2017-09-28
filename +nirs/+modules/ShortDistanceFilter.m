@@ -83,7 +83,7 @@ classdef ShortDistanceFilter < nirs.modules.AbstractModule
             
             
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 d = data(i).data;
                 
                 % remove mean

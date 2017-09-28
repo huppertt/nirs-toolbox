@@ -29,7 +29,7 @@ classdef RemoveStimGaps < nirs.modules.AbstractModule
             
             assert(isa(data,'nirs.core.Data'));
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 merge2previous=[];
                 mergeFrom=[];

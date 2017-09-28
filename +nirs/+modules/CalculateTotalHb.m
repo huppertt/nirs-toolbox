@@ -27,7 +27,7 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                 warning('data does not contain oxy/deoxy-Hb.  Use the MBLL first');
                 return
             end
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 if(isa(data(i),'nirs.core.Data'))
                     %Time series models
                     link=data(i).probe.link;

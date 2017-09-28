@@ -15,7 +15,7 @@ classdef HRFwienerfilter < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 Fs = round(data(i).Fs);
                 d = data(i).data;
                 hrf=convert(nirs.design.basis.Canonical,[1; zeros(20*Fs,1)],[0 1/Fs]);

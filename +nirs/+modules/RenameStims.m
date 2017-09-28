@@ -39,7 +39,7 @@ classdef RenameStims < nirs.modules.AbstractModule
             end
             
             % for each file rename stims
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 lst = idx == i;
                 
                 if any(lst)

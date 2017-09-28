@@ -38,7 +38,7 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 error('NIRS-SPM not found on Matlab Path');
             end
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 % get data
                 d  = data(i).data;
                 t  = data(i).time;

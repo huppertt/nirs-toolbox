@@ -19,7 +19,7 @@ classdef TestSuperficial < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             
-            for i=1:length(data);
+            for i = 1:numel(data);
                 data(i)=sorted(data(i),{'source','detector','type'});
             end
             
@@ -58,7 +58,7 @@ classdef TestSuperficial < nirs.modules.AbstractModule
             skinmask = (Z>=-obj.braindepth);
             brainmask = (Z<-obj.braindepth);
             
-            for i=1:length(data)
+            for i = 1:numel(data)
                 probe=data(i).probe;
                 c=eye(size(L,1));
                 for idx=1:height(probe.link)

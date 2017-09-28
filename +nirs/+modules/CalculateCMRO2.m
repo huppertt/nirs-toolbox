@@ -26,7 +26,7 @@ classdef CalculateCMRO2 < nirs.modules.AbstractModule
             
             nlgr =feval(obj.model);
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 disp([num2str(i) ' of ' num2str(length(data))]);
                 %Time series models
                 link=data(i).probe.link;

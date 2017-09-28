@@ -25,7 +25,7 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 
                 % Compute data hash and load cached result if match is found
                 clear hash cache_file

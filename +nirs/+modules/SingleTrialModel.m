@@ -35,7 +35,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
         function S = runThis( obj, data )
             vec = @(x) x(:);
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 % get data
                 d  = data(i).data;
                 t  = data(i).time;

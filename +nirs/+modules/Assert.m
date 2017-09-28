@@ -23,7 +23,7 @@ classdef Assert < nirs.modules.AbstractModule
             end
             files={};
             errormsg={};
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 files{i}=data(i).description;
                 for j=1:length(obj.condition)
                     
@@ -39,7 +39,7 @@ classdef Assert < nirs.modules.AbstractModule
             if(~all(bool(:)) )
                 for j=1:length(obj.condition)
                     disp(func2str(obj.condition{j}))
-                    for i=1:length(data)
+                    for i = 1:numel(data)
                         if(bool(i,j))
                             disp(['    ' num2str(i) ':' data(i).description ' PASSED']);
                         else

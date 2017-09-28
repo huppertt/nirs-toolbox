@@ -57,7 +57,7 @@ classdef Run_HOMER2 < nirs.modules.AbstractModule
             end
             
             obj.vars = getinher(obj,obj.vars);
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 varargin={};
                 for j=1:size(obj.inputs,1)
                     varargin{j}=obj.inputs{j,2}(obj,data(i));

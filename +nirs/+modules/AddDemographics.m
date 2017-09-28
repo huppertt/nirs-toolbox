@@ -39,7 +39,7 @@ classdef AddDemographics < nirs.modules.AbstractModule
           
             
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
 
                 
                 % Make this case-insensitive

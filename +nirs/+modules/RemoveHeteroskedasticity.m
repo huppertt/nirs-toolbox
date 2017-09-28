@@ -12,7 +12,7 @@ classdef RemoveHeteroskedasticity < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
-            for i = 1:length(data)
+            for i = 1:numel(data)
                  data(i).data=nirs.math.normrootstationarity_ar(data(i).data);
             end
         end

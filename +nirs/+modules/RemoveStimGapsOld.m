@@ -18,7 +18,7 @@ classdef RemoveStimGapsOld < nirs.modules.AbstractModule
             
             assert(isa(data,'nirs.core.Data'));
             
-            for i = 1:length(data)
+            for i = 1:numel(data)
                 stimNames = nirs.getStimNames(data(i));
                 for j = 1:length(stimNames)
                     
