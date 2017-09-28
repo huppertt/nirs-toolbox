@@ -51,16 +51,18 @@ for i=1:length(raw)
     
     lst2=find(raw(i).probe.link.type==types(2));
     
-    Number_of_Good_Channels{i,1}=sprintf('%d%s (%d of %d)',100*n/length(SNI{i}),'%',n,length(SNI{i}));
+    Number_of_Good_Channels{i,1}=sprintf('%0.1f%s (%d of %d)',100*n/length(SNI{i}),'%',n,length(SNI{i}));
     DataQuality_830{i,1}=sprintf('%0.1f [%0.1f-%0.1f]',median(SNI{i}(lst1)),min(SNI{i}(lst1)),max(SNI{i}(lst1)));
-    DataQuality_690{i,1}=sprintf('%d1.f [%0.1f-%0.1f]',median(SNI{i}(lst2)),min(SNI{i}(lst2)),max(SNI{i}(lst2)));
+    DataQuality_690{i,1}=sprintf('%0.1f [%0.1f-%0.1f]',median(SNI{i}(lst2)),min(SNI{i}(lst2)),max(SNI{i}(lst2)));
     
 end
 
     
 
 
-T=table(filenames,data_length,Number_of_Good_Channels,DataQuality_830,DataQuality_690,stimulus_events);
+T=table(filenames,data_length,Number_of_Good_Channels,DataQuality_830,DataQuality_690,stimulus_events,...
+    'VariableNames',{'filename','data_length','Number_of_Good_Channels',...
+    ['DataQuality_' num2str(types(1))],['DataQuality_' num2str(types(2))],'stimulus_events'});
 
 a=subplot(length(raw)+1,4,[1 2 3 4]);
 axis off

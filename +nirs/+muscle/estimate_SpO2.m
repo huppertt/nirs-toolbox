@@ -29,7 +29,7 @@ end
 
 for i=1:height(link)
     chaIdx=find(b==i);
-    R=(ub(:,chaIdx)-lb(:,chaIdx))./mean(.5*(ub(:,chaIdx)+lb(:,chaIdx)));
+    R=(ub(:,chaIdx)-lb(:,chaIdx))./(ones(size(ub,1),1)*mean(.5*(ub(:,chaIdx)+lb(:,chaIdx)),1));
     if(size(R,2)~=2)
         error('not yet supported')
     else

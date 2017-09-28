@@ -139,6 +139,8 @@ probe.optodes=[probe.optodes; fidS; fidD];
 if(registerprobe)
     probe1020=nirs.util.registerprobe1020(probe);
     
+    if(isfield(probeInfo,'geom'))
+        % old NIRx data format
     
     BEM(1)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh.nodes(:,end-2:end),...
         probeInfo.geom.NIRxHead.mesh.belems(:,end-2:end),[]);
@@ -155,7 +157,11 @@ if(registerprobe)
         probeInfo.geom.NIRxHead.mesh2.belems(:,end-2:end),[]);
     %BEM(3)=reducemesh(BEM(3),.25);
     BEM(3).transparency=1;
-    
+    else
+        %new NIRx data format
+        C27=nirs.registration.Colin27.BEM;
+        BEM=C27.mesh;
+    end
     % This will allow NIRFAST to directly use the info for the BEM model
     lambda=unique(probe.link.type);
     prop{1} = nirs.media.tissues.skin(lambda);
@@ -170,22 +176,31 @@ if(registerprobe)
     probe1020=probe1020.regsister_mesh2probe(fwdBEM.mesh);
     probe1020.opticalproperties=prop;
     
+    m=probe1020.getmesh;
+    fid_1020=m(1).fiducials;
     
-    SrcPos3D = probeInfo.probes.coords_s3;
-    DetPos3D = probeInfo.probes.coords_d3;
-    FID3D = [probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_s(:,2),:);...
-        probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_d(:,2),:)];
+    lst=[probeInfo.probes.index_s(:,2); probeInfo.probes.index_d(:,2)];
+    labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
+    [~,lst2]=ismember(labels,fid_1020.Name);
+    lst2=[lst2 lst2];
+    XYZ=[fid_1020.X(lst2) fid_1020.Y(lst2) fid_1020.Z(lst2)];
     
-    XYZ=[SrcPos3D; DetPos3D; FID3D];
-    
-    fidPts=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Type,'FID-anchor'),:);
-    XYZ_reg=[fidPts.X fidPts.Y fidPts.Z];
-    XYZ_reg(:,4)=1;
-    FID3D(:,4)=1;
-    XYZ(:,4)=1;
-    R=FID3D\XYZ_reg;
-    
-    XYZ=XYZ*R;
+%     
+%     SrcPos3D = probeInfo.probes.coords_s3;
+%     DetPos3D = probeInfo.probes.coords_d3;
+%     FID3D = [probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_s(:,2),:);...
+%         probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_d(:,2),:)];
+%     
+%     XYZ=[SrcPos3D; DetPos3D; FID3D];
+%     
+%     fidPts=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Type,'FID-anchor'),:);
+%     XYZ_reg=[fidPts.X fidPts.Y fidPts.Z];
+%     XYZ_reg(:,4)=1;
+%     FID3D(:,4)=1;
+%     XYZ(:,4)=1;
+%     R=FID3D\XYZ_reg;
+%     
+%     XYZ=XYZ*R;
     
     probe1020.optodes_registered=probe1020.optodes;
     probe1020.optodes_registered.X=XYZ(:,1);

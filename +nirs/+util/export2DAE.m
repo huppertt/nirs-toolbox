@@ -30,6 +30,7 @@ for i=1:length(obj3D)
     ST(:,1)=S/ceil(sqrt(size(faces,1))); ST(:,2)=T/ceil(sqrt(size(faces,1)));
 end
 
+
 vert=vert';
 vnorm=-vnorm';
 faces=faces';

@@ -13,6 +13,11 @@ function out = getspectra( lambda )
 
     load([fileparts(which('nirs.media.getspectra')) filesep 'spectra.mat'])
 
+    if(iscell(lambda))
+        lambda=str2num(cell2mat(lambda));
+    end
+    
+    
     out(:,1) = interp1(hbo(:,1),hbo(:,2),lambda);       % HbO extinction
     out(:,2) = interp1(hbr(:,1),hbr(:,2),lambda);       % HbR extinction
     out(:,3) = interp1(water(:,1),water(:,2),lambda); 	% water mua

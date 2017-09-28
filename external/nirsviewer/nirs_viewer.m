@@ -93,6 +93,7 @@ for gIdx=1:length(groups)
     g = uitreenode('v0', groups{gIdx},  groups{gIdx}, [], false);
     lst=find(ismember(table.group, groups{gIdx}));
     subj=table.subject;
+    if(~iscellstr(subj)); subj=cellstr(subj); table.subject=subj;  end;
     subj=unique({subj{lst}});
     for sIdx=1:length(subj)
 

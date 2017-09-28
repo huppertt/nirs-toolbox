@@ -41,7 +41,10 @@ jobs.probe('default')=Slab.probe;
 jobs.jacobian('default')=Jac;
 jobs.formula='beta ~ -1 + cond';
 jobs.mesh=Slab.mesh;
-jobs.basis=nirs.inverse.basis.gaussian(Slab.mesh,30);
+
+jobs.basis=nirs.inverse.basis.identity(size(Slab.mesh.nodes,1));
+
+%jobs.basis=nirs.inverse.basis.gaussian(Slab.mesh,30);
 
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='ImageStats';
