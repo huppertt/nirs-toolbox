@@ -24,13 +24,17 @@ switch class(stats)
                     xvar = predictors{j};
                 end
             end
-            if ~exist('cond','var') || ~exist('xvar','var')
+            if ~exist('xvar','var')
                 continue;
             end
+            if ~exist('cond','var')
+                cond = stats.Variables.cond{1};
+            end
+            yvar = stats.ResponseName;
             
             inds = strcmp( stats.Variables.cond , cond );
             xdata = stats.Variables.(xvar)(inds);
-            ydata = stats.Variables.beta(inds);
+            ydata = stats.Variables.(yvar)(inds);
             
             xdist = max(xdata)-min(xdata);
             xlim = [min(xdata)-2*xdist max(xdata)+2*xdist];
@@ -45,6 +49,7 @@ switch class(stats)
             hold(ax,'on');
             for z = 1:length(xdata)
                 ind = worder(z);
+                if weights(ind)<=0, continue; end
                 scatter( ax , xdata(ind) , ydata(ind) , weights(ind) , 'MarkerEdgeColor',[0 0 0],'MarkerFaceColor',[.75 .75 .75],'LineWidth',1,'MarkerFaceAlpha',.5);
             end
             figxlim = get( ax , 'xlim' );
