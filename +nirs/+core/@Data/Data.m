@@ -77,6 +77,25 @@ classdef Data
             end
         end
         
+        function [X,conds] = getStimMatrix( obj )
+            %% returns a [time x condition] matrix of task timings and a cell array of condition names
+            if numel(obj)>1
+                X = cell(size(obj));
+                conds = cell(size(obj));
+                for i = 1:numel(obj)
+                    [X{i},conds{i}] = obj(i).getStimMatrix;
+                end
+                return
+            end
+            t = obj.time;
+            conds = obj.stimulus.keys;
+            X = zeros(length(t),length(conds));
+            for i = 1:length(conds)
+                stim = obj.stimulus(conds{i});
+                X(:,i) = stim.getStimVector(t);
+            end
+        end
+        
         function out = sorted( obj, colsToSortBy )
             %% returns sorted channels of data by column in probe.link
             out = obj;
