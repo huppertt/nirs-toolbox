@@ -1,5 +1,8 @@
-function [G,F,dfe1,dfe2,p]=grangers(data,modelorder,robust_flag,includeZeroLag)
+function [G,F,dfe1,dfe2,p]=grangers(data,modelorder,robust_flag,includeZeroLag,criterion)
 % This function runs the Granger's causality models
+if(nargin<5)
+    criterion='AICc';
+end
 if(nargin<4)
     includeZeroLag=true;
 end
@@ -29,7 +32,7 @@ end
 if robust_flag
     [G, F, dfe1, dfe2, p] = nirs.math.robust_mvgc(data,Pmax,includeZeroLag);
 else
-    [G, F, dfe1, dfe2, p] = nirs.math.mvgc(data,Pmax,includeZeroLag);
+    [G, F, dfe1, dfe2, p] = nirs.math.mvgc(data,Pmax,includeZeroLag,criterion);
 end
 
 end

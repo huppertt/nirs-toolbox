@@ -1,7 +1,9 @@
-function [G, F, df1, df2, p] = mvgc(Y, Pmax, includeZeroLag)
+function [G, F, df1, df2, p] = mvgc(Y, Pmax, includeZeroLag, criterion)
 % Multivariate granger causality
 % [G, F, df1, df2, p] = mvgc(Y, Pmax , includeZeroLag );
- 
+if(nargin<4)
+    criterion='AICc';
+end
 if(nargin<3)
     includeZeroLag=true;
 end
@@ -35,30 +37,33 @@ X = reshape( permute( X , [2 1 3] ) , [n*q m*o] )'; % [m n*q o] -> [m*o n*q]
 Y = reshape( permute( Y , [2 1 3] ) , [n m*o] )';   % [m n o] -> [m*o n]
 t = repmat( 1:m , 1 , o )';
 
-%% Perform model order selection
-% Calculate log-likelihood for each model order
-% TODO - Behavior here currently doesn't reflect when includeZeroLag is true
-LogL = nan(Pmax,1);
-for i = 1:Pmax
-    N = o*(m-i);
-    time_inds = t>i;
-    regr_inds = (lst(:,2)<=i);
-    tmpX = X(time_inds,regr_inds);
-    tmpY = Y(time_inds,:);
-    b = tmpX \ tmpY;
-    E = tmpY - tmpX*b;
-    DSIG = det((E'*E)/(N-1));
-    LogL(i) = -(N/2) * log(DSIG);
+if ~strcmpi(criterion,'MAX')
+    %% Perform model order selection
+    % Calculate log-likelihood for each model order
+    % TODO - Behavior here currently doesn't reflect when includeZeroLag is true
+    LogL = nan(Pmax,1);
+    for i = 1:Pmax
+        N = o*(m-i);
+        time_inds = t>i;
+        regr_inds = (lst(:,2)<=i);
+        tmpX = X(time_inds,regr_inds);
+        tmpY = Y(time_inds,:);
+        b = tmpX \ tmpY;
+        E = tmpY - tmpX*b;
+        DSIG = det((E'*E)/(N-1));
+        LogL(i) = -(N/2) * log(DSIG);
+    end
+    
+    % Find model order with best information criterion
+    crit = nirs.math.infocrit( LogL ,  o*(m-orders') , n^2 * orders' , criterion );
+    Pmax = find(crit==nanmin(crit),1,'first');
+    if isempty(Pmax), Pmax = 1; end
+
+    % Prune higher model orders
+    badlags = lst(:,2)>Pmax;
+    X(:,badlags) = [];
+    lst(badlags,:) = [];
 end
-
-% Find model order with best information criterion
-crit = nirs.math.infocrit( LogL ,  o*(m-orders') , n^2 * orders' , 'AICc' );
-Pmax = find(crit==nanmin(crit),1,'first');
-
-% Prune higher model orders
-badlags = lst(:,2)>Pmax;
-X(:,badlags) = [];
-lst(badlags,:) = [];
 
 % Remove early timepoints that don't have predictive information to model
 X(1:Pmax,:) = [];
