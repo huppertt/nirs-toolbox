@@ -200,10 +200,13 @@ while(~isempty(j.prevJob))
          if(isa(val,'function_handle'))
              val=func2str(val);
          end
-         
-         str =[opt{idx} ' = ' val(1,:)];
-         o = uitreenode('v0', str,  str, [], true);
-         g(cnt).add(o);
+         if(~isempty(val))
+             try
+                 str =[opt{idx} ' = ' val(1,:)];
+                 o = uitreenode('v0', str,  str, [], true);
+                 g(cnt).add(o);
+             end
+         end
      end
      
      

@@ -60,6 +60,7 @@ classdef GLM < nirs.modules.AbstractGLM
                 otherwise
                     error('type not recognized');
             end
+            obj.citation=j.citation;
             obj.options=[];
             pj=obj.prevJob;
             flds=fields(j);
@@ -93,6 +94,7 @@ classdef GLM < nirs.modules.AbstractGLM
             j.verbose=obj.verbose;
             j.trend_func=obj.trend_func;
             j.goforit=obj.goforit;
+            
             
             if(~isempty(obj.options))
                 flds=fields(obj.options);
