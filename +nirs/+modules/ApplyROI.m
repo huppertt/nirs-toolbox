@@ -68,12 +68,18 @@ classdef ApplyROI < nirs.modules.AbstractModule
                     projmat = obj.getMapping(oldprobe,probe,true);
                     for i = 1:length(dataChannel)
                         dataROI(i).probe = probe;
-                        conds = unique(dataChannel(i).variables.cond,'stable');
+                        vars = dataChannel(i).variables;
+                        [vars,sort_inds] = sortrows( vars , {'cond','source','detector','type'} );
+                        conds = unique(vars.cond,'stable');
                         numcond = length(conds);
                         condvec = repmat(conds(:)',[height(probe.link) 1]);
                         condprojmat = kron(eye(numcond),projmat);
-                        dataROI(i).beta = condprojmat' * dataChannel(i).beta;
-                        dataROI(i).covb = condprojmat' * dataChannel(i).covb * condprojmat;
+                        
+                        beta = dataChannel(i).beta(sort_inds);
+                        covb = dataChannel(i).covb(sort_inds,sort_inds);
+                        
+                        dataROI(i).beta = condprojmat' * beta;
+                        dataROI(i).covb = condprojmat' * covb * condprojmat;
                         dataROI(i).variables = repmat(probe.link,numcond,1);
                         dataROI(i).variables.cond = condvec(:);
                     end
