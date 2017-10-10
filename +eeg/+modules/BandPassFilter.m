@@ -7,6 +7,7 @@ classdef BandPassFilter < nirs.modules.AbstractModule
         lowpass;
         highpass;
         do_downsample;
+        keepdc;
     end
 
     methods
@@ -16,6 +17,7 @@ classdef BandPassFilter < nirs.modules.AbstractModule
            obj.lowpass=[];
            obj.highpass=[];
            obj.do_downsample=true;
+           obj.keepdc=false;
            if nargin > 0
                obj.prevJob = prevJob;
            end
@@ -35,7 +37,14 @@ classdef BandPassFilter < nirs.modules.AbstractModule
                
                 % resample data
                 d = data(i).data;
+                if(obj.keepdc)
+                    dc=mean(d,1);
+                else
+                    dc=zeros(1,size(d,2));
+                end
+                d=d-ones(size(d,1),1)*dc;
                 d=filtfilt(fa,fb,d);
+                d=d+ones(size(d,1),1)*dc;
                
                 
                 if(~isempty(obj.lowpass) & obj.do_downsample & obj.lowpass*2<data(i).Fs)

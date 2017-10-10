@@ -57,10 +57,11 @@ lambda=unique(probe.link.type)';  %List of wavelengths from the probe
 prop{1} = nirs.media.tissues.brain(0.7, 50,lambda);
 
 % Now, create the forward model
-fwdFEM = nirs.forward.NirfastFEM();
+% fwdFEM = nirs.forward.NirfastFEM();
+fwdFEM = nirs.forward.ApproxSlab();
 fwdFEM.mesh  = mesh;
 fwdFEM.probe = probe;
-fwdFEM.prop  = prop;
+fwdFEM.prop  = prop{1};
 [J, meas_FEM_baseline] = fwdFEM.jacobian('spectral');
 
 mask=[];
@@ -134,7 +135,7 @@ j.formula = 'beta ~ -1 + cond ';  % Simple fixed effects model
 %  nirs.inverse.basis.gaussian - a Gaussian smoothing kernel
 %  nirs.inverse.basis.freesurfer_wavelet - The spherical wavelet model
 
-j.basis=nirs.inverse.basis.identity(mesh);
+%j.basis=nirs.inverse.basis.identity(mesh);
 j.basis = nirs.inverse.basis.gaussian(mesh,20);
 
 

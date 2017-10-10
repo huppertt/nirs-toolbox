@@ -24,7 +24,7 @@ function w = wfun(r, tune)
 if(1)
     r=nirs.math.normrootstationarity(r,'mean');
     r=nirs.math.normrootstationarity(r,'std');
-    r=r-mean(r);
+    r=r-nanmean(r);
     lstN=find(r<0);
     lstP=find(r>0);
     
@@ -39,4 +39,5 @@ else
     r = r/s/tune;
 end
 w = (1 - r.^2) .* (r < 1 & r > -1);
+w(isnan(w))=0;
 end

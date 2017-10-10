@@ -11,6 +11,9 @@ if(nargin<3)
     seperateflag=false;
 end
 
+probe.optodes.X=probe.optodes.X-mean(probe.optodes.X);
+probe.optodes.Y=probe.optodes.Y-mean(probe.optodes.Y);
+probe.optodes.Z=probe.optodes.Z-mean(probe.optodes.Z);
 
 probe1020.link=probe.link;
 probe1020.optodes=probe.optodes;

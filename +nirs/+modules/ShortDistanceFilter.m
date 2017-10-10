@@ -5,7 +5,7 @@ classdef ShortDistanceFilter < nirs.modules.AbstractModule
 %     ncomp - % number of components to remove
 
     properties
-         maxnumcomp=4;
+         maxnumcomp=6;
          sigma=60;
          braindepth=8;
          channelLst=[];
@@ -63,7 +63,12 @@ classdef ShortDistanceFilter < nirs.modules.AbstractModule
            Dist = Xn.^2 + Yn.^2 + Zn.^2;
             
            if(isempty(obj.channelLst))
-               channelLst=1:size(L,1);
+               if(ismember('ShortSeperation',data(1).probe.link.Properties.VariableNames) && ...
+                       any(data(1).probe.link.ShortSeperation))
+                    channelLst=find(data(1).probe.link.ShortSeperation);
+               else
+                  channelLst=1:size(L,1);
+               end
            elseif(isa(obj.channelLst,'table'))
                channelLst=find(ismember(probe.link,obj.channelLst));
            else
@@ -95,14 +100,16 @@ classdef ShortDistanceFilter < nirs.modules.AbstractModule
                 SStime=orth((L*blkdiag(smoother,smoother)*pinv(wLSS'*wLSS)*wLSS'*w*d(:,channelLst)')');
                 SStime(:,end+1)=1;
                 
-                b=nirs.math.ar_irls(d,SStime,8);
+                b=nirs.math.ar_irls(d,SStime,data(i).Fs*4);
+                 
                 d=d-SStime*b.beta;
                 
                 % add mean back
                 d = bsxfun(@plus, d, m);
                 
                 % put back
-                data(i).data = d;                
+                data(i).data = d;
+                disp(['done ' num2str(i) ' of ' num2str(numel(data))]);
             end
         end
     end

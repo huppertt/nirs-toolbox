@@ -33,6 +33,16 @@ SrcPos(:,3)=0;
 DetPos = probeInfo.probes.coords_d2;
 DetPos(:,3)=0;
 
+
+if(isfield(info,'ShortDetectors') && ~isempty(info.ShortDetectors))
+    info.S_D_Mask(:,end-info.ShortDetectors+1:end)=[];
+    DetPos(info.Detectors-info.ShortDetectors+1:end,:)=[];
+    useshortdistances=true;
+else
+    useshortdistances=false;
+end
+
+
 [s,d]=find(info.S_D_Mask);
 
 %% Fix added based on bug from Guilherme A. Zimeo Morais created an issue 2016-08-24
@@ -45,18 +55,38 @@ link=table(repmat(s,length(info.Wavelengths),1),...
 
 probe = nirs.core.Probe(SrcPos,DetPos,link);
 
+if(length(info.ChanDis)>length(probe.distances))
+    info.ChanDis=info.ChanDis(1:length(probe.distances));
+end
+
+
 % Not sure why the units on the 2D probe in the NIRx file are so off
 scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
+
+if(useshortdistances)
+    ShortDetPos=SrcPos;
+    ShortSrcPos=SrcPos;
+    s=[1:info.ShortDetectors]';
+    d=(info.Detectors-info.ShortDetectors)+[1:info.ShortDetectors]';
+    
+    Shortlink=table(repmat(s,length(info.Wavelengths),1),...
+        repmat(d,length(info.Wavelengths),1),...
+        reshape(repmat(info.Wavelengths(:)',length(s),1),[],1),...
+        'VariableNames',{'source','detector','type'});
+    probe.link=[probe.link table(repmat(false,height(probe.link),1),'VariableNames',{'ShortSeperation'})];
+    Shortlink=[Shortlink table(repmat(true,height(Shortlink),1),'VariableNames',{'ShortSeperation'})];
+    
+    probe = nirs.core.Probe(SrcPos,[DetPos;ShortDetPos],[probe.link; Shortlink]);
+    
+end
+
+
 probe.optodes.X=scale*probe.optodes.X;
 probe.optodes.Y=scale*probe.optodes.Y;
 probe.optodes.Z=scale*probe.optodes.Z;
 
 %% Now, let's get the data
 raw = nirs.core.Data();
-
-
-
-
 
 lst=find(ismember(info.SDkey(:,2:3),[probe.link.source probe.link.detector],'rows'));
 for idx=1:length(info.Wavelengths)
@@ -69,6 +99,12 @@ for idx=1:length(info.Wavelengths)
     d = dlmread(fullfile(folder,file(1).name));
     raw.data=[raw.data d(:,lst)];
 end
+
+
+
+
+
+
 
 raw.time=[0:size(raw.data,1)-1]/info.SamplingRate;
 
@@ -179,10 +215,24 @@ if(registerprobe)
     m=probe1020.getmesh;
     fid_1020=m(1).fiducials;
     
-    lst=[probeInfo.probes.index_s(:,2); probeInfo.probes.index_d(:,2)];
-    labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
-    [~,lst2]=ismember(labels,fid_1020.Name);
-    lst2=[lst2 lst2];
+    if(useshortdistances)
+        lst=[probeInfo.probes.index_s(:,2); probeInfo.probes.index_d(1:info.Detectors-info.ShortDetectors,2);...
+            probeInfo.probes.index_s(:,2)];
+        labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
+        [~,lst2]=ismember(labels,fid_1020.Name);
+        lst=[probeInfo.probes.index_s(:,2); probeInfo.probes.index_d(:,2)];
+        labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
+        [~,lst3]=ismember(labels,fid_1020.Name);
+        lst2=[lst2 lst3];
+        
+    else
+        lst=[probeInfo.probes.index_s(:,2); probeInfo.probes.index_d(:,2)];
+        labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
+        [~,lst2]=ismember(labels,fid_1020.Name);
+        lst2=[lst2 lst2];
+    end
+  
+    
     XYZ=[fid_1020.X(lst2) fid_1020.Y(lst2) fid_1020.Z(lst2)];
     
 %     

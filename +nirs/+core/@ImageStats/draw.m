@@ -200,6 +200,6 @@ end
 close(ff);
 
 for idx=1:length(viewfcn)
-    cellfun(@(f)arrayfun(f,h(idx,:),'UniformOutput', false),viewfcn{idx},'UniformOutput', false);
+    cellfun(@(f)arrayfun(f,handle(h(idx,:)),'UniformOutput', false),viewfcn{idx},'UniformOutput', false);
 end
 end
