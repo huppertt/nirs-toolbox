@@ -16,4 +16,4 @@ t = dL ./sqrt(err2(1:end-1)+err2(2:end));
 
 p=2*tcdf(-abs(t),length(s));
 
-lst=1:max(find(p>pval));
+lst=1:max(find(p<pval));
