@@ -444,7 +444,7 @@ if(~isempty(names))
         for idx=1:length(names)
             str=[str ',''' names{idx} ''''];
         end
-        str=[str ');'];
+        str=[str ',''-v7.3'');'];
         evalin('base',str);
     end
     
