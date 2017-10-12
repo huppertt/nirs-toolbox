@@ -157,7 +157,7 @@ j.prior('B')=prior;
 
 ImageStats=j.run(SubjStats);
 
-ImageStats.draw('tstat',[-3 3],'p<0.05','beta>.8','superior');
+ImageStats.draw('tstat',[],'p<0.05','beta>.8','superior');
 
 
 % For reference, let's show the truth image too.
@@ -283,7 +283,7 @@ j.prior('default')=prior;
 ImageStats=j.run(SubjStats);
 
 % Mask the image at alpha<0.05 (typeI error) and power>.8 (typeII error)
-h=ImageStats.draw('tstat',[-5 5],'p<0.05','beta>.8','right');
+h=ImageStats.draw('tstat',[-5 5],'p<0.15','beta>.8','right');
 
 
 

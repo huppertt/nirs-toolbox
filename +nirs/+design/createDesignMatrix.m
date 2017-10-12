@@ -16,25 +16,45 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
         % get stim vector
         stimVector = stim_vals{iKey}.getStimVector( t );
         
-        % get basis object
-        if isempty(type)
-            if basis.iskey( stim_keys{iKey} );
-                basisObj = basis( stim_keys{iKey} );
+        if(isa( stim_vals{iKey},'nirs.design.StimulusVector'))
+            if isempty(type)
+                if basis.iskey( stim_keys{iKey}  );
+                    basisObj = basis( stim_keys{iKey} );
+                elseif basis.iskey( 'StimulusVector' );
+                    basisObj = basis( 'StimulusVector' );
+                else
+                    x=stimVector;
+                end
             else
-                basisObj = basis( 'default' );
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {{stim_keys{iKey},type}} );
+                elseif basis.iskey({'StimulusVector',type})
+                    basisObj = basis( {{'StimulusVector',type}} );
+                else
+                     x=stimVector;
+                end
             end
         else
-            if basis.iskey( {stim_keys{iKey},type} );
-                basisObj = basis( {{stim_keys{iKey},type}} );
-            elseif basis.iskey({'default',type})
-                basisObj = basis( {{'default',type}} );
+            % get basis object
+            if isempty(type)
+                if basis.iskey( stim_keys{iKey} );
+                    basisObj = basis( stim_keys{iKey} );
+                else
+                    basisObj = basis( 'default' );
+                end
             else
-                basisObj = basis( 'default' );
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {{stim_keys{iKey},type}} );
+                elseif basis.iskey({'default',type})
+                    basisObj = basis( {{'default',type}} );
+                else
+                    basisObj = basis( 'default' );
+                end
             end
+            % apply basis to stim vector
+            x = basisObj.convert( stimVector, t );
         end
-        
-        % apply basis to stim vector
-        x = basisObj.convert( stimVector, t );
+      
 
         % append to variable names & design matrix
         if size(x,2) > 1

@@ -21,20 +21,25 @@ function [coef, res, wres, ymoco] = robust_ari1_fit( y, Pmax, tune )
 end
 
 function w = wfun(r, tune)
-if(1)
-    r=nirs.math.normrootstationarity(r,'mean');
-    r=nirs.math.normrootstationarity(r,'std');
-    r=r-nanmean(r);
-    lstN=find(r<0);
-    lstP=find(r>0);
-    
-    s = mad(r(lstN), 0) / 0.6745;
-    r(lstN) = r(lstN)/s/tune;
-    
-    s = mad(r(lstP), 0) / 0.6745;
-    r(lstP) = r(lstP)/s/tune;
-else
-    %original version
+try
+    if(1)
+        r=nirs.math.normrootstationarity(r,'mean');
+        r=nirs.math.normrootstationarity(r,'std');
+        r=r-nanmean(r);
+        lstN=find(r<0);
+        lstP=find(r>0);
+        
+        s = mad(r(lstN), 0) / 0.6745;
+        r(lstN) = r(lstN)/s/tune;
+        
+        s = mad(r(lstP), 0) / 0.6745;
+        r(lstP) = r(lstP)/s/tune;
+    else
+        %original version
+        s = mad(r, 0) / 0.6745;
+        r = r/s/tune;
+    end
+catch
     s = mad(r, 0) / 0.6745;
     r = r/s/tune;
 end

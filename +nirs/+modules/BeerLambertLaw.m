@@ -49,6 +49,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     
                     % distances
                     L = p.distances(lst);
+                    L=max(L,1);  % avoid issues with the short (0) seperation values
                     
                     % mbll model
                     EL = bsxfun( @times, E, L*obj.PPF );

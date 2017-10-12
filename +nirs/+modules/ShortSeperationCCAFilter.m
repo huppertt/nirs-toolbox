@@ -1,4 +1,4 @@
-classdef ShortSeperationPCAFilter < nirs.modules.AbstractModule
+classdef ShortSeperationCCAFilter < nirs.modules.AbstractModule
     %% PCAFilter - Removes principal components reducing spatial covariance.
     %
     % Options:
@@ -7,11 +7,12 @@ classdef ShortSeperationPCAFilter < nirs.modules.AbstractModule
     properties
         thrsh = 0.05; % number of components to remove
         lags=10;
+        prewhiten=true;
     end
     
     methods
         
-        function obj = ShortSeperationPCAFilter( prevJob )
+        function obj = ShortSeperationCCAFilter( prevJob )
             obj.name = 'Remove Principal Components based on short seperations';
             
             if nargin > 0
@@ -21,14 +22,21 @@ classdef ShortSeperationPCAFilter < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             for i = 1:numel(data)
+                if(~nirs.util.hasshortdistances(data(i)))
+                    continue;
+                end
                 
+                % remove mean
                 m = mean(data(i).data,1);
                 d = bsxfun(@minus, data(i).data, m);
                 
                 
                 types=unique(data(i).probe.link.type);
-                [inn,f]=nirs.math.innovations(d,data(i).Fs*4);
-                %inn=data(i).data;
+                if(obj.prewhiten)
+                    [inn,f]=nirs.math.innovations(d,data(i).Fs*4);
+                else
+                    inn=d;
+                end
                 for tI=1:length(types)
                     
                     
@@ -39,10 +47,10 @@ classdef ShortSeperationPCAFilter < nirs.modules.AbstractModule
                     lstss=find(ismember(data(i).probe.link.type,types{tI}) & data(i).probe.link.ShortSeperation);
                     
                     
-                    % resample data
+                    
                     d = inn(:,lst);
                     dss=inn(:,lstss);
-                    % remove mean
+                    
                     
                     
                     X=[];
@@ -57,7 +65,10 @@ classdef ShortSeperationPCAFilter < nirs.modules.AbstractModule
                     disp(['removing ' num2str(length(rm)) ' components'])
                     d= d-U(:,rm)*pinv(A(:,rm))+ones(size(d,1),1)*mean(d,1);
                     
+                    %d=d-U(:,rm)*inv(U(:,rm)'*U(:,rm))*U(:,rm)'*d+ones(size(d,1),1)*mean(d,1);
+                    
                     Xhat = V(:,rm)*pinv(B(:,rm))+ones(size(X,1),1)*mean(X,1);
+                    %Xhat=V(:,rm)*inv(V(:,rm)'*V(:,rm))*V(:,rm)'*X+ones(size(X,1),1)*mean(X,1);
                     for jj=1:obj.lags
                         dss= dss-Xhat(:,(jj-1)*size(dss,2)+[1:size(dss,2)]);
                     end
@@ -67,12 +78,17 @@ classdef ShortSeperationPCAFilter < nirs.modules.AbstractModule
                     inn(:,lstss) = dss;
                 end
                 
-                for j=1:length(f)
-                    d(:,j)=filter(1,[1; f{j}(2:end)],inn(:,j));
+                if(obj.prewhiten)
+                    for j=1:length(f)
+                        data(i).data(:,j)=filter(1,[1; f{j}(2:end)],inn(:,j));
+                    end
+                    
+                else
+                    data(i).data=inn;
                 end
-                data(i).data= bsxfun(@plus,d , m);
                 
-                %data(i).data=inn;
+                data(i).data= bsxfun(@plus,data(i).data , m);
+                
             end
         end
     end

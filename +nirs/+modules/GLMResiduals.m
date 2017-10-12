@@ -24,6 +24,7 @@ classdef GLMResiduals < nirs.modules.AbstractModule
 
     properties
         GLMjob;
+        remove_events;
     end
     methods
         function obj = GLMResiduals( prevJob )
@@ -31,10 +32,29 @@ classdef GLMResiduals < nirs.modules.AbstractModule
             
             obj.name = 'GLM model residuals';
             obj.GLMjob = nirs.modules.GLM();
+            obj.remove_events=false;
         end
        
         function data = runThis( obj, data )
            
+           
+            if(obj.remove_events)
+                dorig=data;
+                for i = 1:numel(data)
+                    job=nirs.modules.KeepStims;
+                    keys=nirs.getStimNames(data(i));
+                    for k=1:length(keys)
+                        if(isa(data(i).stimulus(keys{k}),'nirs.design.StimulusVector'));
+                            job.listOfStims{end+1,1}=keys{k};
+                        end
+                    end
+                    if(length(job.listOfStims)==0)
+                        warning('cannot remove all events');
+                    end
+                    data(i)=job.run(data(i));
+                end
+            end
+            
             S = obj.GLMjob.run( data );
             
             for i = 1:numel(data)
@@ -47,6 +67,20 @@ classdef GLMResiduals < nirs.modules.AbstractModule
                 X = nirs.design.createDesignMatrix( stims, t, obj.GLMjob.basis );
 
                 data(i).data = data(i).data - X * reshape(S(i).beta,[nchan ncond])';
+                
+                
+                if(obj.remove_events)
+                    data(i).stimulus=dorig(i).stimulus;
+                    
+                    job=nirs.modules.KeepStims;
+                    keys=nirs.getStimNames(data(i));
+                    for k=1:length(keys)
+                        if(~isa(data(i).stimulus(keys{k}),'nirs.design.StimulusVector'));
+                            job.listOfStims{end+1,1}=keys{k};
+                        end
+                    end
+                    data(i)=job.run(data(i));
+                end
                 
             end
             

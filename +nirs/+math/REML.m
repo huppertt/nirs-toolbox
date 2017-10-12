@@ -248,7 +248,7 @@ ybar = ones(size(Y,1),1)*mean(Y,1);
 yhat = X*Beta;
 residuals=Y-yhat;
 warning('off','MATLAB:normest:notconverge');
-%n=normest(iCn);
+n=normest(iCn);
 sse = normest(residuals)^2;    % sum of squared errors
 ssr = normest(yhat - ybar)^2;  % regression sum of squares
 sst = normest(Y - ybar)^2;     % total sum of squares;
@@ -260,7 +260,7 @@ lambda=max(lambda,log(tolr));
 lambda=min(lambda,log(1/tolr));
 
 Stats.tstat.beta=Beta*s2/s1;
-Stats.tstat.covb=XtXi*mse;
+Stats.tstat.covb=XtXi*Stats.tstat.mse*n;
 Stats.tstat.dfe=size(X,2);
 Stats.tstat.t=Stats.tstat.beta./sqrt(diag(Stats.tstat.covb));
 
