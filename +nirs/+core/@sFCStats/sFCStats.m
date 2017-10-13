@@ -45,8 +45,8 @@ classdef sFCStats
       
          function Z = get.Z( obj )
              Z = abs(.5*log((1+obj.R)./(1-obj.R))).*sign(obj.R);
-             Z(find(Z>6))=6;  % Fix the R=1 -> inf;  tanh(6) ~1 so cut there to keep the scale
-             Z(find(Z<-6))=-6;
+             Z(Z>6)=6;  % Fix the R=1 -> inf;  tanh(6) ~1 so cut there to keep the scale
+             Z(Z<-6)=-6;
          end
          
          function t = get.t(obj)
@@ -55,7 +55,7 @@ classdef sFCStats
                  if(isempty(obj.ZstdErr))
                      t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
                  else
-                     t(:,:,idx)=obj.Z(:,:,idx)./obj.ZstdErr(:,:,idx);
+                     t(:,:,idx)=obj.Z(:,:,idx)./sqrt(obj.ZstdErr(:,:,idx,idx));
                  end
              end
          end

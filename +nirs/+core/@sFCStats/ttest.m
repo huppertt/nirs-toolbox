@@ -47,26 +47,45 @@ function S = ttest(obj, c, b, names)
         return
     end
     
-   
-    for i=1:size(obj.Z,1)
-        for j=1:size(obj.Z,2)
-            Z(i,j,:)=c*squeeze(obj.Z(i,j,:));
-        end
+    c = c';
+    if nargin < 3 || isempty(b)
+        b = zeros(size(c,2),1);
     end
+    b = permute(b,[3 2 1]);
+    
+    ncon = size(c,2);
+    dfe = zeros(1,ncon);
+    Z = zeros([size(obj.R,1) size(obj.R,2) ncon]);
     if(~isempty(obj.ZstdErr))
-        for i=1:size(obj.ZstdErr,1)
-            for j=1:size(obj.ZstdErr,2)
-                ZstdErr(i,j,:)=sqrt(c*diag(squeeze(obj.ZstdErr(i,j,:)).^2)*c');
-            end
-        end
-        obj.ZstdErr=ZstdErr;
+        ZstdErr = zeros([size(obj.R,1) size(obj.R,2) ncon ncon]);
+    else
+        ZstdErr = [];
     end
     
+    for cIdx=1:ncon
+        
+        tmpC = permute(c(:,cIdx),[3 2 1]);
+        
+        Z(:,:,cIdx) = sum( bsxfun( @times , obj.Z , tmpC ) , 3);
+       
+        if(~isempty(obj.ZstdErr))
+
+            tmpCT = permute(tmpC,[1 2 4 3]);
+            ZstdErr(:,:,cIdx,cIdx) = sum(sum( bsxfun( @times , bsxfun( @times , obj.ZstdErr , tmpC ) , tmpCT ) ,4),3);
+
+        end
+        
+        dfe(1,cIdx) = sum(bsxfun(@times,abs(c(:,cIdx))',obj.dfe),2) ./ sum(abs(c(:,cIdx)));
+        
+    end
+    
+    Z = bsxfun( @minus , Z , b );
     
     S=obj;
     S.R=tanh(Z);
+    S.ZstdErr=ZstdErr;
     S.conditions=names;
-    S.dfe=sum(bsxfun(@times,abs(c),obj.dfe),2)' ./ sum(abs(c),2)';
+    S.dfe=dfe;
     
     S.description = 'T-test';
 end
