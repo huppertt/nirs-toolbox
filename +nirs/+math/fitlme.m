@@ -130,19 +130,27 @@ end
 %% Use unconstrained nonlinear optimization to find theta that minimizes log-likelihood
 function theta = solveForTheta(X,y,Z,theta0)
 if nargin<4
-    theta0 = zeros(1,size(y,2));
+    theta0 = 0;
 end
-theta = zeros(1,size(y,2));
 
 if isempty(Z)
     return;
 end
 
-opts = optimoptions('fminunc','Display','off');
-for i = 1:length(theta)
-    theta(i) = fminunc( @(x) calcLogLikelihood(X,y(:,i),Z,x) , theta0(i) , opts );
+% Find a valid initial value for theta
+max_iter = 100; iter = 0;
+while ~isfinite(calcLogLikelihood(X,y,Z,theta0))
+    theta0 = theta0 / 2;
+    iter = iter + 1;
+    assert(iter<max_iter,'Could not find valid initial value of theta for optimization');
 end
 
+warning('off','MATLAB:nearlySingularMatrix');
+
+opts = optimoptions('fminunc','Display','off');
+theta = fminunc( @(x) calcLogLikelihood(X,y,Z,x) , theta0 , opts );
+
+warning('on','MATLAB:nearlySingularMatrix');
 end
 
 %% Calculate log-likelihood associated with a given value of theta
