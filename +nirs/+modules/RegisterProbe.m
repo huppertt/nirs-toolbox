@@ -68,16 +68,13 @@ classdef RegisterProbe < nirs.modules.AbstractModule
             
         end
         
-        function probe = registerProbe( obj, probe )
-               
+        function probe1020 = registerProbe( obj, probe )
+            
             % Get Colin27 mesh and reference locations
             assert(isnumeric(probe.link.type),'Probe registration must be done before Beer-Lambert Law.');
             lambda = unique(probe.link.type,'stable');
             fwdBEM = nirs.registration.Colin27.BEM(lambda);
             fwdBEM.mesh(1).fiducials.Draw(:)=false;
-            probe = probe.regsister_mesh2probe(fwdBEM.mesh);
-            probe.opticalproperties = nirs.media.tissues.brain(0.7, 50,lambda);
-            probe.defaultdrawfcn = '3D mesh (frontal)';
             refs = fwdBEM.mesh(1).fiducials;
 
             % Get optode and constraint info
@@ -225,10 +222,17 @@ classdef RegisterProbe < nirs.modules.AbstractModule
                 warning('Restarting optimization...');
             end
             
-            % Assign outputs
             optodes(:,2:4) = array2table(x);
-            optodes.Units(:) = {'mm'};
-            probe.optodes_registered = optodes;
+            optodes.Units(:) = {'mm'};           
+
+            % Assign outputs
+            probe1020 = nirs.core.Probe1020;
+            probe1020.optodes = probe.optodes;
+            probe1020.optodes_registered = optodes;
+            probe1020.link = probe.link;
+            probe1020 = probe1020.regsister_mesh2probe(fwdBEM.mesh);
+            probe1020.opticalproperties = nirs.media.tissues.brain(0.7, 50,lambda);
+            probe1020.defaultdrawfcn = '3D mesh (frontal)';
             
         end
         
