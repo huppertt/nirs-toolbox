@@ -118,9 +118,12 @@ end
 
 %% Compute granger stats
 G = bsxfun( @minus , log(SSEr) , log(SSEu) );
+G(G<0) = 0; % Due to numerical imprecision
 
 df1 = Pmax * (n-1);          % Number of cross (non-auto) predictors [unrestricted parameters - restricted]
 df2 = o*(m-Pmax) - (n*Pmax); % Effective observations (obs-order) - full # of predictors
+
+assert(df2>0,'Degrees of freedom are too small. Increase number of samples or decrease model order.');
 
 F = (exp(G)-1) .* (df2/df1); % F = (SSEr-SSEu)/df1 / SSEu/df2 = (SSEr-SSEu)/SSEu * df2/df1
                              % (SSEr-SSEu)/SSEu = SSEr/SSEu - 1 = exp(G) - 1

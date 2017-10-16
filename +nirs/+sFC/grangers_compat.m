@@ -17,6 +17,8 @@ Z = log( F ) / 2;
 % Convert to r-value
 R = tanh(Z);
 
-dfe = nanmean(dfe2(:));
+assert(isreal(R),'r-values should not be complex!');
+
+dfe = nanmean(dfe1(:)) + 1i * nanmean(dfe2(:));
 
 end
