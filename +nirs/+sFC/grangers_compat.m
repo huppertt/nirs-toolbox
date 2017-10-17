@@ -9,7 +9,7 @@ function [R,p,dfe]=grangers_compat(varargin)
 [G,F,dfe1,dfe2,p] = nirs.sFC.grangers(varargin{:});
 
 % Remove directionality
-F = max( F , permute(F,[2 1 3]) );
+F =  (F + permute(F,[2 1 3]) ) ./ 2;
 
 % Convert to Fisher Z-distribution
 Z = log( F ) / 2;

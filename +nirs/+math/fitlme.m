@@ -134,6 +134,7 @@ if nargin<4
 end
 
 if isempty(Z)
+    theta = 0;
     return;
 end
 

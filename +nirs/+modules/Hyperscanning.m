@@ -127,8 +127,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                         disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
                                     end
                                     startpt = find(time>(s.onset(j)+obj.ignore),1,'first');
-                                    lstpts=startpt:(startpt+nsamp-1);
-                                    tmp.data(:,:,j)=[dataA(lstpts,:) dataB(lstpts,:)];
+                                    lstpts=startpt:min(length(time),startpt+nsamp-1);
+                                    tmp.data(1:length(lstpts),:,j)=[dataA(lstpts,:) dataB(lstpts,:)];
                                 end
                                 tmp.time=time(lstpts);
                                 [r,p,dfe]=obj.corrfcn(tmp);
@@ -148,18 +148,12 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             
                             if(obj.symetric)
                                 r = atanh(r); % r-to-Z
-                                if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
-                                    r = exp(2*r); % Z-to-F
-                                end
                                 for j = 1:size(r,3)
                                     aa=r(1:end/2,1:end/2,j);            % within subject A
                                     ab=r(1:end/2,end/2+1:end,j);        % from A to B
                                     ba=r(end/2+1:end,1:end/2,j);        % from B to A
                                     bb=r(end/2+1:end,end/2+1:end,j);    % within subject B
                                     r(:,:,j) = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
-                                end
-                                if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
-                                    r = log(r)/2; % F-to-Z
                                 end
                                 r = tanh(r); % Z-to-r
                             end
