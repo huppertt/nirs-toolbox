@@ -68,30 +68,36 @@ classdef Probe1020 < nirs.core.Probe
             obj.defaultdrawfcn='draw1020';
         end
         
-        function obj = regsister_mesh2probe(obj,mesh)
+        function obj = regsister_mesh2probe(obj,mesh,noreg)
             % This reshapes the mesh to fit the current probe
 
+            if(nargin<3)
+                noreg=false;
+            end
+            
             tbl=table(obj.labels,obj.pts1020(:,1),obj.pts1020(:,2),obj.pts1020(:,3),...
                 'VariableNames',{'Name','X','Y','Z'});
             
-            T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
-            for idx=1:length(mesh)
-                n=mesh(idx).nodes;
-                n(:,4)=1;
-                n=n*T;
-                mesh(idx).nodes=n(:,1:3);
-                
-                if(~isempty(mesh(idx).fiducials))
-                    p=[mesh(idx).fiducials.X mesh(idx).fiducials.Y mesh(idx).fiducials.Z];
-                    p(:,4)=1;
-                    p=p*T;
-                    mesh(idx).fiducials.X=p(:,1);
-                    mesh(idx).fiducials.Y=p(:,2);
-                    mesh(idx).fiducials.Z=p(:,3);
+            if(~noreg)
+                T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
+                for idx=1:length(mesh)
+                    n=mesh(idx).nodes;
+                    n(:,4)=1;
+                    n=n*T;
+                    mesh(idx).nodes=n(:,1:3);
                     
+                    if(~isempty(mesh(idx).fiducials))
+                        p=[mesh(idx).fiducials.X mesh(idx).fiducials.Y mesh(idx).fiducials.Z];
+                        p(:,4)=1;
+                        p=p*T;
+                        mesh(idx).fiducials.X=p(:,1);
+                        mesh(idx).fiducials.Y=p(:,2);
+                        mesh(idx).fiducials.Z=p(:,3);
+                        
+                        
+                    end
                     
                 end
-                
             end
             obj.mesh=mesh;
             
