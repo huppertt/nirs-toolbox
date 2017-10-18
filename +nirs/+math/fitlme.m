@@ -13,7 +13,7 @@ nX = size(X,2);
 nZ = size(Z,2);
 
 %% Handle all-NaN variables
-bad_vars = all(isnan(Y),1);
+bad_vars = all(isnan(Y),1) | all(bsxfun(@eq,Y,Y(1,:)),1);
 if any(bad_vars)
     
     beta = nan(nX,nY);
