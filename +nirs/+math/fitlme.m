@@ -90,7 +90,16 @@ if robust_flag
         w = bisquare( resid_s , tune );
         w=sparse(diag(w));
         beta0=beta;
-
+        
+        % Bail out if weights are bad
+        if length(unique(w*Y))<2 || any(isnan(w(:))) || any(~isfinite(w(:)))
+            beta(:)=nan;
+            bHat(:)=nan;
+            covb(:)=nan;
+            LL(:)=nan;
+            return;
+        end
+        
         % Re-estimate using new weights
         if ~zero_theta
             theta = solveForTheta(w*X,w*Y,w*Z,theta); % Get optimal theta
@@ -217,12 +226,14 @@ function [R,p] = cholSafe(d,varargin)
 delta = eps(class(d));
 I = eye(size(d));
 
-p=1;
+p=1; iter=1; max_iter=1000;
 while p~=0
     try
         [R,p] = chol(d + delta*I,varargin{:});
     end
     delta = 2*delta;
+    iter = iter + 1;
+    assert(iter<max_iter,'Could not perform cholesky factorization');
 end 
 
 end
