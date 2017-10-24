@@ -1,8 +1,12 @@
-function data = loadCifti(filenames,surf)
+function data = loadCifti(filenames,surf,usesvd)
 % p='/Users/huppert/Desktop/Cerebro/1_R21_Data/2_fNIRS-EEG-fMRI/fMRI/analyzed/NVC002/MNINonLinear/Results/ep2d_bold_MN1';
 % p2='/Users/huppert/Desktop/Cerebro/1_R21_Data/2_fNIRS-EEG-fMRI/fMRI/analyzed/NVC002/MNINonLinear/fsaverage_LR32k';
 % filenames={fullfile(p,'ep2d_bold_MN1_Atlas.dtseries.nii')};
 % surf = {fullfile(p2,'NVC002.L.pial.32k_fs_LR.surf.gii')};
+
+if(nargin<3)
+    usesvd=true;
+end
 
 
 % if a single filename, put it in a cell
@@ -19,22 +23,36 @@ data(:)=[];
 
 % iterate through cell array
 for iFile = 1:length(filenames)
-    c=ft_read_cifti(filenames{iFile});
+    c=ft_read_cifti(filenames{iFile},'readdata',true);
     data(iFile).description=filenames{iFile};
     data(iFile).time=c.time;
     
     lst=find(ismember(c.brainstructure,find(ismember(c.brainstructurelabel,{'CORTEX_LEFT','CORTEX_RIGHT'}))));
     
     [p,surfroot,ext]=fileparts(surf{iFile});
-    surfL=surfroot;
-    surfL([strfind(surfL,'.L.') strfind(surfL,'.R.')]+1)='L';
-    surfR=surfroot;
-    surfR([strfind(surfR,'.L.') strfind(surfR,'.R.')]+1)='R';
+    
+    if(~isempty([strfind(surfroot,'.L.') strfind(surfroot,'.R.')]))
+        
+        surfL=surfroot;
+        surfL([strfind(surfL,'.L.') strfind(surfL,'.R.')]+1)='L';
+        surfR=surfroot;
+        surfR([strfind(surfR,'.L.') strfind(surfR,'.R.')]+1)='R';
+        
+    else
+        surfroot=surfroot(1:[strfind(surfroot,'CORTEX_LEFT') strfind(surfroot,'CORTEX_RIGHT')]-1);
+        surfL=[surfroot 'CORTEX_LEFT.surf'];
+        surfR=[surfroot 'CORTEX_RIGHT.surf'];
+        
+    end
+    
     giiL=gifti(fullfile(p,[surfL ext]));
     giiR=gifti(fullfile(p,[surfR ext]));
-     
     v = [giiL.vertices; giiR.vertices];
     f = [giiL.faces; giiR.faces+size(giiL.vertices,1)];
+    
+    if(max(c.dtseries(:))<eps(single(1)))
+        c.dtseries=c.dtseries*10^14;
+    end
     
     d=c.dtseries(lst,:)';
     
@@ -43,16 +61,22 @@ for iFile = 1:length(filenames)
     vertex(lst)=[];
     d(:,lst)=[];
     
-    [u,s,proj]=nirs.math.mysvd(d);
-    lst=find(diag(s)<eps(single(1)));
-    u(:,lst)=[]; s(lst,:)=[]; s(:,lst)=[]; proj(lst,:)=[];
-    
-    proj=sparse(proj);
-    
-    data(iFile).data=u*s;
-    data(iFile).projectors=proj;
-    data(iFile).cov=speye(size(proj,2),size(proj,2));
-    
+    if( usesvd)
+        [u,s,proj]=nirs.math.mysvd(d);
+        lst=find(diag(s)<eps(single(1)));
+        u(:,lst)=[]; s(lst,:)=[]; s(:,lst)=[]; proj(lst,:)=[];
+        
+        proj=sparse(proj);
+        
+        data(iFile).data=u*s;
+        data(iFile).projectors=proj;
+        data(iFile).cov=speye(size(proj,2),size(proj,2));
+    else
+        data(iFile).data=d;
+        data(iFile).projectors=speye(size(d,2),size(d,2));
+        data(iFile).cov=speye(size(d,2),size(d,2));
+        
+    end
     
     type=repmat(cellstr('cifti'),size(d,2),1);
     

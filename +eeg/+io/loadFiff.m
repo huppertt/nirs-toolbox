@@ -61,6 +61,8 @@ for i=1:size(aux,1)
     if(~isempty(lst))
         lst(find(diff(lst)<50))=[];
         offsets{i}=lst;
+    else
+        offsets{i}=[];
     end
 end
 offsets{end+1}=t(end);
