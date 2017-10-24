@@ -12,7 +12,11 @@ end
 
 if(isa(folder,'nirs.core.Data'))
     raw=folder;
-    folder=fileparts(raw(1).description);
+    try;
+        folder=fileparts(raw(1).description);
+    catch
+        folder='';
+    end
 else
     raw=nirs.io.loadDirectory(folder,{});
 end
@@ -27,8 +31,9 @@ set(f,'Color','w')
 % make the summary table
 for i=1:length(raw)
     filenames{i,1}=raw(i).description;
+    try
     [~,filenames{i,1}]=fileparts(filenames{i,1});
-    
+    end
     data_length{i,1} = raw(i).time(end);
     s=nirs.getStimNames(raw(i));
     if(~isempty(s))
@@ -45,13 +50,18 @@ for i=1:length(raw)
     raw=j.run(raw);
     
     SNI{i}=nirs.math.structnoiseindex(raw(i).data);
-    n=length(find(SNI{i}>3));
+    n=length(find(SNI{i}>5));
+    n2=length(find(SNI{i}>3));
+    n3=length(find(SNI{i}>1.5));
+    
     types=unique(raw(i).probe.link.type);
     lst1=find(raw(i).probe.link.type==types(1));
     
     lst2=find(raw(i).probe.link.type==types(2));
     
-    Number_of_Good_Channels{i,1}=sprintf('%0.1f%s (%d of %d)',100*n/length(SNI{i}),'%',n,length(SNI{i}));
+    Number_of_Great_Channels{i,1}=sprintf('%0.1f%s (%d of %d)',100*n/length(SNI{i}),'%',n,length(SNI{i}));
+    Number_of_Medium_Channels{i,1}=sprintf('%0.1f%s (%d of %d)',100*n2/length(SNI{i}),'%',n2,length(SNI{i}));
+    Number_of_Passible_Channels{i,1}=sprintf('%0.1f%s (%d of %d)',100*n3/length(SNI{i}),'%',n3,length(SNI{i}));
     DataQuality_830{i,1}=sprintf('%0.1f [%0.1f-%0.1f]',median(SNI{i}(lst1)),min(SNI{i}(lst1)),max(SNI{i}(lst1)));
     DataQuality_690{i,1}=sprintf('%0.1f [%0.1f-%0.1f]',median(SNI{i}(lst2)),min(SNI{i}(lst2)),max(SNI{i}(lst2)));
     
@@ -60,8 +70,8 @@ end
     
 
 
-T=table(filenames,data_length,Number_of_Good_Channels,DataQuality_830,DataQuality_690,stimulus_events,...
-    'VariableNames',{'filename','data_length','Number_of_Good_Channels',...
+T=table(filenames,data_length,Number_of_Great_Channels,Number_of_Medium_Channels,Number_of_Passible_Channels,DataQuality_830,DataQuality_690,stimulus_events,...
+    'VariableNames',{'filename','data_length','Number_of_Great_Channels','Number_of_Medium_Channels','Number_of_Passible_Channels'...
     ['DataQuality_' num2str(types(1))],['DataQuality_' num2str(types(2))],'stimulus_events'});
 
 a=subplot(length(raw)+1,4,[1 2 3 4]);
@@ -88,14 +98,19 @@ c=hot(64);
 mS=max(horzcat(SNI{:}));
 sp=linspace(0,mS,64);
 
-c(find(sp<=2),1)=1;
-c(find(sp<=2),2)=0;
-c(find(sp<=2),3)=0;
+
+c(find(sp<=1.5),1)=0;
+c(find(sp<=1.5),2)=0;
+c(find(sp<=1.5),3)=0;
 
 
-c(find(sp>2 & sp<=5),1)=1;
-c(find(sp>2 & sp<=5),2)=1;
-c(find(sp>2 & sp<=5),3)=0;
+c(find(sp>1.5 & sp<=3),1)=1;
+c(find(sp>1.5 & sp<=3),2)=0;
+c(find(sp>1.5 & sp<=3),3)=0;
+
+c(find(sp>3 & sp<=5),1)=1;
+c(find(sp>3 & sp<=5),2)=1;
+c(find(sp>3 & sp<=5),3)=0;
 
 c(find(sp>5),1)=0;
 c(find(sp>5),2)=1;
