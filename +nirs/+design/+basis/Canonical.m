@@ -48,7 +48,7 @@ classdef Canonical
                 hb = (h - obj.getImpulseResponse(a1, b1+db, a2, b2, c, t) )/db;
                 
                 % orthogonalize
-                [Q,R] = qr([h ha hb],0);
+                [Q,R] = qr(zscore([h ha hb]),0);
                 R = diag(diag(R));
                 R(R<0)=-1;
                 R(R>0)=1;
