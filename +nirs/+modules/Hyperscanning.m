@@ -86,7 +86,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 if isequal(timeA,timeB)
                     time = timeA;
                 else
-                    time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))];
+                    time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))]';
                     for id=1:size(dataA,2)
                         dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
                         dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
