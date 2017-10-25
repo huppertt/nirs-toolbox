@@ -103,6 +103,33 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
                 if(obj.divide_events)
                     stim=data(idxA).stimulus;
+                    stim2=data(idxB).stimulus;
+                    
+                    if ~isequal(stim,stim2)
+                        % Create a combined stim that reflects when
+                        % condition is occurring in both files
+                        [xA,namesA] = data(idxA).getStimMatrix;
+                        [xB,namesB] = data(idxB).getStimMatrix;
+                        [names,iA,iB] = intersect(namesA,namesB);
+                        xA = xA(1:length(time),iA);
+                        xB = xB(1:length(time),iB);
+                        X = xA & xB;
+                        dX = [zeros(1,size(X,2)); diff(X)];
+                        stim = Dictionary();
+                        for cond = 1:length(names)
+                            onsets = time(dX(:,cond)>0);
+                            offsets = time(dX(:,cond)<0);
+                            if X(1,cond)==1, onsets = [time(1); onsets]; end
+                            if X(end,cond)==1, offsets = [offsets; time(end)]; end
+                            dur = offsets - onsets;
+                            s = nirs.design.StimulusEvents(names{cond});
+                            s.onset = onsets;
+                            s.dur = dur;
+                            s.amp = ones(size(onsets));
+                            stim(names{cond}) = s;
+                        end
+                    end
+                    
                     cnt=1;
                     for idx=1:length(stim.keys)
                         s=stim(stim.keys{idx});
