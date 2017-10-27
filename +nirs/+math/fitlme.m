@@ -157,7 +157,7 @@ end
 
 warning('off','MATLAB:nearlySingularMatrix');
 
-opts = optimoptions('fminunc','Display','off');
+opts = optimoptions('fminunc','Display','off','Algorithm','Quasi-Newton');
 theta = fminunc( @(x) calcLogLikelihood(X,y,Z,x) , theta0 , opts );
 
 warning('on','MATLAB:nearlySingularMatrix');
