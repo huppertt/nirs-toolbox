@@ -2,7 +2,7 @@ function [yfilt,f] = innovations(Y,Pmax,verbose)
 % This removes auto-correlation and returns the innvations model;
 
 [m, n] = size(Y);
-Pmax = min(m,Pmax);
+Pmax = min(m,round(Pmax));
 X = []; lst = [];
 
 if(nargin<3)
