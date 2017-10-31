@@ -50,11 +50,14 @@ for iFile = 1:length(filenames)
     v = [giiL.vertices; giiR.vertices];
     f = [giiL.faces; giiR.faces+size(giiL.vertices,1)];
     
-    if(max(c.dtseries(:))<eps(single(1)))
-        c.dtseries=c.dtseries*10^14;
+    type=filenames{iFile}(min(strfind(filenames{iFile},'.'))+1:end);
+    type=type(1:min(strfind(type,'.'))-1);
+    
+    if(max(c.(type)(:))<eps(single(1)))
+        c.(type)=c.(type)*10^14;
     end
     
-    d=c.dtseries(lst,:)';
+    d=c.(type)(lst,:)';
     
     vertex=[1:size(d,2)]';
     lst=find([any(isnan(d),1) | all(d==0,1) | sqrt(var(d,[],1))<eps(1)*10]);
