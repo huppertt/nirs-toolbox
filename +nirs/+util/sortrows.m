@@ -5,11 +5,13 @@ num_col = length(columns);
 for i = 1:num_col
     coldata = tmp_vars.(columns{i});
     if iscell(coldata)
-        newcoldata = nan(size(coldata));
-        for j = 1:length(newcoldata)
-            newcoldata(j) = nanmean(coldata{j});
+        if isnumeric(coldata{1})
+            newcoldata = nan(size(coldata));
+            for j = 1:length(newcoldata)
+                newcoldata(j) = nanmean(coldata{j});
+            end
+            tmp_vars.(columns{i}) = newcoldata;
         end
-        tmp_vars.(columns{i}) = newcoldata;
     end
 end
 
