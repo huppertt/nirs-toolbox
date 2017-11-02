@@ -50,8 +50,13 @@ classdef sFCStats
          end
          
          function t = get.t(obj)
+
+             dfe(1:length(obj.conditions)) = obj.dfe;
+             
              for idx=1:length(obj.conditions)
-                 n=max(obj.dfe);
+
+                 n = dfe(idx);
+                 
                  if(isempty(obj.ZstdErr))
                      t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
                  else
