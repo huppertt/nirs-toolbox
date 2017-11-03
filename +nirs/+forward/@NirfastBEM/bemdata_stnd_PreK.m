@@ -15,6 +15,15 @@ if isfield(mesh,'region')==0
     error([mesh.name ' mesh needs to have a .region field!']);        
 end
 
+
+if(isstruct(K))
+    L=K.L;
+    U=K.U;
+    K=K.K;
+else
+    [L,U] = ilu(K,struct('type','ilutp','droptol',1E-6));
+end
+
 verbose=0;
 if nargin==5
     if isfield(myargs,'verbose')
@@ -110,7 +119,7 @@ if frequency == 0
     q_tot = sparse(q_tot);
 end
 
-[L,U] = ilu(K,struct('type','ilutp','droptol',1E-6));
+q_tot(find(isnan(q_tot)))=0;
 
 u = zeros(size(q_tot));
 for i = 1:size(q_tot,2);

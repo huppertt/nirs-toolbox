@@ -1,18 +1,22 @@
 function obj = precomputeK(obj)
 
-     types = unique( obj.probe.link.type );
+    if(isempty(obj.probe))
+        types=obj.prop{1}.lambda;
+    else
+    types = unique( obj.probe.link.type );
+    end
     assert( isnumeric( types ) );
 
     meshBEM=obj.mesh2BEM();
     mesh = tlocal(meshBEM,obj.prop,types);
     
-   
-    
-    % sources
     for i = 1:length( types ) 
+        k= BEM_precomputeK(mesh{i},obj.Fm);
+        s=struct;
+        [s.L,s.U] = ilu(k,struct('type','ilutp','droptol',1E-6));
+        s.K=k;
+        K{i} = s;
 
-        K{i} = BEM_precomputeK(mesh{i},obj.Fm);
-        
     end
     obj.preK = K;
     

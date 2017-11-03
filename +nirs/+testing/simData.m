@@ -46,7 +46,15 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
     
     if nargin < 4 || isempty(channels)
         % default to first half of channels
-        sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
+        sd = [noise.probe.link.source noise.probe.link.detector];
+        
+        % make sure there are no short distance here
+        if(ismember('ShortSeperation',noise.probe.link.Properties.VariableNames))
+            lst=find(noise.probe.link.ShortSeperation);
+            sd(lst,:)=[];
+            
+        end
+        sd=unique(sd,'rows');
         channels = sd(1:round(end/2),:);
     end
     

@@ -32,7 +32,7 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
                     dd=tmp.data;
                 end
                 
-                dd=dd-ones(size(dd,1),1)*mean(dd,1);
+               dd=dd-ones(size(dd,1),1)*mean(dd,1);
                dd=orth(dd);
                         
                 for j=1:size(dd,2)

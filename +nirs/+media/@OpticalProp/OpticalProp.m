@@ -32,7 +32,7 @@ classdef OpticalProp
                 obj.mus = mus;
                 obj.lambda = lambda;
                 obj.ri = 1.45;
-                obj.g =[ .89 .89];
+                obj.g =0.89*ones(size(lambda));
             end
             if nargin == 4
                 obj.ri = ri;

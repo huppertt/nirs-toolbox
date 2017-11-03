@@ -20,7 +20,7 @@ classdef LabelShortSeperation < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             for i = 1:numel(data)
-                if(ismember('ShortSeperation',data.probe.link.Properties.VariableNames))
+                if(ismember('ShortSeperation',data(i).probe.link.Properties.VariableNames))
                     data(i).probe.link.ShortSeperation=[];
                 end
                 ShortSeperation=(data(i).probe.distances<=obj.max_distance);

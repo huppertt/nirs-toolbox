@@ -9,7 +9,13 @@ function meas = measurement( obj )
     for i = 1:length( types )
 
         lst = obj.probe.link.type == types(i);
+        
+        if(~isempty(obj.preK))
+           data= obj.bemdata_stnd_PreK(mesh{i},obj.Fm,obj.preK{i});
+       else
         data = bemdata_stnd( mesh{i},obj.Fm );
+       end
+        
         
         if obj.Fm == 0
             thisD = data.paa(:,1);

@@ -55,7 +55,7 @@ for idx=1:length(nirsin)
         yfilt2hat(i:lags:end,:)=Xhat(:,cnt+[1:n]);
         cnt=cnt+n;
     end
-    
+    clear y y2;
     for i=1:length(f)
         y(:,i)=filter(1,[1; f{i}(2:end)],yfilt1hat(:,i));
     end
@@ -66,11 +66,16 @@ for idx=1:length(nirsin)
     nirsout(idx)=nirsin(idx);
     nirsout(idx).data=y;
     nirsout(idx).time =nirsin(idx).time(find(nirsin(idx).time<=min(nirsin(idx).time(end),eegin(idx).time(end)) & nirsin(idx).time>=0));
-    
+    nirsout(idx).time=nirsout(idx).time(1:size(nirsout(idx).data,1));
     eegout(idx)=eegin(idx);
     eegout(idx).data=y2;
     eegout(idx).time = eegin(idx).time(find(eegin(idx).time<=min(nirsin(idx).time(end),eegin(idx).time(end)) & eegin(idx).time>=0));
-      
+    
+    if(size(eegout(idx).data,1)>length(eegout(idx).time))
+        eegout(idx).data(length(eegout(idx).time)+1:end,:)=[];
+    end
+    eegout(idx).time=eegout(idx).time(1:size(eegout(idx).data,1));
+    
     nirsout(idx).data=nirsout(idx).data.*(ones(size(nirsout(idx).data,1),1)*nvc.^.5);
     eegout(idx).data=eegout(idx).data.*(ones(size(eegout(idx).data,1),1)*evc.^.5);
     

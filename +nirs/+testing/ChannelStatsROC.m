@@ -157,27 +157,40 @@ classdef ChannelStatsROC
             end
         end
         
-        function draw(obj)
+        function draw(obj,type)
+            
+            utype={};
+            for i=1:length(obj.types);
+                utype{i}=obj.types{i}(1:max(strfind(obj.types{i},'-'))-1);
+            end
+           if(nargin<2)
+                type=unique(utype);
+            end
+            
             colors = lines(length(obj.types));
             
             figure, hold on
             for i = 1:length(obj.types)
-               [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
-               plot(fp, tp, 'Color', colors(i,:))
+                if(ismember(utype{i},type))
+                    [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
+                    plot(fp, tp, 'Color', colors(i,:))
+                end
             end
             xlabel('False Positive Rate')
             ylabel('True Positive Rate')
-            legend(obj.types, 'Location', 'SouthEast')
+            legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
             
             figure, hold on
             for i = 1:length(obj.types)
-               [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
-               plot(phat, fp, 'Color', colors(i,:))
+                if(ismember(utype{i},type))
+                    [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
+                    plot(phat, fp, 'Color', colors(i,:))
+                end
             end
             plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--')
             ylabel('False Positive Rate')
             xlabel('Estimated FPR (p-value)')
-            legend(obj.types, 'Location', 'SouthEast')
+            legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
         end
         
         function [tp, fp, phat] = roc( obj )

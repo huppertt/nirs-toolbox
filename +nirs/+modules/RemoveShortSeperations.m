@@ -1,10 +1,10 @@
-classdef RemoveShortSeperation < nirs.modules.AbstractModule
+classdef RemoveShortSeperations < nirs.modules.AbstractModule
     %% Remove Short Seperation - removes channels from probe/data
    
   
     
     methods
-        function obj = RemovelShortSeperation( prevJob )
+        function obj = RemoveShortSeperations( prevJob )
             obj.name = 'RemoveShortSeperation';
             
             if nargin > 0

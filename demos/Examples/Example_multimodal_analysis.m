@@ -6,6 +6,8 @@
 % of the "truthImage" image.  The truth (cell array) is the expected values
 % in channel space
 
+%% 
+
 [data, truth, truthImage] = eeg.testing.simMultimodalData;
 
 eeg_raw=data{1};
@@ -119,4 +121,11 @@ prior.hbr=zeros(size(JacobNIRS.hbr,2),1);
 job.prior=Dictionary();
 job.prior('default')=prior;
 
+% Multimodal
 ImageStatsMM=job.run({NIRS_Stats EEG_Stats});
+
+%NIRS only
+ImageStatsNIRS=job.run({NIRS_Stats});
+
+% EEG only
+ImageStatsEEG=job.run({EEG_Stats});
