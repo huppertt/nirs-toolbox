@@ -293,15 +293,20 @@ classdef MixedEffects < nirs.modules.AbstractModule
                        
                         for j=1:length(mdl{idx}.CoefficientNames)
                             cc=mdl{idx}.CoefficientNames{j};
-                            if(isempty(find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)))))
+                            
+                            xSrc = arrayfun( @isequal, G.variables.source, repmat(sd.Var1(idx),length(G.variables.source),1) );
+                            xDet = arrayfun( @isequal, G.variables.detector, repmat(sd.Var2(idx),length(G.variables.detector),1) );
+                            xType = arrayfun( @isequal, G.variables.type, repmat(sd.Var3(idx),length(G.variables.type),1) );
+                            
+                            id = find(ismember(G.variables.cond,cc) & xSrc);
+                            if(isempty(id))
                                 if(~isempty(strfind(cc,'cond_')))
                                     cc=cc(strfind(cc,'cond_')+length('cond_'):end);
                                 else
                                     cc=cc(min(strfind(cc,'_'))+1:end);
                                 end
                             end
-                            id=find(ismember(G.variables.cond,cc) & ismember(G.variables.source,sd.Var1(idx)) & ...
-                                ismember(G.variables.detector,sd.Var2(idx)) & ismember(G.variables.type,sd.Var3{idx}));
+                            id=find(ismember(G.variables.cond,cc) & xSrc & xDet & xType);
                            models{id}=mdl{idx};
                        end
                 end
