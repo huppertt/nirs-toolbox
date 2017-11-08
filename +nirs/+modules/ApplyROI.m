@@ -43,8 +43,8 @@ classdef ApplyROI < nirs.modules.AbstractModule
                 error('No ROIs detected in probeROI');
             end
             
-            if obj.weighted && ~any(strcmp({'nirs.core.Data'},class(dataChannel)))
-                error('Weighted option is only supported for these classes: nirs.core.Data');
+            if obj.weighted && ~any(strcmp({'nirs.core.Data','nirs.core.ChannelStats'},class(dataChannel)))
+                error('Weighted option is only supported for these classes: nirs.core.Data, nirs.core.ChannelStats');
             end
             
             dataROI = dataChannel;
@@ -77,6 +77,13 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         
                         beta = dataChannel(i).beta(sort_inds);
                         covb = dataChannel(i).covb(sort_inds,sort_inds);
+                        
+                        if obj.weighted
+                            [u, s, ~] = svd(covb, 'econ');
+                            w = u * pinv(s).^.5 * u';
+                            condprojmat = w * condprojmat;
+                            condprojmat = bsxfun(@rdivide,condprojmat,sum(condprojmat));
+                        end
                         
                         dataROI(i).beta = condprojmat' * beta;
                         dataROI(i).covb = condprojmat' * covb * condprojmat;
