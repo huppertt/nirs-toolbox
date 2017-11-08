@@ -42,7 +42,7 @@ switch class(stats)
             X = ones(length(xpts),length(beta));
             X(:,i) = xpts;
             
-            [ypred,ci] = nirs.math.predci( X , beta , covb , stats.MSE , stats.DFE , .05 , false , true , true );
+            [ypred,ci] = nirs.math.predci( X , beta , covb , stats.MSE , stats.DFE , .05 , false , false , true );
             
             fig = figure('Renderer','painters');
             ax = axes(fig);
