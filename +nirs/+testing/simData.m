@@ -107,8 +107,8 @@ else
             & link.detector == channels(i,2) & ismember(link.type,'hbr'));
         Xhbo = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbo' );
         Xhbr = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbr' );
-        Y(:,lstHbO)=Y(:,lstHbO)+Xhbo*b(1)*1e-6;
-        Y(:,lstHbR)=Y(:,lstHbR)+Xhbr*b(2)*1e-6;
+        Y(:,lstHbO)=Y(:,lstHbO)+Xhbo*b(1);
+        Y(:,lstHbR)=Y(:,lstHbR)+Xhbr*b(2);
         truth(lstHbO) = 1;
         truth(lstHbR) = 1;
     end
