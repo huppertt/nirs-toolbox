@@ -25,11 +25,11 @@ classdef Resample < nirs.modules.AbstractModule
                     % resample data
                     d = data(i).data;
                     t = data(i).time;
-                                         
+                    N = floor((t(end)-t(1)) * obj.Fs);
+                    new_t = t(1) + (0:N-1)' / obj.Fs;
+                    
                     if(length(t)<100000)
-                        N = floor((t(end)-t(1)) * obj.Fs);
-                        new_t = t(1) + (0:N-1)' / obj.Fs;
-                        
+
                         % anti-aliasing filter
                         ord = floor( length(t) / 10 );
                         Fc = obj.Fs/data(i).Fs;
@@ -46,9 +46,7 @@ classdef Resample < nirs.modules.AbstractModule
                         % instead
                         [P,Q] = rat(obj.Fs/data(i).Fs);
                         d=resample(d,P,Q);
-
-                        N = size(d,1);
-                        new_t = t(1) + (0:N-1)' / obj.Fs;    
+                        d=d(1:N,:);
                     end
                     
                     data(i).data = d;

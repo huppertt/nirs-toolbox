@@ -26,8 +26,6 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             link = table(link(:,1), link(:,2), link(:,3), ...
                 'VariableNames', {'source', 'detector', 'type'});
             
-            link = link(randperm(height(link)),:);
-            
             probe = nirs.core.Probe(srcPos, detPos, link);
             
             %% Create task design
@@ -39,12 +37,17 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             stim('Medium') = nirs.design.StimulusEvents('Medium',[5 80 112],[12 15 16],[1 1 1]);
             stim('High') = nirs.design.StimulusEvents('High',[50 60 134],[6 10 7],[1 1 1]);
             
-            beta = [20 60 100]';
+            beta = [20 60 120]';
             
             %% Generate data
             rng('default');
             noise = nirs.testing.simARNoise(probe,time);
             raw = nirs.testing.simData(noise,stim,beta);
+            
+            %% Randomize probe link sequence
+            rand_inds = randperm(height(raw.probe.link));
+            raw.probe.link = raw.probe.link(rand_inds,:);
+            raw.data = raw.data(:,rand_inds);
             
             %% Preprocess
             job_preproc = nirs.modules.OpticalDensity();
@@ -77,11 +80,11 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             tstat_inactive_hbo = tbl.tstat( tbl.source==2 & strcmp(tbl.type,'hbo'));
             tstat_active_hbr = tbl.tstat( tbl.source==1 & strcmp(tbl.type,'hbr'));
             tstat_inactive_hbr = tbl.tstat( tbl.source==2 & strcmp(tbl.type,'hbr'));
-            %             obj.verifyGreaterThan( min(tstat_active_hbo) , 3 );
-            %             obj.verifyGreaterThan( min(-tstat_active_hbr) , 3 );
-            %             obj.verifyLessThan( max(abs(tstat_inactive_hbo)) , 3 );
-            %             obj.verifyLessThan( max(abs(tstat_inactive_hbr)) , 3 );
             
+            obj.verifyGreaterThan( min(tstat_active_hbo) , 4 );
+            obj.verifyGreaterThan( min(-tstat_active_hbr) , 4 );
+            obj.verifyLessThan( max(abs(tstat_inactive_hbo)) , 4 );
+            obj.verifyLessThan( max(abs(tstat_inactive_hbr)) , 4 );
             obj.verifyGreaterThan( min(tstat_active_hbo) ,  max(abs(tstat_inactive_hbo)) );
             obj.verifyGreaterThan( min(-tstat_active_hbr) ,  max(abs(tstat_inactive_hbr)) );
             
@@ -93,11 +96,11 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             tstat_inactive_hbo = tbl.tstat( tbl.source==2 & strcmp(tbl.type,'hbo'));
             tstat_active_hbr = tbl.tstat( tbl.source==1 & strcmp(tbl.type,'hbr'));
             tstat_inactive_hbr = tbl.tstat( tbl.source==2 & strcmp(tbl.type,'hbr'));
-            %             obj.verifyGreaterThan( min(tstat_active_hbo) , 3 );
-            %             obj.verifyGreaterThan( min(-tstat_active_hbr) , 3 );
-            %             obj.verifyLessThan( max(abs(tstat_inactive_hbo)) , 3 );
-            %             obj.verifyLessThan( max(abs(tstat_inactive_hbr)) , 3 );
             
+            obj.verifyGreaterThan( min(tstat_active_hbo) , 4 );
+            obj.verifyGreaterThan( min(-tstat_active_hbr) , 4 );
+            obj.verifyLessThan( max(abs(tstat_inactive_hbo)) , 4 );
+            obj.verifyLessThan( max(abs(tstat_inactive_hbr)) , 4 );
             obj.verifyGreaterThan( min(tstat_active_hbo) ,  max(abs(tstat_inactive_hbo)) );
             obj.verifyGreaterThan( min(-tstat_active_hbr) ,  max(abs(tstat_inactive_hbr)) );
         end
@@ -108,10 +111,11 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             tstat_inactive_hbo = tbl.tstat( tbl.source==2 & strcmp(tbl.type,'hbo'));
             tstat_active_hbr = tbl.tstat( tbl.source==1 & strcmp(tbl.type,'hbr'));
             tstat_inactive_hbr = tbl.tstat( tbl.source==2 & strcmp(tbl.type,'hbr'));
-            %             obj.verifyGreaterThan( min(tstat_active_hbo) , 3 );
-            %             obj.verifyGreaterThan( min(-tstat_active_hbr) , 3 );
-            %             obj.verifyLessThan( max(abs(tstat_inactive_hbo)) , 3 );
-            %             obj.verifyLessThan( max(abs(tstat_inactive_hbr)) , 3 );
+            
+            obj.verifyGreaterThan( min(tstat_active_hbo) , 4 );
+            obj.verifyGreaterThan( min(-tstat_active_hbr) , 4 );
+            obj.verifyLessThan( max(abs(tstat_inactive_hbo)) , 4 );
+            obj.verifyLessThan( max(abs(tstat_inactive_hbr)) , 4 );
             obj.verifyGreaterThan( min(tstat_active_hbo) ,  max(abs(tstat_inactive_hbo)) );
             obj.verifyGreaterThan( min(-tstat_active_hbr) ,  max(abs(tstat_inactive_hbr)) );
             
