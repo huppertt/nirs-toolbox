@@ -125,7 +125,18 @@ classdef sFCStats
             [out.probe.link, idx] = sortrows(out.probe.link, colsToSortBy);
             out.R = obj.R(idx,idx,:);
             if(~isempty(obj.ZstdErr))
-                out.obj.ZstdErr = obj.obj.ZstdErr(idx, idx,:);
+                out.ZstdErr = obj.ZstdErr(idx, idx,:,:);
+            end
+            
+            % Sort conditions
+            [~,idx] = sort( out.conditions );
+            out.conditions = out.conditions(idx);
+            out.R = out.R(:,:,idx);
+            if(~isempty(out.ZstdErr))
+                out.ZstdErr = out.ZstdErr(:,:,idx,idx);
+            end
+            if length(out.dfe)==length(out.conditions)
+                out.dfe = out.dfe(idx);
             end
         end
          
