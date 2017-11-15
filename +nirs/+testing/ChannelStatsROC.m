@@ -195,7 +195,7 @@ classdef ChannelStatsROC
         
         function [tp, fp, phat] = roc( obj )
             for i = 1:length(obj.types)
-               [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
+               [tp{i}, fp{i}, phat{i}] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
             end
         end
         

@@ -43,6 +43,7 @@ if nargin < 5 || isempty(basis)
     % default to canonical basis
     basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});
 end
+lstSS=[];
 
 if nargin < 4 || isempty(channels)
     % default to first half of channels

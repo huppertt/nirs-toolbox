@@ -137,7 +137,7 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
                         dTask= data(i).data(:,lst);
                        
                         dTask=detrend(dTask);
-                        u = dTask*v*inv(s);
+                        u = dTask*v*pinv(s);
                         
                         datafilt(i).data(:,lst) = dTask - u(:,lstncomp)*s(lstncomp,lstncomp)*v(:,lstncomp)';
                         datafilt(i).data(:,lst)= bsxfun(@plus, datafilt(i).data(:,lst), m);

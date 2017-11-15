@@ -119,6 +119,12 @@ for id=1:length(data)
                 hdf5write(filename,[str '/mesh/' num2str(mI) '/fiducials/X'],m(mI).fiducials.X,'WriteMode', 'append');
                 hdf5write(filename,[str '/mesh/' num2str(mI) '/fiducials/Y'],m(mI).fiducials.Y,'WriteMode', 'append');
                 hdf5write(filename,[str '/mesh/' num2str(mI) '/fiducials/Z'],m(mI).fiducials.Z,'WriteMode', 'append');
+                if(~iscellstr(m(mI).fiducials.Type))
+                    m(mI).fiducials.Type=cellstr(m(mI).fiducials.Type);
+                end
+                if(~iscellstr(m(mI).fiducials.Units))
+                    m(mI).fiducials.Units=cellstr(m(mI).fiducials.Units);
+                end
                 hdf5write(filename,[str '/mesh/' num2str(mI) '/fiducials/Type'],m(mI).fiducials.Type,'WriteMode', 'append');
                 hdf5write(filename,[str '/mesh/' num2str(mI) '/fiducials/Units'],m(mI).fiducials.Units,'WriteMode', 'append');
                 hdf5write(filename,[str '/mesh/' num2str(mI) '/fiducials/Draw'],1*m(mI).fiducials.Draw,'WriteMode', 'append');
