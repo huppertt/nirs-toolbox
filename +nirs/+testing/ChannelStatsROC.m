@@ -161,7 +161,11 @@ classdef ChannelStatsROC
             
             utype={};
             for i=1:length(obj.types);
-                utype{i}=obj.types{i}(1:max(strfind(obj.types{i},'-'))-1);
+                if(~isempty(strfind(obj.types{i},'-')))
+                    utype{i}=obj.types{i}(1:max(strfind(obj.types{i},'-'))-1);
+                else
+                    utype{i}=obj.types{i};
+                end
             end
            if(nargin<2)
                 type=unique(utype);

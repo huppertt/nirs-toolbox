@@ -114,7 +114,9 @@ function stats = ar_irls( d,X,Pmax,tune )
         fprintf(1,'.');
         %  Satterthwaite estimate of model DOF
         [U,~,~]=nirs.math.mysvd(diag(S.w)*Xf);
-        stats.dfe = length(yf)-sum(U(:).*U(:));
+       % stats.dfe = length(yf)-sum(U(:).*U(:));
+        stats.dfe = sum(S.w)-sum(U(:).*U(:));
+        
         %stats.dfe = length(yf)-trace(H'*H)^2/trace(H'*H*H*H');
         
         % moco data & statistics
