@@ -6,11 +6,15 @@ function [coef, res, yhat] = ar_fit( y,Pmax )
     % Pmax is the max model order (not counting the constant)
     
     n = length(y);
+    Pmax=min(Pmax,n-1);
     
     Xf = nirs.math.lagmatrix(y, 1:Pmax);
     Xb = nirs.math.lagmatrix(flipud(y), 1:Pmax);
     
     X = [ones(2*n,1) [Xf; Xb]];
+    
+    
+    
     
     [coef, res] = nirs.math.stepwise(X, [y; flipud(y)]);
     

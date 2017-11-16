@@ -198,6 +198,9 @@ classdef Data
                 h=plot( t, real(d) );
             end
             xlabel( 'seconds' );
+            for i = 1:length(obj.stimulus.keys)
+                legend(obj.stimulus.keys)
+            end
             
             % axes limits
             xlim( [min(t) max(t)] );
