@@ -51,7 +51,7 @@ classdef KeepTypes < nirs.modules.AbstractModule
                     case {'nirs.core.sFCStats'}
                         data(i).R = data(i).R(keep_type,keep_type,:);
                         if(~isempty(data(i).ZstdErr))
-                            data(i).ZstdErr = data(i).ZstdErr(keep_type,keep_type,:);
+                            data(i).ZstdErr = data(i).ZstdErr(keep_type,keep_type,:,:);
                         end
                 end
             end
