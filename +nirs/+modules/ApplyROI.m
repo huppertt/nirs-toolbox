@@ -193,7 +193,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
             end
             for i = 1:length(source)
                 for j = 1:length(types)
-                    link(end+1,:) = table(source(i),detector(i),types(j),name(i));
+                    link = [link; table(source(i),detector(i),types(j),name(i),'VariableNames',{'source','detector','type','ROI'})];
                 end
             end
 
