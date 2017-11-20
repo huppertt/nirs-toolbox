@@ -1,5 +1,10 @@
 function [sorted_var,sorted_ind] = sortrows( vars , columns )
 % Preprocessor for sortrows() that handles cell entries by taking the mean
+if isempty(vars)
+    sorted_var = [];
+    sorted_ind = [];
+    return;
+end
 tmp_vars = vars;
 num_col = length(columns);
 for i = 1:num_col
