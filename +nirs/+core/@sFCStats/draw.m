@@ -115,9 +115,11 @@ for cIdx=1:length(obj.conditions)
         vrange  = vrange_arg;
     end
     
+    p = obj.probe;
+    
     % Expand ROI link to channel
-    if iscell(obj.probe.link.source)
-        link = obj.probe.link;
+    if iscell(p.link.source)
+        link = p.link;
         link2 = table([],[],{},'VariableNames',{'source','detector','type'});
         hyper = '';
         for i=1:height(link)
@@ -131,7 +133,7 @@ for cIdx=1:length(obj.conditions)
         if ismember('hyperscan',link.Properties.VariableNames)
             link2.hyperscan = hyper;
         end
-        obj.probe.link = link2;
+        p.link = link2;
     end
     
     typesOrigin=tbl.TypeOrigin;
@@ -163,7 +165,7 @@ for cIdx=1:length(obj.conditions)
     if(ismember('hyperscan',obj.probe.link.Properties.VariableNames))
 
         % Draw a hyperscan brain
-        p = obj.probe;
+        
         
         for ii=1:length(utypesOrigin)
             for jj=1:length(utypesDest)
@@ -277,21 +279,31 @@ for cIdx=1:length(obj.conditions)
                     for idx=1:length(vals)
                         if(m(idx))
                             
-                            source_origin = d.SourceOrigin(idx);
-                            source_dest = d.SourceDest(idx);
-                            detector_origin = d.DetectorOrigin(idx);
-                            detector_dest = d.DetectorDest(idx);
-                            
-                            origin_ind = find(link.source == source_origin & link.detector == detector_origin);
-                            dest_ind = find(link.source == source_dest & link.detector == detector_dest);
-                            
-                            X_origin = link.X( origin_ind );
-                            Y_origin = link.Y( origin_ind );
-                            X_dest = link.X( dest_ind );
-                            Y_dest = link.Y( dest_ind );
+                            if iscell(d.SourceOrigin)
+                                source_origin = d.SourceOrigin{idx};
+                                source_dest = d.SourceDest{idx};
+                                detector_origin = d.DetectorOrigin{idx};
+                                detector_dest = d.DetectorDest{idx};
+                            else
+                                source_origin = d.SourceOrigin(idx);
+                                source_dest = d.SourceDest(idx);
+                                detector_origin = d.DetectorOrigin(idx);
+                                detector_dest = d.DetectorDest(idx);
+                            end
+                                
+                            for xidx = 1:length(source_origin)
+                                for yidx = 1:length(source_dest)
+                                    origin_ind = find(link.source == source_origin(xidx) & link.detector == detector_origin(xidx));
+                                    dest_ind = find(link.source == source_dest(yidx) & link.detector == detector_dest(yidx));
 
-                            h2(end+1)=plot(ax,[X_origin X_dest],[Y_origin Y_dest],'Color',colors(idx,:));
-                            
+                                    X_origin = link.X( origin_ind );
+                                    Y_origin = link.Y( origin_ind );
+                                    X_dest = link.X( dest_ind );
+                                    Y_dest = link.Y( dest_ind );
+
+                                    h2(end+1)=plot(ax,[X_origin X_dest],[Y_origin Y_dest],'Color',colors(idx,:));
+                                end
+                            end
                         end
                     end
 
