@@ -25,13 +25,10 @@ classdef DCTFilter < nirs.modules.AbstractModule
 
             for sub = 1:length(data)
                 
-                k  = size(data(sub).data, 1); 
-                RT = 1/data(sub).Fs; 
-                n  = fix(2*(k*RT)/obj.cutoff + 1);
-                X0 = spm_dctmtx(k,n);
+                X0 = nirs.design.trend.dctmtx( data(sub).time , 1/obj.cutoff );
                 X0 = X0(:,2:end);
 
-                data(sub).data = data(sub).data - X0 * (X0' * data(sub).data);
+                data(sub).data = data(sub).data - X0 * (X0 \ data(sub).data);
 
             end
         end
