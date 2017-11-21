@@ -34,13 +34,15 @@ if any(bad_times)
     Z(bad_times,:) = [];
 end
 
+beta = nan(nX,nY);
+bHat = nan(nZ,nY);
+covb = nan(nX,nX,nY);
+LL = nan(1,nY);
+
+if isempty(X) || isempty(Y), return; end
+
 %% Run separately on each unique predictee
 if nY > 1
-    beta = nan(nX,nY);
-    bHat = nan(nZ,nY);
-    covb = nan(nX,nX,nY);
-    LL = nan(1,nY);
-
     [~,uinds,indsu] = unique(Y','rows','stable');
 
     for i = 1:length(uinds)

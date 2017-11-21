@@ -98,7 +98,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         dataROI(i).probe = probe;
                         numconds = length(dataChannel(i).conditions);
                         ROI_size = [size(projmat,2) size(projmat,2) numconds];
-                        goodvals = ~isnan(dataChannel(i).R);
+                        goodvals = ~isnan(dataChannel(i).R) & isfinite(dataChannel(i).Z);
                         dataChannel(i).R(~goodvals) = 0;
                         dataROI(i).R = zeros(ROI_size);
                         
