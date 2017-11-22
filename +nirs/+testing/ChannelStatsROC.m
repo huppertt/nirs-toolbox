@@ -201,9 +201,23 @@ classdef ChannelStatsROC
             legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
         end
         
-        function [tp, fp, phat] = roc( obj )
+        function [tp, fp, phat] = roc( obj,flag)
+            if(nargin<2)
+                flag=false;
+            end
+            pvals=obj.pvals;
+            
+            if(flag)
+                for i=1:size(pvals,1)
+                    pvals(i,1:3:end)=nirs.math.fdr(pvals(i,1:3:end));
+                    pvals(i,2:3:end)=nirs.math.fdr(pvals(i,2:3:end));
+                    pvals(i,3:3:end)=nirs.math.fdr(pvals(i,3:3:end));
+                    
+                end
+            end
+            
             for i = 1:length(obj.types)
-               [tp{i}, fp{i}, phat{i}] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
+               [tp{i}, fp{i}, phat{i}] = nirs.testing.roc(obj.truth(:, i),pvals(:, i));
             end
         end
         

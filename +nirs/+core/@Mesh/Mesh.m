@@ -20,7 +20,7 @@ classdef Mesh
         regions % m x 1 list of region indicies (e.g. tissue identity)
         
         transparency=1;
-        fiducials=table(cell(0,1),cell(0,1),cell(0,1),cell(0,1),cell(0,1),cell(0,1),cell(0,1),...
+        fiducials=table(cell(0,1),zeros(0,1),zeros(0,1),zeros(0,1),cell(0,1),cell(0,1),false(0,1),...
             'VariableNames',{'Name','X','Y','Z','Type','Units','Draw'});
     end
     

@@ -5,8 +5,12 @@ function digpts = readFIFFdigpts(filename)
 fclose(fid);
 
 % fix this part
-T=info.dev_head_t.trans;
-
+if(isempty(info.dev_head_t))
+    T=eye(4);
+else
+    T=info.dev_head_t.trans;
+    
+end
 id=struct;
 for i=1:length(info.dig)
     switch(info.dig(i).kind)

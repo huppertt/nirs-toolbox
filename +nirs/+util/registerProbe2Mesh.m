@@ -18,9 +18,9 @@ CommonNames=NamesInProbe(find(ismember(lower(NamesInProbe),CommonNames)));
 
 %First, let's put the probe onto a sphere radius=head radius
 nodes=mesh.nodes;
-center=mean(nodes,1);
+center=nanmean(nodes,1);
 nodes=nodes-ones(size(nodes,1),1)*center;
-HeadRadius = median(sqrt(sum(nodes.^2,2)));
+HeadRadius = nanmedian(sqrt(sum(nodes.^2,2)));
 
 ProbePos=[probe.optodes.X probe.optodes.Y probe.optodes.Z];
 lstCM=find(ismember(probe.optodes.Units,{'cm'}));
@@ -40,8 +40,8 @@ end
 lst=find(ismember(probe.optodes.Type,{'Source','Detector','FID-anchor'}));
 
 %Place the probe on a sphere
-x=ProbePos(:,1); x=x-mean(x(lst));
-y=ProbePos(:,2); y=y-mean(y(lst));
+x=ProbePos(:,1); x=x-nanmean(x(lst));
+y=ProbePos(:,2); y=y-nanmean(y(lst));
 theta = atan(x/HeadRadius);
 phi = atan(y/HeadRadius);
 [ProbePosSphere(:,1),ProbePosSphere(:,2),ProbePosSphere(:,3)]=sph2cart(theta,phi,HeadRadius*ones(size(x)));
@@ -164,13 +164,22 @@ return
 
 function pos = projectsurface(pos,surf)
 
-com = mean(surf,1);
+com = nanmean(surf,1);
+
+surf(any(isnan(surf),2),:)=[];
+if(size(surf,1)>5000)
+    surf=surf(randperm(size(surf,1),5000),:);
+end
+T=delaunayn(surf);
+
 for idx=1:size(pos,1)
+    disp(idx)
     vec = pos(idx,:)-com;
      c = [0:.1:2*norm(vec)];
     vec=vec/norm(vec);
     p=c'*vec+ones(length(c),1)*com;
-    [k]=dsearchn(surf,p);
+
+   [k]=dsearchn(surf,T,p);
     d=sqrt(sum((surf(k,:)-p).^2,2));
     
     [~,i]=min(d);
@@ -185,7 +194,7 @@ function ProbePosSphere=makesymetric(ProbePosSphere,sym);
 
 for i=1:length(sym)
     lst=find(sym(i,:));
-    p=mean(abs(ProbePosSphere(lst,:)),1);
+    p=nanmean(abs(ProbePosSphere(lst,:)),1);
     for j=1:length(lst)
         ProbePosSphere(lst(j),:)=p.*sign(ProbePosSphere(lst(j),:));
     end

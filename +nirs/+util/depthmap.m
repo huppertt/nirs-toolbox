@@ -1,4 +1,8 @@
-function varargout = depthmap(label,headshape)
+function varargout = depthmap(label,headshape,type)
+
+if(nargin<3 || isempty(type))
+    type={'BA','gyrus'};
+end
 
 if(nargin==0)
     if(nargout==0)
@@ -168,6 +172,24 @@ if(nargout>0)
     if(isempty(find(ismember(alllabels,{'?','*','any'}))))
         depth=depth(ismember(depth.region,alllabels),:);
     end
+    lst=[];
+    if(~ismember(type,'BA'))
+        
+        for i=1:height(depth)
+            if(~isempty(strfind(depth.region{i},'ba-')))
+                lst=[lst i]; 
+            end
+        end
+    end
+    if(~ismember(type,'gyrus'))      
+        for i=1:height(depth)
+            if(isempty(strfind(depth.region{i},'ba-')))
+                lst=[lst i]; 
+            end
+        end
+    end
+    depth(lst,:)=[];
+    
     varargout{1}=depth;
     return;
 end

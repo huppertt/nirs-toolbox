@@ -114,30 +114,32 @@ classdef Probe1020 < nirs.core.Probe
         end
         function varargout=draw(obj,varargin)
             
-            if(ismember('hyperscan',obj.link.Properties.VariableNames))
-                p=obj;
-                p.link=p.link(ismember(p.link.hyperscan,'A'),:);
-
-                S={}; D={};
-                for i=1:height(p.link)
-                    if iscell(p.link.source(i))
-                        source = p.link.source{i};
-                        detector = p.link.detector{i};
-                    else
-                        source = p.link.source(i);
-                        detector = p.link.detector(i);
+            if(~isempty(obj.link))
+                if(ismember('hyperscan',obj.link.Properties.VariableNames))
+                    p=obj;
+                    p.link=p.link(ismember(p.link.hyperscan,'A'),:);
+                    
+                    S={}; D={};
+                    for i=1:height(p.link)
+                        if iscell(p.link.source(i))
+                            source = p.link.source{i};
+                            detector = p.link.detector{i};
+                        else
+                            source = p.link.source(i);
+                            detector = p.link.detector(i);
+                        end
+                        for j=1:length(source)
+                            s=['000' num2str(source(j))];
+                            S{end+1}=['Source-' s(end-3:end)];
+                            d=['000' num2str(detector(j))];
+                            D{end+1}=['Detector-' d(end-3:end)];
+                        end
                     end
-                    for j=1:length(source)
-                        s=['000' num2str(source(j))];
-                        S{end+1}=['Source-' s(end-3:end)];
-                        d=['000' num2str(detector(j))];
-                        D{end+1}=['Detector-' d(end-3:end)];
-                    end
+                    
+                    p.optodes_registered=p.optodes_registered(ismember(p.optodes.Name,{S{:} D{:}}),:);
+                    p.optodes=p.optodes(ismember(p.optodes.Name,{S{:} D{:}}),:);
+                    obj = p;
                 end
-
-                p.optodes_registered=p.optodes_registered(ismember(p.optodes.Name,{S{:} D{:}}),:);
-                p.optodes=p.optodes(ismember(p.optodes.Name,{S{:} D{:}}),:);
-                obj = p;
             end
             
             if(~isempty(strfind(obj.defaultdrawfcn,'zoom')))
@@ -268,10 +270,15 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         function varargout=draw3d(obj,colors, lineStyles, axis_handle)
-            if isnumeric(obj.link.type)
-                link = obj.link(obj.link.type==obj.link.type(1),1:2);
+            
+            if(~isempty(obj.link))
+                if isnumeric(obj.link.type)
+                    link = obj.link(obj.link.type==obj.link.type(1),1:2);
+                else
+                    link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+                end
             else
-                link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+                link=table;
             end
             
             n = height(link);
@@ -298,9 +305,9 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,3)=obj.optodes_registered.Z;
             
             hold on;
-            lstS=find(ismember(obj.optodes.Type,'Source'));
+            lstS=find(ismember(obj.optodes_registered.Type,'Source'));
             scatter3(Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r')
-            lstD=find(ismember(obj.optodes.Type,'Detector'));
+            lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
             scatter3(Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b')
             
             h=[];
@@ -430,7 +437,7 @@ classdef Probe1020 < nirs.core.Probe
                     link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
                 end
             else
-                link=[];
+                link=table;
             end
             
             if(isa(link,'table'))
@@ -465,7 +472,7 @@ classdef Probe1020 < nirs.core.Probe
             
             
             % Todo-  draw the probe too
-            
+            h=[];
             if(~isempty(obj.optodes_registered))
                 % Points from the probe
                 lst=find(~ismember(obj.optodes_registered.Type,{'FID-anchor','FID-attractor'}));
@@ -474,9 +481,9 @@ classdef Probe1020 < nirs.core.Probe
                 Pos(:,3)=obj.optodes_registered.Z(lst);
                 [x,y]=obj.convert2d(Pos);
                 xop=x; yop=y;
-                lstS=find(ismember(obj.optodes.Type,'Source'));
+                lstS=find(ismember(obj.optodes_registered.Type,'Source'));
                 scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r')
-                lstD=find(ismember(obj.optodes.Type,'Detector'));
+                lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
                 scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b')
                 
                 for i=1:height(link)
