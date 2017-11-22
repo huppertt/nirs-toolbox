@@ -64,6 +64,7 @@ classdef ChannelStatsROC
 
     properties
         simfunc  = @nirs.testing.simData
+        artfunc
         pipeline
     end
     
@@ -96,6 +97,9 @@ classdef ChannelStatsROC
         function obj = run(obj, iter)
             for i = 1:iter
                [data, truth] = obj.simfunc();
+               if ~isempty(obj.artfunc)
+                   data = obj.artfunc(data);
+               end
                if(length(truth)>height(data(1).probe.link))
                     % Image based methods
                else
