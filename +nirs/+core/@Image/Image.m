@@ -35,6 +35,8 @@ classdef Image
             out = size(obj.vol);
         end
         
+      
+        
         function mesh = convertFEMmesh(obj)
             %This converts a volume to a FEM mesh using iso2mesh
             try

@@ -63,15 +63,22 @@ classdef NirfastBEM
         function mesh = combinemesh(obj)
             mesh = nirs.core.Mesh;
         
-           mesh=obj.mesh(1);
-           
+            mesh=obj.mesh(1);
+            if(isempty(mesh.regions))
+                mesh.regions=ones(size(obj.mesh(1).nodes,1),1);
+            end
+            
             for idx=2:length(obj.mesh)
                 n=size(mesh.nodes,1);
-               mesh.nodes=[mesh.nodes; obj.mesh(idx).nodes];
-               mesh.faces=[mesh.faces; obj.mesh(idx).faces+n];
-               mesh.elems=[mesh.elems; obj.mesh(idx).elems+n];
-               mesh.regions=[mesh.regions; obj.mesh(idx).regions];
-               try; mesh.fiducials=[mesh.fiducials; obj.mesh(idx).fiducials]; end;
+                mesh.nodes=[mesh.nodes; obj.mesh(idx).nodes];
+                mesh.faces=[mesh.faces; obj.mesh(idx).faces+n];
+                mesh.elems=[mesh.elems; obj.mesh(idx).elems+n];
+                if(isempty(obj.mesh(idx).regions))
+                    mesh.regions=[mesh.regions; ones(size(obj.mesh(idx).nodes,1),1)*idx];
+                else
+                    mesh.regions=[mesh.regions; obj.mesh(idx).regions];
+                end
+                try; mesh.fiducials=[mesh.fiducials; obj.mesh(idx).fiducials]; end;
             end
             
             

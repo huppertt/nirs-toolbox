@@ -22,7 +22,9 @@ function [b, r, crit] = stepwise(X, y, criterion)
     crit = nirs.math.infocrit( LL , n , (1:length(LL))' , criterion );
     
     % optimal model order
-    [~, N] = nanmin( crit ); 
+    lst=find(~isnan(crit));
+    [~, N] = min( crit(lst) ); 
+    N=lst(N);
     
     % finally, our output
     b = invR(1:N,1:N) * Q(:,1:N)'*y;

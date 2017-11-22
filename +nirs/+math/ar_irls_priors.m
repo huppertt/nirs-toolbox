@@ -54,10 +54,13 @@ for it=1:ntypes
                     yfw=diag(w)*yf;
                     B = pinv(Xfw'*Xfw+Lambda)*Xfw'*yfw;
                 end
+                
+                
                 r = yf - Xf*B;
                 covb=pinv(Xfw'*Xfw+Lambda)*mean(r.^2);
                 stats.beta(:,i) = B+Priors;
                 stats.tstat(:,i) = B./sqrt(diag(covb));
+                stats.tstat(isnan(stats.tstat))=0;
                 stats.dfe=length(yf)-length(B);
                 stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
                 stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
@@ -79,7 +82,7 @@ for it=1:ntypes
         for ii=1:length(values)
             Priors(isRE==values(ii)) = mean(Ball(isRE==values(ii),lst),2);
             
-            Lambda(isRE==values(ii),isRE==values(ii))=diag(1./var(Ball(isRE==values(ii),lst),[],2));
+            Lambda(isRE==values(ii),isRE==values(ii))=diag(1./max(var(Ball(isRE==values(ii),lst),[],2),eps(1)));
             %Lambda(isRE==values(ii),isRE==values(ii))=1./cov(Ball(isRE==values(ii),:)');
             % otherwise, could use full covariance matrix here
         end

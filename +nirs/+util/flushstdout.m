@@ -1,5 +1,6 @@
 function flushstdout(nlines)
 
+try
 if(nargin==0)
     nlines=12;
 end
@@ -16,4 +17,5 @@ nlines=min(nlines,length(lst)-1);
 
 for i=1:length(str)-lst(end-nlines)
     fprintf(1,'\b');
+end
 end
