@@ -87,7 +87,7 @@ raw=get(handles.figure1,'UserData');
 selected=get(handles.popupmenu1,'value');
 
 stimnames=nirs.getStimNames(raw(selected));
-if(get(handles.listbox1,'Value')<length(stimnames))
+if(get(handles.listbox1,'Value')>length(stimnames))
     set(handles.listbox1,'Value',1);
 end
 
