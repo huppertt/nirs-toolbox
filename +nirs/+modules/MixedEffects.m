@@ -158,8 +158,6 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 lstBad=[lstBad; find(dWTW(lst) > 100*m)];
             end
             
-           
-            
             W(lstBad,:)=[];
             W(:,lstBad)=[];
             X(lstBad,:)=[];
@@ -181,54 +179,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 warning('Model is unstable');
             end
             lstKeep=find(~all(X==0));
-           
-            
             
             %% fit the model
-            warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            
-            w=speye(size(X,1),size(X,1));
-
-            lm2 = fitlmematrix(w*X(:,lstKeep),w*beta, w*Z, [], 'CovariancePattern','Isotropic', ...
-                'FitMethod', 'ML');
-            
-            if obj.robust
-                
-                iter=1;    
-                D = sqrt(eps(class(X)));
-                b = lm2.Coefficients.Estimate;
-                
-                % Adjust by leverage to account for prior weight differences in design matrix
-                lev = diag( full(X) * pinv(full(X)) );
-                adj = 1 ./ sqrt(1-min(.9999,lev));
-                
-                while iter<50
-
-                    % Calculate residuals and weights from previous iteration
-                    resid = beta - X * b - Z*lm2.randomEffects;
-                    resid = resid .* adj;
-                    s = median(abs(resid)) / 0.6745;
-                    r = resid/s/4.685;
-                    w = (1 - r.^2) .* (r < 1 & r > -1);
-                    w=sparse(diag(w));
-                    b0=b;
-                    
-                    % Re-estimate using new weights
-                    lm2 = fitlmematrix(w*X(:,lstKeep),w*beta, w*Z, [], 'CovariancePattern','Isotropic', ...
-                        'FitMethod', 'ML');
-                    b=lm2.Coefficients.Estimate;
-                    
-                    if obj.verbose
-                        disp(['Robust fit iteration ' num2str(iter) ' : ' num2str(max(abs(b-b0)))]);
-                    end
-                    iter=iter+1;
-                    
-                    % Terminate if estimated coefficients have converged
-                    if ~any(abs(b-b0) > D*max(abs(b),abs(b0)))
-                        break
-                    end
-                end
-            end
+            [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,false);
             
             cnames = lm1.CoefficientNames(:);
             for idx=1:length(cnames);
@@ -241,8 +194,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.beta=zeros(size(X,2),1);
             G.covb=1E6*eye(size(X,2)); %make sure anything not fit will have high variance
             
-            G.beta(lstKeep) = lm2.Coefficients.Estimate;
-            G.covb(lstKeep,lstKeep) = lm2.CoefficientCovariance;
+            G.beta(lstKeep) = Coef;
+            G.covb(lstKeep,lstKeep) = CovB;
             G.dfe        = lm1.DFE;
             
 %             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
@@ -274,8 +227,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
           if(obj.include_diagnostics)
                 %Create a diagnotistcs table of the adjusted data
-                yproj = betaOrig - Zorig*lm2.randomEffects;
-                w=diag(w);                
+                yproj = betaOrig - Zorig*bHat;
                 [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
                 vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
                 if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
