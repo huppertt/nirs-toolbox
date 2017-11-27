@@ -1,6 +1,6 @@
-function [beta,bHat,covb,LL] = fitlme(X,Y,Z,robust_flag,zero_theta,verbose)
+function [beta,bHat,covb,LL,w] = fitlme(X,Y,Z,robust_flag,zero_theta,verbose)
 % Robust linear mixed-effects model fiting
-% [beta,bHat,covb,LL] = nirs.math.fitlme( X, Y, Z, robust_flag, zero_theta_flag, verbose_flag )
+% [beta,bHat,covb,LL,w] = nirs.math.fitlme( X, Y, Z, robust_flag, zero_theta_flag, verbose_flag )
 %
 % TODO: Add support for covariance patterns other than isotropic
 if nargin<4, robust_flag = false; end
@@ -20,8 +20,9 @@ if any(bad_vars)
     bHat = nan(nZ,nY);
     covb = nan(nX,nX,nY);
     LL = nan(1,nY);
+    w = nan(nT,nY);
     
-    [beta(:,~bad_vars),bHat(:,~bad_vars),covb(:,:,~bad_vars),LL(~bad_vars)] = nirs.math.fitlme(X,Y(:,~bad_vars),Z,robust_flag,zero_theta,verbose);
+    [beta(:,~bad_vars),bHat(:,~bad_vars),covb(:,:,~bad_vars),LL(~bad_vars),w(:,~bad_vars)] = nirs.math.fitlme(X,Y(:,~bad_vars),Z,robust_flag,zero_theta,verbose);
     
     return;
 end
@@ -38,6 +39,7 @@ beta = nan(nX,nY);
 bHat = nan(nZ,nY);
 covb = nan(nX,nX,nY);
 LL = nan(1,nY);
+w = nan(nT,nY);
 
 if isempty(X) || isempty(Y), return; end
 
@@ -49,17 +51,23 @@ if nY > 1
 
         ind = uinds(i);
         out = find(indsu == i);
-        [ubeta,ubHat,ucovb,uLL] = nirs.math.fitlme(X,Y(:,ind),Z,robust_flag,zero_theta,verbose);
+        [ubeta,ubHat,ucovb,uLL,uw] = nirs.math.fitlme(X,Y(:,ind),Z,robust_flag,zero_theta,verbose);
         
         beta(:,out) = repmat(ubeta,[1 length(out)]);
         bHat(:,out) = repmat(ubHat,[1 length(out)]);
         covb(:,:,out) = repmat(ucovb,[1 1 length(out)]);
         LL(out) = uLL;
+        w(~bad_times,out) = repmat(uw,[1 length(out)]);
         
     end
     
     return;
 end
+
+%% Ensure no sparse matrices
+X = full(X);
+Y = full(Y);
+Z = full(Z);
 
 %% Compute theta
 if zero_theta
@@ -90,7 +98,7 @@ if robust_flag
         resid = (Y - X*beta - Z*bHat) .* adj;
         resid_s = studentizeResiduals( resid , num_params );
         w = bisquare( resid_s , tune );
-        w=sparse(diag(w));
+        w = diag(w);
         beta0=beta;
         
         % Bail out if weights are bad
@@ -133,7 +141,9 @@ if robust_flag
     R1 = cholSafe(R1R1t,'lower');
     invR1 = R1(1:xrank,1:xrank) \ eye(xrank);
     covb = sigma^2*(invR1'*invR1);
-
+    w = diag(w);
+else
+    w = ones(nT,1);
 end
 
 end
