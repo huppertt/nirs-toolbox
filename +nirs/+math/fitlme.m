@@ -28,13 +28,14 @@ if any(bad_vars)
 end
 
 %% Handle bad time points
-bad_times = any(isnan(Y),2);
+bad_times = any(isnan(X),2) | any(isnan(Y),2) | any(isnan(Z),2);
 if any(bad_times)
     X(bad_times,:) = [];
     Y(bad_times,:) = [];
     Z(bad_times,:) = [];
 end
-
+nT0 = nT;
+nT = size(X,1);
 beta = nan(nX,nY);
 bHat = nan(nZ,nY);
 covb = nan(nX,nX,nY);
@@ -141,9 +142,11 @@ if robust_flag
     R1 = cholSafe(R1R1t,'lower');
     invR1 = R1(1:xrank,1:xrank) \ eye(xrank);
     covb = sigma^2*(invR1'*invR1);
-    w = diag(w);
+    w0 = diag(w);
+    w = zeros(nT0,1);
+    w(~bad_times) = w0;
 else
-    w = ones(nT,1);
+    w = ones(nT0,1);
 end
 
 end
