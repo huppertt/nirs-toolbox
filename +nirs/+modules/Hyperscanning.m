@@ -111,9 +111,13 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                         [xA,namesA] = data(idxA).getStimMatrix;
                         [xB,namesB] = data(idxB).getStimMatrix;
                         [names,iA,iB] = intersect(namesA,namesB);
-                        xA = xA(1:length(time),iA);
-                        xB = xB(1:length(time),iB);
-                        X = xA & xB;
+                        xA2 = zeros(length(time),length(names));
+                        xB2 = zeros(length(time),length(names));
+                        for c = 1:length(names)
+                            xA2(:,c) = interp1( timeA , xA(:,iA(c)) , time );
+                            xB2(:,c) = interp1( timeB , xB(:,iB(c)) , time );
+                        end
+                        X = xA2 & xB2;
                         dX = [zeros(1,size(X,2)); diff(X)];
                         stim = Dictionary();
                         for cond = 1:length(names)
