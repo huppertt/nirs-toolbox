@@ -106,32 +106,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     stim2=data(idxB).stimulus;
                     
                     if ~isequal(stim,stim2)
-                        % Create a combined stim that reflects when
-                        % condition is occurring in both files
-                        [xA,namesA] = data(idxA).getStimMatrix;
-                        [xB,namesB] = data(idxB).getStimMatrix;
-                        [names,iA,iB] = intersect(namesA,namesB);
-                        xA2 = zeros(length(time),length(names));
-                        xB2 = zeros(length(time),length(names));
-                        for c = 1:length(names)
-                            xA2(:,c) = interp1( timeA , xA(:,iA(c)) , time );
-                            xB2(:,c) = interp1( timeB , xB(:,iB(c)) , time );
-                        end
-                        X = xA2 & xB2;
-                        dX = [zeros(1,size(X,2)); diff(X)];
-                        stim = Dictionary();
-                        for cond = 1:length(names)
-                            onsets = time(dX(:,cond)>0);
-                            offsets = time(dX(:,cond)<0);
-                            if X(1,cond)==1, onsets = [time(1); onsets]; end
-                            if X(end,cond)==1, offsets = [offsets; time(end)]; end
-                            dur = offsets - onsets;
-                            s = nirs.design.StimulusEvents(names{cond});
-                            s.onset = onsets;
-                            s.dur = dur;
-                            s.amp = ones(size(onsets));
-                            stim(names{cond}) = s;
-                        end
+                        warning('Stimulus events differ between files. Link table may be incorrect.');
                     end
                     
                     cnt=1;
