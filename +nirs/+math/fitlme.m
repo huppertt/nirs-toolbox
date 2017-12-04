@@ -231,8 +231,17 @@ invR1 = R1(1:xr,1:xr) \ eye(xr);
 covb = sigma2*(invR1'*invR1);
 
 % Calculate log-likelihood
-PLogLik = (-nT/2)*( 1 + log( 2*pi*r2/nT ) ) - log(abs(det(R)));
+PLogLik = (-nT/2)*( 1 + log( 2*pi*r2/nT ) ) - logDet(R);
 
+end
+
+function d = logDet(M)
+% Safely compute the log of the determinant
+% Matlab's det uses LU which is inaccurate for large matrices, and the
+% determinant can easily overflow a double. Here we use QR and avoid overflowing
+% by moving log to the inside, since log(a*b) = log(a)+log(b)
+[~,R] = qr(M,0);
+d = sum(log(diag(R)));
 end
 
 %% Cholesky decomposition that wont error if unstable
