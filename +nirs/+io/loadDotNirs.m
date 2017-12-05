@@ -72,25 +72,44 @@ function data = loadDotNirs( filenames )
                 % Try to add from the "s" variable directly and use a
                 % defaut naming convention
                 stims = Dictionary();
+                for idx=1:size(d.s,2)
+                    try
+                        s = nirs.design.StimulusEvents();
+                        
+                        d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
+                        s.name=['stim_channel' num2str(idx)];
+                        s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
+                        
+                        s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
+                        if(isempty( s.dur))
+                            s.dur=ones(size(s.onset));
+                        end
+                        s.amp=ones(size(s.dur));
+                        if(~isempty(s.onset))
+                            stims(s.name)=s;
+                        end
+                    end
+                end
                 d.s = nirs.util.aux2stim(d);
                 for idx=1:size(d.s,2)
-                     try
-                         s = nirs.design.StimulusEvents();
-                         
-                         d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
-                         s.name=['stim_channel' num2str(idx)];
-                         s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
-                         
-                            s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
-                            if(isempty( s.dur))
-                                s.dur=ones(size(s.onset));
-                            end
-                            s.amp=ones(size(s.dur));
-                         if(~isempty(s.onset))
-                             stims(s.name)=s;
-                         end
-                     end
-                 end
+                    try
+                        s = nirs.design.StimulusEvents();
+                        
+                        d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
+                        s.name=['aux_channel' num2str(idx)];
+                        s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
+                        
+                        s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
+                        if(isempty( s.dur))
+                            s.dur=ones(size(s.onset));
+                        end
+                        s.amp=ones(size(s.dur));
+                        if(~isempty(s.onset))
+                            stims(s.name)=s;
+                        end
+                    end
+                end
+                
                  thisFile.stimulus=stims;
                 
             end

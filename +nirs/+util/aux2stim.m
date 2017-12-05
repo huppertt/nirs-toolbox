@@ -1,6 +1,6 @@
 function s = aux2stim(data)
 % This function fixes some of the stim mark issues on the Cw6 system
-s=data.s;
+s=[];
 
 if(~isfield(data,'aux'))
     return
@@ -26,7 +26,8 @@ if any(hasmarks)
         ss(find(bin==ub(i)),i)=1;
     end
     ss(1,:)=0;
-    s=ss;   
+
+    s=ss;
 else
     s=data.s;
 end
