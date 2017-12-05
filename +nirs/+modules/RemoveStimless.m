@@ -20,8 +20,12 @@ classdef RemoveStimless < nirs.modules.AbstractModule
                         
                         on=[];
                         for j=1:data(i).stimulus.count
+                            if(isa(data(i).stimulus.values{j},'nirs.design.StimulusEvents'))
                             ss=data(i).stimulus.values{j};
                             on=[on; ss.onset(:)];
+                            else
+                                on=[on; 0];
+                            end
                         end
                         if(all(on> max(data(i).time)))
                             lst(i)=false;

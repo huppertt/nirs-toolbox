@@ -33,8 +33,10 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                 du=[];
                 for j = 1:length(stims)
                     s(:,j) = stims{j}.getStimVector( t );
-                    o=[o; stims{j}.onset(:)];
-                    du=[du; stims{j}.dur(:)];     
+                    if(isa(stims{j},'nirs.design.StimulusEvents'))
+                        o=[o; stims{j}.onset(:)];
+                        du=[du; stims{j}.dur(:)];
+                    end
                 end
                 
 %                 s = sum( abs(s), 2 );
