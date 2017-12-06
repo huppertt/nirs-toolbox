@@ -20,5 +20,5 @@ end
 p=1-tcdf(zscore(rSSE),length(SubjStats)-1);
 q=nirs.math.fdr(p);
 
-tbl = [nirs.createDemographicsTable(SubjStats) table(rSSE,cooksD,p,q)];
+tbl = [nirs.createDemographicsTable(SubjStats) table(rSSE,cooksD,leverage,p,q)];
 lst=find(tbl.q<0.05);
