@@ -45,7 +45,7 @@ if(isa(data,'nirs.core.ChannelStats'));
 
 elseif(isa(data,'nirs.core.Data'))
     if(~isempty(data.description))
-        t.description=data.description;
+        t.description={data.description};
     end
     type=unique(data.probe.link.type);
     
