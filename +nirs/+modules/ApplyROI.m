@@ -117,9 +117,9 @@ classdef ApplyROI < nirs.modules.AbstractModule
                             dataROI(i).ZstdErr = zeros(ROI_size);
                                                    
                             for j = 1:length(dataChannel(i).conditions)
-                                ZstdErr = projmat' * dataChannel(i).ZstdErr(:,:,j).^2 * projmat; % ROI sum of channel values
+                                ZstdErr = projmat' * dataChannel(i).ZstdErr(:,:,j) * projmat; % ROI sum of channel values
                                 numnotnan = projmat' * goodvals(:,:,j) * projmat; % ROI sum of channel NaNs
-                                dataROI(i).ZstdErr(:,:,j) = sqrt(ZstdErr ./ numnotnan); % Mean of non-nanvals
+                                dataROI(i).ZstdErr(:,:,j) = ZstdErr ./ numnotnan; % Mean of non-nanvals
                             end
                             
                         end
@@ -127,48 +127,6 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         % Maintain symmetry
                         dataROI(i).R = (dataROI(i).R + permute(dataROI(i).R,[2 1 3])) ./ 2;
                         dataROI(i).ZstdErr = (dataROI(i).ZstdErr + permute(dataROI(i).ZstdErr,[2 1 3])) ./ 2;
-                        
-                    end
-                    
-                case {'nirs.core.sFCBetaStats'}
-                    projmat = obj.getMapping(oldprobe,probe,false);
-                    for i = 1:length(dataChannel)
-                        
-                        dataROI(i).probe = probe;
-                        numconds = length(dataChannel(i).conditions);
-                        ROI_size = [size(projmat,2) size(projmat,2) numconds];
-                        goodvals = ~isnan(dataChannel(i).beta);
-                        dataChannel(i).beta(~goodvals) = 0;
-                        dataROI(i).beta = zeros(ROI_size);
-                        
-                        % Average Z-transformed R-values
-                        for j = 1:length(dataChannel(i).conditions)
-                            beta = projmat' * dataChannel(i).beta(:,:,j) * projmat; % ROI sum of channel Z-values
-                            numnotnan = projmat' * goodvals(:,:,j) * projmat; % ROI sum of channel NaNs
-                            beta = beta ./ numnotnan; % Sum to mean of non-nanvals
-                            dataROI(i).beta(:,:,j) = beta; % Z-to-R
-                        end
-                        
-                        % Average StdErr
-                        if ~isempty(dataChannel(i).covb)
-                            
-                            goodvals = ~isnan(dataChannel(i).covb);
-                            dataChannel(i).covb(~goodvals) = 0;
-                            dataROI(i).covb = zeros(ROI_size);
-                                                   
-                            for j = 1:length(dataChannel(i).conditions)
-                                for k = 1:length(dataChannel(i).conditions)
-                                    covb = projmat' * dataChannel(i).covb(:,:,j,k) * projmat; % ROI sum of channel values
-                                    numnotnan = projmat' * goodvals(:,:,j,k) * projmat; % ROI sum of channel NaNs
-                                    dataROI(i).covb(:,:,j,k) = covb ./ numnotnan; % Mean of non-nanvals
-                                end
-                            end
-                            
-                        end
-                        
-                        % Maintain symmetry
-                        dataROI(i).beta = (dataROI(i).beta + permute(dataROI(i).beta,[2 1 3])) ./ 2;
-                        dataROI(i).covb = (dataROI(i).covb + permute(dataROI(i).covb,[2 1 3])) ./ 2;
                         
                     end
                     
