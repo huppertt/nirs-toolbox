@@ -60,6 +60,7 @@ for it=1:ntypes
                 covb=pinv(Xfw'*Xfw+Lambda)*mean(r.^2);
                 stats.beta(:,i) = B+Priors;
                 stats.tstat(:,i) = B./sqrt(diag(covb));
+                stats.tstat=real(stats.tstat);
                 stats.tstat(isnan(stats.tstat))=0;
                 stats.dfe=length(yf)-length(B);
                 stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided

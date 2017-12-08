@@ -23,7 +23,12 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, te
         stimFunc = @(t) nirs.testing.randStimDesign(t, 2, 7, 1);
     end
     
-    s = stimFunc(noise(1).time);
+    if(iscell(stimFunc))
+        s=stimFunc{1};
+    else
+        
+        s = stimFunc(noise(1).time);
+    end
     if nargin < 4 || isempty(beta)
         beta = 7*ones( length(s.keys), ngroup )/sqrt(length(noise));
     end
@@ -51,7 +56,11 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, te
     for i = 1:length(noise)
         data(i).demographics('group') = ['G' num2str(gidx(i))];
         data(i).demographics('subject') = ['S' num2str(i)];
-        [data(i), truth] = feval(testingfcn,data(i), stimFunc(data(i).time), b(:, gidx(i)), channels);
+        if(iscell(stimFunc))
+            [data(i), truth] = feval(testingfcn,data(i), stimFunc{i}, b(:, gidx(i)), channels);
+        else
+            [data(i), truth] = feval(testingfcn,data(i), stimFunc(data(i).time), b(:, gidx(i)), channels);
+        end
     end
     
 end

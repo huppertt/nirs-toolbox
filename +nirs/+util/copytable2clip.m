@@ -21,6 +21,13 @@ for i=1:length(flds)
         if(isnumeric(a))
             a=num2str(a);
         end
+        if(islogical(a))
+            if(a)
+                a='TRUE';
+            else
+                a='FALSE';
+            end
+        end
         DD{2+j,i}=a;
     end
 end
