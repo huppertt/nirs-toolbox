@@ -116,6 +116,10 @@ classdef ChannelStatsROC
                    
                    stats = obj.pipeline(i).run(data);
                    
+                   if(size(stats.beta,1)>length(truth) & ~isempty(find(isnan(truth))))
+                       truth(isnan(truth))=[];
+                   end
+                   
                     if(length(truth)>height(data(1).probe.link))
                         stats=sorted(stats,{'cond','type','VoxID'});
                     else
