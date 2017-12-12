@@ -18,6 +18,7 @@ nChan=size(d,2);
 
 utype=unique(type);
 ntypes=length(utype);
+disp('*');
 
 for it=1:ntypes
     lst=find(ismember(type,utype{it}));
@@ -29,7 +30,10 @@ for it=1:ntypes
         Lambda0=Lambda;
         for ii = 1:length(lst)
             i=lst(ii);
-            disp([num2str(i) ' of ' num2str(nChan)]);
+            
+          nirs.util.flushstdout(1);
+          fprintf( 'Finished Iter-%4i %4i of %4i.\n',outeriter+1, i,  nChan );
+            
             y = d(:,i)-X*Priors;
             B = pinv(X'*X+Lambda)*X'*y;
             
@@ -92,7 +96,8 @@ for it=1:ntypes
         
     end
 end
-
+ nirs.util.flushstdout(1);
+ 
 end
 
 %%

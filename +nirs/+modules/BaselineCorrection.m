@@ -53,7 +53,6 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
                 if obj.PCA
                     [data(i).data,projmat] = nirs.math.pca( data(i).data );
                 end
-                
                 for j = 1:size(data(i).data, 2)
                     
                     y   = data(i).data(:,j);
@@ -108,6 +107,7 @@ classdef BaselineCorrection < nirs.modules.AbstractModule
                 if obj.verbose
                     nirs.util.flushstdout(1);
                     disp(['Finished ' num2str(i) ' of ' num2str(length(data)) ' scans']);
+                    disp('');
                 end
                 
                 if exist('cache_file','var')

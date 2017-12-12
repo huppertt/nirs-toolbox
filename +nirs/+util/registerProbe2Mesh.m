@@ -173,7 +173,7 @@ end
 T=delaunayn(surf);
 
 for idx=1:size(pos,1)
-    disp(idx)
+%    disp(idx)
     vec = pos(idx,:)-com;
      c = [0:.1:2*norm(vec)];
     vec=vec/norm(vec);

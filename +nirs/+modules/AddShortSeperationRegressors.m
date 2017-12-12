@@ -10,7 +10,6 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
     methods
         function obj = AddShortSeperationRegressors( prevJob )
             obj.name = 'AddShortSeperationRegressors';
-            obj.baselinecorrect=false;
             obj.scICA = false;
             if nargin > 0
                 obj.prevJob = prevJob;
@@ -25,29 +24,21 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
                 lstss=find( data(i).probe.link.ShortSeperation);
                 dd=data(i).data(:,lstss);
                 
-                if(obj.baselinecorrect)
-                    tmp=nirs.core.Data;
-                    tmp.time=data(i).time;
-                    tmp.data=dd;
-                    job=nirs.modules.BaselineCorrection;
-                    tmp=job.run(tmp);
-                    dd=tmp.data;
-                end
-                
-               dd=dd-ones(size(dd,1),1)*mean(dd,1);
-               if(~obj.scICA)
+                dd=dd-ones(size(dd,1),1)*mean(dd,1);
+               
+                if(~obj.scICA)
                     dd=orth(dd);
                else
+                   [in,f]=nirs.math.innovations(dd,1*data(i).Fs);
                    dd2=[]; 
-                   n=round(10*data(i).Fs);
+                   n=1;
+                   for id=1:length(f); n=max(n,length(f{id})); end;
                    for id=1:size(dd,2); 
-                       a=convmtx(dd(:,id),n); 
-                       dd2=[dd2 a(:,1:10:end)]; 
+                       a=convmtx(in(:,id),n); 
+                       dd2=[dd2 a]; 
                    end;
-                   [u,s,v]=svd(dd2);
-                   ncom=min(find(cumsum(diag(s))/sum(diag(s))>.8));
-                   dd=fastica(dd2', 'approach', 'symm', 'g', 'tanh','numOfIC', ncom)';
-                   dd=orth(dd);
+                   dd2=dd2(1:size(dd,1),:);
+                   dd=orth(dd2);
                end
                         
                 for j=1:size(dd,2)
