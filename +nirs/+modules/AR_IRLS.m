@@ -101,9 +101,20 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
                 
                 covb = zeros( nchan*ncond );
-                for j = 1:nchan
-                   idx = (0:ncond-1)*nchan + j;
-                   covb(idx, idx) = stats.covb(1:ncond, 1:ncond, j);
+                if(ndims(stats.covb)==4)
+                    for j = 1:nchan
+                        for k=1:nchan
+                            idx = (0:ncond-1)*nchan + j;
+                            idx2 = (0:ncond-1)*nchan + k;
+                            covb(idx, idx2) = stats.covb(1:ncond, 1:ncond, j,k);
+                        end
+                    end
+                else
+                    for j = 1:nchan
+                        idx = (0:ncond-1)*nchan + j;
+                        covb(idx, idx) = stats.covb(1:ncond, 1:ncond, j);
+                        
+                    end
                 end
                 
                 S(i).covb = covb;

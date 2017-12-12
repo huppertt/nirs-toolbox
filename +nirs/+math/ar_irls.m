@@ -53,6 +53,7 @@ function stats = ar_irls( d,X,Pmax,tune )
         tune = 4.685;
     end
     
+       
     % preallocate stats
     nCond = size(X,2);
     nChan = size(d,2);
@@ -72,6 +73,8 @@ function stats = ar_irls( d,X,Pmax,tune )
 %         weights=[];
 %         Xfiltered=[];
     
+
+
     % loop through each channel
     for i = 1:nChan
         y = d(:,i);
@@ -121,24 +124,49 @@ function stats = ar_irls( d,X,Pmax,tune )
         
         % moco data & statistics
         stats.beta(:,i) = B;
-        stats.tstat(:,i) = B./sqrt(diag(S.covb));
+               stats.P(i) = length(a)-1;
+        
+        L = pinv(Xf'*Xf); % more stable
+        Xfall{i}=Xf;
+        stats.covb(:,:,i) = 1.1265*L*S.mad_s^2;
+        stats.w(:,i) = S.w;
+        stats.a{i} = a;
+        stats.sigma2(i)=1.1265*S.mad_s^2;
+        
+        stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(S.covb));
         stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
-        stats.P(i) = length(a)-1;
+
         
-        L = pinv(Xf'*Xf); % more stable
-        stats.covb(:,:,i) = L*S.mad_s^2;
-        stats.w(:,i) = S.w;
-        stats.a{i} = a;
-        stats.sigma2(i)=S.mad_s^2;
+        resid(:,i)=S.resid;
         stats.filter{i}=f;
-        stats.R2=max(1-mad(yf-Xf*B)/mad(yf),0);
+        stats.R2(i)=max(1-mad(yf-Xf*B)/mad(yf),0);
 %         yfiltered=[yfiltered; yf];
 %         weights=[weights; S.w];
 %         Xfiltered=sparse(blkdiag(Xfiltered,Xf));
         
     end   
+   
+    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
+    
+    
+    C=cov(resid);
+    for i=1:size(stats.beta,2)
+        for j=1:size(stats.beta,2)
+            covb(:,:,i,j) = pinv(Xfall{i}'*Xfall{j})*C(i,j);
+        end
+    end
+    
+   
+    stats.covb = covb;
+    for i=1:size(stats.beta,2)
+        stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(squeeze(stats.covb(:,:,i,i))));
+        stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
+        stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
+        stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
+    end
+    %end
     
    % diagnotics=fitglm(Xfiltered,yfiltered,'Weights',weights);
    % diagnotics=fitlm(Xfiltered,yfiltered,'Weights',weights);

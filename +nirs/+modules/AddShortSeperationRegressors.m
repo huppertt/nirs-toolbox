@@ -3,8 +3,7 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
     %
     
     properties
-        baselinecorrect;
-        scICA;  % use single channel ICA instead of PCA for defining regressors
+          scICA;  % use single channel ICA instead of PCA for defining regressors
     end
     
     methods
@@ -28,16 +27,9 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
                
                 if(~obj.scICA)
                     dd=orth(dd);
-               else
-                   [in,f]=nirs.math.innovations(dd,1*data(i).Fs);
-                   dd2=[]; 
-                   n=1;
-                   for id=1:length(f); n=max(n,length(f{id})); end;
-                   for id=1:size(dd,2); 
-                       a=convmtx(in(:,id),n); 
-                       dd2=[dd2 a]; 
-                   end;
-                   dd2=dd2(1:size(dd,1),:);
+                else
+                   dd2=[dd, [diff(dd); zeros(1,size(dd,2))],[diff(diff(dd)); zeros(2,size(dd,2))]]; 
+                   
                    dd=orth(dd2);
                end
                         
