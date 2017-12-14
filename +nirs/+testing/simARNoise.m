@@ -1,9 +1,18 @@
-function data = simARNoise( probe, t, P, sigma)
+function data = simARNoise( probe, t, P, sigma, N_files )
     
+    if (nargin < 5 || isempty(N_files)), N_files=1; end
     if (nargin < 4 || isempty(sigma)), sigma=.33; end;
     if (nargin < 3  || isempty(P)), P = 10; end
     if (nargin < 2 || isempty(t)), t = (0:1/10:300)'; end
     if (nargin < 1 || isempty(probe)), probe = defaultProbe(); end
+    
+    if (N_files>1)
+        data(1:N_files,1) = nirs.core.Data;
+        for i = 1:N_files
+            data(i) = nirs.testing.simARNoise( probe, t, P, sigma, 1 );
+        end
+        return;
+    end
     
     nchan = size(probe.link,1);
     
