@@ -148,25 +148,25 @@ function stats = ar_irls( d,X,Pmax,tune )
         
     end   
    
-    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
-    
-    
-    C=cov(resid);
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            covb(:,:,i,j) = pinv(Xfall{i}'*Xfall{j})*C(i,j);
-        end
-    end
-    
-   
-    stats.covb = covb;
-    for i=1:size(stats.beta,2)
-        stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(squeeze(stats.covb(:,:,i,i))));
-        stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
-        stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
-        stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
-    end
-    %end
+%     covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
+%     
+%     
+%     C=cov(resid);
+%     for i=1:size(stats.beta,2)
+%         for j=1:size(stats.beta,2)
+%             covb(:,:,i,j) = pinv(Xfall{i}'*Xfall{j})*C(i,j);
+%         end
+%     end
+%     
+%    
+%     stats.covb = covb;
+% 
+%     for i=1:size(stats.beta,2)
+%         stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(squeeze(stats.covb(:,:,i,i))));
+%         stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
+%         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
+%         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
+%     end
     
    % diagnotics=fitglm(Xfiltered,yfiltered,'Weights',weights);
    % diagnotics=fitlm(Xfiltered,yfiltered,'Weights',weights);

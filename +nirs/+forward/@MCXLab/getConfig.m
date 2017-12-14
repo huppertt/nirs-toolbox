@@ -10,7 +10,7 @@ idx=idx(1);
 	cfg.unitinmm = obj.image.dim(1);
     
     cfg.nphoton = obj.nPhotons;
-    cfg.vol = obj.image.vol;
+    cfg.vol = uint8(obj.image.vol);
     
     %Assume optodes point in the direction of the center of mass
     [x,y,z]=meshgrid([0:size(obj.image.vol,1)-1]*obj.image.dim(1)+obj.image.origin(1),...

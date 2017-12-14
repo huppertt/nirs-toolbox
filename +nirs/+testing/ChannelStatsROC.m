@@ -131,9 +131,6 @@ classdef ChannelStatsROC
                    % types
                    types = unique(stats.variables.type, 'stable');
                   
-                   if(size(stats.beta,1)<length(truth) & ~isempty(find(isnan(truth))))
-                       truth(isnan(truth))=[];
-                   end
                    
                    t = []; p = [];
                    for j = 1:length(types)

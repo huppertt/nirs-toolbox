@@ -66,14 +66,22 @@ classdef Mesh
                 
             end;
             
-        if(~isempty(obj.faces)  & isempty(obj.elems))
+            if(~isempty(obj.faces)  & isempty(obj.elems))
                 % Surface mesh
                 [node,face]=meshresample(obj.nodes,obj.faces,fract);
+                if(~isempty(obj.regions))
+                    k=dsearchn(obj.nodes,node);
+                    obj.regions=obj.regions(k);
+                end
                 obj.nodes=node;
                 obj.faces=face;
-        else
+            else
                 vol=elemvolume(obj.nodes,obj.elems);
                 [node,elem,face]=s2m(obj.nodes,obj.faces,fract,max(vol));
+                if(~isempty(obj.regions))
+                    k=dsearchn(obj.nodes,node);
+                    obj.regions=obj.regions(k);
+                end
                 obj.nodes=node;
                 obj.faces=face(:,1:end-1);
                 obj.elems=elem(:,1:end-1);

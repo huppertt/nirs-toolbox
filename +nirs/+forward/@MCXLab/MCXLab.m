@@ -40,7 +40,7 @@ classdef MCXLab
             if(~isa(probe,'nirs.core.Probe1020'))
                 warning('probe must be a 3D registered probe');
             end
-            if(all(probe.optodes.Z==0))
+            if(all(probe.optodes.Z==0) & isa(probe,'nirs.core.Probe1020'))
                 disp('warning: changing probe to 3D using "swap_reg" function');
                 probe=probe.swap_reg;
             end

@@ -68,8 +68,14 @@ classdef TestSuperficial < nirs.modules.AbstractModule
                     
                     lst=find(ismember(probe.link.type,probe.link.type(idx)));
                     
-                    w=inv(chol(data(i).covb(lst,lst)));
-                    
+                   % w=inv(chol(data(i).covb(lst,lst)));
+                         
+                    [u, s, ~] = svd(data(i).covb(lst,lst), 'econ');
+                    %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                    w = pinv(s).^.5 * u';
+                
+                
+                
                     if(obj.method==2)
                         % In this option, we are doing a "reconstruction" of the inverse problem using a
                         % smoothed/skin-resstricted basis set from the leave-one-out set of data.  Then, we do a T-test on the
