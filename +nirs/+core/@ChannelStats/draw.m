@@ -13,34 +13,41 @@ function f = draw( obj, vtype, vrange, thresh,figH)
     % type is either beta or tstat
     if nargin < 2, vtype = 'tstat'; end
 
-    values = obj.(vtype);
-
+    v=[];
+    for ii=1:length(obj)
+        values{ii} = obj(ii).(vtype);
+        v=[v; values{ii}(:)];
+    end
+    
+    
     % range to show
     if nargin < 3 || isempty(vrange)
-        vmax    = max(abs(values(:)));
+        vmax    = max(abs(v(:)));
         vrange  = vmax*[-1 1];
     end
 
    
-
     
-     % significance mask
-    if nargin < 4 
-        mask = ones(size(values)) > 0;
-        
-    elseif isscalar(thresh)
-        mask = abs(values) > thresh;
-        
-    elseif isvector(thresh) && isnumeric(thresh)
-        mask = values < thresh(1) | values > thresh(2);
-        
-    elseif isstr(thresh)
-        % takes in string in form of 'p < 0.05' or 'q < 0.10'
-        s = strtrim( strsplit( thresh, '<' ) );
-        
-        mask = obj.(s{1}) < str2double(s{2});
+    for ii=1:length(values)
+        % significance mask
+        if nargin < 4
+            mask{ii} = ones(size(values{ii})) > 0;
+            
+        elseif isscalar(thresh)
+            
+            mask{ii} = abs(values{ii}) > thresh;
+            
+        elseif isvector(thresh) && isnumeric(thresh)
+            mask{ii} = values{ii} < thresh(1) | values{ii} > thresh(2);
+            
+        elseif isstr(thresh)
+            % takes in string in form of 'p < 0.05' or 'q < 0.10'
+            s = strtrim( strsplit( thresh, '<' ) );
+            
+            mask{ii} = obj(ii).(s{1}) < str2double(s{2});
+        end
     end
-    
+
     visible='on';
     callers = dbstack(1);
     if ~isempty(callers)
@@ -110,10 +117,10 @@ function f = draw( obj, vtype, vrange, thresh,figH)
                     continue;
                 end
                 % values
-                vals = values(lst);
+                vals = values{ii}(lst);
                 
                 % this mask
-                m = mask(lst);
+                m = mask{ii}(lst);
                 
                 % map to colors
                 idx = bsxfun(@minus, vals', z);

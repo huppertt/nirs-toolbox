@@ -22,6 +22,9 @@ classdef Mesh
         transparency=1;
         fiducials=table(cell(0,1),zeros(0,1),zeros(0,1),zeros(0,1),cell(0,1),cell(0,1),false(0,1),...
             'VariableNames',{'Name','X','Y','Z','Type','Units','Draw'});
+        
+        labels=Dictionary;  % label field for storing atlas information or images
+        
     end
     
     methods
@@ -88,6 +91,97 @@ classdef Mesh
             end
             
         end
+        
+        function mesh = convert2FEM(obj)
+                         % converts a BEM mesh to a FEM mesh
+             if~(~isempty(obj(1).faces)  & isempty(obj(1).elems))
+                warning('mesh is already in BEM form');
+                mesh=obj;
+                return;
+             end
+              try
+                iso2meshver;
+                disp('Using Iso2Mesh.  Please cite:');
+                disp('Qianqian Fang and David Boas, "Tetrahedral mesh generation from volumetric binary')
+                disp('and gray-scale images," Proceedings of IEEE International Symposium on Biomedical ');
+                disp('Imaging 2009, pp. 1142-1145, 2009');
+                
+            catch
+               
+                disp('Please download the iso2mesh package from:');
+                disp('http://iso2mesh.sourceforge.net');
+                disp('and/or add to the matlab path');
+                 error('Cannot find Iso2Mesh on Matlab Path');
+                
+            end;
+            
+            mesh = nirs.core.Mesh;
+                
+                mesh=obj(1);
+                
+                
+                for idx=2:length(obj)
+                    n=size(mesh.nodes,1);
+                    mesh.nodes=[mesh.nodes; obj(idx).nodes];
+                    mesh.faces=[mesh.faces; obj(idx).faces+n];
+                    mesh.elems=[mesh.elems; obj(idx).elems+n];
+                    try; mesh.fiducials=[mesh.fiducials; obj(idx).fiducials]; end;
+                end
+                fid=mesh.fiducials;
+                [node,elem,face]=cgals2m(mesh.nodes,obj(1).faces,4,10);
+                mesh=nirs.core.Mesh(node(:,1:3),face(:,1:3),elem(:,1:4));
+                                
+               
+                image=convert2image(obj);
+                n=node(:,1:3);
+                n=round((n.*(ones(size(n,1),1)*image.dim)+ones(size(n,1),1)*image.origin));
+                lst=sub2ind(image.size,n(:,1),n(:,2),n(:,3));
+                mesh.regions=max(image.vol(lst),1);
+                mesh.fiducials=fid;
+                
+        end
+            
+        function image = convert2image(obj)
+             try
+                iso2meshver;
+                disp('Using Iso2Mesh.  Please cite:');
+                disp('Qianqian Fang and David Boas, "Tetrahedral mesh generation from volumetric binary')
+                disp('and gray-scale images," Proceedings of IEEE International Symposium on Biomedical ');
+                disp('Imaging 2009, pp. 1142-1145, 2009');
+                
+            catch
+               
+                disp('Please download the iso2mesh package from:');
+                disp('http://iso2mesh.sourceforge.net');
+                disp('and/or add to the matlab path');
+                 error('Cannot find Iso2Mesh on Matlab Path');
+                
+            end;
+            
+            
+            p0=inf;
+            p1=-inf;
+            for i=1:length(obj)
+                p0=floor(min(min(obj(i).nodes),p0));
+                p1=ceil(max(max(obj(i).nodes),p1));
+            end
+            dx=1;  % 1mm resolution
+            
+            aseg=surf2vol(obj(1).nodes,obj(1).faces,p0(1)-dx:dx:p1(1)+dx,p0(2)-dx:dx:p1(2)+dx,p0(3)-dx:dx:p1(3)+dx);
+            aseg=imfill(aseg,'holes');
+            for id=2:length(obj)
+                img=surf2vol(obj(id).nodes,obj(id).faces,p0(1)-dx:dx:p1(1)+dx,p0(2)-dx:dx:p1(2)+dx,p0(3)-dx:dx:p1(3)+dx);
+                img=id*imfill(img,'holes');
+                aseg=max(aseg,img);
+            end
+            
+           image=nirs.core.Image;
+           image.vol=aseg;
+           image.dim=[dx dx dx];
+           image.origin=[find(p0(1)-dx:dx:p1(1)+dx==0) find(p0(2)-dx:dx:p1(2)+dx==0) find(p0(3)-dx:dx:p1(3)+dx==0)];
+        end
+                
+        
         
         function h = draw( obj, values, vmax, thresh, cmap )
             %% draw - displays mesh
