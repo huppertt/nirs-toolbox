@@ -7,15 +7,19 @@ end
 
 % this assumes MNI watershed has been run
 
-f=rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skin_surface'));
+f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skin_surface')); ...
+    rdir(fullfile(SubjectsDIR,'bem','outer_skin.surf'))];
+    
 [nodes,faces]=read_surf(f.name);
 mesh(1,1)=nirs.core.Mesh(nodes,faces+1);
 mesh(1).transparency=.1;
-f=rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skull_surface'));
+f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skull_surface')) ...
+    rdir(fullfile(SubjectsDIR,'bem','outer_skull.surf'))];
 [nodes,faces]=read_surf(f.name);
 mesh(2,1)=nirs.core.Mesh(nodes,faces+1);
 mesh(2).transparency=.2;
-f=rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_inner_skull_surface'));
+f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_inner_skull_surface'))...
+    rdir(fullfile(SubjectsDIR,'bem','inner_skull.surf'))];
 [nodes,faces]=read_surf(f.name);
 mesh(3,1)=nirs.core.Mesh(nodes,faces+1);
 mesh(3).transparency=.2;
@@ -74,7 +78,7 @@ a=a/norm(a);
 b=b/norm(b);
 v=cross(a,b);
 v=v/norm(v);
-x=.5*(pts(2,:)+pts(3,:))+[0:.05:200]'*v;
+x=ones(4001,1)*(.5*(pts(2,:)+pts(3,:)))+[0:.05:200]'*v;
 
 [k,d]=dsearchn(mesh(1).nodes,x);
 [~,id]=min(d);
@@ -87,7 +91,7 @@ a=a/norm(a);
 b=b/norm(b);
 v=cross(a,b);
 v=v/norm(v);
-x=.5*(pts2(2,:)+pts2(3,:))+[0:.05:200]'*v;
+x=ones(4001,1)*(.5*(pts2(2,:)+pts2(3,:)))+[0:.05:200]'*v;
 [k,d]=dsearchn(xyz1020,x);
 [~,id]=min(d);
 pts2(4,:)=x(id,:);

@@ -59,7 +59,7 @@ a=a/norm(a);
 b=b/norm(b);
 v=cross(a,b);
 v=v/norm(v);
-x=.5*(pts(2,:)+pts(3,:))+[0:.05:200]'*v;
+x=ones(4001,1)*(.5*(pts(2,:)+pts(3,:)))+[0:.05:200]'*v;
 
 [k,d]=dsearchn(mesh(1).nodes,x);
 [~,id]=min(d);
@@ -72,7 +72,7 @@ a=a/norm(a);
 b=b/norm(b);
 v=cross(a,b);
 v=v/norm(v);
-x=.5*(pts2(2,:)+pts2(3,:))+[0:.05:200]'*v;
+x=ones(4001,1)*(.5*(pts2(2,:)+pts2(3,:)))+[0:.05:200]'*v;
 [k,d]=dsearchn(xyz1020,x);
 [~,id]=min(d);
 pts2(4,:)=x(id,:);
