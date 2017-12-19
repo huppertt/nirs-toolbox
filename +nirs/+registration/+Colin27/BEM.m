@@ -114,6 +114,37 @@ fwdBEM = nirs.forward.NirfastBEM();
 fwdBEM.mesh  = BEM;
 fwdBEM.prop  = prop;
 
+fwdBEM=fwdBEM.precomputeK;
+
+
+aal=load(which('ROI_MNI_V5_Border_modified.mat'));
+n1=aal.BORDER_XYZ';
+n2=m.fwdBEM.mesh(end).nodes;
+[tr,tt]=icp(n2',n1');
+n1p=(tr * n1' + tt*ones(1,size(n1,1)))';
+
+Labels=Dictionary;
+for id=1:length(aal.ROI)
+    cnt=1;
+    S=struct('VertexIndex',{''},'Label',{''},'Region',{''});
+    for j=1:length(aal.ROI{id});
+        lst=find(aal.BORDER_V(id,:)==aal.ROI{id}(j).ID);
+        if(~isempty(lst))
+        [k,d]=dsearchn(n1p(lst,:),n2);
+        
+        lst2=find(d<5);
+        %n2(lst2,:);
+        S.VertexIndex{cnt,1}=lst2;
+        S.Label{cnt,1}=aal.ROI{id}(j).Nom_L;
+        S.Region{cnt,1}=aal.ROI{id}(j).Nom_L;
+        cnt=cnt+1;
+        end
+    end
+    Labels(aal.labels{id})=S;
+end
+fwdBEM.mesh(end).labels=Labels;
+
+
 end
 
 

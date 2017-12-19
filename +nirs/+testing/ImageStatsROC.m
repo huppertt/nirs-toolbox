@@ -1,7 +1,7 @@
-classdef ChannelStatsROC
-%% ChannelStatsROC - This class will perform ROC analysis. 
+classdef ImageStatsROC
+%% ImageStatsROC - This class will perform ROC analysis. 
 % Takes in a function to simulate data and an analysis pipeline that ends
-% with a ChannelStats object.
+% with a reconstructed ImageStats object.
 % 
 % Example 1:
 %     % load some data
@@ -63,8 +63,7 @@ classdef ChannelStatsROC
 %     test = test.run(3);
 
     properties
-        simfunc  = @nirs.testing.simData
-        artfunc
+        simfunc  = @nirs.testing.simDataImage
         pipeline
     end
     
@@ -76,13 +75,15 @@ classdef ChannelStatsROC
     
     methods
         % constructor
-        function obj = ChannelStatsROC( pipeline, simfunc )
+        function obj = ImageStatsROC( pipeline, simfunc )
            if nargin < 1
                p = nirs.modules.Resample();
                p = nirs.modules.OpticalDensity(p);
-               p = nirs.modules.BeerLambertLaw(p);
                p = nirs.modules.AR_IRLS(p);
                p.verbose = false;
+               p = nirs.modules.ImageReconMFX(p);
+               p.formula = 'beta ~ -1 + cond';
+               
                
                obj.pipeline = p;
            else
@@ -96,18 +97,9 @@ classdef ChannelStatsROC
         
         function obj = run(obj, iter)
             for i = 1:iter
-               [data, truth] = obj.simfunc();
-               if ~isempty(obj.artfunc)
-                   data = obj.artfunc(data);
-               end
-               if(length(truth)>height(data(1).probe.link))
-                    % Image based methods
-                   error('use nirs.testing.ImageStatsROC for images');
-               else
-                    [~,i]=sortrows(data(1).probe.link,{'type','source','detector'});
-                    truth=truth(i);
-                     isimage=false;
-               end
+               [data, truth,~,nulldata,fwdmodel] = obj.simfunc();
+               
+             
                % pipeline stats
                
                T=[];
@@ -116,57 +108,39 @@ classdef ChannelStatsROC
                
                for i=1:length(obj.pipeline)
                    
-                   stats = obj.pipeline(i).run(data);
-                   
-                   if(size(stats.beta,1)>length(truth) & ~isempty(find(isnan(truth))))
-                       truth(isnan(truth))=[];
+                   PL=nirs.modules.pipelineToList(obj.pipeline(i));
+                   for j=1:length(PL)
+                       if(isa(PL{j},'nirs.modules.ImageReconMFX'))
+                            PL{j}.mesh=fwdmodel.mesh;
+                            PL{j}.probe('default')=fwdmodel.probe;
+                            PL{j}.jacobian('default')=fwdmodel.jacobian('spectral');
+                            %PL{j}.basis=nirs.inverse.basis.identity(length(fwdmodel.mesh.nodes));
+                            PL{j}.basis=nirs.inverse.basis.gaussian(fwdmodel.mesh);
+                       end
                    end
+                   obj.pipeline(i)=nirs.modules.listToPipeline(PL);
                    
-                    if(length(truth)>height(data(1).probe.link))
-                        stats=sorted(stats,{'cond','type','VoxID'});
-                    else
-                        stats=sorted(stats,{'type','source','detector'});
-                    end
-                   % multivariate joint hypothesis testing
-                   fstats = stats.jointTest();
+                   stats = obj.pipeline(i).run(data);
+                   statsnull = obj.pipeline(i).run(nulldata);
                    
+                   roistats=stats.roi_stats(truth(1:end/2,:));
+                   roistatsnull=statsnull.roi_stats(truth(1:end/2,:));
+                     
                    % types
                    types = unique(stats.variables.type, 'stable');
-                  
+                                     
+                   t = zeros(2,length(types));
+                   t(1,:)=1;
+                   p = zeros(2,length(types));
+                   p(1,:)=roistats.p;
+                   p(2,:)=roistatsnull.p;
                    
-                   t = []; p = [];
-                   for j = 1:length(types)
-                       lst = strcmp(types(j), stats.variables.type);
-                       
-                       t(:,j) = truth(lst);
-                       p(:,j) = stats.p(lst);
-                   end
-                   
-                   t(:, end+1) = sum(t, 2) > 0;
-                   p(:, end+1) = fstats.p;
-                   
-                    types=[types; {'joint'}];
-                   
+                
+                                    
                    if(length(obj.pipeline)>1)
                        types=arrayfun(@(x){[x{1} '-' num2str(i)]},types);
                    end
-                   
-                   if(isimage)
-                       
-                      lstp=find(t(:,1)==1);
-                      lstn=find(t(:,1)==0);
-                      n=min(length(lstp),length(lstn));
-                      
-                      kk=randperm(length(lstp));
-                      lstp=lstp(kk(1:n));
-                       kk=randperm(length(lstp));
-                      lstn=lstn(kk(1:n));
-                      t=t([lstp lstn],:);
-                      p=p([lstp lstn],:);
-                       
-                       
-                   end
-                   
+                 
                    T=[T t];
                    P=[P p];
                    Types={Types{:} types{:}};

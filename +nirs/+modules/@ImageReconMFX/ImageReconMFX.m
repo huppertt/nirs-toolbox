@@ -4,7 +4,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
     %   reconstruction using ReML
     
     properties
-        formula = 'beta ~ cond*group + (1|subject)';
+        formula = 'beta ~ -1 + cond*group + (1|subject)';
         jacobian = Dictionary(); % key is subject name or "default"
         dummyCoding = 'full';
         centerVars=false
@@ -39,7 +39,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
         
         function G = runThis( obj,S )
             
-            rescale=(10*length(unique(nirs.getStimNames(S)))*length(S));
+            rescale=(50*length(unique(nirs.getStimNames(S)))*length(S));
             
             % demographics info
             demo = nirs.createDemographicsTable( S );
@@ -400,7 +400,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             cnames = lm1.CoefficientNames(:);
               
            for idx=1:length(cnames); 
-               cnames{idx}=cnames{idx}(min(strfind(cnames{idx},'_'))+1:end); 
+               if(~isempty(strfind(cnames{idx},'_')))
+                cnames{idx}=cnames{idx}(min(strfind(cnames{idx},'_'))+1:end); 
+               end
                %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end; 
            end;
             

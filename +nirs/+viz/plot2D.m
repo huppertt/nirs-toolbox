@@ -7,6 +7,13 @@ function h = plot2d(data,adderr)
 
 utypes = unique(data.probe.link.type);
 
+if(~iscellstr(utypes))
+    for i=1:length(utypes)
+        utypes2{i,1}=num2str(utypes(i));
+    end
+    utypes=utypes2;
+end
+
 if(nargin<2)
     adderr=false;
 end
@@ -43,7 +50,11 @@ for idx=1:length(utypes)
     
     figure(figs(figIdx(idx)));
     hold on;
-    lst=find(ismember(data.probe.link.type,utypes{idx}));
+    if(iscellstr(data.probe.link.type))
+        lst=find(ismember(data.probe.link.type,utypes{idx}));
+    else
+        lst=find(ismember(data.probe.link.type,str2num(utypes{idx})));
+    end
     for j=1:length(lst)
         dIdx=data.probe.link.detector(lst(j));
         sIdx=data.probe.link.source(lst(j));
@@ -91,6 +102,8 @@ for i=1:length(h)
     h{i}(lst)=[];
 end
 
+cm=lines(length(utypes));
+
 for i=1:length(h)
     if(~isempty(strfind(utypes{i},'hbo')))
         set(h{i},'Color','r');
@@ -98,6 +111,8 @@ for i=1:length(h)
         set(h{i},'Color','b');
      elseif(~isempty(strfind(utypes{i},'hbt')))
         set(h{i},'Color','g');
+    else
+        set(h{i},'Color',cm(i,:));
     end
 end
 

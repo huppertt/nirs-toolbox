@@ -6,16 +6,22 @@ function [US,V]=hogSVD(L)
 % L2 = U2*S2*V'
 
 
-L2=[];
+L2=[]; cnt=1;
 for i=1:length(L)
-    f=fields(L{i});
-   for j=1:length(f)
-        L2=[L2; L{i}.(f{j})];
-        m(i)=size(L{i}.(f{j}),1);
+   f=fields(L{i});
+    for j=1:length(f)
+        L2(:,:,cnt)=sparse(L{i}.(f{j}));
+        cnt=cnt+1;
+%         L2=[L2; L{i}.(f{j})];
+%         m(i)=size(L{i}.(f{j}),1);
    end 
 end
 
-[U,S,V]=nirs.math.mysvd(L2);
+F=parafac(L2,size(L2,1),[1e-6 1 0 1 NaN 50],1);
+V=F{2};
+
+
+%[U,S,V]=nirs.math.mysvd(L2);
 % % I am using parafac instead of SVD to allow for missing (NaN) data
 % Factor=parafac(L2,sum(m),[1 1]);
 % V=Factor{2};

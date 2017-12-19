@@ -77,7 +77,7 @@ classdef ImageStats
         
         function pwr = power(obj,s)
             
-            if(nargin<20)
+            if(nargin<2)
                 s='p<0.05';
             end
             
