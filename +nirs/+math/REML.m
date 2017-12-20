@@ -20,14 +20,14 @@ if(nargin<6 || isempty(maxIter))
 end
 
 
-[~,s,~]=nirs.math.mysvd(Y);
-s1=max(diag(s));
-Y=Y/s1;
-[~,s,~]=nirs.math.mysvd(X);
-s2=max(diag(s));
-X=X/s2;
-
-Beta_prior=Beta_prior*s2/s1;
+% [~,s,~]=nirs.math.mysvd(Y);
+% s1=max(diag(s));
+% Y=Y/s1;
+% [~,s,~]=nirs.math.mysvd(X);
+% s2=max(diag(s));
+% X=X/s2;
+% 
+% Beta_prior=Beta_prior*s2/s1;
 
 Beta=[];
 Stats=[];
@@ -254,13 +254,13 @@ ssr = normest(yhat - ybar)^2;  % regression sum of squares
 sst = normest(Y - ybar)^2;     % total sum of squares;
 mse = sse./length(yhat);
 
-Stats.tstat.mse=mse*s2/s1;
+Stats.tstat.mse=mse; %*s1/s2;
 
 lambda=max(lambda,log(tolr));
 lambda=min(lambda,log(1/tolr));
 
-Stats.tstat.beta=Beta*s2/s1;
-Stats.tstat.covb=XtXi*Stats.tstat.mse*n;
+Stats.tstat.beta=Beta; %*s1/s2;
+Stats.tstat.covb=XtXi*Stats.tstat.mse;
 Stats.tstat.dfe=size(X,2);
 Stats.tstat.t=Stats.tstat.beta./sqrt(diag(Stats.tstat.covb));
 

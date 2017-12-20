@@ -1,4 +1,4 @@
-function [data, truth, truthchan, nulldata,fwdModel] = simDataImage(fwdModel, noise, stim, beta, basis )
+function [data, truth, fwdModel, truthchan, nulldata] = simDataImage(fwdModel, noise, stim, beta, basis )
 %SIMDATA Simulates NIRS data by adding a task to baseline noise.
 % 
 % Args:
@@ -125,11 +125,8 @@ function [data, truth, truthchan, nulldata,fwdModel] = simDataImage(fwdModel, no
  
     
     % loop through and add
-    data = noise.sorted();
-    
-    link = data.probe.link;
+    data = noise;
     Y    = data.data;
-    truth = zeros(size(Y,2), 1);
     
     % optical density
     m = mean(Y);
@@ -151,11 +148,12 @@ function [data, truth, truthchan, nulldata,fwdModel] = simDataImage(fwdModel, no
     
     Yact = (J.hbo*b(1:end/2,:)*Xhbo'+J.hbr*b(1+end/2:end,:)*Xhbr');
    
-    
-    noise.data = exp( -bsxfun(@minus, Y, log(m)) );;
+    noise.probe=fwdModel.probe;
+    noise.data = exp( -bsxfun(@minus, Y, log(m)) );
     noise.stimulus = stim;
     nulldata=noise;
    
+    data.probe=fwdModel.probe;
     data.data = exp( -bsxfun(@minus, Y+Yact', log(m)) );
     data.stimulus = stim;
     
@@ -164,7 +162,7 @@ function [data, truth, truthchan, nulldata,fwdModel] = simDataImage(fwdModel, no
     
     truth=(b(:)~=0);
     t=[];
-    [un,~,j]=unique(link.type);
+    [un,~,j]=unique(data.probe.link.type);
     for i=1:length(un)
         t(:,i)=max(abs(Yact(j==i,:)),[],2)/max(max(abs(Yact(j==i,:)),[],2));
     end

@@ -19,13 +19,13 @@ classdef ApproxSlab
         end
         
         function obj = set.probe(obj,probe)
-            if(~isa(probe,'nirs.core.Probe1020'))
-                %warning('probe must be a 3D registered probe');
-                %ok for the approxslab function to do this.
-            elseif(all(probe.optodes.Z==0))
-              %  disp('warning: changing probe to 3D using "swap_reg" function');
-                probe=probe.swap_reg;
-            end
+%             if(~isa(probe,'nirs.core.Probe1020'))
+%                 %warning('probe must be a 3D registered probe');
+%                 %ok for the approxslab function to do this.
+%             elseif(all(probe.optodes.Z==0))
+%               %  disp('warning: changing probe to 3D using "swap_reg" function');
+%                 probe=probe.swap_reg;
+%             end
             obj.probe=probe;
         end
         
@@ -33,7 +33,13 @@ classdef ApproxSlab
         %% Methods
         function meas = measurement( obj )
             
-            dist=obj.probe.distances;
+            probe=obj.probe;
+            if(all(probe.optodes.Z==0))
+                 probe=probe.swap_reg;
+             end
+            
+            
+            dist=probe.distances;
             m=zeros(size(dist));
             for iLambda = 1:length(obj.prop.lambda)
                 V = obj.prop.v ./ obj.prop.ri;
@@ -42,7 +48,7 @@ classdef ApproxSlab
                 
                 % 2pt Green's function for photon density (freqency-domain)
                 %phiS = exp(-K * src_r) ./ (4 * pi * D * src_r);
-                lst=find(ismember(obj.probe.link.type,obj.prop.lambda(iLambda)));
+                lst=find(ismember(probe.link.type,obj.prop.lambda(iLambda)));
                 m(lst) = exp(-K * dist(lst)) ./ ( dist(lst));
             end
             meas = nirs.core.Data(m,...
@@ -50,6 +56,11 @@ classdef ApproxSlab
         end
         
         function [J,meas] = jacobian( obj,type )
+            
+               probe=obj.probe;
+            if(all(probe.optodes.Z==0))
+                 probe=probe.swap_reg;
+             end
             
             if nargin < 2
                 isSpectral = false;
@@ -61,21 +72,21 @@ classdef ApproxSlab
                 error('Jacobian can either be ''standard'' or ''spectral''.')
             end
             
-            types = unique( obj.probe.link.type );
+            types = unique( probe.link.type );
             assert( isnumeric( types ) );
-            [~,~,iType] = unique( obj.probe.link.type );
+            [~,~,iType] = unique(probe.link.type );
             
             meas=obj.measurement;
             mesh = obj.combinemesh;
-            for idx=1:size(obj.probe.srcPos,1)
-                src_r(idx,:)=sqrt((mesh.nodes(:,1)-obj.probe.srcPos(idx,1)).^2+...
-                    (mesh.nodes(:,2)-obj.probe.srcPos(idx,2)).^2+...
-                    (mesh.nodes(:,3)-obj.probe.srcPos(idx,3)).^2);
+            for idx=1:size(probe.srcPos,1)
+                src_r(idx,:)=sqrt((mesh.nodes(:,1)-probe.srcPos(idx,1)).^2+...
+                    (mesh.nodes(:,2)-probe.srcPos(idx,2)).^2+...
+                    (mesh.nodes(:,3)-probe.srcPos(idx,3)).^2);
             end
-            for idx=1:size(obj.probe.detPos,1)
-                det_r(idx,:)=sqrt((mesh.nodes(:,1)-obj.probe.detPos(idx,1)).^2+...
-                    (mesh.nodes(:,2)-obj.probe.detPos(idx,2)).^2+...
-                    (mesh.nodes(:,3)-obj.probe.detPos(idx,3)).^2);
+            for idx=1:size(probe.detPos,1)
+                det_r(idx,:)=sqrt((mesh.nodes(:,1)-probe.detPos(idx,1)).^2+...
+                    (mesh.nodes(:,2)-probe.detPos(idx,2)).^2+...
+                    (mesh.nodes(:,3)-probe.detPos(idx,3)).^2);
             end
             
             Jmua = zeros( size(obj.probe.link,1), size(mesh.nodes,1) );
@@ -92,8 +103,8 @@ classdef ApproxSlab
                 
                 phiD = exp(-K * det_r) ./ ( det_r);
                 phiD(find(det_r==0))=1;
-                lst=find(ismember(obj.probe.link.type,obj.prop.lambda(iLambda)));
-                Jmua(lst,:)=phiS(obj.probe.link.source(lst),:).*phiD(obj.probe.link.detector(lst),:);
+                lst=find(ismember(probe.link.type,obj.prop.lambda(iLambda)));
+                Jmua(lst,:)=phiS(probe.link.source(lst),:).*phiD(probe.link.detector(lst),:);
                 
             end
             
