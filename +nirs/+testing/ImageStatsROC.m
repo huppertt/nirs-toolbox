@@ -70,6 +70,8 @@ classdef ImageStatsROC
     properties (SetAccess = protected)
        truth
        pvals
+       truth_roi
+       pvals_roi
        types
     end
     
@@ -97,13 +99,15 @@ classdef ImageStatsROC
         
         function obj = run(obj, iter)
             for i = 1:iter
-               [data, truth,~,nulldata,fwdmodel] = obj.simfunc();
+               [data, truth,fwdmodel,~,nulldata] = obj.simfunc();
                
              
                % pipeline stats
                
                T=[];
                P=[];
+                Troi=[];
+               Proi=[];
                Types={};
                
                for i=1:length(obj.pipeline)
@@ -129,13 +133,21 @@ classdef ImageStatsROC
                    % types
                    types = unique(stats.variables.type, 'stable');
                                      
-                   t = zeros(2,length(types));
-                   t(1,:)=1;
-                   p = zeros(2,length(types));
-                   p(1,:)=roistats.p;
-                   p(2,:)=roistatsnull.p;
-                   
-                
+                   troi = zeros(2,length(types));
+                   troi(1,:)=1;
+                   proi = zeros(2,length(types));
+                   proi(1,:)=roistats.p;
+                   proi(2,:)=roistatsnull.p;
+                         
+                   lst=find(truth(1:end/2,:)==1);
+                   t = zeros(2*length(lst),length(types));
+                    p = zeros(2*length(lst),length(types));
+                    for jj=1:length(types)
+                        lst=find(truth==1 & ismember(stats.variables.type,types{jj}));
+                         t(1:end/2,jj)=1;
+                         p(1:end/2,jj)=stats.p(lst);
+                         p(end/2+1:end,jj)=statsnull.p(lst);
+                    end
                                     
                    if(length(obj.pipeline)>1)
                        types=arrayfun(@(x){[x{1} '-' num2str(i)]},types);
@@ -143,12 +155,17 @@ classdef ImageStatsROC
                  
                    T=[T t];
                    P=[P p];
+                   Troi=[Troi troi];
+                   Proi=[Proi proi];
                    Types={Types{:} types{:}};
                    
                end
                
-               obj.truth = [obj.truth; T];
+               obj.truth_roi = [obj.truth_roi; Troi];
+               obj.pvals_roi = [obj.pvals_roi; Proi];
+                obj.truth = [obj.truth; T];
                obj.pvals = [obj.pvals; P];
+               
                
                obj.types = Types;
             
@@ -196,6 +213,33 @@ classdef ImageStatsROC
             ylabel('False Positive Rate')
             xlabel('Estimated FPR (p-value)')
             legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
+            title('ROI analysis')
+            
+            figure, hold on
+            for i = 1:length(obj.types)
+                if(ismember(utype{i},type))
+                    [tp, fp, phat] = nirs.testing.roc(obj.truth_roi(:, i), obj.pvals_roi(:, i));
+                    plot(fp, tp, 'Color', colors(i,:))
+                
+                end
+            end
+            xlabel('False Positive Rate')
+            ylabel('True Positive Rate')
+            legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
+            
+            figure, hold on
+            for i = 1:length(obj.types)
+                if(ismember(utype{i},type))
+                    [tp, fp, phat] = nirs.testing.roc(obj.truth_roi(:, i), obj.pvals_roi(:, i));
+                    plot(phat, fp, 'Color', colors(i,:))
+                end
+            end
+            plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--')
+            ylabel('False Positive Rate')
+            xlabel('Estimated FPR (p-value)')
+            legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
+            title('ROI analysis')
+            
         end
         
         function [tp, fp, phat] = roc( obj,flag)
