@@ -86,7 +86,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         end
                         
                         dataROI(i).beta = condprojmat' * beta;
-                        dataROI(i).covb = condprojmat' * covb * condprojmat;
+                        dataROI(i).covb = sqrt(condprojmat)' * covb * sqrt(condprojmat);
                         dataROI(i).variables = repmat(probe.link,numcond,1);
                         dataROI(i).variables.cond = condvec(:);
                     end
