@@ -355,7 +355,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                VtV{i}=V'*N*V;
            end
             % VtV{2}= VtV{2}/10;
-            N=sparse([eye(n) -eye(n); -eye(n) eye(n)]);
+            N=[speye(n) -speye(n); -speye(n) speye(n)];
             VtV{end+1}=V'*N*V;
             
            
