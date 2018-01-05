@@ -11,6 +11,12 @@ switch class(stats)
         weights = stats.ObservationInfo.Weights;
         weights = weights .* (40/median(weights));
         [~,worder] = sort(weights,'descend');
+        X0 = ones(stats.NumObservations,length(stats.CoefficientNames));
+        for i = 1:length(stats.CoefficientNames)
+            if ~strcmp(stats.CoefficientNames{i},'(Intercept)')
+                X0(:,i) = stats.Variables.(stats.CoefficientNames{i});
+            end
+        end
         
         Coefs = stats.PredictorNames;
         
@@ -44,7 +50,7 @@ switch class(stats)
             xlim = [min(xdata)-2*xdist max(xdata)+2*xdist];
             xpts = linspace(xlim(1),xlim(2),100)';
             predind = find(strcmp(stats.CoefficientNames,xvar),1);
-            X = ones(length(xpts),length(beta));
+            X = repmat(mean(X0),[length(xpts) 1]);
             X(:,predind) = xpts;
             
             [ypred,ci] = nirs.math.predci( X , beta , covb , stats.MSE , stats.DFE , .05 , false , false , true );
