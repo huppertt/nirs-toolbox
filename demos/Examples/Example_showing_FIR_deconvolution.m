@@ -52,16 +52,6 @@ contrastWindow=GroupStats.ttest('A[4:8]');  % This computes the contast from 2-4
 % Likewise, this is the test of points 4-8 vs points 1-2 
 GroupStats.ttest('A[4:8]-A[1:2]').draw
 
-% or can specify by seconds  (adding an "s" in the indexing array)
-GroupStats.ttest('A[2:4s]-A[0:1s]').draw
-
-% or using a Gamma or Canonical tapered window
-GroupStats.ttest('A[canonical]').draw
-
-GroupStats.ttest('A[gamma]').draw
-
-
-
 nirs.util.roiAverage(contrastWindow,ROI);
 
 
