@@ -28,8 +28,15 @@ if any(hasmarks)
     ss(1,:)=0;
 
     s=ss;
-else
-    s=data.s;
+    
+    if(isfield(data,'s'))
+        if(norm(s-data.s)<eps(1))
+            s=[];  % avoid double counting the aux if it was already stored in "s"
+        end
+    end
+    
+% else
+%     s=data.s;
 end
 
 return

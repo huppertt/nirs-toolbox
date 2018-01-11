@@ -162,7 +162,7 @@ c = zeros(1,30);
 c(1,[2:8])=1;  % Set the contrast from 1s-4s (remember this the impulse response not the HRF per se). 
 
 % alternatively, you can specifiy contrast like this
-c = 'stim_channel1[2:8]';
+c = 'stim_channel1[2:8]';  % 2-8th time point (at sample rate)
 Contrast = SubjStats.ttest(c);
 
 Contrast.draw();

@@ -163,6 +163,8 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 G.dfe= stats.dfe;
             else
                 nobs = length(beta);
+                X0=X;
+                beta0=beta;
                 [beta,X]=qr(X,beta,0);
                 xtx=X'*X;
                 xtxi=inv(xtx);
@@ -173,7 +175,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
                 p = length(G.beta);
                 G.dfe = nobs-p;
                 
-                sse = norm(beta-X*G.beta)^2;
+                sse = norm(beta0-X0*G.beta)^2;
                 mse = sse./G.dfe;
                
                 G.covb=xtxi*mse;

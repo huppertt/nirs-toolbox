@@ -33,9 +33,7 @@ GroupStats = job.run(SubjStats);
 
 
 % Now, estimate the HRF shape
-dur=2;  % Since we estimated the impulse response, we need to convolve with the duration to get the full response
-
-HRF = nirs.design.extractHRF(GroupStats,basis,dur,hb(1).Fs);
+HRF = GroupStats.HRF;
 
 % HRF is a data class so you can draw it
 HRF.draw;
@@ -54,7 +52,17 @@ contrastWindow=GroupStats.ttest('A[4:8]');  % This computes the contast from 2-4
 % Likewise, this is the test of points 4-8 vs points 1-2 
 GroupStats.ttest('A[4:8]-A[1:2]').draw
 
-nirs.util.roiAverage(contrastWinow,ROI);
+% or can specify by seconds  (adding an "s" in the indexing array)
+GroupStats.ttest('A[2:4s]-A[0:1s]').draw
+
+% or using a Gamma or Canonical tapered window
+GroupStats.ttest('A[canonical]').draw
+
+GroupStats.ttest('A[gamma]').draw
+
+
+
+nirs.util.roiAverage(contrastWindow,ROI);
 
 
 

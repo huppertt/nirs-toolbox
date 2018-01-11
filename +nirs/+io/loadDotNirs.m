@@ -110,7 +110,8 @@ function data = loadDotNirs( filenames )
                     end
                 end
                 
-                 thisFile.stimulus=stims;
+                
+                thisFile.stimulus=stims;
                 
             end
 

@@ -32,7 +32,7 @@ function S = ttest(obj, c, b, names)
          if(isempty(names))
              names=c;
          end
-         c = nirs.design.contrastvector(c,obj.conditions);
+         c = nirs.design.contrastvector(c,obj.conditions,obj.basis);
          
          %Remove names that didn't exist in this file
          lst=all(c==0,2);

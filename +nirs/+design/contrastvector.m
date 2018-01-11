@@ -1,12 +1,16 @@
-function C = contrastvector(str,conditions)
+function C = contrastvector(str,conditions,basis)
 
 %% Examples:
 % str = 'stim[3:10]'
 % str='stim_channel1[8:20]-stim_channel1[1:3]+stim_channel1[1:2]'
 
+if(nargin<3)
+    basis=[];
+end
+
 if(iscellstr(str) | iscell(str))
     for idx=1:length(str)
-        C(idx,:) = nirs.design.contrastvector(str{idx},conditions);
+        C(idx,:) = nirs.design.contrastvector(str{idx},conditions,basis);
     end
     return;
 end
@@ -29,26 +33,107 @@ for i=2:length(lst)
     S{i-1}=str(lst(i-1):lst(i)-1);
 end
 
+cnt=1;
 for i=1:length(S)
     slocal=S{i};
     if(isempty([strfind(slocal,'-') strfind(slocal,'+')]))
-        multiplier{i}=1;
+        multiplier{cnt}=1;
     elseif(~isempty(strfind(slocal,'*')))
-        multiplier{i}=str2num(slocal(1:strfind(slocal,'*')-1));
+        multiplier{cnt}=str2num(slocal(1:strfind(slocal,'*')-1));
     elseif(~isempty(strfind(slocal,'+')))
-        multiplier{i}=1;
+        multiplier{cnt}=1;
     else
-        multiplier{i}=-1;
+        multiplier{cnt}=-1;
     end
-    cond{i}=slocal(max([0 strfind(slocal,'-') strfind(slocal,'+') ...
+    cond{cnt}=slocal(max([0 strfind(slocal,'-') strfind(slocal,'+') ...
         strfind(slocal,'*')])+1:end);
-    cond{i}=[cond{i}(1:min([strfind(cond{i},'[')-1 length(cond{i})]))...
-        cond{i}(min([strfind(cond{i},']')+1 length(cond{i})+1]):end)];
+    cond{cnt}=[cond{cnt}(1:min([strfind(cond{cnt},'[')-1 length(cond{cnt})]))...
+        cond{cnt}(min([strfind(cond{cnt},']')+1 length(cond{cnt})+1]):end)];
     if(isempty(strfind(slocal,'[')))
-        indices{i}=[];
+        indices{cnt}=[];
     else
-        indices{i}=str2num(slocal(strfind(slocal,'['):strfind(slocal,']')));
+        if(~isempty(strfind(slocal,'canonical')) || (~isempty(strfind(slocal,'gamma'))))
+            m=multiplier{cnt};
+            if(basis.base.iskey(cond{cnt}))
+                base=basis.base(cond{cnt});
+            else
+                 base=basis.base('default');
+            end
+            stim=basis.stim(cond{cnt});
+            stim.onset=0;
+            stim.amp=1;
+            dur=max(stim.dur);
+            lenHRF=90;
+            t=[0:1/basis.Fs:(max(dur)+lenHRF)];
+            
+            if(~isempty(strfind(slocal,'canonical')))
+            [X, names] = nirs.design.createDesignMatrix( Dictionary({cond{cnt}}, {stim}), t, ...
+                Dictionary({'default'}, {nirs.design.basis.Canonical}));
+            else
+                [X, names] = nirs.design.createDesignMatrix( Dictionary({cond{cnt}}, {stim}), t, ...
+                Dictionary({'default'}, {nirs.design.basis.Gamma}));
+            end
+            
+            [X2, ~] = nirs.design.createDesignMatrix( Dictionary({cond{cnt}}, {stim}), t, ...
+                Dictionary({'default'}, {base}));
+            
+            samples=[]; cnt2=1; weights=[];
+            for i=1:length(conditions)
+                if(~isempty(strfind(conditions{i},[cond{cnt} ':'])))
+                    samples(cnt2)=str2num(conditions{i}(strfind(conditions{i},':')+1:end));
+                    weights(cnt2)=sum(X2(:,samples(cnt2)).*X);
+                    cnt2=cnt2+1;
+                end
+            end
+            c=cond{cnt};
+            weights=m*weights/max(weights);            
+            for i=1:length(weights)
+                multiplier{cnt}=weights(i);
+                cond{cnt}=c;
+                indices{cnt}=samples(i);
+                cnt=cnt+1;
+            end
+            cnt=cnt-1;
+        elseif(~isempty(strfind(slocal(strfind(slocal,'['):strfind(slocal,']')),'s')))
+            win=slocal(strfind(slocal,'['):strfind(slocal,']'));
+            win(strfind(win,'s'))=[];
+            win=str2num(win);
+            m=multiplier{cnt};
+            if(basis.base.iskey(cond{cnt}))
+                base=basis.base(cond{cnt});
+            else
+                 base=basis.base('default');
+            end
+            stim=basis.stim(cond{cnt});
+            stim.onset=0;
+            stim.amp=1;
+            dur=max(stim.dur);
+            lenHRF=90;
+            t=[0:1/basis.Fs:(max(dur)+lenHRF)];
+            [X2, ~] = nirs.design.createDesignMatrix( Dictionary({cond{cnt}}, {stim}), t, ...
+                Dictionary({'default'}, {base}));
+            
+            X2(t>=max(win),:)=0;
+            X2(t<min(win),:)=0;
+            weights=sum(X2,1);
+           
+            weights=m*weights/max(weights);   
+             c=cond{cnt};
+            for i=1:length(weights)
+                multiplier{cnt}=weights(i);
+                cond{cnt}=c;
+                indices{cnt}=i;
+                cnt=cnt+1;
+            end
+            cnt=cnt-1;
+            
+         
+            
+        else
+            indices{cnt}=str2num(slocal(strfind(slocal,'['):strfind(slocal,']')));
+        end
     end
+    cnt=cnt+1;
 end
 
 
