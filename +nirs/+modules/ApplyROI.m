@@ -65,7 +65,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
                     end
                     
                 case {'nirs.core.ChannelStats'}
-                    projmat = obj.getMapping(oldprobe,probe,true);
+                    projmat = obj.getMapping(oldprobe,probe,false);
                     for i = 1:length(dataChannel)
                         dataROI(i).probe = probe;
                         vars = dataChannel(i).variables;
@@ -77,6 +77,10 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         
                         beta = dataChannel(i).beta(sort_inds);
                         covb = dataChannel(i).covb(sort_inds,sort_inds);
+                        isgoodchan = ~(isnan(beta) | ~isfinite(beta)) & ~any(isnan(covb) | ~isfinite(covb),1)' & ~any(isnan(covb) | ~isfinite(covb),2);
+                        isgoodcovb = double(isgoodchan)*double(isgoodchan)';
+                        beta(~isgoodchan) = 0;
+                        covb(~isgoodcovb) = 0;
                         
                         if obj.weighted
                             [u, s, ~] = svd(covb, 'econ');
@@ -85,8 +89,8 @@ classdef ApplyROI < nirs.modules.AbstractModule
                             condprojmat = bsxfun(@rdivide,condprojmat,sum(condprojmat));
                         end
                         
-                        dataROI(i).beta = condprojmat' * beta;
-                        dataROI(i).covb = sqrt(condprojmat)' * covb * sqrt(condprojmat);
+                        dataROI(i).beta = (condprojmat' * beta) ./ (condprojmat' * isgoodchan);
+                        dataROI(i).covb = (condprojmat' * covb * condprojmat) ./ (condprojmat' * isgoodcovb * condprojmat);
                         dataROI(i).variables = repmat(probe.link,numcond,1);
                         dataROI(i).variables.cond = condvec(:);
                     end
