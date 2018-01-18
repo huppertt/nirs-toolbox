@@ -26,6 +26,9 @@ classdef RemoveStimGapsOld < nirs.modules.AbstractModule
                     onset = stims.onset * data(i).Fs;
                     dur = stims.dur * data(i).Fs;
                     amp = stims.amp;
+                    [onset,sort_inds] = sort(onset,'ascend');
+                    dur = dur(sort_inds);
+                    amp = amp(sort_inds);
                     offset = onset + dur;
                     diff = onset(2:end) - offset(1:end-1);
                     mergeInds = find(diff<=obj.max_gap_length);
