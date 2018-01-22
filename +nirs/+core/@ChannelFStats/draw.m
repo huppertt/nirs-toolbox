@@ -1,4 +1,4 @@
-function draw( obj, fmax, thresh)
+function f=draw( obj, fmax, thresh)
 
     %% draw - Draws channelwise F-statisitcs on a probe.
     % Args:
@@ -32,6 +32,14 @@ function draw( obj, fmax, thresh)
         fmax = max(obj.F);
     end
     
+    visible='on';
+    callers = dbstack(1);
+    if ~isempty(callers)
+        if strcmp(callers(1).name,'printAll')
+            visible='off';
+        end
+    end
+    
     % meas types
     types = obj.variables.type;
 
@@ -52,8 +60,10 @@ function draw( obj, fmax, thresh)
     
     z = linspace(0, fmax, size(cmap,1))';
     
+    hind = 0;
     for iCond = 1:length( uconds )
         for iType = 1:length(utypes)
+            hind = hind + 1;
             lst = strcmp( types, utypes(iType) ) & ...
                 strcmp( obj.variables.cond, uconds(iCond) );
             
@@ -79,10 +89,11 @@ function draw( obj, fmax, thresh)
                 end
             end
             
-            figure;
+            f(hind)=figure('Visible',visible);
+            set(f(hind),'name',[utypes{iType} ' : ' uconds{iCond}]);
             obj.probe.draw(colors, lineStyles);
             c = colorbar; colormap(cmap); caxis([0 fmax]);
-            a = gca;
+            a = get(f(hind),'CurrentAxes');
             
             ap = get(a, 'Position');
             

@@ -17,12 +17,13 @@ function printAll( obj, fmax, thresh, folder, ext )
         utypes = arrayfun(@(x) {num2str(x)}, utypes);
     end
     
-    obj.draw(fmax, thresh);
+    h=obj.draw(fmax, thresh);
     
     for i = fliplr(1:length(obj.conditions))
         for j = fliplr(1:length(utypes))
             
-            set(gcf, 'PaperPositionMode', 'auto')
+            f=intersect(h,findobj('name',[utypes{j} ' : ' obj.conditions{i}]));
+            set(f, 'PaperPositionMode', 'auto')
             
             if strcmp(ext, 'eps')
                 ptype = '-depsc';
@@ -37,10 +38,10 @@ function printAll( obj, fmax, thresh, folder, ext )
             end
                         
             fname = [obj.conditions{i} '_' utypes{j} '.' ext];
-            fname = [folder filesep strjoin(strsplit(fname, ':'), '_')];
-            print(ptype, fname)
+            fname = [folder filesep strjoin(strsplit(fname, ':'), '__')];
+            print(f,ptype, fname);
             
-            close
+            close(f);
         end
     end
 
