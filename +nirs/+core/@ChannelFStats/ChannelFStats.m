@@ -20,6 +20,7 @@ classdef ChannelFStats
     %     sorted      - returns new ChannelFStats object with sorted channels
     
     properties
+        description
         variables	% description of data (e.g. filename)
         F           % F-stats
         df1         % degrees of freedom 1
@@ -89,7 +90,7 @@ classdef ChannelFStats
                 colsToSortBy = {'source', 'detector', 'type', 'cond'};
             end
             
-            [out.variables, idx] = sortrows(out.variables, colsToSortBy);
+            [out.variables, idx] = nirs.util.sortrows(out.variables, colsToSortBy);
             
             out.F = obj.F(idx);
             out.df1 = obj.df1(idx);
