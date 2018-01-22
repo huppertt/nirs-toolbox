@@ -9,7 +9,7 @@ for i=1:length(stimname)
     
     
     stimtable=nirs.createStimulusTable(data);
-    stimtable=stimtable(1,:)
+    stimtable=stimtable(1,:);
     stimtable.FileIdx=NaN;
     st=stimtable.(stimname{i});
     st.onset=NaN;

@@ -143,8 +143,8 @@ classdef ApplyROI < nirs.modules.AbstractModule
         % link are now arrays and link has 'ROI' column with the region name)
         function probeROI = get_probeROI( obj , probe )
             
-            source = obj.listOfROIs.sources;
-            detector = obj.listOfROIs.detectors;
+            source = obj.listOfROIs.source;
+            detector = obj.listOfROIs.detector;
             name = obj.listOfROIs.names;
             link = probe.link;
             types = unique(link.type,'stable');
@@ -181,6 +181,27 @@ classdef ApplyROI < nirs.modules.AbstractModule
         function inds = getChannelInds(obj,probeChannel,s,d,t)
             chanlink = probeChannel.link;
             inds = false(height(chanlink),1);
+            
+            if(any(isnan(s)))
+                lst=find(isnan(s));
+                for i=1:length(lst);
+                    s=[s; unique(chanlink.source)];
+                    d=[d; d(lst(i))*ones(size(unique(chanlink.source)))];
+                end
+                s(lst)=[];
+                d(lst)=[];
+            end
+            if(any(isnan(d)))
+                lst=find(isnan(d));
+                for i=1:length(lst);
+                    d=[d; unique(chanlink.detector)];
+                    s=[s; s(lst(i))*ones(size(unique(chanlink.detector)))];
+                end
+                s(lst)=[];
+                d(lst)=[];
+            end
+            
+            
             for i = 1:length(s)
                 if isnumeric(t)
                     inds = inds | (chanlink.source==s(i) & chanlink.detector==d(i) & chanlink.type == t);
