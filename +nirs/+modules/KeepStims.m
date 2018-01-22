@@ -64,6 +64,35 @@ classdef KeepStims < nirs.modules.AbstractModule
                     if any(~ismember(obj.listOfStims(obj.required),cond))
                         bad_subjects(i) = 1;
                     end
+                    
+                elseif(isa(data(i),'nirs.core.ChannelStats'))
+                    conds=data(i).variables.cond;
+                    isgood=false(size(conds));
+                    for j=1:length(obj.listOfStims)
+                        isgood = isgood | strcmp(conds,obj.listOfStims{j});
+                    end
+                    data(i).variables(~isgood,:)=[];
+                    data(i).beta(~isgood) = [];
+                    data(i).covb(~isgood,:) = [];
+                    data(i).covb(:,~isgood) = [];
+                    if any(~ismember(obj.listOfStims(obj.required),conds(isgood)))
+                        bad_subjects(i) = 1;
+                    end
+                    
+                elseif(isa(data(i),'nirs.core.ChannelFStats'))
+                    conds=data(i).variables.cond;
+                    isgood=false(size(conds));
+                    for j=1:length(obj.listOfStims)
+                        isgood = isgood | strcmp(conds,obj.listOfStims{j});
+                    end
+                    data(i).variables(~isgood,:)=[];
+                    data(i).F(~isgood) = [];
+                    data(i).df1(~isgood) = [];
+                    data(i).df2(~isgood) = [];
+                    if any(~ismember(obj.listOfStims(obj.required),conds(isgood)))
+                        bad_subjects(i) = 1;
+                    end
+                    
                 else
                     cond=data(i).conditions;
                     cond={cond{ismember(cond,obj.listOfStims)}};
