@@ -39,7 +39,11 @@ classdef Anova < nirs.modules.AbstractModule
             vars = table();
             for i = 1:length(S)
                 % coefs
-                b = [b; S(i).beta];
+                if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
+                    b = [b; S(i).tstat];
+                else
+                    b = [b; S(i).beta];
+                end
                 
                 % weights
                 w = [w; 1./sqrt(diag(S(i).covb))];
