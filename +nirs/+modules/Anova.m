@@ -70,7 +70,7 @@ classdef Anova < nirs.modules.AbstractModule
                     vars.cond{c} = vars.cond{c}(1:block_ind-2);
                 end
             end
-            
+            respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             variables = table([],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'});
             F = []; df1 = []; df2 = [];
             for iChan = 1:max(lst)
@@ -79,7 +79,7 @@ classdef Anova < nirs.modules.AbstractModule
 
                 beta = b(lst == iChan);
                 
-                lm = fitlme([table(beta) tmp], obj.formula, 'dummyVarCoding',...
+                lm = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
                         'reference', 'FitMethod', 'ML', 'CovariancePattern', 'Isotropic', ...
                         'Weights', w(lst==iChan));
                     
