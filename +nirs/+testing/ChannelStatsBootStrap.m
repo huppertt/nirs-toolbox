@@ -4,6 +4,7 @@ classdef ChannelStatsBootStrap
         formula
         kfold=2;
         grouplevel = true;
+        sortfield;
     end
     
     properties (SetAccess = protected)
@@ -25,7 +26,7 @@ classdef ChannelStatsBootStrap
         function obj = ChannelStatsBootStrap
             obj.formula = 'beta ~ -1 + cond';
             obj.Variables=[];
-            
+            obj.sortfield='subject';
         end
         
         
@@ -34,7 +35,7 @@ classdef ChannelStatsBootStrap
             % demographics info
             demo = nirs.createDemographicsTable( S );
             
-            subj=unique(demo.subject);
+            subj=unique(demo.(obj.sortfield));
             if(~obj.grouplevel & length(subj)>1)
                 % run analysis on a per subject basis
                 v=[];
@@ -42,7 +43,7 @@ classdef ChannelStatsBootStrap
                 
                 for i=1:length(subj)
                     obj.Variables=[];
-                    lst=find(ismember(demo.subject,subj{i}));
+                    lst=find(ismember(demo.(obj.sortfield),subj{i}));
                     disp(['processing subject ' subj{i}]);
                     obj=obj.run(S(lst));
                     v=[v; obj.Variables];
