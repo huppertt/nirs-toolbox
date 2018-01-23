@@ -144,6 +144,8 @@ if(~isempty(info.Events))
     raw.stimulus=stimulus;
 end
 
+if(isfield(probeInfo,'geom'))
+
 %% Get the 10-20 fiducial points
 % Create the head mesh from the file
 Name=probeInfo.geom.NIRxHead.ext1020sys.labels';
@@ -171,6 +173,10 @@ fidD=table(fid_1020.Name(probeInfo.probes.index_d(:,1)),...
 
 % and concatinate it to the probe
 probe.optodes=[probe.optodes; fidS; fidD];
+else
+    warning('new NIRx probe file info found.  Not implemented yet');
+    registerprobe=false;
+end
 
 if(registerprobe)
     probe1020=nirs.util.registerprobe1020(probe);
