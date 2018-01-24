@@ -14,7 +14,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
 %                                   (currently only supported for time series)
 
     properties
-        listOfROIs = table({},{},{},'VariableNames',{'sources','detectors','names'});
+        listOfROIs = table({},{},{},'VariableNames',{'source','detector','name'});
         weighted = false;
     end
     
@@ -145,7 +145,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
             
             source = obj.listOfROIs.source;
             detector = obj.listOfROIs.detector;
-            name = obj.listOfROIs.names;
+            name = obj.listOfROIs.name;
             link = probe.link;
             types = unique(link.type,'stable');
             if isnumeric(types)
