@@ -81,7 +81,7 @@ for j=1:height(tbl2)
     data=[data H];
     tt=tbl2(j,:);
     tt=repmat(tt,duration.count,1);
-    tt.type=strcat(tt.type,repmat('-',duration.count,1),duration.keys);
+    tt.type=strcat(tt.type,repmat('-',duration.count,1),duration.keys(:));
     var=[var; tt];
 end
 
