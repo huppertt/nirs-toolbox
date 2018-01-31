@@ -14,7 +14,7 @@ switch class(stats)
         X0 = ones(stats.NumObservations,length(stats.CoefficientNames));
         for i = 1:length(stats.CoefficientNames)
             if ~strcmp(stats.CoefficientNames{i},'(Intercept)')
-                X0(:,i) = stats.Variables.(stats.CoefficientNames{i});
+                X0(:,i) = stats.Variables.(stats.CoefficientNames{i})(~stats.ObservationInfo.Missing);
             end
         end
         
