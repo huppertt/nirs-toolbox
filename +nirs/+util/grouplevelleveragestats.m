@@ -131,6 +131,9 @@ hw = sum((E.*E)')';
 tb=vars;
 tb.source=[];
 tb.detector=[];
+if any(strcmp(tb.Properties.VariableNames,'ROI'))
+    tb.ROI=[];
+end
 
 [utb,~,j]=unique(tb);
 lev_condition=zeros(height(tb),1);
