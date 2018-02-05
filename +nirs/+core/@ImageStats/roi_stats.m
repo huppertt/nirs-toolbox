@@ -36,8 +36,15 @@ tbl=table;
 for i=1:length(cond)
     for j=1:length(types)
         lst=find(ismember(obj.variables.cond,cond{i}) & ismember(obj.variables.type,types{j}));
-            c=mask'*obj.covb_chol(lst,:);
-            b=mask'*obj.beta(lst);
+        
+        if(length(mask)~=length(lst))
+            lst2=find(ismember(obj.variables.cond,cond{1}) & ismember(obj.variables.type,types{j}));
+        else
+            lst2=1:length(mask);
+        end
+        
+            c=mask(lst2)'*obj.covb_chol(lst,:);
+            b=mask(lst2)'*obj.beta(lst);
         ball=[ball; b];
         call=blkdiag(call,c*c');
         tbl=[tbl; table(region,repmat({types{j}},length(region),1),...

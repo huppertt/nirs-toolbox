@@ -361,20 +361,22 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
            
            
            ncond=length(lm1.CoefficientNames);
+           n=size(VtV{1},1);
            cnt=1;
            for k=1:length(VtV)
-            for i=1:ncond
-                Q{cnt}=[];
-                for j=1:i-1
-                    Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
-                end
-                Q{cnt}=blkdiag(Q{cnt},VtV{k});
-                for j=i+1:ncond
-                    Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
-                end
-                Q{cnt}=blkdiag(Q{cnt},0*speye(size(Z,2),size(Z,2)));
-                cnt=cnt+1;
-            end    
+               
+               for i=1:ncond
+                   Q{cnt}=[];
+                   for j=1:i-1
+                       Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
+                   end
+                   Q{cnt}=blkdiag(Q{cnt},VtV{k});
+                   for j=i+1:ncond
+                       Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
+                   end
+                   Q{cnt}=blkdiag(Q{cnt},0*speye(size(Z,2),size(Z,2)));
+                   cnt=cnt+1;
+               end
            end
             for i=1:size(Z,2)
                 Q{end+1}=blkdiag(0*speye(size(X,2),size(X,2)),...

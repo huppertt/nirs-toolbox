@@ -143,7 +143,7 @@ for id=1:length(aal.ROI)
     Labels(aal.labels{id})=S;
 end
 fwdBEM.mesh(end).labels=Labels;
-
+fwdBEM.mesh(end-1).labels=Labels;
 
 end
 

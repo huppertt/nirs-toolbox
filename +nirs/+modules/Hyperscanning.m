@@ -190,7 +190,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     
                     if(obj.symetric)
                         r = atanh(r); % r-to-Z
-                        if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
+                        if ~isempty(strfind(func2str(obj.corrfcn),'nirs.sFC.grangers'))
                             r = exp(2*r); % Z-to-F
                         end
                         aa=r(1:end/2,1:end/2);            % within subject A
@@ -198,7 +198,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                         ba=r(end/2+1:end,1:end/2);        % from B to A
                         bb=r(end/2+1:end,end/2+1:end);    % within subject B
                         r = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
-                        if contains(func2str(obj.corrfcn),'nirs.sFC.grangers')
+                        if ~isempty(strfind(func2str(obj.corrfcn),'nirs.sFC.grangers'))
                             r = log(r)/2; % F-to-Z
                         end
                         r = tanh(r); % Z-to-r

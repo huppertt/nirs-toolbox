@@ -17,7 +17,7 @@ nir_raw=data{2};
 job=nirs.modules.Resample;
 job=nirs.modules.OpticalDensity(job);
 job=nirs.modules.BeerLambertLaw(job);
-job=nirs.modules.AR_IRLS(job);
+job=nirs.modules.GLM(job);
 NIRS_Stats=job.run(nir_raw);
 NIRS_Stats.probe.defaultdrawfcn='10-20';
 
@@ -43,12 +43,12 @@ NIRS_Stats.probe.defaultdrawfcn='10-20';
 
 
 
-mesh=nirs.registration.Colin27.BEM;
-mesh.mesh(4)=[];
+Colin=nirs.registration.Colin27.BEM;
+Colin.mesh(4)=[];
 
 % EEG forward model
 fwdeeg=eeg.forward.FieldTrip;
-fwdeeg.mesh=mesh;
+fwdeeg.mesh=Colin.mesh;
 fwdeeg.probe=EEG_Stats.probe;
 fwdeeg.prop=[1 NaN NaN];
 JacobEEG=fwdeeg.jacobian;
@@ -56,7 +56,7 @@ JacobEEG=fwdeeg.jacobian;
 % NIRS forward model
 fwdnirs=nirs.forward.ApproxSlab;
 fwdnirs.Fm=0;
-fwdnirs.mesh=mesh.mesh(3);
+fwdnirs.mesh=Colin.mesh(3);
 lambda=unique(NIRS_Stats.probe.link.type);
 fwdnirs.prop=nirs.media.tissues.brain(.7,50,lambda);
 fwdnirs.probe=NIRS_Stats.probe.swap_reg;

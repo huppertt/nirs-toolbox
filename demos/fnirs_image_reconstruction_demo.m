@@ -177,10 +177,11 @@ title('Truth- condition B (HbO2)');
 % We can also run sensitivity-specififty analysis on the image recon model
 
 % Create a ROC object
-ROCtest=nirs.testing.ChannelStatsROC;
+ROCtest=nirs.testing.ImageStatsROC;
+
 
 % Use the simDataImage function to generate some random data
-ROCtest.simfunc=@()nirs.testing.simDataImage(fwdFEM, noise, stim);
+ROCtest.simfunc=@()nirs.testing.simDataImage;
 % We could also give it a mask (as before) to tell the code where to put
 % the image (and only the noise would be random), but in this form, the
 % code will randomly place the image as well.
@@ -191,20 +192,6 @@ j = nirs.modules.OpticalDensity(j);
 j = nirs.modules.Resample(j);
 j = nirs.modules.AR_IRLS(j);       % run the subject level stats
 j = nirs.modules.ImageReconMFX(j); % Reconstruct the image
-
-% Set up the reconstruciton job options
-j.jacobian('default')=J;
-j.probe('default')=noise.probe;
-j.mesh=mesh;  
-j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
-j.basis=nirs.inverse.basis.gaussian(mesh,10,3);
-j.mask =(mesh.nodes(:,3)>5);
-
-% Let's use the simple MNE prior this time
-prior.hbo(:,1)=zeros(size(J.hbo,2),1);
-prior.hbr(:,1)=zeros(size(J.hbr,2),1);
-j.prior('default')=prior;
-
 
 % Assign the job to the ROCtest pipeline
 ROCtest.pipeline=j;

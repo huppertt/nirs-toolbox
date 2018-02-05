@@ -5,7 +5,7 @@ function lme = Remlfiflmematrix(X, beta, Z,PAT);
 Z=Z./normest(Z)*normest(X);
 %beta=beta-Z*inv(Z'*Z)*Z'*beta;
 
-
+s=1;
 % normalize the model
 for i=1:size(Z,2)
     lst=find(Z(:,i)~=0);

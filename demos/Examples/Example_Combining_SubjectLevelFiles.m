@@ -15,6 +15,7 @@ raw(4).demographics('subject')='SubjB';
 
 % RUn the Beer-Lambert law
 job=nirs.modules.OpticalDensity;
+job=nirs.modules.Resample(job);
 job=nirs.modules.BeerLambertLaw(job);
 hb=job.run(raw);
 

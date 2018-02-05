@@ -7,6 +7,7 @@ raw = nirs.testing.simData;
 
 % RUn the Beer-Lambert law
 job=nirs.modules.OpticalDensity;
+job=nirs.modules.Resample(job);
 job=nirs.modules.BeerLambertLaw(job);
 hb=job.run(raw);
 
@@ -65,3 +66,13 @@ SubjStats_withHbT_option2(1).draw
 % SO2 along with the normal HbO2/Hb
 
 
+% You can remove/keep data types as well using the command
+
+job=nirs.modules.KeepTypes;
+job.types={'hbo','hbr','hbt'};
+SubjStats_withHbT=job.run(SubjStats_withHbT);
+
+% or the opposite functionality
+job=nirs.modules.DiscardTypes;
+job.types={'hbo','hbr'};
+SubjStats_withHbT=job.run(SubjStats_withHbT);

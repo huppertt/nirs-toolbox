@@ -4,8 +4,8 @@ function cfg = getFieldTripMeshes( obj )
     cnt=1;
     for i=1:length(obj.prop)
         if(~isnan(obj.prop(i)))
-            bnd(cnt).tri=obj.mesh.mesh(i).faces;
-            bnd(cnt).pnt=obj.mesh.mesh(i).nodes; 
+            bnd(cnt).tri=obj.mesh(i).faces;
+            bnd(cnt).pnt=obj.mesh(i).nodes; 
             conduct(cnt)=obj.prop(i);
             cnt=cnt+1;
             
@@ -33,10 +33,10 @@ function cfg = getFieldTripMeshes( obj )
     sens.ori=[];
     
     % Register the probe to the head
-    [~,lst]=ismember(lower(obj.probe.electrodes.Name),lower(obj.mesh.mesh(1).fiducials.Name));
+    [~,lst]=ismember(lower(obj.probe.electrodes.Name),lower(obj.mesh(1).fiducials.Name));
     if(length(lst)==height(obj.probe.electrodes))
-        pts=[obj.mesh.mesh(1).fiducials.X(lst) obj.mesh.mesh(1).fiducials.Y(lst) ...
-            obj.mesh.mesh(1).fiducials.Z(lst)];
+        pts=[obj.mesh(1).fiducials.X(lst) obj.mesh(1).fiducials.Y(lst) ...
+            obj.mesh(1).fiducials.Z(lst)];
          [k,d]=dsearchn(bnd(1).pnt,pts);
     end
     for i=1:height(obj.probe.electrodes)
@@ -49,8 +49,8 @@ function cfg = getFieldTripMeshes( obj )
     cfg = [];
     cfg.elec=sens;
     cfg.channel = {'EEG'};   % the used channels; but subtract bad channels, ex: '-MLP31', '-MLO12'
-    cfg.grid.pos = obj.mesh.mesh(end).nodes;              % use the White matter as the source points
-    cfg.grid.inside = 1:size(obj.mesh.mesh(end).nodes,1); % all source points are inside of the brain
+    cfg.grid.pos = obj.mesh(end).nodes;              % use the White matter as the source points
+    cfg.grid.inside = 1:size(obj.mesh(end).nodes,1); % all source points are inside of the brain
     cfg.grid.unit='mm';
     cfg.vol = vol;  % volume conduction model
     

@@ -4,6 +4,8 @@
 % A state-space model of the hemodynamic approach: nonlinear filtering of BOLD signals.
 % Riera JJ1, Watanabe J, Kazuki I, Naoki M, Aubert E, Ozaki T, Kawashima R.
 
+% This example 
+
 Fs=10;
 
 % Generate a response model
@@ -14,10 +16,7 @@ for i=200:600:ntps
     u(i+[1:100],2)=.05; 
 end
 
-% u is the flow inducing signal.  
-% This is an diffusion limited model of CMRO2 (e.g. Buxton 1998).  For now,
-% there are only one input
-
+% u is the flow inducing signal and CMRO2.  
 % This simulates the HbO/Hb data
 u=iddata([],u,1/Fs);
 set(u,'InputName', {'flow-inducing','CMRO2-inducing'}, 'InputUnit', {'%','%'}); 
@@ -29,8 +28,16 @@ data=m.sim(u);
 [cmro2,cbf]=m.StateEstimate(data);
 
 
+% Generate a response model
+ntps=2000;
+u=zeros(ntps+1,1);
+for i=200:600:ntps
+    u(i+[1:100],1)=.1; 
+end
 
-% The diffusion limited model only takes flow-inducing signal
+% TODO: not sure why this stopped working for the flow part of the model
+
+% This is an diffusion limited model of CMRO2 (e.g. Buxton 1998).
 u=iddata([],u(:,1),1/Fs);
 set(u,'InputName', {'flow-inducing'}, 'InputUnit', {'%'}); 
 

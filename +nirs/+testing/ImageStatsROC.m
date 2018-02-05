@@ -133,15 +133,15 @@ classdef ImageStatsROC
                    % types
                    types = unique(stats.variables.type, 'stable');
                                      
-                   troi = zeros(2,length(types));
+                   troi = zeros(2,length(types)*length(roistats.conditions));
                    troi(1,:)=1;
-                   proi = zeros(2,length(types));
+                   proi = zeros(2,length(types)*length(roistats.conditions));
                    proi(1,:)=roistats.p;
                    proi(2,:)=roistatsnull.p;
                          
                    lst=find(truth(1:end/2,:)==1);
-                   t = zeros(2*length(lst),length(types));
-                    p = zeros(2*length(lst),length(types));
+                   t = zeros(2*length(lst),length(types)*length(roistats.conditions));
+                    p = zeros(2*length(lst),length(types)*length(roistats.conditions));
                     for jj=1:length(types)
                         lst=find(truth==1 & ismember(stats.variables.type,types{jj}));
                          t(1:end/2,jj)=1;

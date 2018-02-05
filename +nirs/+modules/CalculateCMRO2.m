@@ -12,7 +12,7 @@ classdef CalculateCMRO2 < nirs.modules.AbstractModule
         
         function obj = CalculateCMRO2( prevJob )
             obj.name = 'Add CMRO2 and CBF to data using a Kalman filter';
-            obj.model=@WKM_idnl_vs2;
+            obj.model=@nirs.vascular.models.WKM_static;
             if nargin > 0
                 obj.prevJob = prevJob;
             end
@@ -41,8 +41,12 @@ classdef CalculateCMRO2 < nirs.modules.AbstractModule
                     HbO2=data(i).data(:,iHbO);
                     HbR=data(i).data(:,iHbR);
                     
+                    d=iddata([HbO2,HbR],[],1./data(i).Fs,'OutPutName',{'HbO2','HbR'});
+                    
                     %static version
-                    [CMRO2(:,j),CBF(:,j)]=WKM_static(data.time,HbO2,HbR,3,.38,100,.4);
+                    model=feval(obj.model);
+                    nglr=feval(model.model);
+                    [states,yhat]=model.fitter(,d);
                     %dynamic version
                  %   d=iddata([HbO2,HbR],[],1./data(i).Fs,'OutPutName',{'HbO2','HbR'});
                  %   [CMRO2(:,j),CBF(:,j)]=kalman_fit(nlgr,d);

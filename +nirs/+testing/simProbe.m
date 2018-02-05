@@ -1,4 +1,4 @@
-function probe = simProbe()
+function probe1020 = simProbe()
 % This function returns a default regstered NIRS probe
         
     srcPos(:,1) = (-80:20:80)';
@@ -74,10 +74,17 @@ fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
     'VariableNames',{'Name','X','Y','Z','Type','Units'});
 % and concatinate it to the probe
 probe.optodes=[probe.optodes; fid];
-probe=nirs.util.registerprobe1020(probe);
-
-lambda=unique(probe.link.type);
-fwdBEM=nirs.registration.Colin27.BEM(lambda);
-probe=probe.regsister_mesh2probe(fwdBEM.mesh);
-
+   
+    probe1020=nirs.util.registerprobe1020(probe);
+    
+    lambda=unique(probe1020.link.type);
+    fwdBEM=nirs.registration.Colin27.BEM(lambda);
+    
+     
+    % Likewise, this will register a mesh onto your probe.  Note- the mesh is
+    % the thing that is warped to mathc the head size (not the probe).
+    probe1020=probe1020.regsister_mesh2probe(fwdBEM.mesh);
+    
+    probe1020.defaultdrawfcn='10-20';
+   
 end

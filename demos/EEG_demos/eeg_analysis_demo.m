@@ -29,8 +29,12 @@
 % memory when loading large data sets.  This is the same as loading and
 % then resampling in two job steps
 
-data(1)=eeg.io.loadBrainVision('ted_standing_opticflow.vhdr',200);
-data(2)=eeg.io.loadBrainVision('ted_standing_random_dots.vhdr',200);
+data(1)=eeg.testing.simData;
+data(2)=eeg.testing.simData;
+
+
+% data(1)=eeg.io.loadBrainVision('ted_standing_opticflow.vhdr',200);
+% data(2)=eeg.io.loadBrainVision('ted_standing_random_dots.vhdr',200);
 
 % The data class (eeg.core.Data) has the same basic structure as the NIRS
 % data class:
@@ -212,15 +216,8 @@ j.probe('default')=data.probe;
 j.mesh=FTfwd.mesh.mesh(end);  
 
 j.formula = 'beta ~ -1 + cond:freq';  % Simple fixed effects model
-j.basis=nirs.inverse.basis.identity(j.mesh);
+%j.basis=nirs.inverse.basis.identity(j.mesh);
 %j.basis = nirs.inverse.basis.gaussian(j.mesh,20);
-
-% Now create the priors in the model
-j.mask =[];
-% This is the Minimum Norm estimate
-prior.eeg=zeros(size(J.eeg,2),1);
-j.prior=Dictionary();
-j.prior('default')=prior;
 
 
 ImageStats=j.run(FDStats);

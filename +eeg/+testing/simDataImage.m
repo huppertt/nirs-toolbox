@@ -1,4 +1,4 @@
-function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, beta, basis )
+function [data, truth,fwdModel, truthchan, beta] = simDataImage(fwdModel, noise, stim, beta, basis )
 %SIMDATA Simulates EEG data by adding a task to baseline noise.
 % 
 % Args:
@@ -18,20 +18,31 @@ function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, be
         stim = nirs.testing.randStimDesign(noise.time, .1, 3, 1);
     end
     
+
     if nargin < 4 || isempty(beta)
-        nVox=size(fwdModel.mesh.mesh(end).nodes,1);
-        beta=zeros(nVox,length(stim.keys));
-        
-        pos=[fwdModel.probe.electrodes.X fwdModel.probe.electrodes.Y fwdModel.probe.electrodes.Z];
-        
-        for idx=1:length(stim.keys)
-            p=pos(randi(size(pos,1),1,1),:);
-            d=sqrt(sum((fwdModel.mesh.mesh(end).nodes-ones(nVox,1)*p).^2,2));
-            lst=find(d<30 & d>5);
-            beta(lst,idx)=7;
-        end
+        beta = {'BA-46_R'};       
     end
     
+    if(iscellstr(beta))
+        if(length(beta)<stim.count)
+            beta=repmat(beta,stim.count,1);
+        end
+        
+        mask=zeros(length(fwdModel.mesh(end).nodes),stim.count);
+        for i=1:length(beta)
+            for j=1:fwdModel.mesh(end).labels.count
+                if(ismember(beta{i},fwdModel.mesh(end).labels.values{j}.Label))
+                    
+                    ii=find(ismember(fwdModel.mesh(end).labels.values{j}.Label,beta{i}));
+                    
+                    mask(fwdModel.mesh(end).labels.values{j}.VertexIndex{ii},i)=1;
+                                       
+                end
+            end
+        end
+    else
+        mask=beta;  
+    end
     
     
     if nargin < 5 || isempty(basis)
@@ -54,14 +65,14 @@ function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, be
     
     X = nirs.design.createDesignMatrix( stim, data.time, basis);
     
-    Yact = J.eeg*beta*X';
+    Yact = J.eeg*mask*X';
    
     Y = Y+Yact';
     
     data.data = Y;
     data.stimulus = stim;
     
-    truth=(beta~=0);
+    truth=(mask~=0);
     t=[];
     [un,~,j]=unique(link.type);
     for i=1:length(un)

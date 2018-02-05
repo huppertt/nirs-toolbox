@@ -34,7 +34,7 @@ classdef ApproxSlab
         function meas = measurement( obj )
             
             probe=obj.probe;
-            if(all(probe.optodes.Z==0))
+            if(all(probe.optodes.Z==0) && isa(probe,'nirs.core.Probe1020'))
                  probe=probe.swap_reg;
              end
             
@@ -58,7 +58,7 @@ classdef ApproxSlab
         function [J,meas] = jacobian( obj,type )
             
                probe=obj.probe;
-            if(all(probe.optodes.Z==0))
+            if(all(probe.optodes.Z==0) && isa(probe,'nirs.core.Probe1020'))
                  probe=probe.swap_reg;
              end
             

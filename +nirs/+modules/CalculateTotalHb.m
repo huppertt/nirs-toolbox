@@ -47,7 +47,7 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                     linkTOI=link;
                     linkTOI.type=repmat({'StO2'},height(link),1);
                     linkHbT=link;
-                    linkHbT.type=repmat({'HbT'},height(link),1);
+                    linkHbT.type=repmat({'hbt'},height(link),1);
                     data(i).data=[data(i).data HbT TOI];
                     data(i).probe.link=[data(i).probe.link; linkHbT; linkTOI];
                     data(i)=sorted(data(i));
@@ -84,7 +84,7 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                     variabTOI=variab;
                     variabTOI.type=repmat({'StO2'},height(variab),1);
                     variabHbT=variab;
-                    variabHbT.type=repmat({'HbT'},height(variab),1);
+                    variabHbT.type=repmat({'hbt'},height(variab),1);
                     
                     data(i).variables=[data(i).variables; variabHbT; variabTOI];
                     data(i).beta=[data(i).beta; betaHbT; betaSO2];
@@ -95,7 +95,7 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                     linkTOI=link;
                     linkTOI.type=repmat({'StO2'},height(link),1);
                     linkHbT=link;
-                    linkHbT.type=repmat({'HbT'},height(link),1);
+                    linkHbT.type=repmat({'hbt'},height(link),1);
                     data(i).probe.link=[data(i).probe.link; linkHbT; linkTOI];
                     
                     data(i)=sorted(data(i));

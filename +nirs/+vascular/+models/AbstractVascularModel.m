@@ -5,7 +5,7 @@ classdef AbstractVascularModel
         parameters
         outputNames;
         description;
-        
+        model
         fitter;
     end
      properties(Access=protected)

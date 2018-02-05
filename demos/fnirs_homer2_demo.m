@@ -77,8 +77,14 @@ disp(stimTable);
 %  Note- The spline-interp function is used to resample the vector onto the data
 %  when creating the design matrix
 
+
+
+
+
 % To chabge the timing of stimulus events you modify the entry of the
 % stimTable using NaN as placeholds to indicate keeping the old values
+
+% Option #1 (the more complete but harder way)
 
 % E.g to change the duration of the events to 10s but keep the onsets as
 % defined by the data import function 
@@ -106,6 +112,15 @@ j.ChangeTable = stimTable;
 
 % Now, run the actual job
 rawChanged = j.run(raw);
+
+
+% Option #2.
+%alternatively, if you only need to change the durations, this is a utility
+%to do so
+rawChanged=nirs.design.change_stimulus_duration(raw,'stim_channel1',10);
+
+
+
 
 
 % if we draw it, we can see the changes
@@ -158,11 +173,21 @@ HRF.draw();
 
 
 % To make a contast over some time window
+
+% Option 1
 c = zeros(1,30);
 c(1,[2:8])=1;  % Set the contrast from 1s-4s (remember this the impulse response not the HRF per se). 
 
+% Option 2
 % alternatively, you can specifiy contrast like this
 c = 'stim_channel1[2:8]';  % 2-8th time point (at sample rate)
+
+% Option 3
+c ='stim_channel1[3:6s]';  % 3-6seconds
+
+% Option 4
+c = 'stim_channel1[canonical]';  % use a canonical tapered window
+
 Contrast = SubjStats.ttest(c);
 
 Contrast.draw();

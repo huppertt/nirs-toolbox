@@ -116,7 +116,16 @@ function stats = ar_irls( d,X,Pmax,tune )
         end
         fprintf(1,'.');
         %  Satterthwaite estimate of model DOF
-        [U,~,~]=nirs.math.mysvd(diag(S.w)*Xf);
+        
+        % the model gets huge for EEG data.
+        wXf=Xf;
+        for id=1:size(wXf,2)
+            wXf(:,id)=S.w.*wXf(:,id);
+        end
+        
+        [U,~,~]=nirs.math.mysvd(wXf);
+       %[U,~,~]=nirs.math.mysvd(diag(S.w)*Xf);
+       
        % stats.dfe = length(yf)-sum(U(:).*U(:));
         stats.dfe = sum(S.w)-sum(U(:).*U(:));
         

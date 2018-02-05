@@ -4,7 +4,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
     %   reconstruction using ReML
     
     properties
-        formula = 'beta ~ cond*group + (1|subject)';
+         formula = 'beta ~ -1 + cond*group + (1|subject)';
         jacobian = Dictionary(); % key is subject name or "default"
         dummyCoding = 'full';
         centerVars=false
@@ -14,6 +14,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
         prior = Dictionary();  % The prior on the image; default = 0 (Min Norm Estimate)
         mesh;  % Reconstruction mesh (needed to create the ImageStats Class)
         probe = Dictionary();  % This is the probe for the Jacobian model.  These needs to match the jacobian
+
     end
     
     methods
@@ -24,18 +25,22 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 obj.prevJob = prevJob;
             end
             
-            nVox=20484;
+            nVox=4849;
             obj.basis=nirs.inverse.basis.identity(nVox);
             
-            prior.hbo=zeros(nVox,1);
-            prior.hbr=zeros(nVox,1);
+            prior.eeg=zeros(nVox,1);
             obj.prior('default')=prior;
+            
+            obj.citation{1}='Abdelnour, F., B. Schmidt, and T. J. Huppert. "Topographic localization of brain activation in diffuse optical imaging using spherical wavelets." Physics in medicine and biology 54.20 (2009): 6383.';
+            obj.citation{2}='Abdelnour, F., & Huppert, T. (2011). A random-effects model for group-level analysis of diffuse optical brain imaging. Biomedical optics express, 2(1), 1-25.';
+            obj.citation{3}='Abdelnour, F., Genovese, C., & Huppert, T. (2010). Hierarchical Bayesian regularization of reconstructions for diffuse optical tomography using multiple priors. Biomedical optics express, 1(4), 1084-1103.';
+    
             
         end
         
         function G = runThis( obj,S )
             
-             rescale=(10*length(unique(nirs.getStimNames(S)))*length(S));
+            %rescale=(50*length(unique(nirs.getStimNames(S)))*length(S));
             
             % demographics info
             demo = nirs.createDemographicsTable( S );
@@ -126,29 +131,14 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
             end
             
-            
-            %             
-%                probe=obj.probe(key2);
-%                     [lia,locb]=ismember(probe.link,S(id(k)).probe.link);
-%                     if(~all(lia))
-%                         error('Src-Det found in data but not in fwd model');
-%                     end
-%                     
-%                     if(isempty(strfind(key,'prior')))
-%                         llocal(locb,:)=X(k,i)*L(key);
-%                     else
-%                         llocal=X(k,i)*L(key);
-%                     end
-%                     
-            
-            
-            
-            
+              
+             
             % FInd the initial noise weighting
             W=[];
             for i = 1:length(S)
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                W = [W; diag(1./diag(sqrt(s))) * u'];
+                %[u, s, ~] = svd(S(i).covb, 'econ');
+                C=chol(S(i).covb);
+                W = blkdiag(W, pinv(C));
             end
             lstBad=find(sum(abs(W),2)>100*median(sum(abs(W),2)));
             W(lstBad,:)=[];
@@ -170,21 +160,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 
                 key = S(i).demographics('subject');
-                if(~ismember(key,Lfwdmodels.keys))
-                   key='default';
+                if(~Lfwdmodels.iskey(key))
+                    key='default';
                 end
+                
                 
                 xx=[];
                 
                 for j=1:length(conds)
-                    xlocal=[];
-                    for fIdx=1:length(flds)
-                        L=Lfwdmodels(key);
-                        x2=L.(flds{fIdx})*V';
-        
-                       xlocal=[xlocal x2]; 
-                    end
-                    
+                    xlocal=Lfwdmodels(key);
                     xx=[xx; xlocal];
                 end
                 X=[X; W*xx];
@@ -198,7 +182,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 x=X(:,idx);
                 VarMDU(idx)=inv(x'*x+eps(1))/m^2;
             end
-           
+           VarMDU=VarMDU*V';
            
               
             % The MDU is the variance at each voxel (still in the basis
@@ -208,75 +192,13 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             % voxel given the noise in the measurements
             % e.g. pval(typeII) = 2*tcdf(-abs(beta/sqrt(VarMDU+CovBeta)),dfe)
             
-            
-            if(~isempty(obj.prior))
-                
-                %Now, let's add the priors as virtual measurements
-                % This allows us to use ReML in the fitLME function
+                  
+%                 %Now, let's add the priors as virtual measurements
+%                 % This allows us to use ReML in the fitLME function
                 for idx=1:length(S);
                     S(idx).demographics('DataType')='real';
                 end
-                
-                nch=size(US{1},1);
-                L=[];
-                for fIdx=1:length(flds)
-                    thisprobe=nirs.core.Probe;
-                    thisprobe.link=table(repmat(NaN,nch,1),repmat(NaN,nch,1),repmat({flds{fIdx}},nch,1),'VariableNames',{'source','detector','type'});
-                    L=setfield(L,flds{fIdx},eye(size(V,2))*scale);
-                    Probes(['prior:' flds{fIdx}])=thisprobe;
-                end
-                Lfwdmodels('prior')=L;
-                    
-                Priors=eeg.core.ChannelStats;
-             
-                cnt=1;
-                
-                for idx=1:length(S)
-                   
-                    
-                    variables = sortrows(S(idx).variables,{'cond'});
-                    conds=unique(variables.cond);
-                    
-                    variableLst = variables(find(ismember(variables.cond,conds{1})),:);
-                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
-                    
-                    for cIdx=1:length(conds)
-                        if(ismember(conds{cIdx},obj.prior.keys))
-                            key=conds{cIdx};
-                        else
-                            key='default';
-                        end
-                        thisprior = obj.prior(key);
-                        flds=fields(thisprior);
-                        for fIdx=1:length(flds)
-                            
-                            variableLst.cond=repmat({conds{cIdx}},height(variableLst),1);
-                            variableLst.type=repmat({flds{fIdx}},height(variableLst),1);
-                            for j=1:size(thisprior.(flds{fIdx}),2)
-                                
-                                Priors(cnt).demographics=S(idx).demographics;
-                                Priors(cnt).demographics('DataType')='prior';
-                                Priors(cnt).demographics('subject')='prior';
-                                Priors(cnt).beta=V'* Basis(LstInMask,:)'* thisprior.(flds{fIdx})(LstInMask,j);
-                                Priors(cnt).variables=variableLst;
-                                
-                                Priors(cnt).covb = eye(size(V,2))/m^2*rescale;
-                                
-                                Priors(cnt).probe=S(idx).probe;
-                                cnt=cnt+1;
-                                
-                                
-                            end
-                        end
-                    end
-                  
-                    
-                end
-                S = [S Priors];
-                if(isempty(strfind(obj.formula,' + (1|DataType)')))
-                    obj.formula=[obj.formula ' + (1|DataType)'];
-                end
-            end
+
             
             demo = nirs.createDemographicsTable( S );
             
@@ -304,7 +226,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     variableLst = variables(find(ismember(variables.cond,conds{cIdx})),:);
                     
                     % Make sure we are concatinating like datatypes
-                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){x},variableLst.type); end;
+                    if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){num2str(x)},variableLst.type); end;
                     idx = repmat(i,height(variableLst),1);
                     variableLst =[table(idx) variableLst repmat(demo(i,:),height(variableLst),1)];
                     variableLst.DataType=strcat(variableLst.DataType, variableLst.type);
@@ -318,13 +240,20 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                    
             nRE = length(strfind(obj.formula,'|'));
             
-            %RUn a test to get the Fixed/Random matrices
-            warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            lm1 = fitlme([table(beta) tmpvars], obj.formula,'FitMethod', 'reml', 'CovariancePattern', repmat({'Isotropic'},nRE,1), 'dummyVarCoding',obj.dummyCoding);
-       
-            X = lm1.designMatrix('Fixed');
-            Z = lm1.designMatrix('Random');
-            
+            if(height(tmpvars)>1)
+                %RUn a test to get the Fixed/Random matrices
+                warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
+                lm1 = fitlme([table(beta) tmpvars], obj.formula,'FitMethod', 'reml', 'CovariancePattern', repmat({'Isotropic'},nRE,1), 'dummyVarCoding',obj.dummyCoding);
+                
+                X = lm1.designMatrix('Fixed');
+                Z = lm1.designMatrix('Random');
+            else
+                X=1;
+                Z=[];
+                lm1.CoefficientNames=cellstr(tmpvars.cond{1});
+                lm1.designMatrix=Dictionary;
+                lm1.designMatrix('Fixed')=X;
+            end
             %Now, lets make the full model
             XFull=[];
             ZFull=[];
@@ -333,9 +262,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Xlocal=[];
                 Zlocal=[];
                 
-                subname = tmpvars.subject{i};
-                if(~ismember(subname,Lfwdmodels.keys))
-                  subname='default';
+                subname = tmpvars.subject(i);
+                if(~Lfwdmodels.iskey(subname))
+                    subname='default';
                 end
             
                 
@@ -344,16 +273,16 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 variables = S(idx).variables;
                 thiscond = tmpvars.cond{i};
                 variables = variables(find(ismember(variables.cond,thiscond)),:); 
-                
-                Llocal =[];
-                for fIdx=1:length(flds)
-                        s=1;
-                    if(strcmp(tmpvars.subject{i},'prior') && ~strcmp(tmpvars.type{i},flds{fIdx}))
-                        s=0;
-                    end
-                    l=Lfwdmodels(subname);
-                    Llocal =[Llocal s*l.(flds{fIdx})];
-                end
+                Llocal=Lfwdmodels(subname);
+%                 Llocal =[];
+%                 for fIdx=1:length(flds)
+%                         s=1;
+%                     if(strcmp(tmpvars.subject(i),'prior') && ~strcmp(tmpvars.type(i),flds{fIdx}))
+%                         s=0;
+%                     end
+%                     l=Lfwdmodels(subname);
+%                     Llocal =[Llocal s*l.(flds{fIdx})];
+%                 end
               
                 for j=1:size(X,2)
                     Xlocal=[Xlocal X(i,j)*Llocal];
@@ -399,11 +328,13 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             beta = W*beta;
             
             
-            %Now deal with the ReML covariace terms
-            nRE=size(Z,2);
-            PAT=eye(nRE,nRE);
-            
-            
+%             %Now deal with the ReML covariace terms
+%             nRE=size(Z,2);
+%             PAT=eye(nRE,nRE);
+%             names=unique(tmpvars.DataType);
+%             lst=find(ismember(names,{'priorhbo','priorhbr'}));
+%             PAT(lst,lst)=-1;
+%             for i=1:nRE; PAT(i,i)=1; end;
                    
             lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
@@ -412,10 +343,60 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             X=sparse(X);
             Z=sparse(Z);
+            n=size(V,1)/length(flds);
+           for i=1:length(flds)
+               N=[]; 
+               for j=1:i-1
+                   N=blkdiag(N,zeros(n));
+               end
+               N=blkdiag(N,speye(n,n));
+               for j=i+1:length(flds)
+                   N=blkdiag(N,zeros(n));
+               end
+               VtV{i}=V'*N*V;
+           end
+            % VtV{2}= VtV{2}/10;
+           
             
-             %% fit the model
-            lm2 = fitlmematrix(X(:,lstKeep), beta, Z, [], 'CovariancePattern',PAT, ...
-                'FitMethod', 'ReML');
+           
+           
+           ncond=length(lm1.CoefficientNames);
+           n=size(VtV{1},1);
+           cnt=1;
+           for k=1:length(VtV)
+               
+               for i=1:ncond
+                   Q{cnt}=[];
+                   for j=1:i-1
+                       Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
+                   end
+                   Q{cnt}=blkdiag(Q{cnt},VtV{k});
+                   for j=i+1:ncond
+                       Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
+                   end
+                   Q{cnt}=blkdiag(Q{cnt},0*speye(size(Z,2),size(Z,2)));
+                   cnt=cnt+1;
+               end
+           end
+            for i=1:size(Z,2)
+                Q{end+1}=blkdiag(0*speye(size(X,2),size(X,2)),...
+                    speye(size(Z,2),size(Z,2)));
+                
+            end
+           % TODO-- off diagionals
+           %     lst=find(ismember(names,{'priorhbo','priorhbr'}));
+           
+            R={speye(size(beta,1),size(beta,1))};
+            
+
+            Beta0= zeros(size(X,2)+size(Z,2),1);
+            
+            [lambda,Beta,Stats]=nirs.math.REML(beta,[X(:,lstKeep) Z],Beta0(lstKeep),R,Q);
+            lm2.CoefficientCovariance=eye(size(X,2),size(X,2));
+            lm2.CoefficientCovariance(1:length(lstKeep),1:length(lstKeep))=Stats.tstat.covb;
+            lm2.Coefficients.Estimate=zeros(size(X,2),1);
+            lm2.Coefficients.Estimate(1:length(lstKeep))=Beta;
+            dfe= Stats.tstat.dfe;
 
 
             
@@ -431,7 +412,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             cnames = lm1.CoefficientNames(:);
               
            for idx=1:length(cnames); 
-               cnames{idx}=cnames{idx}(min(strfind(cnames{idx},'_'))+1:end); 
+               if(~isempty(strfind(cnames{idx},'_')))
+                cnames{idx}=cnames{idx}(min(strfind(cnames{idx},'_'))+1:end); 
+               end
                %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end; 
            end;
             
@@ -439,18 +422,19 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             Vall=[];
             iWall=[];
             for idx=1:length(cnames)
+                Vall=sparse(blkdiag(Vall,V));
                 for fIdx=1:length(flds)
-                    Vall=sparse(blkdiag(Vall,V));
+                    
                     iWall=sparse(blkdiag(iWall,obj.basis.fwd));
                 end
             end
             V=iWall*Vall;
-             G.beta=V*lm2.Coefficients.Estimate;
+            G.beta=V(:,lstKeep)*lm2.Coefficients.Estimate;
             [Uu,Su,Vu]=nirs.math.mysvd(CoefficientCovariance);
             
             G.covb_chol = V(:,lstKeep)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
             
-            G.dfe        = lm2.DFE;
+            G.dfe        = dfe;
             
            fwd=[];
            for idx=1:length(flds)
@@ -484,4 +468,5 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
     end
     
 end
+
 
