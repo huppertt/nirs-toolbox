@@ -1,4 +1,4 @@
-function [data, truth,fwdModel, truthchan, beta] = simDataImage(fwdModel, noise, stim, beta, basis )
+function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, beta, basis )
 %SIMDATA Simulates EEG data by adding a task to baseline noise.
 % 
 % Args:
@@ -18,7 +18,6 @@ function [data, truth,fwdModel, truthchan, beta] = simDataImage(fwdModel, noise,
         stim = nirs.testing.randStimDesign(noise.time, .1, 3, 1);
     end
     
-
     if nargin < 4 || isempty(beta)
         beta = {'BA-46_R'};       
     end
@@ -36,13 +35,15 @@ function [data, truth,fwdModel, truthchan, beta] = simDataImage(fwdModel, noise,
                     ii=find(ismember(fwdModel.mesh(end).labels.values{j}.Label,beta{i}));
                     
                     mask(fwdModel.mesh(end).labels.values{j}.VertexIndex{ii},i)=1;
-                                       
+                   
+                    
                 end
             end
         end
     else
         mask=beta;  
     end
+    
     
     
     if nargin < 5 || isempty(basis)
@@ -65,7 +66,7 @@ function [data, truth,fwdModel, truthchan, beta] = simDataImage(fwdModel, noise,
     
     X = nirs.design.createDesignMatrix( stim, data.time, basis);
     
-    Yact = J.eeg*mask*X';
+    Yact = (J.eeg*mask)*X';
    
     Y = Y+Yact';
     

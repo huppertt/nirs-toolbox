@@ -34,11 +34,10 @@ if(nargin<3 || isempty(fwdmodel))
     fwd.nirs.mesh=mesh.mesh(3);
     lambda=unique(data.nirs.probe.link.type);
     fwd.nirs.prop=nirs.media.tissues.brain(.7,50,lambda);
-    fwd.nirs.probe=data.nirs.probe;
+    fwd.nirs.probe=data.nirs.probe.swap_reg;
     
     fwd.eeg=eeg.forward.FieldTrip;
-    fwd.eeg.mesh=mesh.mesh;
-    fwd.eeg.mesh(4)=[];
+    fwd.eeg.mesh=mesh.mesh(1:3);
     fwd.eeg.probe=data.eeg.probe;
     fwd.eeg.prop=[1 NaN NaN];
 
@@ -46,28 +45,12 @@ end
 
 
 if nargin < 4 || isempty(beta)
-    if(isfield(fwd,'nirs'))
-        mesh=fwd.nirs.mesh;
-        
-        pos=(fwd.nirs.probe.srcPos(fwd.nirs.probe.link.source,:)+...
-            fwd.nirs.probe.detPos(fwd.nirs.probe.link.detector,:))/2;
-        
-    end
-    mesh(end).transparency=1;
-    nVox=size(mesh(end).nodes,1);
-    beta=zeros(nVox,length(stim.keys));
-    
-    for idx=1:length(stim.keys)
-        p=pos(randi(size(pos,1),1,1),:);
-        d=sqrt(sum((mesh(end).nodes-ones(nVox,1)*p).^2,2));
-        lst=find(d<20 & d>5);
-        beta(lst,idx)=1;
-    end
+    beta={'BA-46_L'};
 end
 
-[rawNIRS,truthImage,~,truthchanNIRS]=nirs.testing.simDataImage(fwd.nirs,data.nirs,stim,{'BA-46_R'});
-truthImage=truthImage(1:end/2);
-[rawEEG,~,~,truthchanEEG]=eeg.testing.simDataImage(fwd.eeg,data.eeg,stim,{'BA-46_R'});
+
+[rawEEG,truthImage,truthchanEEG]=eeg.testing.simDataImage(fwd.eeg,data.eeg,stim,beta);
+[rawNIRS,~,truthchanNIRS]=nirs.testing.simDataImage(fwd.nirs,data.nirs,stim,beta);
 
 data={};
 data{1}=rawEEG;
