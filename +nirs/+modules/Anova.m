@@ -46,7 +46,9 @@ classdef Anova < nirs.modules.AbstractModule
                 end
                 
                 % weights
-                w = [w; 1./sqrt(diag(S(i).covb))];
+                [u, s, ~] = svd(S(i).covb, 'econ');
+                tmpW = u * pinv(s).^.5 * u';
+                w = [w; diag(tmpW'*tmpW)];
                 
                 % table of variables
                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
@@ -58,6 +60,8 @@ classdef Anova < nirs.modules.AbstractModule
             
             % sort
             [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type', 'cond'});
+            b = b(idx);
+            w = w(idx);
             
             % list for first source
             [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
@@ -73,6 +77,7 @@ classdef Anova < nirs.modules.AbstractModule
             nRE=max(1,length(strfind(obj.formula,'|')));
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             variables = table([],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'});
+            
             F = []; df1 = []; df2 = [];
             for iChan = 1:max(lst)
                 
@@ -81,7 +86,7 @@ classdef Anova < nirs.modules.AbstractModule
                 beta = b(lst == iChan);
                 
                 lm = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
-                        'reference', 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1), ...
+                        'effects', 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1), ...
                         'Weights', w(lst==iChan));
                     
                 a = lm.anova();
