@@ -5,6 +5,7 @@ classdef Anova < nirs.modules.AbstractModule
     properties
         formula = 'beta ~ 1 + group*cond + (1|subject)';
         centerVars = false;
+        weighted = true;
     end
 
     methods
@@ -46,9 +47,13 @@ classdef Anova < nirs.modules.AbstractModule
                 end
                 
                 % weights
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                tmpW = u * pinv(s).^.5 * u';
-                w = [w; diag(tmpW'*tmpW)];
+                if obj.weighted
+                    [u, s, ~] = svd(S(i).covb, 'econ');
+                    tmpW = u * pinv(s).^.5 * u';
+                    w = [w; diag(tmpW'*tmpW)];
+                else
+                    w = [w; ones(length(S(i).beta),1)];
+                end
                 
                 % table of variables
                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
