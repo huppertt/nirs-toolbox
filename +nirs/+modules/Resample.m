@@ -41,8 +41,6 @@ classdef Resample < nirs.modules.AbstractModule
                     % resample data
                     d = data(i).data;
                     t = data(i).time;
-                    N = floor((t(end)-t(1)) * obj.Fs)+1;
-                    new_t = t(1) + (0:N-1)' / obj.Fs;
                     
                     % de-mean the data to avoid edge effects
                     mu = nanmean(d);
@@ -60,12 +58,13 @@ classdef Resample < nirs.modules.AbstractModule
                         d = filtfilt(b,1,d);
                         
                         % interpolation
+                        N = floor((t(end)-t(1)) * obj.Fs)+1;
+                        new_t = t(1) + (0:N-1)' / obj.Fs;
                         d = interp1(t,d,new_t,'linear');
                     else
                         % The data is too large, use the resample function
                         % instead
-                        [P,Q] = rat(obj.Fs/data(i).Fs);
-                        d=resample(d,P,Q);
+                        [d,new_t]=resample(d,t,obj.Fs);
                     end
                     
                     % restore original mean
