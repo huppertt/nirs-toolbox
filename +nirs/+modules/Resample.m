@@ -8,6 +8,9 @@ classdef Resample < nirs.modules.AbstractModule
     properties
         Fs = 4; % new sampling frequency (Hz)
     end
+    properties (Hidden=true)
+        antialias = [];
+    end
     
     methods
         function obj = Resample( prevJob )
@@ -19,6 +22,19 @@ classdef Resample < nirs.modules.AbstractModule
         end
         
         function data = runThis( obj, data )
+            
+            % Autodetect whether to use antialiasing (keeping consistent across
+            % all files)
+            if isempty(obj.antialias)
+                obj.antialias = true;
+                for i = 1:numel(data)
+                    if length(data(i).time)>10000
+                        obj.antialias = false;
+                        break;
+                    end
+                end
+            end
+            
             for i = 1:numel(data)
                 if obj.Fs < data(i).Fs
                     
@@ -32,7 +48,7 @@ classdef Resample < nirs.modules.AbstractModule
                     mu = nanmean(d);
                     d = bsxfun(@minus,d,mu);
                     
-                    if(length(t)<10000)
+                    if obj.antialias
 
                         % anti-aliasing filter
                         ord = floor( length(t) / 10 );
