@@ -23,7 +23,7 @@ classdef Data
         probe;             % object describing geometry
         time               % vector of time points
         Fm = 0             % modulation frequency in MHz: 0 for CW; 110 for ISS
-        
+        auxillary = Dictionary();  % to hold generic time series information
         stimulus        = Dictionary();	% struct containing stim vectors (vectors, names, types)
         demographics    = Dictionary();	% table containing demographics (names, values)
     end
@@ -63,6 +63,12 @@ classdef Data
            assert( isa(demo,'Dictionary') )
            obj.demographics = demo;
         end
+        
+        function obj = set.auxillary( obj, auxillary )
+            assert( isa(auxillary,'Dictionary') )
+            obj.auxillary= auxillary;
+        end
+        
         
         function obj = set.time( obj, time )
            assert( isvector(time) )

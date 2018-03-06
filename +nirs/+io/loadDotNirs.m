@@ -52,7 +52,7 @@ function data = loadDotNirs( filenames )
 %             thisFile.data = thisFile.data(:,idx);
 
             if isfield(d,'StimDesign')
-                thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign );
+                thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign,d.t );
             elseif(isfield(d,'CondNames'))
                 % This will handle the HOMER-2 nirs format
                  stims = Dictionary();
@@ -122,6 +122,21 @@ function data = loadDotNirs( filenames )
                     value   = d.Demographics(i).value;
                     thisFile.demographics(name) = value;
                 end
+            end
+         
+            if(isfield(d,'aux') | isfield(d,'aux10'))
+                if(isfield(d,'aux'))
+                    a=d.aux;
+                else
+                    a=d.aux10;
+                end
+                
+                for i=1:size(a,1);
+                    name{i,1}=['aux-' num2str(i)];
+                end
+                aux=nirs.core.GenericData(a,d.t,table(name,repmat({'aux'},length(name),1),'VariableNames',{'name','type'}));
+                aux.description=thisFile.description;
+                thisFile.auxillary('aux')=aux;
             end
             
         % append to list of data

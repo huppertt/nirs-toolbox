@@ -26,6 +26,8 @@ end
 
 function s = convertOneStim( stim,time )
 
+try; stim.continuous=stim.continous; end;  % historic spelling error
+
 if(~isfield(stim,'continuous') || ~stim.continuous)
     
     
