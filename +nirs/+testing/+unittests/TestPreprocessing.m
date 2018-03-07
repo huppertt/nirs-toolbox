@@ -72,9 +72,7 @@ classdef TestPreprocessing < matlab.unittest.TestCase
             obj.od(2).data = d;
             
             % Resample
-            d = resample(d,4,10);
-            time = (0:799) * (1/4);
-            d = d(1:length(time),:);
+            [d,time]=resample(d,obj.od(2).time,4);
             obj.od_resample(2) = raw;
             obj.od_resample(2).time = time;
             obj.od_resample(2).data = d;
@@ -87,7 +85,7 @@ classdef TestPreprocessing < matlab.unittest.TestCase
             obj.hb(2) = raw;
             obj.hb(2).probe.link.type = repmat({'hbo';'hbr'},4,1);
             obj.hb(2).time = time;
-            obj.hb(2).data = zeros(800,8);
+            obj.hb(2).data = zeros(size(d,1),8);
             for src = 1:2
                 for det = 1:2
                     ind1 = find( link.source==src & link.detector==det & link.type==690 );
