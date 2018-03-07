@@ -46,70 +46,30 @@ function data = loadDotNirs( filenames )
 
             % probe
             thisFile.probe = nirs.util.sd2probe( d.SD );
-%             [thisFile.probe.link, idx] = ...
-%                 sortrows(thisFile.probe.link,{'source','detector','type'});
-% 
-%             thisFile.data = thisFile.data(:,idx);
 
+            % stimulus vector
             if isfield(d,'StimDesign')
                 thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign,d.t );
-            elseif(isfield(d,'CondNames'))
-                % This will handle the HOMER-2 nirs format
-                 stims = Dictionary();
-                 for idx=1:length(d.CondNames)
-                    s = nirs.design.StimulusEvents();
-                    s.name=d.CondNames{idx};
-                    s.onset=d.t(find(diff([0; d.s(:,idx)])==1));
-                    s.dur=d.t(find(diff([0; d.s(:,idx)])==-1))-d.t(find(diff([0; d.s(:,idx)])==1));
-                    s.amp=ones(size(s.dur));
-                    if(~isempty(s.amp))
-                        stims(d.CondNames{idx})=s;
-                    end
-                    
-                 end
-                 thisFile.stimulus=stims;
             else
-                % Try to add from the "s" variable directly and use a
-                % defaut naming convention
+                % This will handle the HOMER-2 nirs format
                 stims = Dictionary();
                 for idx=1:size(d.s,2)
-                    try
-                        s = nirs.design.StimulusEvents();
-                        
-                        d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
-                        s.name=['stim_channel' num2str(idx)];
-                        s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
-                        
-                        s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
-                        if(isempty( s.dur))
-                            s.dur=ones(size(s.onset));
-                        end
-                        s.amp=ones(size(s.dur));
-                        if(~isempty(s.onset))
-                            stims(s.name)=s;
-                        end
+                    
+                    if isfield(d,'CondNames')
+                        stimname = d.CondNames{idx};
+                    else
+                        stimname = ['stim_channel' num2str(idx)];
                     end
-                end
-                d.s = nirs.util.aux2stim(d);
-                for idx=1:size(d.s,2)
-                    try
-                        s = nirs.design.StimulusEvents();
-                        
-                        d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
-                        s.name=['aux_channel' num2str(idx)];
-                        s.onset=d.t(find(diff([0; d.s(:,idx)])>.5));
-                        
-                        s.dur=d.t(find(diff([0; d.s(:,idx)])<-.5))-d.t(find(diff([0; d.s(:,idx)])>.5));
-                        if(isempty( s.dur))
-                            s.dur=ones(size(s.onset));
-                        end
-                        s.amp=ones(size(s.dur));
-                        if(~isempty(s.onset))
-                            stims(s.name)=s;
-                        end
+
+                    d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
+
+                    s = nirs.design.vector2event( d.t , d.s(:,idx) , stimname );
+
+                    if(~isempty(s.onset))
+                        stims(stimname)=s;
                     end
+                        
                 end
-                
                 
                 thisFile.stimulus=stims;
                 
@@ -124,14 +84,14 @@ function data = loadDotNirs( filenames )
                 end
             end
          
-            if(isfield(d,'aux') | isfield(d,'aux10'))
+            if(isfield(d,'aux') || isfield(d,'aux10'))
                 if(isfield(d,'aux'))
                     a=d.aux;
                 else
                     a=d.aux10;
                 end
                 
-                for i=1:size(a,1);
+                for i=1:size(a,2)
                     name{i,1}=['aux-' num2str(i)];
                 end
                 aux=nirs.core.GenericData(a,d.t,table(name,repmat({'aux'},length(name),1),'VariableNames',{'name','type'}));
