@@ -1,6 +1,6 @@
 function raw = loadHitachi(filen)
 
-fileroot=strtok(filen,'.csv');
+fileroot=filen(1:strfind(filen,'.csv')-1);
 if(~isempty(strfind(filen,'_MES')))
     fileroot=fileroot(1:strfind(fileroot,'_MES')-1);
 elseif(~isempty(strfind(filen,'_EXT')))
@@ -21,11 +21,15 @@ end
 % Now put all the data together
 raw=nirs.core.Data;
 raw.demographics('Name')=info{1}.Name';
-raw.demographics('Age')=str2num(info{1}.Age(1:end-1)');
+if(~isempty(info{1}.Age))
+    raw.demographics('Age')=str2num(info{1}.Age(1:end-1)');
+end
 raw.demographics('Gender')=info{1}.Sex';
 raw.demographics('ID')=info{1}.ID';
-raw.demographics('Comment')=info{1}.Comment';
-raw.demographics('Patient Info')=info{1}.Patient_Information';
+if(~isempty(info{1}.Comment))
+    raw.demographics('Comment')=info{1}.Comment';
+end
+%raw.demographics('Patient Info')=info{1}.Patient_Information';
 
 raw.description=fullfile(pwd,filen);
 
@@ -36,6 +40,12 @@ for i=1:length(data)
 end
 
 
+if(length(info)==1)
+    info{2}=info{1};
+    info{2}.Probe2=info{2}.Probe1;
+    info{2}=rmfield(info{2},'Probe1');
+end
+    
 % Now deal with the probe
 SrcPos=[]; DetPos=[]; link=table;
 for i=1:length(info)
@@ -88,12 +98,16 @@ TData=textscan(fid,s,'delimiter',',');
 %Start of data
 dIdx=find(ismember(TData{1},'Data'))+1;
 
+ChanIdx=find(ismember(TData{1},'PreScan'));
+nChan=ChanIdx-dIdx+1;
+
+
 % Get the Data
-data=zeros(length(TData{1})-dIdx,cnt-1);
+data=zeros((length(TData{1})-ChanIdx)/nChan,nChan);
 
 f=[]; lstNum=[];
-for i=1:length(TData)
-    if(~isempty(str2num(TData{i}{dIdx+1})))
+for i=1:nChan
+    if(isempty(strfind(TData{1}{ChanIdx+i},':')))
         f=[f '%f '];
         lstNum=[lstNum i];
     else
@@ -101,34 +115,64 @@ for i=1:length(TData)
     end
 end
 
+
 % This is faster then getting the data from the TData cell
+%% 
 frewind(fid);
-for i=1:dIdx+1; fgetl(fid); end;
+for i=1:ChanIdx; fgetl(fid); end;
 data=textscan(fid,f,'delimiter',',');
+%% 
 
 data=horzcat(data{lstNum});
 
 
-
+frewind(fid);
 %Parse the header
 info = struct;
-for i=1:dIdx;
-    fld=TData{1}{i};
-    if(~isempty(fld))
-    fld(strfind(fld,' '))='_';
-    fld(strfind(fld,'['))=[];
-    fld(strfind(fld,']'))=[];
-    
-    val={};
-    for j=2:length(TData)
-        v=TData{j}{i};
-        if(~isempty(v))
-        if(~isempty(str2num(v))); v=str2num(v); end;
-        val={val{:} v};
-        end
+for i=1:dIdx
+    fld=fgetl(fid);
+    if(~isempty(strfind(fld,'Data')))
+       continue
     end
-    try; val=vertcat(val{:}); end;
-    info=setfield(info,fld,val');
+    j=min(strfind(fld,','));
+    if(~isempty(j))
+        vals=fld(j+1:end);
+        fld=fld(1:j-1);
+        
+        
+        fld(strfind(fld,' '))='_';
+        fld(strfind(fld,'['))=[];
+        fld(strfind(fld,']'))=[];
+        
+        val={};
+        lst=strfind(vals,',');
+        
+        if(isempty(lst))
+            if(~isempty(str2num(vals))); vals=str2num(vals); end;
+            val=vals;
+        else
+            lst=[lst length(vals)+1];
+            for jj=1:length(lst)
+                v=vals(1:lst(jj)-1);
+                if(jj<length(lst))
+                vals(1:lst(jj))=[];
+                lst=lst-lst(jj);
+                end
+                if(~isempty(v))
+                    if(~isempty(str2num(v))); v=str2num(v); end;
+                    val={val{:} v};
+                end
+            end
+        end
+        
+       % try; val=vertcat(val{:}); end;
+        
+        info=setfield(info,fld,val');
+        
+        if(~isempty(strfind(fld,'Probe1')) || ~isempty(strfind(fld,'EXT_AD')))
+            break
+        end
+        
     end
 end
 
@@ -142,7 +186,9 @@ switch(info.Mode')
     case('3x5')
        m=3;
        n=5;
-               
+    case('3x3');
+        m=3;
+        n=3;
     otherwise
         % I don't want to just assume I can do this based on the mode
         error('This is a different probe design');
@@ -162,7 +208,9 @@ DetPos=[X(2:2:end)' Y(2:2:end)' Z(2:2:end)'];
 
 [sI,dI]=meshgrid([1:size(SrcPos,1)],[1:size(DetPos,1)]);
 
-WL=reshape(repmat(info.Wavenm,length(sI(:)),1),[],1);
+WL=reshape(repmat(info.Wavenm',length(sI(:)),1),[],1);
+
+if(iscell(WL)); WL=cell2mat(WL); end;
 
 link=table([sI(:); sI(:)],[dI(:); dI(:)],WL,'VariableNames',{'source','detector','type'});
 link=sortrows(link,{'detector','source','type'});
