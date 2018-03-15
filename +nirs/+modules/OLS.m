@@ -63,6 +63,7 @@ classdef OLS < nirs.modules.AbstractGLM
                 obj.checkCondition( [X C] )
                 
                 % run regression
+                stats = struct;
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
