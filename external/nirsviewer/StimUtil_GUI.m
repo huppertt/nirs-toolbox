@@ -100,7 +100,7 @@ for i=1:length(stimevent.onset)
     C{i,1}=stimevent.name;
     C{i,2}=stimevent.onset(i);
     C{i,3}=stimevent.amp(i);
-    C{i,4}=stimevent.dur(i);
+    C{i,4}=num2str(stimevent.dur(i));
 end
 set(handles.uitable1,'Data',C);
 
@@ -357,14 +357,17 @@ sv=nirs.design.StimulusEvents;
 C=get(handles.uitable1,'Data');
 
 for i=1:size(C,1)
-    if(~isempty(C{i,1} & ~isempty(C{i,2}) & ...
-            ~isempty(C{i,3}) & ~isempty(C{i,4})))
+    if(~isempty(C{i,2}) & ...
+            ~isempty(C{i,3}) & ~isempty(C{i,4}))
         
-        if(strcmp(C{i,1},stimnames{selected}))
+        if(isempty(C{i,1}) || strcmp(C{i,1},stimnames{selected}))
             sv.name=stimnames{selected};
             sv.onset(end+1)=C{i,2};
             sv.amp(end+1)=C{i,3};
-            sv.dur(end+1)=C{i,4};
+            
+           C{i,4}=num2str(str2num(C{i,4}));
+            
+            sv.dur(end+1)=str2num(C{i,4});
         elseif(~isempty(C{i,1}))
             if(ismember(C{i,1},raw(selected).stimulus.keys))
                 sv2=raw(selected).stimulus(C{i,1});
@@ -374,13 +377,18 @@ for i=1:size(C,1)
             sv2.name=C{i,1};
             sv2.onset(end+1)=C{i,2};
             sv2.amp(end+1)=C{i,3};
-            sv2.dur(end+1)=C{i,4};
+            
+            
+            C{i,4}=num2str(str2num(C{i,4}));
+            
+            sv2.dur(end+1)=str2num(C{i,4});
             raw(selected).stimulus(C{i,1})=sv2;
             
         end
   
     end
 end
+set(handles.uitable1,'Data',C);
 raw(selected).stimulus(stimnames{idx})=sv;
 
 set(handles.figure1,'UserData',raw);

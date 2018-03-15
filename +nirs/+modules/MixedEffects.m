@@ -214,6 +214,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             for i=1:length(S)
                 for j=1:S(i).basis.stim.count;
                     n{cnt}=S(i).basis.stim.values{j}.name;
+                    if(isempty(n{cnt}))
+                        n{cnt}=S(i).basis.stim.keys{j};
+                    end
+                    
                     b{cnt}=S(i).basis.stim.values{j};
                     cnt=cnt+1;
                 end

@@ -9,13 +9,14 @@ end
 
 %Read Data
 fileMES=dir([fileroot '_MES*.csv']);
+p=fileparts(fileroot);
 for i=1:length(fileMES)
-    [info{i},data{i}]=parsefile(fileMES(i).name);
+    [info{i},data{i}]=parsefile(fullfile(p,fileMES(i).name));
 end
 %Read Aux 
 fileEXT=dir([fileroot '_EXT*.csv']);
 for i=1:length(fileEXT)
-    [infoEXT{i},dataEXT{i}]=parsefile(fileEXT(i).name);
+    [infoEXT{i},dataEXT{i}]=parsefile(fullfile(p,fileEXT(i).name));
 end
 
 % Now put all the data together
