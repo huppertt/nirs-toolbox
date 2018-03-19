@@ -83,14 +83,15 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         covb(~isgoodcovb) = 0;
                         
                         if obj.weighted
-                            [u, s, ~] = svd(covb, 'econ');
-                            w = u * pinv(s).^.5 * u';
-                            condprojmat = w * condprojmat;
-                            condprojmat = bsxfun(@rdivide,condprojmat,sum(condprojmat));
+                            w = 1./sqrt(sum(covb)./sum(covb~=0));
+                            s = sum(condprojmat);
+                            condprojmat = bsxfun(@times,condprojmat,w');
+                            condprojmat = bsxfun(@rdivide,condprojmat,sum(condprojmat)./s);
                         end
+                        condprojmat2 = sqrt(condprojmat);
                         
                         dataROI(i).beta = (condprojmat' * beta) ./ (condprojmat' * isgoodchan);
-                        dataROI(i).covb = (condprojmat' * covb * condprojmat) ./ (condprojmat' * isgoodcovb * condprojmat);
+                        dataROI(i).covb = (condprojmat2' * covb * condprojmat2) ./ sqrt(condprojmat' * isgoodcovb * condprojmat);
                         dataROI(i).variables = repmat(probe.link,numcond,1);
                         dataROI(i).variables.cond = condvec(:);
                     end
