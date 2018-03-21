@@ -81,6 +81,17 @@ if(~ismember('subject',table.Properties.VariableNames))
     end
 end
 
+if(~iscell(table.group))
+    table.group=cellstr(num2str(table.group));
+end
+
+
+if ~iscellstr(table.group)
+    for idx=1:length(data)
+        table.group{idx}='group 1';
+    end
+end
+
 delete(findobj('tag','uitree_cont'));
 delete(findobj('tag','uitree_obj'));
 
@@ -89,6 +100,9 @@ import javax.swing.tree.*;
 root = uitreenode('v0','Subjects', 'Subjects', [], false);
 
 groups=unique(table.group);
+
+
+
 for gIdx=1:length(groups)
     g = uitreenode('v0', groups{gIdx},  groups{gIdx}, [], false);
     lst=find(ismember(table.group, groups{gIdx}));
