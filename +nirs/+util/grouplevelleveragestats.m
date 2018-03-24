@@ -120,12 +120,15 @@ X(idx, :)   = X;
 beta        = b; % already in correct order
 
 
-[Q, R] = qr(X,0);
+R = qr(X,0);
 E = X/R;
 h = sum((E.*E)')';
 
-[Q, R] = qr(W*X,0);
-E = (W*X)/R;
+WX=W*X;
+WX=sparse(WX.*(abs(WX)>eps(1)));
+
+R = qr(WX,0);
+E = (WX)/R;
 hw = sum((E.*E)')';
 
 tb=vars;

@@ -74,18 +74,19 @@ Z = full(Z);
 if zero_theta
     theta = 0;
 else
+   
     theta = solveForTheta(X,Y,Z);
 end
 
 %% Solve initial model
-[beta,bHat,covb,LL,sigma2] = solveLME(X,Y,Z,theta);
+[LL,beta,bHat,covb,sigma2] = solveLME(X,Y,Z,theta);
 
 %% Robust loop
 if robust_flag
 
     iter = 1;
     tune = 4.685;
-    D = sqrt(eps(class(X)));
+    D = 100*sqrt(eps(class(X)));
 
     % Adjust by leverage to account for prior weight differences in design matrix
     lev = diag( full(X) * pinv(full(X)) );
@@ -93,7 +94,7 @@ if robust_flag
     xrank = rank(X);
     num_params = max(1,xrank);
     
-    while iter<50
+    while iter<10
 
         % Calculate residuals and weights from previous iteration
         resid = (Y - X*beta - Z*bHat) .* adj;
@@ -115,7 +116,7 @@ if robust_flag
         if ~zero_theta
             theta = solveForTheta(w*X,w*Y,w*Z,theta); % Get optimal theta
         end
-        [beta,bHat] = solveLME(w*X,w*Y,w*Z,theta); % Solve model
+        [~,beta,bHat] = solveLME(w*X,w*Y,w*Z,theta); % Solve model
 
         if verbose
             disp(['Robust fit iteration ' num2str(iter) ' : ' num2str(max(abs(beta-beta0)))]);
@@ -181,12 +182,12 @@ end
 %% Calculate log-likelihood associated with a given value of theta
 function LL = calcLogLikelihood(X,y,Z,theta)
 if nargin<4, theta = 0; end
-[~,~,~,LL] = solveLME(X,y,Z,theta);
+[LL] = solveLME(X,y,Z,theta);
 LL = nanmean(-LL);
 end
 
 %% Solve the linear mixed effects model
-function [beta,bHat,covb,PLogLik,sigma2] = solveLME(X,Y,Z,theta,weights)
+function [PLogLik,beta,bHat,covb,sigma2] = solveLME(X,Y,Z,theta,weights)
 if nargin<5, weights = speye(size(X,1)); end
 if nargin<4, theta = 0; end
 if nargin<3, Z = []; end
@@ -203,8 +204,12 @@ Z = weights * Z;
 Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
 Iq = spdiags(ones(nZ,1),0,nZ,nZ);
 
-[R,~,S] = chol( Lambda'*sparse(Z'*Z)*Lambda + Iq );
-Q1 = ((X'*Z*Lambda)*S) / R;
+sZ=sparse(Z);
+Lambda=sparse(Lambda);
+
+a=Lambda'*(sZ'*sZ)*Lambda + Iq;
+[R,~,S] = chol( a );
+Q1 = ((X'*sZ*Lambda)*S) / R;
 R1R1t = X'*X - Q1*Q1';
 R1 = cholSafe(R1R1t,'lower');
 
@@ -219,19 +224,23 @@ bHat = Lambda * Deltab;
 resid=(Y - X*beta - Z*bHat);
 r2 = sum(Deltab.^2) + sum(resid.^2);
 
-% Calculate coefficient covariance
-dfe = max(nT-nX,0);
-if isempty(Z)
-    sigma2 = r2/dfe;
-else
-    sigma2 = r2/nT;
-end
-xr = rank(X);
-invR1 = R1(1:xr,1:xr) \ eye(xr);
-covb = sigma2*(invR1'*invR1);
 
 % Calculate log-likelihood
 PLogLik = (-nT/2)*( 1 + log( 2*pi*r2/nT ) ) - logDet(R);
+
+if(nargout>1)
+    % Calculate coefficient covariance
+    dfe = max(nT-nX,0);
+    if isempty(Z)
+        sigma2 = r2/dfe;
+    else
+        sigma2 = r2/nT;
+    end
+    xr = rank(X);
+    invR1 = R1(1:xr,1:xr) \ eye(xr);
+    covb = sigma2*(invR1'*invR1);
+    
+end
 
 end
 

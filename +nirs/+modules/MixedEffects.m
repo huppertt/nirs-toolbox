@@ -19,7 +19,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         include_diagnostics=false;
         robust=false;
         weighted=true;
-        verbose=false;
+        verbose=true;
     end
     
     methods
@@ -53,13 +53,18 @@ classdef MixedEffects < nirs.modules.AbstractModule
             % preallocate group stats
             G = nirs.core.ChannelStats();
             
-            %% loop through files
-            W = sparse([]);
-            iW = sparse([]);
+            if(obj.weighted)
+                %% loop through files
+                W = sparse([]);
+                iW = sparse([]);
+            end
             
             b = [];
             vars = table();
             for i = 1:length(S)
+                
+               
+                
                 % coefs
                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
                     b = [b; S(i).tstat];
@@ -69,13 +74,17 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
                 % whitening transform
                 
-
-                
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
-                W = blkdiag(W, pinv(s).^.5 * u');
-                
-                iW = blkdiag(iW, u*sqrt(s) );
+                if(obj.weighted)
+                    if(obj.verbose)
+                        nirs.util.flushstdout(1);
+                        fprintf( 'preparing covariance model %4i of %4i.\n', i, length(S) )
+                    end
+                    [u, s, ~] = svd(S(i).covb, 'econ');
+                    %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                    W = blkdiag(W, pinv(s).^.5 * u');
+                    
+                    iW = blkdiag(iW, u*sqrt(s) );
+                end
                 
                 
                 %                L = chol(S(i).covb,'upper');
@@ -130,7 +139,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             X = kron(speye(nchan), X);
             Z = kron(speye(nchan), Z);
             
-            if ~obj.weighted
+            if obj.weighted
                 W = speye(size(X,1));
                 iW = speye(size(X,1));
             end
@@ -141,37 +150,43 @@ classdef MixedEffects < nirs.modules.AbstractModule
             Z(idx, :)   = Z;
             beta        = b; % already in correct order
             
-            %% check weights
-            dWTW = sqrt(diag(W'*W));
-            
-            % Edit made 3/20/16-  Treat each modality seperately.  This
-            % avoids issues with mixed data storage (e.g. StO2,Hb, CMRO2)
-            % etc.
-            utypes=unique(vars.type);
-            if(~iscellstr(utypes)); utypes={utypes(:)}; end
-            lstBad=[];
-            for iT=1:length(utypes)
-                lst=ismember(vars.type,utypes{iT});
-                m = median(dWTW(lst));
+            if(obj.weighted)
+                %% check weights
+                dWTW = sqrt(diag(W'*W));
                 
-                %W(dWTW > 100*m,:) = 0;
-                lstBad=[lstBad; find(dWTW(lst) > 100*m)];
+                % Edit made 3/20/16-  Treat each modality seperately.  This
+                % avoids issues with mixed data storage (e.g. StO2,Hb, CMRO2)
+                % etc.
+                utypes=unique(vars.type);
+                if(~iscellstr(utypes)); utypes={utypes(:)}; end
+                lstBad=[];
+                for iT=1:length(utypes)
+                    lst=ismember(vars.type,utypes{iT});
+                    m = median(dWTW(lst));
+                    
+                    %W(dWTW > 100*m,:) = 0;
+                    lstBad=[lstBad; find(dWTW(lst) > 100*m)];
+                end
+                
+                W(lstBad,:)=[];
+                W(:,lstBad)=[];
+                X(lstBad,:)=[];
+                Z(lstBad,:)=[];
+                beta(lstBad,:)=[];
+                %% Weight the model
+                
+                Xorig=X;
+                Zorig=Z;
+                betaOrig=beta;
+                
+                X    = W*X;
+                Z    = W*Z;
+                beta = W*beta;
+            else
+                Xorig=X;
+                Zorig=Z;
+                betaOrig=beta;
             end
-            
-            W(lstBad,:)=[];
-            W(:,lstBad)=[];
-            X(lstBad,:)=[];
-            Z(lstBad,:)=[];
-            beta(lstBad,:)=[];
-            %% Weight the model
-                
-            Xorig=X;
-            Zorig=Z;
-            betaOrig=beta;
-                       
-             X    = W*X;
-             Z    = W*Z;
-             beta = W*beta;
             
             [i,j]=find(isnan(X));
             lst=find(~ismember(1:size(X,1),unique(i)));
@@ -181,8 +196,20 @@ classdef MixedEffects < nirs.modules.AbstractModule
             lstKeep=find(~all(X==0));
             
             %% fit the model
-            [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,false);
+            if(obj.verbose)
+                disp('Solving linear model');
+                tic;
+            end
+            [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,obj.verbose);
             
+            % this gives the same results as the built in matlab code,
+            % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s 
+            % lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+            
+             if(obj.verbose)
+                disp(['Finished solving: time elapsed ' num2str(toc) 's']);
+                
+            end
             cnames = lm1.CoefficientNames(:);
             for idx=1:length(cnames);
                 cnames{idx}=cnames{idx}(max([0 min(strfind(cnames{idx},'_'))])+1:end);
@@ -198,8 +225,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.covb(lstKeep,lstKeep) = CovB;
             G.dfe        = lm1.DFE;
             
-%             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
-%             G.dfe=length(beta)-sum(U(:).*U(:));
+            %             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
+            %             G.dfe=length(beta)-sum(U(:).*U(:));
             
             G.probe      = S(1).probe;
             
@@ -209,7 +236,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{4} = 'cond';
             G.description = ['Mixed Effects Model: ' obj.formula];
-                       
+            
             n={}; b={}; cnt=1;
             for i=1:length(S)
                 for j=1:S(i).basis.stim.count;
@@ -229,49 +256,56 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 G.basis.stim(n{j(i)})=b{j(i)};
             end
             
-          if(obj.include_diagnostics)
+            if(obj.include_diagnostics)
+                if(obj.verbose)
+                    disp('Adding diagnostics information');
+                end
+                
                 %Create a diagnotistcs table of the adjusted data
                 yproj = betaOrig - Zorig*bHat;
                 [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
                 vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
                 if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
                 btest=[]; models=cell(height(G.variables),1);
-                for idx=1:max(lst)                   
-                       ll=find(lst == idx);
-                       tmp = vars(ll, :);
-                       beta = yproj(ll);
+                for idx=1:max(lst)
+                    ll=find(lst == idx);
+                    tmp = vars(ll, :);
+                    beta = yproj(ll);
+                    if(obj.weighted)
+                        ww=w(ll).*full(dWTW(ll));
+                        mdl{idx} = fitlm([table(beta,'VariableNames',{respvar}) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',ww.^2,'dummyVarCoding','full');
+                    else
+                        mdl{idx} = fitlm([table(beta,'VariableNames',{respvar}) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'dummyVarCoding','full');
                         
-                       ww=w(ll).*full(dWTW(ll));
-                       mdl{idx} = fitlm([table(beta,'VariableNames',{respvar}) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',ww.^2,'dummyVarCoding','full');
-                          
-                       
-                       btest=[btest; mdl{idx}.Coefficients.Estimate];
-                       
-                        for j=1:length(mdl{idx}.CoefficientNames)
-                            cc=mdl{idx}.CoefficientNames{j};
-                            
-                            xSrc = arrayfun( @isequal, G.variables.source, repmat(sd.Var1(idx),length(G.variables.source),1) );
-                            xDet = arrayfun( @isequal, G.variables.detector, repmat(sd.Var2(idx),length(G.variables.detector),1) );
-                            xType = arrayfun( @isequal, G.variables.type, repmat(sd.Var3(idx),length(G.variables.type),1) );
-                            
-                            id = find(ismember(G.variables.cond,cc) & xSrc);
-                            if(isempty(id))
-                                if(~isempty(strfind(cc,'cond_')))
-                                    cc=cc(strfind(cc,'cond_')+length('cond_'):end);
-                                else
-                                    cc=cc(min(strfind(cc,'_'))+1:end);
-                                end
+                    end
+                    
+                    btest=[btest; mdl{idx}.Coefficients.Estimate];
+                    
+                    for j=1:length(mdl{idx}.CoefficientNames)
+                        cc=mdl{idx}.CoefficientNames{j};
+                        
+                        xSrc = arrayfun( @isequal, G.variables.source, repmat(sd.Var1(idx),length(G.variables.source),1) );
+                        xDet = arrayfun( @isequal, G.variables.detector, repmat(sd.Var2(idx),length(G.variables.detector),1) );
+                        xType = arrayfun( @isequal, G.variables.type, repmat(sd.Var3(idx),length(G.variables.type),1) );
+                        
+                        id = find(ismember(G.variables.cond,cc) & xSrc);
+                        if(isempty(id))
+                            if(~isempty(strfind(cc,'cond_')))
+                                cc=cc(strfind(cc,'cond_')+length('cond_'):end);
+                            else
+                                cc=cc(min(strfind(cc,'_'))+1:end);
                             end
-                            id=find(ismember(G.variables.cond,cc) & xSrc & xDet & xType);
-                           models{id}=mdl{idx};
-                       end
+                        end
+                        id=find(ismember(G.variables.cond,cc) & xSrc & xDet & xType);
+                        models{id}=mdl{idx};
+                    end
                 end
                 %mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
                 G.variables.model=models;
- 
+                
             end
             
-                        
+            
         end
     end
     
