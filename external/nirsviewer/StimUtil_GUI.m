@@ -22,7 +22,7 @@ function varargout = StimUtil_GUI(varargin)
 
 % Edit the above text to modify the response to help StimUtil_GUI
 
-% Last Modified by GUIDE v2.5 20-Sep-2017 21:02:42
+% Last Modified by GUIDE v2.5 25-Mar-2018 10:17:29
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -70,14 +70,19 @@ end
 
 Filenames={};
 for i=1:length(raw)
-    [~,Filenames{i}]=fileparts(raw(i).description);
+    if(~isempty(raw(i).description) && exist(raw(i).description,'file'))
+        [~,Filenames{i}]=fileparts(raw(i).description);
+    else
+        Filenames{i}=['File-' num2str(i)];
+        raw(i).description=Filenames{i};
+    end
 end
 set(handles.popupmenu1,'String',Filenames);
 set(handles.popupmenu1,'Value',1);
 set(handles.figure1,'UserData',raw);
 
 StimUtil_GUI('updateDraw');
-uiwait(handles.figure1);
+waitfor(handles.figure1);
 return
 
 function updateDraw(varargin)
@@ -87,6 +92,7 @@ raw=get(handles.figure1,'UserData');
 selected=get(handles.popupmenu1,'value');
 
 stimnames=nirs.getStimNames(raw(selected));
+if(~isempty(stimnames))
 if(get(handles.listbox1,'Value')>length(stimnames))
     set(handles.listbox1,'Value',1);
 end
@@ -103,11 +109,20 @@ for i=1:length(stimevent.onset)
     C{i,4}=num2str(stimevent.dur(i));
 end
 set(handles.uitable1,'Data',C);
-
+else
+    set(handles.uitable1,'Data',{});
+end
 
 axes(handles.axes1);
 cla(handles.axes1);
-raw(selected).draw([]);
+
+if(strcmp(handles.showStimMarks.Checked,'on') & ~strcmp(handles.showfNIRS.Checked,'on'))
+    raw(selected).draw([]);
+elseif(strcmp(handles.showStimMarks.Checked,'on') & strcmp(handles.showfNIRS.Checked,'on'))
+    raw(selected).draw;
+elseif(~strcmp(handles.showStimMarks.Checked,'on') & strcmp(handles.showfNIRS.Checked,'on'))
+    plot(raw(selected).time,raw(selected).data);
+end
 
 
 
@@ -140,7 +155,7 @@ function popupmenu1_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns popupmenu1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from popupmenu1
-StimUtil_GUI('updateDraw');
+updateDraw(hObject, eventdata, handles);
 
 
 % --- Executes during object creation, after setting all properties.
@@ -164,8 +179,7 @@ function listbox1_Callback(hObject, eventdata, handles)
 
 % Hints: contents = cellstr(get(hObject,'String')) returns listbox1 contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from listbox1
-StimUtil_GUI('updateDraw');
-
+updateDraw(hObject, eventdata, handles);
 
 % --- Executes during object creation, after setting all properties.
 function listbox1_CreateFcn(hObject, eventdata, handles)
@@ -204,7 +218,7 @@ if(~isempty(ANSWER) && ~isempty(str2num(ANSWER{1})))
     raw(selected).stimulus(stimnames{idx})=stimevent;
     
     set(handles.figure1,'UserData',raw);
-    StimUtil_GUI('updateDraw');
+   updateDraw(hObject, eventdata, handles);
 end
 
 % --------------------------------------------------------------------
@@ -230,7 +244,7 @@ if(~isempty(ANSWER) && ~isempty(str2num(ANSWER{1})))
     raw(selected).stimulus(stimnames{idx})=stimevent;
     
     set(handles.figure1,'UserData',raw);
-    StimUtil_GUI('updateDraw');
+    updateDraw(hObject, eventdata, handles);
 end
 
 % --------------------------------------------------------------------
@@ -255,7 +269,7 @@ if(~isempty(ANSWER) && ~isempty(str2num(ANSWER{1})))
     raw(selected).stimulus(stimnames{idx})=stimevent;
     
     set(handles.figure1,'UserData',raw);
-    StimUtil_GUI('updateDraw');
+    updateDraw(hObject, eventdata, handles);
 end
 
 % --------------------------------------------------------------------
@@ -288,7 +302,7 @@ if(~isempty(answer))
     end
     
     set(handles.figure1,'UserData',raw);
-    StimUtil_GUI('updateDraw');
+    updateDraw(hObject, eventdata, handles);
 end
 
 % --------------------------------------------------------------------
@@ -316,7 +330,7 @@ if(strcmp(ButtonName,'Yes'))
     end
     
     set(handles.figure1,'UserData',raw);
-    StimUtil_GUI('updateDraw');
+    updateDraw(hObject, eventdata, handles);
 end
 
 % --------------------------------------------------------------------
@@ -360,12 +374,35 @@ for i=1:size(C,1)
     if(~isempty(C{i,2}) & ...
             ~isempty(C{i,3}) & ~isempty(C{i,4}))
         
-        if(isempty(C{i,1}) || strcmp(C{i,1},stimnames{selected}))
-            sv.name=stimnames{selected};
-            sv.onset(end+1)=C{i,2};
+        if(isempty(stimnames))
+           if(isempty(C{i,1}))
+               C{i,1}='Event-1';
+           end
+           stimnames={C{i,1}};
+           idx=1;
+           set(handles.listbox1,'String',stimnames);
+          set(handles.listbox1,'value',idx);
+           
+        end
+        
+        if(isempty(C{i,1}) || strcmp(C{i,1},stimnames{idx}))
+            sv.name=stimnames{idx};
+            
+            if(isstr( C{i,2}))
+                C{i,2}=num2str(str2num(C{i,2}));
+            else
+                 C{i,2}=num2str(C{i,2});
+            end
+            
+            
+            sv.onset(end+1)=str2num(C{i,2});
             sv.amp(end+1)=C{i,3};
             
-           C{i,4}=num2str(str2num(C{i,4}));
+           if(isstr( C{i,4}))
+             C{i,4}=num2str(str2num(C{i,4}));
+           else
+                C{i,4}=num2str(C{i,4});
+           end
             
             sv.dur(end+1)=str2num(C{i,4});
         elseif(~isempty(C{i,1}))
@@ -375,12 +412,23 @@ for i=1:size(C,1)
                 sv2=nirs.design.StimulusEvents;
             end
             sv2.name=C{i,1};
-            sv2.onset(end+1)=C{i,2};
+            
+            if(isstr( C{i,2}))
+                C{i,2}=num2str(str2num(C{i,2}));
+            else
+                 C{i,2}=num2str(C{i,2});
+            end
+            
+            
+            
+            sv2.onset(end+1)=str2num(C{i,2});
             sv2.amp(end+1)=C{i,3};
             
-            
-            C{i,4}=num2str(str2num(C{i,4}));
-            
+            if(isstr( C{i,4}))
+                C{i,4}=num2str(str2num(C{i,4}));
+            else
+                C{i,4}=num2str(C{i,4});
+            end
             sv2.dur(end+1)=str2num(C{i,4});
             raw(selected).stimulus(C{i,1})=sv2;
             
@@ -392,8 +440,7 @@ set(handles.uitable1,'Data',C);
 raw(selected).stimulus(stimnames{idx})=sv;
 
 set(handles.figure1,'UserData',raw);
-StimUtil_GUI('updateDraw');
-
+updateDraw(hObject, eventdata, handles);
 
 return
 
@@ -404,7 +451,7 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 uiresume;
-%closereq;
+closereq;
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
@@ -425,8 +472,290 @@ handles=guihandles(gcf);
 
 C=get(handles.uitable1,'Data');
 C{end+1,1}=C{1,1};
-C{end,2}=0;
+C{end,2}='0';
 C{end,3}=1;
-C{end,4}=1;
+C{end,4}='1';
 
 set(handles.uitable1,'Data',C);
+
+
+% --------------------------------------------------------------------
+function showStimMarks_Callback(hObject, eventdata, handles)
+% hObject    handle to showStimMarks (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if(strcmp(get(handles.showStimMarks,'checked'),'on'))
+    set(handles.showStimMarks,'checked','off');
+else
+     set(handles.showStimMarks,'checked','on');
+end
+
+updateDraw(hObject, eventdata, handles);
+return
+
+% --------------------------------------------------------------------
+function showfNIRS_Callback(hObject, eventdata, handles)
+% hObject    handle to showfNIRS (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if(strcmp(get(handles.showfNIRS,'checked'),'on'))
+    set(handles.showfNIRS,'checked','off');
+else
+     set(handles.showfNIRS,'checked','on');
+end
+updateDraw(hObject, eventdata, handles);
+return
+
+% --------------------------------------------------------------------
+function showAuxData_Callback(hObject, eventdata, handles)
+% hObject    handle to showAuxData (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+if(strcmp(get(handles.showAuxData,'checked'),'on'))
+    set(handles.showAuxData,'checked','off');
+else
+     set(handles.showAuxData,'checked','on');
+end
+
+updateDraw(hObject, eventdata, handles);
+return
+
+% --------------------------------------------------------------------
+function click_window_Callback(hObject, eventdata, handles)
+% hObject    handle to click_window (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+h = imrect;
+position = wait(h);
+
+onset=position(1);
+dur = position(3);
+
+C=get(handles.uitable1,'Data');
+if(~isempty(C))
+    C{end+1,1}=C{1,1};
+else
+    C{end+1,1}='Event-1';
+end
+C{end,2}=num2str(onset);
+C{end,3}=1;
+C{end,4}=num2str(dur);
+set(handles.uitable1,'Data',C);
+
+delete(h);
+uitable1_CellEditCallback(hObject, eventdata, handles);
+
+return
+
+
+% --------------------------------------------------------------------
+function export_Callback(hObject, eventdata, handles)
+% hObject    handle to export (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function import_Callback(hObject, eventdata, handles)
+% hObject    handle to import (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function importcurrent_xls_Callback(hObject, eventdata, handles)
+% hObject    handle to importcurrent_xls (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+[filename, pathname] = uigetfile( ...
+    {'*.xls'}, ...
+    'Select file');
+
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+
+filename=fullfile(pathname,filename);
+raw(selected)=nirs.design.read_excel2stim(raw(selected),filename);
+set(handles.figure1,'UserData',raw);
+ StimUtil_GUI('updateDraw');
+
+
+% --------------------------------------------------------------------
+function importall_xls_Callback(hObject, eventdata, handles)
+% hObject    handle to importall_xls (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+raw=get(handles.figure1,'UserData');
+
+[filename, pathname] = uigetfile( ...
+    {'*.xls'}, ...
+    'Select file');
+
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+
+filename=fullfile(pathname,filename);
+raw=nirs.design.read_excel2stim(raw,filename);
+set(handles.figure1,'UserData',raw);
+StimUtil_GUI('updateDraw');
+
+
+
+% --------------------------------------------------------------------
+function import_clipboard_Callback(hObject, eventdata, handles)
+% hObject    handle to import_clipboard (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+data=clipboard('paste');
+header=textscan(data(1:min(find(double(data)==13))),'%s','Delimiter','\t');
+C={}; cnt=1;
+s=[];
+for i=1:length(header{1})
+    s=[s '%s'];
+end
+a=textscan(data,s,'Delimiter','\t');
+
+for i=1:length(header{1})-1
+    names{i,1}=header{1}{i}(1:max(strfind(header{1}{i},'_'))-1);
+end
+unames=unique(names);
+
+C={};
+
+for i=1:length(unames)
+    lstOn=find(ismember(header{1},[unames{i} '_onset']));
+    lstDur=find(ismember(header{1},[unames{i} '_duration']));
+    lstAmp=find(ismember(header{1},[unames{i} '_amplitude']));
+   
+    for j=3:length(a{lstOn})
+        C{end+1,1}=unames{i};
+        C{end,2}=a{lstOn}{j};
+        C{end,3}=str2num(a{lstAmp}{j});
+        C{end,4}=a{lstDur}{j};
+    end
+    
+end
+    
+set(handles.uitable1,'Data',C);
+uitable1_CellEditCallback(hObject, eventdata, handles);
+
+
+return
+
+
+% --------------------------------------------------------------------
+function exportcurrent_xls_Callback(hObject, eventdata, handles)
+% hObject    handle to exportcurrent_xls (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+[filename, pathname] = uiputfile( ...
+    {'*.xls'}, ...
+    'Save as');
+
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+
+filename=fullfile(pathname,filename);
+nirs.design.save_stim2excel(raw(selected),filename);
+      
+    
+return
+
+
+% --------------------------------------------------------------------
+function exportall_xls_Callback(hObject, eventdata, handles)
+% hObject    handle to exportall_xls (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+raw=get(handles.figure1,'UserData');
+
+[filename, pathname] = uiputfile( ...
+    {'*.xls'}, ...
+    'Save as');
+
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+
+filename=fullfile(pathname,filename);
+nirs.design.save_stim2excel(raw,filename);
+
+
+% --------------------------------------------------------------------
+function export_clipboard_Callback(hObject, eventdata, handles)
+% hObject    handle to export_clipboard (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+
+keys=raw(selected).stimulus.keys;
+Array={};
+for j=1:length(keys)
+    
+    st=raw(selected).stimulus(keys{j});
+    if(isa(st,'nirs.design.StimulusEvents'))
+        Array{1,j+3*(j-1)}=[keys{j} '_onset'];
+        Array{1,j+1+3*(j-1)}=[keys{j} '_duration'];
+        Array{1,j+2+3*(j-1)}=[keys{j} '_amplitude'];
+        
+        for k=1:length(st.onset)
+            Array{1+k,j+3*(j-1)}=st.onset(k);
+            Array{1+k,j+1+3*(j-1)}=st.dur(k);
+            Array{1+k,j+2+3*(j-1)}=st.amp(k);
+        end
+    elseif(isa(st,'nirs.design.StimulusVector'))
+        Array{1,j+3*(j-1)}=[keys{j} '_vector'];
+        Array{1,j+1+3*(j-1)}=[keys{j} '_time'];
+        
+        for k=1:length(st.vector)
+            Array{1+k,j+3*(j-1)}=st.vector(k);
+            Array{1+k,j+1+3*(j-1)}=st.time(k);
+        end
+        
+    end
+    
+    
+end
+for j=1:size(Array,2)
+    
+    for k=1:size(Array,1)
+        if(isempty(Array{k,j}))
+            Array{k,j}=NaN;
+        end
+    end
+end
+
+nirs.util.copytable2clip(cell2table(Array(2:end,:),'VariableNames',Array(1,:)));
+disp('data copied to clipboard');
+
+return
+
+% --------------------------------------------------------------------
+function ViewData_Callback(hObject, eventdata, handles)
+% hObject    handle to ViewData (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)

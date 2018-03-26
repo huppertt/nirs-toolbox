@@ -1,2 +1,2 @@
 % +NIRS TOOLBOX
-% Version 419 www.bitbucket.org/huppertt/nirs-toolbox 11-Aug-2017
+% Version 615 www.bitbucket.org/huppertt/nirs-toolbox 24-Mar-2018

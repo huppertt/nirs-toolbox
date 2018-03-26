@@ -1,5 +1,5 @@
-function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, testingfcn )
-%% simDataSet - simulates a dataset for ROC testing
+function [data, truth] = simDataSet_Outliers( noise, ngroup, stimFunc, beta, channels, testingfcn )
+%% simDataSet - simulates a dataset with outliers for ROC testing
 % 
 % Args:
 %     noise - a list of nirs.core.Data objects to use as baseline noise
@@ -12,13 +12,22 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, te
     if nargin < 1 || isempty(noise)
         for i = 1:30
             noise(i,1) = nirs.testing.simARNoise();
+            lst=randi(size(noise(i,1).data,2),4,1); lst=unique(lst);
+            
+            % this adds extra random noise to a few channels
+             noise(i,1).data(:,lst)=noise(i,1).data(:,lst)+randn(size( noise(i,1).data(:,lst)))*10;
         end
+          
     end
     
     if(~isa(noise,'nirs.core.Data'))
         id=noise; clear noise;
          for i = 1:id
             noise(i,1) = nirs.testing.simARNoise();
+            
+             % this adds extra random noise to a few channels
+             lst=randi(size(noise(i,1).data,2),4,1); lst=unique(lst);
+             noise(i,1).data(:,lst)=noise(i,1).data(:,lst)+randn(size( noise(i,1).data(:,lst)))*10;
         end
     end
     

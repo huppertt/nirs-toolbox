@@ -1,8 +1,7 @@
 %% This is a second demo of the analysis.  
 % This demo will cover slightly more advanced topics including:
 %   Using the FIR deconvolution model
-%   Region-of-interest averages
-%   Probe registration and display using the Probe1020 format
+%   Student t-test contrast from the FIR model
 
 clear 
 % change this to save results somewhere else
@@ -139,6 +138,32 @@ job = nirs.modules.MixedEffects();
 % model can take a long time and use alot of memory for large models.  The
 % FIR model has 18 conditions (8+10) x 70 channel for a total of 1260 elements
 
-job = nirs.modules.GroupAverage();
+job.formula='beta ~ -1 + cond';  % using random effects will work, but will take a while to run
+                                % let's use the fixed effects only modle
+                                
+ GroupStats=job.run(SubjStats);
+  
+ HRF = GroupStats.HRF;  % the "HRF" command will return the time series from the stats variable.  This also works for 
+                        % all the other canonical models (although
+                        % obviously a canonical model will have a trivial
+                        % shape)
+ nirs.viz.plot2D(HRF);  % this will plot overlain on the probe layout
+ 
+ 
+ % to draw contrast, you need to specify a time-window
+ 
+% a contrast window based on time  
+GroupStats.ttest({'A[3:8s]'}).draw
+
+% a contrast window using a tapered shape (based on the canonical model)
+GroupStats.ttest({'A[canonical]'}).draw
+
+% a contast window based on the sample point (2-8 is the 2nd through 8th
+% beta term and requires knowledge of the FIR binwidth).  
+GroupStats.ttest({'A[2:8]'}).draw 
+ 
+
+
+
 
 

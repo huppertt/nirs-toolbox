@@ -4,6 +4,7 @@ classdef StimulusEvents
         onset
         dur
         amp
+        metadata=table;
     end
     
     methods
@@ -12,6 +13,7 @@ classdef StimulusEvents
            if nargin > 1, obj.onset = onset; end
            if nargin > 2, obj.dur   = dur; end
            if nargin > 3, obj.amp   = amp; end
+           
         end
         
         function vec = getStimVector( obj, time )

@@ -24,7 +24,7 @@ jobs.basis('default')=bas;
 
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='SubjStats';
-jobs = nirs.modules.GroupAverage(jobs );
+jobs = nirs.modules.MixedEffects(jobs );
 jobs.formula       = 'beta ~ -1 + cond';  % See help fitlme for examples
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='GroupStats';

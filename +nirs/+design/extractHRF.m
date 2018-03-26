@@ -72,13 +72,20 @@ tbl=Stats.table;
 data=[]; var=table;
 for j=1:height(tbl2)
     t=tbl(lst==j,:);
-    [~,i]=ismember(t.cond,Stats.conditions);
-    if(strcmp(type,'hrf'))
-        H = X*t.beta(i);
-    else
-        H = X*t.tstat(i);
+    
+    for ii=1:stimulus.count
+        lst2=find(StimMapping(:,1)==ii);
+        i=find(ismember(t.cond,Stats.conditions(lst2,:)));
+       
+        if(strcmp(type,'hrf'))
+            H = X(:,lst2)*t.beta(i);
+        else
+            H = X(:,lst2)*t.tstat(i);
+        end
+        data=[data H];
     end
-    data=[data H];
+    
+    
     tt=tbl2(j,:);
     tt=repmat(tt,duration.count,1);
     tt.type=strcat(tt.type,repmat('-',duration.count,1),duration.keys(:));

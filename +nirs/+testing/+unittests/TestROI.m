@@ -21,8 +21,7 @@ classdef TestROI < matlab.unittest.TestCase
             probe = nirs.core.Probe(srcPos, detPos, link);
             
             % Create ROI
-            obj.ROIs = table({},{},{},'VariableNames',{'source','detector','name'});
-            obj.ROIs(1,:) = array2table({[1 1],[1 2],'ALL'});
+            obj.ROIs= table(NaN,NaN,{'ALL'},'VariableNames',{'source','detector','name'});
 
             % Test case #1
             % hbo- 1. low beta, high var (t=1), 2. high beta, low var (t=6)

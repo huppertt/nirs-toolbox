@@ -309,8 +309,8 @@ GroupStatsFE = job.run(SubjStats);   % this took about <1s on my computer.
 
 %% Part III ROC analysis
 ROC = nirs.testing.ChannelStatsROC;
-ROC.simfunc=@nirs.testing.simDataSet;
+ROC.simfunc=@()nirs.testing.simDataSet(10);
 ROC.pipeline=nirs.modules.default_modules.group_analysis;
 
-ROC=ROC.run(3);
+ROC=ROC.run(100);
 
