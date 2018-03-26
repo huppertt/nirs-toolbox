@@ -139,7 +139,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             X = kron(speye(nchan), X);
             Z = kron(speye(nchan), Z);
             
-            if obj.weighted
+            if ~obj.weighted
                 W = speye(size(X,1));
                 iW = speye(size(X,1));
             end

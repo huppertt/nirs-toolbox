@@ -33,7 +33,8 @@ DetPos = probeInfo.probes.coords_d2;
 DetPos(:,3)=0;
 
 
-if(isfield(info,'ShortDetectors') && ~isempty(info.ShortDetectors))
+if(isfield(info,'ShortDetectors') && ~isempty(info.ShortDetectors) && ...
+        info.ShortDetectors)
     info.S_D_Mask(:,end-info.ShortDetectors+1:end)=[];
     DetPos(info.Detectors-info.ShortDetectors+1:end,:)=[];
     useshortdistances=true;
@@ -42,14 +43,15 @@ else
 end
 % 
 % info.S_D_Mask =[
-%      1     1     0     1
-%      1     1     1     0
-%      1     0     0     0
-%      1     0     0     0
-%      0     0     1     0
-%      0     0     1     0
-%      0     0     0     1
-%      0     0     0     1];
+     1     1     0     1
+     1     1     1     0
+     1     0     0     0
+     1     0     0     0
+     0     0     1     0
+     0     0     1     0
+     0     0     0     1
+     0     0     0     1
+     ];
 [s,d]=find(info.S_D_Mask);
 
 
