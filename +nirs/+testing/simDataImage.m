@@ -28,6 +28,7 @@ function [data, truth, fwdModel, truthchan, nulldata] = simDataImage(fwdModel, n
 
     if nargin < 2 || isempty(noise)
         noise = nirs.testing.simARNoise(probe);
+        noise2 = nirs.testing.simARNoise(probe);
     end
     
     if nargin < 3 || isempty(stim)
@@ -157,7 +158,16 @@ function [data, truth, fwdModel, truthchan, nulldata] = simDataImage(fwdModel, n
     data.data = exp( -bsxfun(@minus, Y+Yact', log(m)) );
     data.stimulus = stim;
     
+    data2 = noise2;
+    Y2    = data2.data;
     
+    % optical density
+    m2 = mean(Y2);
+    Y2 = bsxfun(@plus, -log(Y2), log(m2));
+    noise2.probe=fwdModel.probe;
+    noise2.data = exp( -bsxfun(@minus, Y2, log(m2)) );
+    noise2.stimulus = stim;
+    nulldata=noise2;
     
     
     truth=(b(:)~=0);

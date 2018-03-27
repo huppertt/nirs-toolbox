@@ -252,7 +252,11 @@ n=normest(iCn);
 sse = normest(residuals)^2;    % sum of squared errors
 ssr = normest(yhat - ybar)^2;  % regression sum of squares
 sst = normest(Y - ybar)^2;     % total sum of squares;
-mse = sse./length(yhat);
+Hat = X*XtXi*X'*iCn;
+nu = size(X,1) - trace(2*Hat - Hat*Hat');
+%nu = size(X,1) - trace(Hat);
+%mse = sse./length(yhat);
+mse = sse./nu;
 
 Stats.tstat.mse=mse; %*s1/s2;
 
@@ -260,8 +264,10 @@ lambda=max(lambda,log(tolr));
 lambda=min(lambda,log(1/tolr));
 
 Stats.tstat.beta=Beta; %*s1/s2;
-Stats.tstat.covb=XtXi*Stats.tstat.mse;
-Stats.tstat.dfe=size(X,2);
+%Stats.tstat.covb=XtXi*Stats.tstat.mse;
+Stats.tstat.covb=Stats.tstat.mse*XtXi*X'*iCn*X*XtXi;
+%Stats.tstat.dfe=size(X,2);
+Stats.tstat.dfe=size(X,1) - trace(Hat);
 Stats.tstat.t=Stats.tstat.beta./sqrt(diag(Stats.tstat.covb));
 
 Stats.tstat.pval=2*tcdf(-abs(full(Stats.tstat.t)),Stats.tstat.dfe);

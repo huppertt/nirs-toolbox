@@ -55,7 +55,7 @@ function [data, truth, truthchan, beta] = simDataImage(fwdModel, noise, stim, be
     
     % loop through and add
     data = noise.sorted();
-    
+     
     link = data.probe.link;
     Y    = data.data;
     truth = zeros(size(Y,2), 1);
