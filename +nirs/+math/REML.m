@@ -265,7 +265,7 @@ lambda=min(lambda,log(1/tolr));
 
 Stats.tstat.beta=Beta; %*s1/s2;
 %Stats.tstat.covb=XtXi*Stats.tstat.mse;
-Stats.tstat.covb=Stats.tstat.mse*XtXi*X'*iCn*X*XtXi;
+Stats.tstat.covb=Stats.tstat.mse*XtXi*(X'*iCn)*(iCn'*X)*XtXi;
 %Stats.tstat.dfe=size(X,2);
 Stats.tstat.dfe=size(X,1) - trace(Hat);
 Stats.tstat.t=Stats.tstat.beta./sqrt(diag(Stats.tstat.covb));
