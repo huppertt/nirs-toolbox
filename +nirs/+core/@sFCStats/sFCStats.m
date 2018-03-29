@@ -204,6 +204,7 @@ classdef sFCStats
                 Adj=(Adj.*(obj(i).(stat)<thres));
                 Adj=Adj.*(~eye(size(Adj)));
                 Adj=Adj(lst,lst);
+                Adj(logical(eye(size(Adj))))=1;
                 grph(i)=nirs.core.Graph(Adj);
                 grph(i).description=obj(i).description;
                 grph(i).demographics=obj(i).demographics;
