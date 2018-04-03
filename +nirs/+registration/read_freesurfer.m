@@ -10,17 +10,17 @@ end
 f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skin_surface')); ...
     rdir(fullfile(SubjectsDIR,'bem','outer_skin.surf'))];
     
-[nodes,faces]=read_surf(f.name);
+[nodes,faces]=read_surf(f(1).name);
 mesh(1,1)=nirs.core.Mesh(nodes,faces+1);
 mesh(1).transparency=.1;
 f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skull_surface')) ...
     rdir(fullfile(SubjectsDIR,'bem','outer_skull.surf'))];
-[nodes,faces]=read_surf(f.name);
+[nodes,faces]=read_surf(f(1).name);
 mesh(2,1)=nirs.core.Mesh(nodes,faces+1);
 mesh(2).transparency=.2;
 f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_inner_skull_surface'))...
     rdir(fullfile(SubjectsDIR,'bem','inner_skull.surf'))];
-[nodes,faces]=read_surf(f.name);
+[nodes,faces]=read_surf(f(1).name);
 mesh(3,1)=nirs.core.Mesh(nodes,faces+1);
 mesh(3).transparency=.2;
 
