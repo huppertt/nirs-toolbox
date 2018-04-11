@@ -157,7 +157,7 @@ classdef ChannelStats
             out.covb = obj.covb(idx, idx);
         end
         
-        stats = ttest( obj, c, b, names );
+        [stats,haserror] = ttest( obj, c, b, names );
         stats = ftest( obj, m );
         stats = jointTest( obj );
         

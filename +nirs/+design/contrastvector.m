@@ -1,8 +1,10 @@
-function C = contrastvector(str,conditions,basis)
+function [C,haserror] = contrastvector(str,conditions,basis)
 
 %% Examples:
 % str = 'stim[3:10]'
 % str='stim_channel1[8:20]-stim_channel1[1:3]+stim_channel1[1:2]'
+
+haserror=false;
 
 if(nargin<3)
     basis=[];
@@ -10,8 +12,9 @@ end
 
 if(iscellstr(str) | iscell(str))
     for idx=1:length(str)
-        C(idx,:) = nirs.design.contrastvector(str{idx},conditions,basis);
+        [C(idx,:),haserror(idx)] = nirs.design.contrastvector(str{idx},conditions,basis);
     end
+    haserror=any(haserror);
     return;
 end
 
@@ -167,6 +170,7 @@ for idx=1:length(cond)
         lst=find(ismember(conditions,cond{idx}));
         if(length(lst)==0)
             warning(['unable to find name: ' cond{idx}]);
+            haserror=true;
         end
     else
         lst=[];
@@ -184,6 +188,7 @@ for idx=1:length(cond)
             if(isempty(lst2))
                 warning(['unable to find name: ' cond{idx}(1:l)...
                 ':' s(end-1:end) cond{idx}(l+1:end)]);
+            haserror=true;
             end
             lst=[lst lst2];
         end

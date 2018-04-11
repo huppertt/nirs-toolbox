@@ -1,4 +1,4 @@
-function S = ttest(obj, c, b, names)
+function [S,haserror] = ttest(obj, c, b, names)
     %% ttest - Tests the null hypothesis c*beta = b
     % 
     % Args:
@@ -11,7 +11,7 @@ function S = ttest(obj, c, b, names)
 
 
     
-    
+    haserror=false;
      if(nargin<3)
             b=[];
      end
@@ -20,10 +20,13 @@ function S = ttest(obj, c, b, names)
      end
     
      if(length(obj)>1)
+         
         for i=1:length(obj)
-            S(i)=obj(i).ttest(c, b, names);
+            [S(i), haserror(i)]=obj(i).ttest(c, b, names);
         end
-         return
+        S(haserror)=[];
+        haserror=any(haserror);
+        return
      end
      
      
@@ -32,7 +35,12 @@ function S = ttest(obj, c, b, names)
          if(isempty(names))
              names=c;
          end
-         c = nirs.design.contrastvector(c,obj.conditions,obj.basis);
+         [c,haserror] = nirs.design.contrastvector(c,obj.conditions,obj.basis);
+         
+         if(haserror)
+            warning(['error processing: ' obj.description]);
+            
+         end
          
          %Remove names that didn't exist in this file
          lst=all(c==0,2);

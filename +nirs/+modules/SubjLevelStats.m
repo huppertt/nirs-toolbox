@@ -40,8 +40,35 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                     G = nirs.core.ChannelStats();
                     for i=1:length(subjects)
                         lst=find(ismember(demo.(obj.sortfield),subjects{i}));
-                        G(i,1)=obj.runThis(S(lst));
+                        
+                        cond=unique(nirs.getStimNames(S(lst)));
+                        hascond = false(length(lst),length(cond));
+                        for j=1:length(lst)
+                            hascond(j,:) = ismember(cond,nirs.getStimNames(S(lst(j))));
+                        end
+                        lstSingleCond = find(sum(hascond*1,1)==1);
+                        j=nirs.modules.KeepStims;
+                        j.listOfStims={cond{lstSingleCond}};
+                        SS = j.run(S(lst));
+                        
+                        j=nirs.modules.DiscardStims;
+                        j.listOfStims={cond{lstSingleCond}};
+                        j=nirs.modules.RemoveStimless(j);
+                        Scommon = j.run(S(lst));
+                        
+                        if(~isempty( Scommon))
+                            disp([ 'running subject ' subjects{i}]);
+                                       G1=obj.runThis( Scommon);
+                            if(~isempty(SS))
+                                SS(end+1)=G1;
+                            else
+                                SS=G1;
+                            end
+                        end
+                        G(i,1)=nirs.math.combineStats(SS);
+                        
                     end
+                    disp(' ');
                     return
                 end
             end
@@ -52,9 +79,7 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                 return;
             end
             
-            nirs.util.flushstdout(1);
-            fprintf( 'running subject %s',subjects{1});
-            
+       
             
             j=nirs.modules.MixedEffects;
             j.formula=obj.formula;
