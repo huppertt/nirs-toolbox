@@ -390,5 +390,3 @@ if(isfield(info,'Wavelengths'))
 end
 
 end
-
-
