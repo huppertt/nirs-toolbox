@@ -43,6 +43,17 @@ lambda=[676 690 750 788 800 808 830];
             ISSdata = ReadBoxyData(filenames{iFile},WF,wavelengthlst,lambda);
             
             ml=ISSdata.Data.MeasurementList;
+            
+            wIdx=zeros(size(ml,1),1);
+            for i=1:size(ml,1)
+                for j=1:length(wavelengthlst)
+                    if(ismember(ml(i,1),wavelengthlst{j}))
+                        wIdx(i)=j;
+                    end
+                end
+            end
+            ml(:,4)=wIdx;
+            
             ml(:,5)=ISSdata.Distances(sub2ind(size(ISSdata.Distances),ml(:,2),ml(:,1)));
             ml(:,6)=ml(:,5);
             ml(:,5)=round(ml(:,5)/.5)*.5;
@@ -70,7 +81,7 @@ lambda=[676 690 750 788 800 808 830];
 %             phs = angle( data.data(:,lst) );
             ISSdata.Data.Phase=phase_unwrap(ISSdata.Data.Phase,ml(:,6),data(iFile).Fm);
             d=ISSdata.Data.AC.*(cos(ISSdata.Data.Phase)+1i*sin(ISSdata.Data.Phase));
-            data(iFile).data=d;
+            data(iFile).data=d';
             
           
         catch err

@@ -44,12 +44,18 @@ classdef ChannelStats
         conditions      % (dependent) list of stim conditions
         
         tstat           % (dependent) t-stats of beta
-        
-        p               % (dependent) p-values of beta
+         p               % (dependent) p-values of beta
+      
         q               % (dependent) q-values of beta (false discovery rate)
     end
+   
+
+    
+    
     
     methods
+        
+        
         
         function hrf=HRF(obj,type)
         % function extracts the HRF from the stats variable
@@ -81,12 +87,13 @@ classdef ChannelStats
             tstat = obj.beta ./ sqrt(diag(obj.covb));
         end
         
-        % p value calculation
-        function p = get.p( obj )
-            t = obj.tstat;
-            p = 2*tcdf(-abs(t), obj.dfe);
-        end
-        
+             function p = get.p( obj )
+                 t = obj.tstat;
+                 
+                p = 2*tcdf(-abs(t), obj.dfe);
+
+            end
+   
         % q values
         function q = get.q( obj )
             q = reshape( nirs.math.fdr( obj.p(:) )', size(obj.p) );
@@ -164,8 +171,12 @@ classdef ChannelStats
         f = draw( obj, vtype, vrange, thresh,fhandle );
         
         printAll( obj, vtype, vrange, thresh, folder, ext );
+        
+       
+        
     end
     
+        
     methods (Access = protected)
         newNames = transformNames( obj, T );
     end
