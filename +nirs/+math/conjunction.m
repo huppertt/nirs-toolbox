@@ -17,7 +17,7 @@ end
 T=[]; dfe=[];
 for i=1:length(StatsIn)
     for j=1:length(conditions)
-        if(ismember(StatsIn(i).conditions,conditions{j}))
+        if(ismember(conditions{j},StatsIn(i).conditions))
             S=StatsIn(i).ttest(conditions{j});
             T=[T S.tstat];
             dfe=[dfe S.dfe];
@@ -52,7 +52,21 @@ end
 tstat = minT;
 q = reshape( nirs.math.fdr( p(:) )', size(p) );
 
-variab=S.variables;
+variab=StatsIn.variables;
+variab=variab(ismember(variab.cond,variab.cond{1}),:);
+
 
 Stats = [variab table(tstat, dfe, p, q)];
 Stats.cond=repmat(cellstr(Name),height(Stats),1);
+
+S=nirs.core.table;
+
+flds=Stats.Properties.VariableNames;
+for i=1:length(flds)
+    S=[S nirs.core.table(Stats.(flds{i}),'VariableNames',{flds{i}})];
+end
+
+S=setProbe(S,StatsIn(1).probe);
+Stats=S;
+
+end

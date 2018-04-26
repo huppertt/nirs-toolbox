@@ -262,45 +262,33 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 end
                 
                 %Create a diagnotistcs table of the adjusted data
-                yproj = betaOrig - Zorig*bHat;
+               
+                vars=G.variables;
                 [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-                vars(:,~ismember(vars.Properties.VariableNames,lm1.PredictorNames))=[];
-                if(~iscell(sd.Var3)); sd.Var3=arrayfun(@(x){x},sd.Var3); end;
-                btest=[]; models=cell(height(G.variables),1);
+                models=cell(height(G.variables),1);
                 for idx=1:max(lst)
                     ll=find(lst == idx);
+                    nll=find(lst ~= idx);
                     tmp = vars(ll, :);
-                    beta = yproj(ll);
-                    if(obj.weighted)
-                        ww=w(ll).*full(dWTW(ll));
-                        mdl{idx} = fitlm([table(beta,'VariableNames',{respvar}) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'weights',ww.^2,'dummyVarCoding','full');
-                    else
-                        mdl{idx} = fitlm([table(beta,'VariableNames',{respvar}) tmp], [lm1.Formula.FELinearFormula.char ' -1'],'dummyVarCoding','full');
-                        
-                    end
                     
-                    btest=[btest; mdl{idx}.Coefficients.Estimate];
-                    
-                    for j=1:length(mdl{idx}.CoefficientNames)
-                        cc=mdl{idx}.CoefficientNames{j};
-                        
-                        xSrc = arrayfun( @isequal, G.variables.source, repmat(sd.Var1(idx),length(G.variables.source),1) );
-                        xDet = arrayfun( @isequal, G.variables.detector, repmat(sd.Var2(idx),length(G.variables.detector),1) );
-                        xType = arrayfun( @isequal, G.variables.type, repmat(sd.Var3(idx),length(G.variables.type),1) );
-                        
-                        id = find(ismember(G.variables.cond,cc) & xSrc);
-                        if(isempty(id))
-                            if(~isempty(strfind(cc,'cond_')))
-                                cc=cc(strfind(cc,'cond_')+length('cond_'):end);
-                            else
-                                cc=cc(min(strfind(cc,'_'))+1:end);
-                            end
-                        end
-                        id=find(ismember(G.variables.cond,cc) & xSrc & xDet & xType);
-                        models{id}=mdl{idx};
+                    yproj = betaOrig - Zorig*bHat - Xorig(:,nll)*G.beta(nll);
+                    yproj = W *yproj;
+                    s={};
+                    for i=1:length(ll)
+                        s{i}=vars.cond{ll(i)};
                     end
+%                     for i=1:length(nll)
+%                         s{i+length(ll)}=['x' num2str(nll(i))];
+%                     end
+                    s{end+1}='beta';
+                    
+                    %lme2=fitlm(X(:,lstKeep([ll; nll])),yproj,'Intercept',false,'VarNames',s');
+                    lme2=fitlm(X(:,lstKeep(ll)),yproj,'Intercept',false,'VarNames',s');
+                    
+                    id=find(ismember(G.variables,vars(ll,:)));
+                    models{id}=lme2;
                 end
-                %mdl=reshape(repmat(mdl,[length(unique(cnames)),1]),[],1);
+                
                 G.variables.model=models;
                 
             end

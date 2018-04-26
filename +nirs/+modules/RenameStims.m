@@ -62,6 +62,20 @@ classdef RenameStims < nirs.modules.AbstractModule
                                 data(i).variables.cond{jj}=obj.listOfChanges{locb(jj),2};
                             end
                         end
+                        
+                        try
+                            keys=data(i).basis.stim.keys;
+                            s=Dictionary;
+                            for jj=1:length(keys)
+                                lst=find(ismember({obj.listOfChanges{:,1}},keys{jj}));
+                                if(isempty(lst))
+                                    s(keys{jj})=data(i).basis.stim(keys{jj});
+                                else
+                                    s(obj.listOfChanges{lst,2})=data(i).basis.stim(keys{jj});
+                                end
+                            end
+                            data(i).basis.stim=s;
+                        end
                     end
                 end
             end

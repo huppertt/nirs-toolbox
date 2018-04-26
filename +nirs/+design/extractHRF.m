@@ -62,10 +62,18 @@ StimMapping=zeros(length(conditions),2);
 for i=1:length(conditions)
     a=ismember(duration.keys,{conditions{i,:}});
     StimMapping(i,1)=find(a);
-    StimMapping(i,2)=str2num(conditions{i,end});
+    if(size(conditions,2)>1 && ~isempty(str2num(conditions{i,end})))
+        StimMapping(i,2)=str2num(conditions{i,end});
+    else
+        StimMapping(i,2)=1;
+    end
 end
 
 tbl=Stats.table;
+
+if(~iscellstr(tbl.type))
+    tbl.type=arrayfun(@(x)cellstr(num2str(x)),tbl.type);
+end
 
 [tbl2,~,lst]=unique(table(tbl.source, tbl.detector, tbl.type,'VariableNames',{'source','detector','type'}));
 
@@ -91,6 +99,11 @@ for j=1:height(tbl2)
     tt.type=strcat(tt.type,repmat('-',duration.count,1),duration.keys(:));
     var=[var; tt];
 end
+
+tbl3=table(tbl.source,tbl.detector,strcat(tbl.type,repmat('-',height(tbl),1),tbl.cond),'VariableNames',{'source','detector','type'});
+[i,j]=ismember(tbl3,var);
+var=var(j,:);
+data=data(:,j);
 
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
