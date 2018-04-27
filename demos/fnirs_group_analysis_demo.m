@@ -312,5 +312,7 @@ ROC = nirs.testing.ChannelStatsROC;
 ROC.simfunc=@()nirs.testing.simDataSet(10);
 ROC.pipeline=nirs.modules.default_modules.group_analysis;
 
-ROC=ROC.run(100);
+ROC=ROC.run(10);
+
+ROC.draw('hbo');
 

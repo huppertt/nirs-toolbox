@@ -36,7 +36,13 @@ classdef RemoveOutlierSubjects < nirs.modules.AbstractModule
                data(lst)=[];
            else
                demo=nirs.createDemographicsTable(data); 
-               lst=find(ismember(demo,unique(demo(lst,:))));
+               
+               if(any(ismember(lower(demo.Properties.VariableNames),{'subject','group','id','subj','subjid'})))
+                   lst2=find(ismember(lower(demo.Properties.VariableNames),{'subject','group','id','subj','subjid'}));
+                    lst=find(ismember(demo(:,lst2),unique(demo(lst,lst2))));
+               else
+                    lst=find(ismember(demo,unique(demo(lst,:))));
+               end
                disp(['Removing ' num2str(length(lst)) ' entries']);
                disp([table(lst,'VariableNames',{'FileIndex'}) nirs.createDemographicsTable(data(lst))]);
                data(lst)=[];

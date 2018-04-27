@@ -15,9 +15,12 @@ fclose(fid);
 PSTDatablock=str(min([strfind(str,'PSTDataFile') strfind(str,'PST Data File')]):...
     strfind(str,'CRecordFormatDescriptor')-1);
 
-CRecordFormatBlock=str(min(strfind(str,'CVariableDescriptor')):max(strfind(str,'CVariableDescriptor'))-1);
+if(length(strfind(str,'CVariableDescriptor'))>1)
+    CRecordFormatBlock=str(min(strfind(str,'CVariableDescriptor')):max(strfind(str,'CVariableDescriptor'))-1);
+else
+    CRecordFormatBlock=str(min(strfind(str,'CVariableDescriptor')):end);
 %CVariableDescriptor=str(strfind(str,'CVariableDescriptor')+length('CVariableDescriptor'):end);
-
+end
 
 EventOrder={};
 lst=[find(double(CRecordFormatBlock)==38) length(CRecordFormatBlock)];

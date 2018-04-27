@@ -2,7 +2,7 @@ function stimulus=convertEdat2Stimulus(filename)
 
 
 if(isstr(filename))
-    stimTable = readEDAT(filename);
+    stimTable = nirs.util.readEDAT(filename);
 elseif(isa(filename,'table'))
     stimTable=filename;
 else

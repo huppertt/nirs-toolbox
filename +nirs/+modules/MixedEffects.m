@@ -286,7 +286,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     lme2=fitlm(X(:,lstKeep(ll)),yproj,'Intercept',false,'VarNames',s');
                     
                     id=find(ismember(G.variables,vars(ll,:)));
-                    models{id}=lme2;
+                    for j=1:length(id)
+                        models{id(j)}=lme2;
+                    end
                 end
                 
                 G.variables.model=models;

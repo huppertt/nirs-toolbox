@@ -100,10 +100,11 @@ for j=1:height(tbl2)
     var=[var; tt];
 end
 
-tbl3=table(tbl.source,tbl.detector,strcat(tbl.type,repmat('-',height(tbl),1),tbl.cond),'VariableNames',{'source','detector','type'});
-[i,j]=ismember(tbl3,var);
-var=var(j,:);
-data=data(:,j);
+
+% tbl3=table(tbl.source,tbl.detector,strcat(tbl.type,repmat('-',height(tbl),1),cond),'VariableNames',{'source','detector','type'});
+% [i,j]=ismember(tbl3,var);
+% var=var(j,:);
+% data=data(:,j);
 
 % Cut off all the zeros at the end
 [i,~]=find(X~=0);
