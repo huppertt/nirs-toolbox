@@ -118,11 +118,15 @@ end
 str=help('nirs.modules');
 lst=find(double(str)==10);
 
+cnt=1;
 for idx=3:length(lst)
     tx=str(lst(idx-1)+1:lst(idx)-1);
-    [info{idx-2,1} info{idx-2,2}]=strtok(tx);
-    info{idx-2,1}=strtrim(info{idx-2,1});
-    info{idx-2,2}=strtrim(info{idx-2,2});
+    if(isempty(strfind(tx,'Abstract')))
+        [info{cnt,1} info{cnt,2}]=strtok(tx);
+        info{cnt,1}=strtrim(info{cnt,1});
+        info{cnt,2}=strtrim(info{cnt,2});
+        cnt=cnt+1;
+    end
 end
 
 set(hObject,'String',{info{:,1}})
@@ -577,6 +581,14 @@ function uimenu_savejob_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+[filename, pathname] = uiputfile('pipeline.mat', 'Save pipeline as');
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+
+job=get(handles.listbox_loaded,'UserData');
+save(fullfile(pathname,filename),'job');
+
 
 % --------------------------------------------------------------------
 function uimenu_loadjob_Callback(hObject, eventdata, handles)
@@ -584,12 +596,125 @@ function uimenu_loadjob_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+[filename, pathname] = uigetfile('*.mat', 'Pick a pipeline file');
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+tmp=load(fullfile(pathname,filename),'job');
+if(~isfield(tmp,'job'))
+    warning('file does not contain a processing pipeline')
+    return
+end
+
+jobs=tmp.job;
+set(handles.listbox_loaded,'UserData',jobs);
+update_tree(handles);
+
+
 
 % --------------------------------------------------------------------
 function uimenu_exportscript_Callback(hObject, eventdata, handles)
 % hObject    handle to uimenu_exportscript (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+job=get(handles.listbox_loaded,'UserData');
+pipe=nirs.modules.pipelineToList(job);
+
+str = ['% STEP 1 ----  ' pipe{1}.name];
+str = sprintf('%s\njob = %s();\n',str,class(pipe{1}));
+
+flds=fields(pipe{1});
+lst=find(~ismember(flds,{'name','prevJob'}));
+for j=1:length(lst)
+    val=getfield(pipe{1},flds{lst(j)});
+    if(iscellstr(val))
+        val=val{1};
+    end
+    if(isstr(val))
+                val=['''' val ''''];
+            end
+    if(~isstr(val))
+        val=num2str(val);
+    end
+    str = sprintf('%s   job.% s = %s;\n',str,flds{lst(j)},val);
+end
+
+for i=2:length(pipe)
+    
+    str = sprintf('%s\n\n',str);
+    str = sprintf('%s%s\n',str,['% STEP ' num2str(i) ' ----  ' pipe{i}.name ]);
+    str = sprintf('%sjob = %s(job);\n',str,class(pipe{i}));
+    flds=fields(pipe{i});
+    lst=find(~ismember(flds,{'name','prevJob'}));
+    for j=1:length(lst)
+        val=getfield(pipe{i},flds{lst(j)});
+        if(~isa(val,'Dictionary'))
+            if(iscellstr(val))
+                val=val{1};
+            end
+            if(isstr(val))
+                val=['''' val ''''];
+            end
+            if(isa(val,'function_handle'))
+                val=func2str(val);
+                if(~strcmp(val(1),'@'))
+                    val=['@' val];
+                end
+            end
+            if(isempty(val))
+                val='[]';
+            end
+            
+            if(~isstr(val))
+                val=num2str(val);
+            end
+            str = sprintf('%s   job.% s = %s;\n',str,flds{lst(j)},val);
+        else
+            str=sprintf('%s   %s=Dictionary();\n',str,flds{lst(j)});
+            for k=1:val.count
+                val2=val(val.keys{k});
+                str = sprintf('%s        %s=%s;\n',str,val.keys{k},class(val2));
+                flds2=fields(val2);
+                for jj=1:length(flds2)
+                    val3=getfield(val2,flds2{jj});
+                    if(~isstr(val3));
+                        val3=num2str(val3);
+                    end
+                     str = sprintf('%s             %s.%s=%s;\n',str,val.keys{k},flds2{jj},val3);
+                end
+                str = sprintf('%s        %s(''%s'')=%s;\n',str,flds{lst(j)},val.keys{k},val.keys{k});
+            end
+            str=sprintf('%s   job.basis=%s;\n',str,flds{lst(j)});
+            
+            
+            
+        end
+    end
+end
+
+
+[filename, pathname] = uiputfile('analysis.m', 'Save pipeline script as');
+if isequal(filename,0) || isequal(pathname,0)
+    return
+end
+
+
+str2=sprintf('%% Analysis script\n%%  created on %s\n\n',datestr(now));
+system(['echo "' str2 '" > ' fullfile(pathname,filename)]);
+
+str3=job.cite; str4='%Citations:';
+for j=1:length(str3)
+   str4=sprintf('%s\n%%%s\n',str4,str3{j}(find(double(str3{j}~=10))));
+end
+
+system(['echo "' str4 '" >> ' fullfile(pathname,filename)]);
+
+system(['echo "' str '" >> ' fullfile(pathname,filename)]);
+
+edit(fullfile(pathname,filename));
+
+
 return
 
 

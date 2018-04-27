@@ -11,12 +11,18 @@ else
     end
 end
 
-folder2=fullfile(folder,'probe');
-folder1=fullfile(folder,'image');
+pipe_folder=folder;
+pipe_folder2=fullfile(folder,'probe');
+pipe_folder1=fullfile(folder,'image');
 disp(['data will be saved in: ' folder ]);
 
-if(exist(folder2)~=7)
-    mkdir(folder2);
+assignin('base','pipe_folder',pipe_folder);
+assignin('base','pipe_folder1',pipe_folder1);
+assignin('base','pipe_folder2',pipe_folder2);
+
+
+if(exist(pipe_folder2)~=7)
+    mkdir(pipe_folder2);
 end
 
 jobs=nirs.modules.ImportData();
@@ -72,7 +78,7 @@ if(evalin('base','isa(raw(1).probe,''nirs.core.Probe1020'')'))
     
     jobs=nirs.modules.RunMatlabCode(jobs);
     jobs.FunctionHandle=@()evalin('base',[...
-        'ImageStats.printAll(''tstat'',[],[],[],[],''' folder1 ''',''tiff'')']);
+        'ImageStats.printAll(''tstat'',[],[],[],[],''' pipe_folder1 ''',''tiff'')']);
     
     
     
@@ -112,10 +118,10 @@ end
 
 jobs=nirs.modules.RunMatlabCode(jobs);
 jobs.FunctionHandle=@()evalin('base',[...
-    ' GroupStats_Hb.printAll(''tstat'',[],''q<0.05'',''' folder2 ''',''tiff'')']);
+    ' GroupStats_Hb.printAll(''tstat'',[],''q<0.05'',''' pipe_folder2 ''',''tiff'')']);
 
 jobs=nirs.modules.RunMatlabCode(jobs);
-jobs.FunctionHandle=@()evalin('base',['writetable(ROItable,''' folder '' filesep 'ROIStats.txt'')']);
+jobs.FunctionHandle=@()evalin('base',['writetable(ROItable,''' pipe_folder '' filesep 'ROIStats.txt'')']);
 
 jobs=nirs.modules.RunMatlabCode(jobs);
 jobs.FunctionHandle=@()evalin('base',['disp([''Congratulations.  Your paper has been submitted! '' char(9786) '' Just kidding'']);'...

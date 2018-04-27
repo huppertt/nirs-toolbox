@@ -24,7 +24,12 @@ function nirs_viewer_OpeningFcn(hObject, eventdata, handles, varargin)
 handles.output = hObject;
 guidata(hObject, handles);
 
-
+set(handles.menu_probe,'enable','off');
+set(handles.roi_analysis,'enable','off');
+set(handles.probe_register,'enable','off');
+set(handles.uimenu_editdemos,'enable','off');
+set(handles.depth_map,'enable','off');
+set(handles.uimenu_create_datareport,'enable','off');
 
 return
 
@@ -399,6 +404,23 @@ function uimenu_stimdesign_Callback(hObject, eventdata, handles)
 % hObject    handle to uimenu_stimdesign (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+handles=guihandles(findobj('tag','figure_nirsview'));
+name=get(handles.listbox_data,'String');
+try
+    name=name{get(handles.listbox_data,'value')};
+catch
+    %Nothing loaded yet
+    return
+end
+
+name=strtrim(name(1:strfind(name,':')-1));
+data=evalin('base',name);
+data=nirs.viz.StimUtil(data);
+assignin('base',name,data);
+uimenu_refresh_Callback([],[],[]);
+
+return
 
 
 % --------------------------------------------------------------------

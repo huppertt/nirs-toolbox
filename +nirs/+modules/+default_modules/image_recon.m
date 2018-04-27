@@ -31,7 +31,6 @@ jobs = nirs.modules.ImageReconMFX(jobs);
 
 Slab = nirs.forward.ApproxSlab;
 probe=evalin('base','raw(1).probe');
-Slab.probe=probe.swap_reg;
 lambda=unique(probe.link.type);
 Slab.prop=nirs.media.tissues.brain(.7,50,lambda);
 Slab.mesh=probe.getmesh();
