@@ -346,11 +346,11 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
            for i=1:length(flds)
                N=[]; 
                for j=1:i-1
-                   N=blkdiag(N,zeros(n));
+                   N=blkdiag(N,0*speye(n,n));
                end
                N=blkdiag(N,speye(n,n));
                for j=i+1:length(flds)
-                   N=blkdiag(N,zeros(n));
+                   N=blkdiag(N,0*speye(n,n));
                end
                VtV{i}=V'*N*V;
            end

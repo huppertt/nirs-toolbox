@@ -35,6 +35,7 @@ lambda=unique(probe.link.type);
 Slab.prop=nirs.media.tissues.brain(.7,50,lambda);
 Slab.mesh=probe.getmesh();
 Slab.mesh=Slab.mesh(end);
+Slab.probe=probe;
 Jac=Slab.jacobian('spectral');
 jobs.probe('default')=Slab.probe;
 jobs.jacobian('default')=Jac;
