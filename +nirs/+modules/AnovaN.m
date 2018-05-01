@@ -81,6 +81,7 @@ classdef AnovaN < nirs.modules.AbstractModule
                  
             end
             G.probe=S(1).probe;
+            G.probe.link=sd;
             G = G.sorted();
             G.description = 'nway-ANOVA Model';
         end

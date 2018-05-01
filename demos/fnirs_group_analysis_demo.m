@@ -301,9 +301,72 @@ GroupStatsFE = job.run(SubjStats);   % this took about <1s on my computer.
 % weighted estimate.  This will take considerably (e.g. 10x) longer to solve 
 
 
-%% Part II; Outlier removal
+% we can also use the n-way ANOVA code
+job=nirs.modules.AnovaN;
+% job = 
+%   AnovaN with properties:
+%        depvar: 'beta'   --- Dependent variable to use (beta or tstat)
+%     variables: {'cond'  'subject'  'group'}  --- grouping variables 
+%         model: 'linear'  ----The model to use, specified as one of the following:
+%                                'linear' to use only main effects of all factors (default)
+%                                'interaction' for main effects plus two-factor interactions
+%                                'full' to include interactions of all levels
+%                                an integer representing the maximum interaction order, for example
+%                                   3 means main effects plus two- and three-factor interactions
+%                                a matrix of term definitions as accepted by the X2FX function,
+%                                   but all entries must be 0 or 1 (no higher powers)
+%        sstype: 3 --- The type of sum of squares 1, 2, 3, or 'h' (default=3)
+%          name: 'Anova Model'
+%       prevJob: []
 
-% j=nirs.modules.RemoveOutlierSubjects
+job.variables={'cond','group','age','visit'};
+GroupFStats = job.run(SubjStats);
+
+% to draw use
+GroupFStats.draw([],'q<0.05');  % first entry is the max scale (leave blank to autoscale)
+
+
+% there is also an alternative anova model that allows mixed effects 
+job=nirs.modules.Anova;
+% this is based on the linear mixed effects model followed by a leave-out
+% ANOVA (F-stat) for each component.  This code takes ~10x longer then the
+% equivelent mixed effects model
+GroupFstats = job.run(SubjStats);
+
+
+%% Part II; Outlier removal
+job=nirs.modules.RemoveOutlierSubjects;
+
+% job = 
+%   RemoveOutlierSubjects with properties:
+%                   formula: 'beta ~ -1 + cond'
+%     allow_partial_removal: 1   --- If false, then the whole subject will
+%                                   be removed if 1 or more files is an outlier
+%                    cutoff: 0.0500
+%                      name: 'Remove outlier subjects'
+%                   prevJob: []
+
+SubjStatsPruned = job.run(SubjStats);
+
+% Removing 5 entries
+%     FileIndex    group      subject       visit    age
+%     _________    _____    ____________    _____    ___
+% 
+%      6           'G1'     'Subject-4'     12       2  
+%     20           'G1'     'Subject-19'     6       7  
+%     34           'G2'     'Subject-34'     0       1  
+%     35           'G2'     'Subject-34'     6       1  
+%     39           'G2'     'Subject-37'    12       2  
+
+
+% this module is running this function
+tbl=nirs.util.grouplevelleveragestats(SubjStats);
+% which reports the leverage per subject, channel, condition
+
+
+
+
+
 
 
 

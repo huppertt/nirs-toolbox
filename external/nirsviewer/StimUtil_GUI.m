@@ -82,7 +82,7 @@ set(handles.popupmenu1,'Value',1);
 set(handles.figure1,'UserData',raw);
 
 StimUtil_GUI('updateDraw');
-waitfor(handles.figure1);
+waitfor(handles.popupmenu1);
 return
 
 function updateDraw(varargin)
@@ -145,7 +145,7 @@ else
     %canceled
     varargout{1} =[];
 end
-%closereq;
+closereq;
 
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)
@@ -450,14 +450,15 @@ function pushbutton1_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton1 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-uiresume;
-closereq;
+delete(handles.popupmenu1);
+
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton2 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+delete(handles.popupmenu1);
 closereq;
 
 

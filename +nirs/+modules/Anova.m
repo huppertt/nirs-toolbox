@@ -3,11 +3,11 @@ classdef Anova < nirs.modules.AbstractModule
     %   Detailed explanation goes here
   
     properties
-        formula = 'beta ~ 1 + group*cond + (1|subject)';
+        formula = 'beta ~ -1 + group:cond + (1|subject)';
         centerVars = false;
         weighted = true;
         verbose = true;
-        
+        dummyCoding = 'full';
     end
 
     methods

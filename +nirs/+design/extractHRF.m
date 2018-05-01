@@ -47,20 +47,24 @@ if(isa(duration,'Dictionary'))
     end
 end
 
+
 lenHRF=90;
 t=[0:1/Fs:(max(dur)+lenHRF)*length(duration.count)];
 stimulus=Dictionary();
 for idx=1:duration.count
     stim=nirs.design.StimulusEvents(duration.keys{idx},0,dur(idx),1);
-    stimulus(duration.keys{idx})=stim;
+    lst=find(ismember({conditions{:,2}},duration.keys{idx}));
+    for j=1:length(lst)
+        stimulus(conditions{lst(j),1})=stim;
+    end
 end
 [X, names] = nirs.design.createDesignMatrix( stimulus, t, basis);
 
 
 StimMapping=zeros(length(conditions),2);
 
-for i=1:length(conditions)
-    a=ismember(duration.keys,{conditions{i,:}});
+for i=1:size(conditions,1)
+    a=ismember(stimulus.keys,{conditions{i,1}});
     StimMapping(i,1)=find(a);
     if(size(conditions,2)>1 && ~isempty(str2num(conditions{i,end})))
         StimMapping(i,2)=str2num(conditions{i,end});
@@ -81,10 +85,17 @@ data=[]; var=table;
 for j=1:height(tbl2)
     t=tbl(lst==j,:);
     
+    
     for ii=1:stimulus.count
         lst2=find(StimMapping(:,1)==ii);
+        
+        c=sort_names(Stats.conditions(lst2,:));
+        
         i=find(ismember(t.cond,Stats.conditions(lst2,:)));
        
+       
+        
+        
         if(strcmp(type,'hrf'))
             H = X(:,lst2)*t.beta(i);
         else
@@ -95,8 +106,8 @@ for j=1:height(tbl2)
     
     
     tt=tbl2(j,:);
-    tt=repmat(tt,duration.count,1);
-    tt.type=strcat(tt.type,repmat('-',duration.count,1),duration.keys(:));
+    tt=repmat(tt,stimulus.count,1);
+    tt.type=strcat(tt.type,repmat('-',stimulus.count,1),stimulus.keys(:));
     var=[var; tt];
 end
 
@@ -154,11 +165,16 @@ for i=1:numparts
 end
 
 lst=[find(~isnum); find(isnum)];
-
+lst1=[find(~isnum)];
 
 newnames=cell(length(conditions),length(lst));
-for i=1:size(parts,1)    
+for i=1:size(parts,1)
+    newnames{i,1}='';
+    for j=1:length(lst1)
+        newnames{i,1}=[newnames{i,1} ':' parts{i,lst1(j)}];
+    end
+    newnames{i,1}(1)=[];
     for j=1:length(lst)
-        newnames{i,j}=parts{i,lst(j)};
+        newnames{i,j+1}=parts{i,lst(j)};
     end
 end

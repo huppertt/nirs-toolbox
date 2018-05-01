@@ -170,7 +170,38 @@ HRF = SubjStats.HRF();
 % nirs.viz.nirsviewer
 figure;
 HRF.draw();
+j = nirs.modules.OpticalDensity();
+j = nirs.modules.BeerLambertLaw(j);
+j = nirs.modules.AR_IRLS(j);
 
+% Let's use a FIR model to show how to do deconvolution
+ FIRbasis=nirs.design.basis.FIR;
+
+% FIRbasis = 
+%   FIR with properties:
+%     nbins: 10  - number of bins in the HRF 
+%     binwidth: 5 - number of time-points per bin
+
+% Currently our sample rate is 10Hz (=raw(1).Fs)
+% Thus, binwidth =5 corresponds to a 0.5s bin
+% The nbins =10 tells us the window will be 0.5s x 10 = 5s wide, which is not
+% wide enough.  Note, this is for the estimation of the impulse response
+% function (so the response is convolved with whatever the stimulus
+% duration is).  Let's make the width 15s by setting nbins =30
+FIRbasis.nbins=30;
+
+j.basis('default')=FIRbasis;
+
+SubjStats = j.run(rawChanged);
+% Note, SubjStats now has 240 betas (8 channels x 30 betas per condition)
+% If we used SubjStats.draw() it would draw 30 images (one per time point in the HRF)
+
+% This funciton will create the HRF data from the basis set.  This function
+% also needs to know the duration of the event (default = impulse response)
+% and the sample rate.
+
+% extract the HRF response
+HRF = SubjStats.HRF();
 
 % To make a contast over some time window
 
