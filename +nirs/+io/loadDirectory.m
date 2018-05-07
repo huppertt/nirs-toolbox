@@ -17,7 +17,7 @@ end
 
 % default folder structure
 if nargin < 2
-    folderHierarchy = {'group','subject'};
+    folderHierarchy = {};
 end
 
 % all files in subdirectory with correct extension

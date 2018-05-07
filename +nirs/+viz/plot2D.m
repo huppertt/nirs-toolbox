@@ -72,18 +72,20 @@ for idx=1:length(utypes)
         a(j)=axes;
         set(a(j),'units','pixels','position',[x-sd/2 y-sd/2 sd sd]);
         set(a(j),'units','normalized');
+        set(a(j),'Ylim',[-1E-9 1e-9]);
     end
     
     for j=1:length(lst)
         hold(a(j),'on');
+        s=ones(size(data.data,1),1)*real(data.data(1,lst(j)));
         if(~isreal(data.data(:,lst(j))) & adderr)
-            h{idx}(lst(j))=errorbar(a(j),data.time,real(data.data(:,lst(j))),...
+            h{idx}(lst(j))=errorbar(a(j),data.time,real(data.data(:,lst(j)))-s,...
                 imag(data.data(:,lst(j))));
         else
-            h{idx}(lst(j))=plot(a(j),data.time,real(data.data(:,lst(j))));
+            h{idx}(lst(j))=plot(a(j),data.time,real(data.data(:,lst(j)))-s);
         end
         set(a(j),'xlim',[min(data.time) max(data.time)]);
-        set(a(j),'ylim',[min(min(real(data.data(:,lst)))) max(max(real(data.data(:,lst))))]);
+        set(a(j),'ylim',[min(real(data.data(:))) max(real(data.data(:))) ]);
         axis(a(j),'off');
     end
     %title(types{idx});

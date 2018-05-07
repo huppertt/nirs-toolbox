@@ -1,7 +1,8 @@
-function Stats = conjunction(StatsIn,conditions,type)
+function Stats = conjunction(StatsIn,conditions,type,combine)
 % type = {'global','Conj'}
 % Global does not correct for FDR and not a proper logical AND.  See 
 % Nichols et al Valid conjunction inference with the minimum statistic. NeuroImage 25 (2005) 653 ? 660 
+
 
 if(nargin<3)
     type='conj';
@@ -11,7 +12,12 @@ if(nargin<2 || isempty(conditions))
     conditions = unique(nirs.getStimNames(StatsIn));
 end
 
+% combine flag merges HbO and HbR (or whatever types you have).
+if(nargin<4)
+    combine=false; 
+end
 
+StatsIn=StatsIn.sorted;
 
 % first, lets create all the tests
 T=[]; dfe=[];
@@ -24,6 +30,24 @@ for i=1:length(StatsIn)
         end
     end
 end
+
+variab=StatsIn.variables;
+if(combine)
+    link=StatsIn.probe.link;
+    types=unique(link.type);
+    T2=[]; dfe2=[];
+    for i=1:length(types)
+        lst=find(ismember(link.type,types(i)));
+        T2=[T2 T(lst,:)];
+        dfe2=[dfe dfe];
+    end
+    T=T2;
+    dfe=dfe2;
+    lst=find(ismember(variab.type,types(1)));
+    variab=variab(lst,:);
+    variab.type = repmat(cellstr('joint'),height(variab),1);
+end
+
 
 Name=[char(8898) '{'];
 for i=1:length(conditions)
@@ -52,21 +76,21 @@ end
 tstat = minT;
 q = reshape( nirs.math.fdr( p(:) )', size(p) );
 
-variab=StatsIn.variables;
+
 variab=variab(ismember(variab.cond,variab.cond{1}),:);
 
 
 Stats = [variab table(tstat, dfe, p, q)];
 Stats.cond=repmat(cellstr(Name),height(Stats),1);
 
-S=nirs.core.table;
+S=table;
 
 flds=Stats.Properties.VariableNames;
 for i=1:length(flds)
-    S=[S nirs.core.table(Stats.(flds{i}),'VariableNames',{flds{i}})];
+    S=[S table(Stats.(flds{i}),'VariableNames',{flds{i}})];
 end
 
-S=setProbe(S,StatsIn(1).probe);
+%S=setProbe(S,StatsIn(1).probe);
 Stats=S;
 
 end
