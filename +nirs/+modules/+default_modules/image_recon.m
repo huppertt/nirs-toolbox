@@ -35,6 +35,8 @@ lambda=unique(probe.link.type);
 Slab.prop=nirs.media.tissues.brain(.7,50,lambda);
 Slab.mesh=probe.getmesh();
 Slab.mesh=Slab.mesh(end);
+Slab.mesh=Slab.mesh.reducemesh(.1);
+
 Slab.probe=probe;
 Jac=Slab.jacobian('spectral');
 jobs.probe('default')=Slab.probe;
@@ -42,9 +44,9 @@ jobs.jacobian('default')=Jac;
 jobs.formula='beta ~ -1 + cond';
 jobs.mesh=Slab.mesh;
 
-jobs.basis=nirs.inverse.basis.identity(size(Slab.mesh.nodes,1));
+%jobs.basis=nirs.inverse.basis.identity(size(Slab.mesh.nodes,1));
 
-%jobs.basis=nirs.inverse.basis.gaussian(Slab.mesh,30);
+jobs.basis=nirs.inverse.basis.gaussian(Slab.mesh,5);
 
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='ImageStats';

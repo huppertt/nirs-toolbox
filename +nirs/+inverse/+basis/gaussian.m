@@ -23,7 +23,7 @@ classdef gaussian
             
             n=size(mesh.nodes,1);
             if(neighbors>0)
-                Mtx = sparse(n,n);
+                
                 if(isempty(mesh.elems))
                     i=[mesh.faces(:,1); mesh.faces(:,1); mesh.faces(:,2); mesh.faces(:,2);...
                         mesh.faces(:,3); mesh.faces(:,3)];
@@ -36,9 +36,11 @@ classdef gaussian
                         mesh.elems(:,1); mesh.elems(:,2); mesh.elems(:,4); mesh.elems(:,1); mesh.elems(:,2); mesh.elems(:,3)];
                     
                 end
-                Mtx(sub2ind([n n],i,j))=1;
-                Mtx(sub2ind([n n],1:n,1:n))=1;
-                Mtx=sparse(Mtx);
+                Mtx = sparse([i' 1:n],[j' 1:n],ones(size(i,1)+n,1),n,n);
+%                 
+%                 Mtx(sub2ind([n n],i,j))=1;
+%                 Mtx(sub2ind([n n],1:n,1:n))=1;
+%                 Mtx=sparse(Mtx);
                 %
                 %             for idx=1:size(mesh.faces,1)
                 %                 Mtx(mesh.faces(idx,1),mesh.faces(idx,2))=1;

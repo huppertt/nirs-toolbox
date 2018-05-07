@@ -129,16 +129,18 @@ for i=1:length(viewpt)
 end
 
 h=[];
+
+        
+
 for iCond = 1:length( uconds )
     for iType = 1:length(utypes)
         lst = strcmp( types, utypes(iType) ) & ...
             strcmp( obj.variables.cond, uconds(iCond) );
-        
+        m = mask(lst);
         % values
         vals = values(lst);
         
-        % this mask
-        m = mask(lst);
+       
         
         % map to colors
         idx = bsxfun(@minus, vals', z);

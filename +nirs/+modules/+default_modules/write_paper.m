@@ -44,8 +44,8 @@ jobs.Output='dOD';
 
 if(evalin('base','isa(raw(1).probe,''nirs.core.Probe1020'')'))
     disp('adding image recon code');
-    if(exist(folder1)~=7)
-        mkdir(folder1);
+    if(exist(pipe_folder1)~=7)
+        mkdir(pipe_folder1);
     end
     jobs=nirs.modules.Assert(jobs);
     jobs.throwerror=true;
@@ -60,25 +60,26 @@ if(evalin('base','isa(raw(1).probe,''nirs.core.Probe1020'')'))
     
     Slab = nirs.forward.ApproxSlab;
     probe=evalin('base','raw(1).probe');
-    Slab.probe=probe.swap_reg;
+    Slab.probe=probe;
     lambda=unique(probe.link.type);
     Slab.prop=nirs.media.tissues.brain(.7,50,lambda);
     Slab.mesh=probe.getmesh();
     Slab.mesh=Slab.mesh(end);
+    Slab.mesh=Slab.mesh.reducemesh(.1);
     Jac=Slab.jacobian('spectral');
     jobs.probe('default')=Slab.probe;
     jobs.jacobian('default')=Jac;
     jobs.formula='beta ~ -1 + cond';
     jobs.mesh=Slab.mesh;
-    jobs.basis=nirs.inverse.basis.identity(size(Slab.mesh.nodes,1));
-    %jobs.basis=nirs.inverse.basis.gaussian(Slab.mesh,30);
+    %jobs.basis=nirs.inverse.basis.identity(size(Slab.mesh.nodes,1));
+    jobs.basis=nirs.inverse.basis.gaussian(Slab.mesh,5);
     
     jobs = nirs.modules.ExportData(jobs);
     jobs.Output='ImageStats';
     
     jobs=nirs.modules.RunMatlabCode(jobs);
     jobs.FunctionHandle=@()evalin('base',[...
-        'ImageStats.printAll(''tstat'',[],[],[],[],''' pipe_folder1 ''',''tiff'')']);
+        'ImageStats.printAll(''tstat'',[],''p<0.05'',''beta>0.8'',[],''' pipe_folder1 ''',''tiff'')']);
     
     
     
