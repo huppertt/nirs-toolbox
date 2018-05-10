@@ -39,9 +39,15 @@ classdef AnovaN < nirs.modules.AbstractModule
                  end
             end
            % list for first source
+           if(~ismember('source',vars.Properties.VariableNames) & ...
+                    ismember('ROI',vars.Properties.VariableNames))
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
+            sd.Properties.VariableNames = {'ROI', 'type'};   
+           else
             [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
             sd.Properties.VariableNames = {'source', 'detector', 'type'};    
-            
+           end
+           
             vars=vars(:,find(ismember(vars.Properties.VariableNames,obj.variables)));
             
              % preallocate group stats

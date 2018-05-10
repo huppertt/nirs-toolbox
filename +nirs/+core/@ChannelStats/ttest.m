@@ -14,8 +14,11 @@ function [S,haserror] = ttest(obj, c, b, names)
     haserror=false;
      if(nargin<3)
             b=[];
-     end
-     if(nargin<4)
+            names=[];
+     elseif(~isnumeric(b) && nargin<4)
+         names=b;
+         b=[];
+     elseif(nargin<4)
            names=[];
      end
     
@@ -32,6 +35,7 @@ function [S,haserror] = ttest(obj, c, b, names)
      
      if(isstr(c) || iscell(c) || iscellstr(c))
          if(isstr(c)); c=cellstr(c); end;
+         if(isstr(names)); names=cellstr(names); end;
          if(isempty(names))
              names=c;
          end

@@ -2,6 +2,17 @@ function data=read_excel2stim(data,filename)
 
 
 for id=1:length(data)
+    
+    if(strcmp(filename,'clipboard'))
+        alldata=nirs.util.pasteclip2table;
+        alldata=table2cell(alldata(2:end,:));   
+        for i=2:size(alldata,1)
+            for j=1:size(alldata,2)
+                alldata{i,j}=str2num(alldata{i,j});
+            end
+        end
+        
+    else
     if(~isempty(data(id).description))
         [~,sheetname]=fileparts(data(id).description);
     else
@@ -15,6 +26,7 @@ for id=1:length(data)
         else
             rethrow(MException.last);
         end
+    end
     end
     stimtypes={}; types={}; idx=[];
     for i=1:size(alldata,2)
@@ -43,13 +55,13 @@ for id=1:length(data)
                     st.amp(end+1,1)=alldata{j,lst(a3)};
                 end
             end
-            
+         data(id).stimulus(ustimtypes{i})=st;   
             
             
         else
             st=nirs.design.StimulusVector;
         end
-        data(id).stimulus(ustimtypes{i})=st;
+        
     end
     
     

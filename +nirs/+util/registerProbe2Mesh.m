@@ -65,7 +65,7 @@ ProbePosSphere=makesymetric(ProbePosSphere,sym);
 ProbePosSphere = projectsurface(ProbePosSphere(:,1:3),mesh.nodes);
 
 if(dispflag)
-    figure;
+    ff=figure;
     mesh.transparency=.2;
     mesh.draw;
     hold on;
@@ -144,19 +144,33 @@ probeOut.optodes.X=ProbePosSphere(:,1);
 probeOut.optodes.Y=ProbePosSphere(:,2);
 probeOut.optodes.Z=ProbePosSphere(:,3);
 
-close;
+if dispflag
+    close(ff);
+end
 
 return
 
 
 function pos = pushdistances(pos,idealdist)
-opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
- 
-mask=1*(idealdist(:)<45);
 
+
+%
+
+
+
+mask=1*(idealdist(:)<45);
 dx=zeros(length(pos(:)),1);
-cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
-x=lsqnonlin(cost,dx,[],[],opt);
+
+if(~isempty(ver('optim')))
+    cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
+    opt = optimset('MaxFunEvals', 1000,'Display','off');
+    x=lsqnonlin(cost,dx,[],[],opt);
+else
+    cost=@(dx)mad(mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1));
+    opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
+    x=fminsearch(cost,dx,opt);
+end
+
 pos=pos+reshape(x,size(pos));
 
 return

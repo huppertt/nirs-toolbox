@@ -27,12 +27,24 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 d = data(i).data;
                 p = data(i).probe;
                 
-                % sort channels
-                [p.link, idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
-                d = d(:,idx);
                 
-                % unique source-detector pairs
-                [~,~,idx] = nirs.util.uniquerows(table([p.link.source p.link.detector]));
+                if(~ismember('source',p.link.Properties.VariableNames) & ...
+                        ismember('ROI',p.link.Properties.VariableNames))
+                    [p.link, idx] = nirs.util.sortrows(p.link,{'ROI','type'});
+                    d = d(:,idx);
+                    
+                    % unique source-detector pairs
+                    [~,~,idx] = nirs.util.uniquerows(table([p.link.ROI]));
+                else
+                    % sort channels
+                    [p.link, idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
+                    d = d(:,idx);
+                    
+                    % unique source-detector pairs
+                    [~,~,idx] = nirs.util.uniquerows(table([p.link.source p.link.detector]));
+                end
+                
+                
                clear type;
                 for j = 1:max(idx)
                     lst = idx == j;
@@ -63,7 +75,13 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 end
                 
                 p.link.type = type;
-                [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
+                
+                if(~ismember('source',p.link.Properties.VariableNames) & ...
+                        ismember('ROI',p.link.Properties.VariableNames))
+                    [p.link,idx] = nirs.util.sortrows(p.link,{'ROI','type'});
+                else
+                    [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
+                end
                 
                 data(i).data  = d(:,idx);
                 data(i).probe = p;

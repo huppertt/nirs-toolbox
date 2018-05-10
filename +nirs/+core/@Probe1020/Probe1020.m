@@ -68,7 +68,7 @@ classdef Probe1020 < nirs.core.Probe
             obj.defaultdrawfcn='draw1020';
         end
         
-        function obj = regsister_mesh2probe(obj,mesh,noreg)
+        function obj = register_mesh2probe(obj,mesh,noreg)
             % This reshapes the mesh to fit the current probe
 
             if(nargin<3)

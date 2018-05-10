@@ -52,6 +52,37 @@ classdef Vestibular
             end
             
         end
+        
+        function h = draw(obj)
+            
+            % params
+            a1 = obj.peakTime;
+            a2 = obj.uShootTime;
+            b1 = obj.peakDisp;
+            b2 = obj.uShootDisp;
+            c  = obj.ratio;
+            
+            % sampling freq
+            Fs = 4;
+              t = (0:1/Fs:[obj.duration+obj.elongate])';
+            
+            d = obj.getImpulseResponse( a1, b1, a2, b2, c, t,obj.elongate*Fs );
+            h=plot(t,d,'k');
+            
+             if obj.incDeriv
+                da = 1e-6 * a1;
+                db = 1e-6 * b1;
+                
+                ha = (d - obj.getImpulseResponse(a1+da, b1, a2, b2, c, t,obj.elongate*Fs ) )/da;
+                hb = (d - obj.getImpulseResponse(a1, b1+db, a2, b2, c, t,obj.elongate*Fs ) )/db;
+                hold on;
+                h=plot(t,ha,'k--');
+                h=plot(t,hb,'k--');
+             end
+            
+        end
+        
+        
     end
     
     methods ( Static )

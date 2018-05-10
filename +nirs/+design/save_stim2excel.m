@@ -44,5 +44,16 @@ for i=1:length(data)
             end
         end
     end
-    nirs.util.write_xls(filename,Array,sheet);
+    
+    if(strcmp(filename,'clipboard'))
+        nirs.util.copytable2clip(cell2table(Array));
+        disp('copied to clipboard');
+    else
+    
+    if(~isempty(sheetname))
+        sheetname=['data-' num2str(i)];
+    end
+        
+      nirs.util.write_xls(filename,Array,sheetname);
+    end
 end

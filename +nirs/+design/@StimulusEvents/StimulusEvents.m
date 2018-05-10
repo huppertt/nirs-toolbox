@@ -16,6 +16,11 @@ classdef StimulusEvents
            
         end
         
+%         function disp(obj)
+%             disp(['nirs.design.StimulusEvents [' num2str(length(obj.onset)) ' events']);
+%         end
+%         
+        
         function vec = getStimVector( obj, time )
             assert( isvector( time ) )
             

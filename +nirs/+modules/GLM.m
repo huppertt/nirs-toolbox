@@ -53,7 +53,8 @@ classdef GLM < nirs.modules.AbstractGLM
                 case('NIRS-SPM')
                     j=nirs.modules.NIRS_SPM_GLM();
                 case('MV-GLM')
-                    disp(['Inputs expected to be optical density']);
+                     j=nirs.modules.MultiVarGLM();
+                    disp(['Note: Inputs expected to be optical density']);
                 case('Nonlinear')
                     j=nirs.modules.nonlin_GLM();
                     obj.basis=j.basis;

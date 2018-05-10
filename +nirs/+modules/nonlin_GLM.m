@@ -46,7 +46,18 @@ classdef nonlin_GLM < nirs.modules.AbstractGLM
                 probe = data(i).probe;
                 
                 % make sure data is in order
-                [probe.link, idx] = sortrows(probe.link, {'source', 'detector', 'type'});
+                 if(~isempty(strfind(class(probe),'nirs')))
+                    if(~ismember('source',probe.link.Properties.VariableNames) & ...
+                    ismember('ROI',probe.link.Properties.VariableNames))
+                        [probe.link, idx] = nirs.util.sortrows(probe.link, {'ROI','type'});
+                    else
+                        [probe.link, idx] = nirs.util.sortrows(probe.link, {'source', 'detector','type'});
+                    end
+                elseif(~isempty(strfind(class(probe),'eeg')))
+                    [probe.link, idx] = nirs.util.sortrows(probe.link, {'electrode','type'});
+                else
+                    error('data type not supported');
+                end
                 
                 basis=obj.basis;
                 

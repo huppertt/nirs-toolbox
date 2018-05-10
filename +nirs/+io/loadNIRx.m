@@ -269,7 +269,7 @@ if(registerprobe)
     fwdBEM.mesh=BEM;
     fwdBEM.prop  = prop;
     
-    probe1020=probe1020.regsister_mesh2probe(fwdBEM.mesh);
+    probe1020=probe1020.register_mesh2probe(fwdBEM.mesh);
     probe1020.opticalproperties=prop;
     
     m=probe1020.getmesh;

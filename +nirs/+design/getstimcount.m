@@ -12,6 +12,9 @@ for i=1:length(data)
         end
     end
     [~,rows{i}]=fileparts(data(i).description);
+    if(isempty(rows{i}))
+        rows{i}=['file-' num2str(i)];
+    end
 end
 
 

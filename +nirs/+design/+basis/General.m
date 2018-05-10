@@ -25,6 +25,9 @@ classdef General
             end
      
         end
+        function h=draw(obj)
+            h=plot(obj.time,obj.IRF,'k');
+        end
     end
     
             

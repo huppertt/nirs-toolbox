@@ -1,15 +1,15 @@
 classdef Anova < nirs.modules.AbstractModule
     %UNTITLED3 Summary of this class goes here
     %   Detailed explanation goes here
-  
+    
     properties
         formula = 'beta ~ -1 + group:cond + (1|subject)';
         centerVars = false;
         weighted = true;
-        verbose = true;
+        verbose = false;
         dummyCoding = 'full';
     end
-
+    
     methods
         function obj = Anova( prevJob )
             obj.name = 'Anova Model';
@@ -20,7 +20,7 @@ classdef Anova < nirs.modules.AbstractModule
         
         function G = runThis( obj, S )
             
-               if(length(S)<2)
+            if(length(S)<2)
                 G=S;
                 return;
             end
@@ -51,7 +51,7 @@ classdef Anova < nirs.modules.AbstractModule
             vars = table();
             for i = 1:length(S)
                 
-               
+                
                 
                 % coefs
                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
@@ -92,12 +92,24 @@ classdef Anova < nirs.modules.AbstractModule
             end
             
             % sort
-            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
-            
-            % list for first source
-            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-            sd.Properties.VariableNames = {'source', 'detector', 'type'};
-            
+            if(~ismember('source',vars.Properties.VariableNames) & ...
+                    ismember('ROI',vars.Properties.VariableNames))
+                [vars, idx] = nirs.util.sortrows(vars, {'ROI', 'type'});
+                
+                % list for first source
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
+                sd.Properties.VariableNames = {'ROI', 'type'};
+                
+                
+                
+            else
+                
+                [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
+                
+                % list for first source
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                sd.Properties.VariableNames = {'source', 'detector', 'type'};
+            end
             %% design mats
             for c = 1:height(vars)
                 block_ind = strfind(vars.cond{c},'◄');
@@ -191,10 +203,10 @@ classdef Anova < nirs.modules.AbstractModule
             %[Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,obj.verbose);
             
             % this gives the same results as the built in matlab code,
-            % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s 
+            % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s
             lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
-             if(obj.verbose)
+            if(obj.verbose)
                 disp(['Finished solving: time elapsed ' num2str(toc) 's']);
                 
             end
@@ -217,113 +229,123 @@ classdef Anova < nirs.modules.AbstractModule
             
             G.probe      = S(1).probe;
             
-            sd = repmat(sd, [length(unique(cnames)) 1]);
-            sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
+            if(~ismember('source',vars.Properties.VariableNames) & ...
+                    ismember('ROI',vars.Properties.VariableNames))
+                sd = repmat(sd, [length(unique(cnames)) 1]);
+                sd = nirs.util.sortrows(sd, {'ROI', 'type'});
+            else
+                
+                sd = repmat(sd, [length(unique(cnames)) 1]);
+                sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
+            end
             
             G.variables = [sd table(cnames)];
-            G.variables.Properties.VariableNames{4} = 'cond';
+            G.variables.Properties.VariableNames{end} = 'cond';
             G = G.sorted();
             G.description = ['ANOVA Model: ' obj.formula];
             
-        end
-    
+            G.demographics = nirs.util.combine_demographics(...
+                nirs.createDemographicsTable(S));
             
-%             % demographics info
-%             demo = nirs.createDemographicsTable( S );
-%             
-%             if obj.centerVars
-%                 % center numeric variables
-%                 n = demo.Properties.VariableNames;
-%                 for i = 1:length(n)
-%                     if all( isnumeric( demo.(n{i}) ) )
-%                         demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
-%                     end
-%                 end
-%             end
-%             
-%             % preallocate group stats
-%             G = nirs.core.ChannelFStats();
-%             
-%             %% loop through files
-%             w = [];
-%             b = [];
-%             vars = table();
-%             for i = 1:length(S)
-%                 % coefs
-%                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
-%                     b = [b; S(i).tstat];
-%                 else
-%                     b = [b; S(i).beta];
-%                 end
-%                 
-%                 % weights
-%                 if obj.weighted
-%                     [u, s, ~] = svd(S(i).covb, 'econ');
-%                     tmpW = u * pinv(s).^.5 * u';
-%                     w = [w; diag(tmpW'*tmpW)];
-%                 else
-%                     w = [w; ones(length(S(i).beta),1)];
-%                 end
-%                 
-%                 % table of variables
-%                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
-%                 
-%                 vars = [vars;
-%                     [table(file_idx) S(i).variables repmat(demo(i,:), [size(S(i).beta,1) 1])]
-%                     ];
-%             end
-%             
-%             % sort
-%             [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type', 'cond'});
-%             b = b(idx);
-%             w = w(idx);
-%             
-%             % list for first source
-%             [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-%             sd.Properties.VariableNames = {'source', 'detector', 'type'};
-%             
-%             %% loop through
-%             for c = 1:height(vars)
-%                 block_ind = strfind(vars.cond{c},'◄');
-%                 if ~isempty(block_ind)
-%                     vars.cond{c} = vars.cond{c}(1:block_ind-2);
-%                 end
-%             end
-%             nRE=max(1,length(strfind(obj.formula,'|')));
-%             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
-%             variables = table([],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'});
-%             
-%             F = []; df1 = []; df2 = [];
-%             for iChan = 1:max(lst)
-%                 
-%                 tmp = vars(lst == iChan, :);
-% 
-%                 beta = b(lst == iChan);
-%                 
-%                 lm = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
-%                         'effects', 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1), ...
-%                         'Weights', w(lst==iChan));
-%                     
-%                 a = lm.anova();
-%                 
-%                 F = [F; a.FStat];
-%                 df1 = [df1; a.DF1];
-%                 df2 = [df2; a.DF2];
-%                 
-%                 cond = a.Term;
-%                 variables = [variables; 
-%                     [repmat(sd(iChan,:), [length(a.FStat) 1]) table(cond)]];
-%             end
-%             
-%             G.F = F;
-%             G.df1 = df1;
-%             G.df2 = df2;
-%             G.variables = variables;
-%             G.probe = S(1).probe;
-%             
-%             G = G.sorted();
-%             G.description = ['ANOVA Model: ' obj.formula];
-%         end
+        end
+        
+        
+        %             % demographics info
+        %             demo = nirs.createDemographicsTable( S );
+        %
+        %             if obj.centerVars
+        %                 % center numeric variables
+        %                 n = demo.Properties.VariableNames;
+        %                 for i = 1:length(n)
+        %                     if all( isnumeric( demo.(n{i}) ) )
+        %                         demo.(n{i}) = demo.(n{i}) - mean( demo.(n{i}) );
+        %                     end
+        %                 end
+        %             end
+        %
+        %             % preallocate group stats
+        %             G = nirs.core.ChannelFStats();
+        %
+        %             %% loop through files
+        %             w = [];
+        %             b = [];
+        %             vars = table();
+        %             for i = 1:length(S)
+        %                 % coefs
+        %                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
+        %                     b = [b; S(i).tstat];
+        %                 else
+        %                     b = [b; S(i).beta];
+        %                 end
+        %
+        %                 % weights
+        %                 if obj.weighted
+        %                     [u, s, ~] = svd(S(i).covb, 'econ');
+        %                     tmpW = u * pinv(s).^.5 * u';
+        %                     w = [w; diag(tmpW'*tmpW)];
+        %                 else
+        %                     w = [w; ones(length(S(i).beta),1)];
+        %                 end
+        %
+        %                 % table of variables
+        %                 file_idx = repmat(i, [size(S(i).beta,1) 1]);
+        %
+        %                 vars = [vars;
+        %                     [table(file_idx) S(i).variables repmat(demo(i,:), [size(S(i).beta,1) 1])]
+        %                     ];
+        %             end
+        %
+        %             % sort
+        %             [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type', 'cond'});
+        %             b = b(idx);
+        %             w = w(idx);
+        %
+        %             % list for first source
+        %             [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+        %             sd.Properties.VariableNames = {'source', 'detector', 'type'};
+        %
+        %             %% loop through
+        %             for c = 1:height(vars)
+        %                 block_ind = strfind(vars.cond{c},'◄');
+        %                 if ~isempty(block_ind)
+        %                     vars.cond{c} = vars.cond{c}(1:block_ind-2);
+        %                 end
+        %             end
+        %             nRE=max(1,length(strfind(obj.formula,'|')));
+        %             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
+        %             variables = table([],[],[],[], 'VariableNames', {'source', 'detector', 'type', 'cond'});
+        %
+        %             F = []; df1 = []; df2 = [];
+        %             for iChan = 1:max(lst)
+        %
+        %                 tmp = vars(lst == iChan, :);
+        %
+        %                 beta = b(lst == iChan);
+        %
+        %                 lm = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
+        %                         'effects', 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1), ...
+        %                         'Weights', w(lst==iChan));
+        %
+        %                 a = lm.anova();
+        %
+        %                 F = [F; a.FStat];
+        %                 df1 = [df1; a.DF1];
+        %                 df2 = [df2; a.DF2];
+        %
+        %                 cond = a.Term;
+        %                 variables = [variables;
+        %                     [repmat(sd(iChan,:), [length(a.FStat) 1]) table(cond)]];
+        %             end
+        %
+        %             G.F = F;
+        %             G.df1 = df1;
+        %             G.df2 = df2;
+        %             G.variables = variables;
+        %             G.probe = S(1).probe;
+        %
+        %             G = G.sorted();
+        %             G.description = ['ANOVA Model: ' obj.formula];
+        %         end
     end
     
 end

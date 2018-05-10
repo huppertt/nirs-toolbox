@@ -41,6 +41,29 @@ classdef Gamma
             
         end
         
+          function h = draw(obj)
+            
+            % params
+             a = obj.peakTime;
+            b = obj.peakDisp;
+            
+            % sampling freq
+            Fs = 4;
+            
+            % time vector
+            t = (0:1/Fs:obj.duration)';
+        
+            
+            % impulse response
+            h = b^a*t.^(a-1).*exp(-b*t)/gamma(a);
+            h = h / sum(h);
+            
+            % convert stim vectors
+%             s1 = s(1,:);
+%             s = bsxfun( @minus, s, s1 );
+           h=plot(t,h,'k');
+        end
+        
     end
     
 end

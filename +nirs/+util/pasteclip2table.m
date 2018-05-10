@@ -17,11 +17,12 @@ else
 end
 s=struct;
 for i=1:length(header{1})
-    
-    if(~isempty(str2num(a{i}{n})))
-        s=setfield(s,header{1}{i},cell2mat(arrayfun(@(x)str2num(x{1}),vertcat(a{i}(n:end)),'UniformOutput',false)));
-    else
-        s=setfield(s,header{1}{i},vertcat(a{i}(n:end)));
+    if(double(header{1}{i})~=13)
+        if(~isempty(str2num(a{i}{n})))
+            s=setfield(s,header{1}{i},cell2mat(arrayfun(@(x)str2num(x{1}),vertcat(a{i}(n:end)),'UniformOutput',false)));
+        else
+            s=setfield(s,header{1}{i},vertcat(a{i}(n:end)));
+        end
     end
 end
 

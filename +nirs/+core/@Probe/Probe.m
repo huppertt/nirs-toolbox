@@ -115,6 +115,11 @@ classdef Probe
         function d = get.distances( obj )
             %% distances - Calculates measurement distance for each channel.
         
+           if(isa(obj,'nirs.core.ProbeROI'))
+               d=obj.fixeddistances;
+               return
+           end
+            
             
             isrc = obj.link.source;
             idet = obj.link.detector;
@@ -134,7 +139,10 @@ classdef Probe
                     warning('probe distances do not match layout');
                 end
                 d=obj.fixeddistances;
+                return
             end
+            
+            
         end
         
         function obj = swapSD( obj )

@@ -76,7 +76,7 @@ function [data, truth, fwdModel, truthchan, nulldata] = simDataImage(fwdModel, n
         
         % Likewise, this will register a mesh onto your probe.  Note- the mesh is
         % the thing that is warped to mathc the head size (not the probe).
-        probe=probe.regsister_mesh2probe(fwdBEM.mesh);
+        probe=probe.register_mesh2probe(fwdBEM.mesh);
         
         probe.defaultdrawfcn='10-20';
         fwdModel=nirs.forward.ApproxSlab;
@@ -157,17 +157,17 @@ function [data, truth, fwdModel, truthchan, nulldata] = simDataImage(fwdModel, n
     data.probe=fwdModel.probe;
     data.data = exp( -bsxfun(@minus, Y+Yact', log(m)) );
     data.stimulus = stim;
-    
-    data2 = noise2;
-    Y2    = data2.data;
-    
-    % optical density
-    m2 = mean(Y2);
-    Y2 = bsxfun(@plus, -log(Y2), log(m2));
-    noise2.probe=fwdModel.probe;
-    noise2.data = exp( -bsxfun(@minus, Y2, log(m2)) );
-    noise2.stimulus = stim;
-    nulldata=noise2;
+%     
+%     data2 = noise2;
+%     Y2    = data2.data;
+%     
+%     % optical density
+%     m2 = mean(Y2);
+%     Y2 = bsxfun(@plus, -log(Y2), log(m2));
+%     noise2.probe=fwdModel.probe;
+%     noise2.data = exp( -bsxfun(@minus, Y2, log(m2)) );
+%     noise2.stimulus = stim;
+%     nulldata=noise2;
     
     
     truth=(b(:)~=0);

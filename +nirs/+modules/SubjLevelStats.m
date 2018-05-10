@@ -47,14 +47,20 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                             hascond(j,:) = ismember(cond,nirs.getStimNames(S(lst(j))));
                         end
                         lstSingleCond = find(sum(hascond*1,1)==1);
-                        j=nirs.modules.KeepStims;
-                        j.listOfStims={cond{lstSingleCond}};
-                        SS = j.run(S(lst));
                         
-                        j=nirs.modules.DiscardStims;
-                        j.listOfStims={cond{lstSingleCond}};
-                        j=nirs.modules.RemoveStimless(j);
-                        Scommon = j.run(S(lst));
+                        if(~isempty(lstSingleCond))
+                            j=nirs.modules.KeepStims;
+                            j.listOfStims={cond{lstSingleCond}};
+                            SS = j.run(S(lst));
+                            
+                            j=nirs.modules.DiscardStims;
+                            j.listOfStims={cond{lstSingleCond}};
+                            j=nirs.modules.RemoveStimless(j);
+                            Scommon = j.run(S(lst));
+                        else
+                            Scommon=S(lst);
+                            SS=[];
+                        end
                         
                         if(~isempty( Scommon))
                             disp([ 'running subject ' subjects{i}]);

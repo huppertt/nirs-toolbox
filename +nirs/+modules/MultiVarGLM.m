@@ -23,7 +23,18 @@ classdef MultiVarGLM < nirs.modules.AbstractGLM
                 
                 % sort data
                 link = data(i).probe.link;
-                [link, idx] = nirs.util.sortrows( link, {'source', 'detector', 'type'} );
+                if(~isempty(strfind(class(probe),'nirs')))
+                    if(~ismember('source',link.Properties.VariableNames) & ...
+                            ismember('ROI',link.Properties.VariableNames))
+                        [link, idx] = nirs.util.sortrows(link, {'ROI','type'});
+                    else
+                        [link, idx] = nirs.util.sortrows(link, {'source', 'detector','type'});
+                    end
+                elseif(~isempty(strfind(class(probe),'eeg')))
+                    [link, idx] = nirs.util.sortrows(link, {'electrode','type'});
+                else
+                    error('data type not supported');
+                end
                 
                 d = d(:,idx);
                 

@@ -19,7 +19,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         include_diagnostics=false;
         robust=false;
         weighted=true;
-        verbose=true;
+        verbose=false;
     end
     
     methods
@@ -104,11 +104,25 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             
             % sort
+            if(~ismember('source',vars.Properties.VariableNames) & ...
+                    ismember('ROI',vars.Properties.VariableNames))
+                [vars, idx] = nirs.util.sortrows(vars, {'ROI', 'type'});
+                
+                % list for first source
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
+                sd.Properties.VariableNames = {'ROI', 'type'};
+                
+                
+                
+            else
+                
             [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
             
             % list for first source
             [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
             sd.Properties.VariableNames = {'source', 'detector', 'type'};
+            end
+            
             
             %% design mats
             for c = 1:height(vars)
@@ -230,11 +244,17 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             G.probe      = S(1).probe;
             
-            sd = repmat(sd, [length(unique(cnames)) 1]);
-            sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
-            
+            if(~ismember('source',vars.Properties.VariableNames) & ...
+                    ismember('ROI',vars.Properties.VariableNames))
+                sd = repmat(sd, [length(unique(cnames)) 1]);
+                sd = nirs.util.sortrows(sd, {'ROI', 'type'});
+            else
+                
+                sd = repmat(sd, [length(unique(cnames)) 1]);
+                sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
+            end
             G.variables = [sd table(cnames)];
-            G.variables.Properties.VariableNames{4} = 'cond';
+            G.variables.Properties.VariableNames{end} = 'cond';
             G.description = ['Mixed Effects Model: ' obj.formula];
             
             n={}; b={}; cnt=1;
@@ -255,6 +275,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             for i=1:length(j)
                 G.basis.stim(n{j(i)})=b{j(i)};
             end
+            
+            G.demographics = nirs.util.combine_demographics(...
+                nirs.createDemographicsTable(S));
+            
             
             if(obj.include_diagnostics)
                 if(obj.verbose)

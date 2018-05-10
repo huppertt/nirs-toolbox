@@ -26,6 +26,7 @@ classdef ChannelFStats
         df1         % degrees of freedom 1
         df2         % degrees of freedom 2
         probe       % probe geometry
+         demographics    % Dictionary containing demographics info
     end
     
     properties ( Dependent = true )
@@ -87,7 +88,12 @@ classdef ChannelFStats
             %% sorted - returns sorted stats by columns in variables
             out = obj;
             if nargin < 2
-                colsToSortBy = {'source', 'detector', 'type', 'cond'};
+                if(~ismember('source',out.variables.Properties.VariableNames) & ...
+                        ismember('ROI',out.variables.Properties.VariableNames))
+                    colsToSortBy = {'ROI', 'type', 'cond'};
+                else
+                    colsToSortBy = {'source', 'detector', 'type', 'cond'};
+                end
             end
             
             [out.variables, idx] = nirs.util.sortrows(out.variables, colsToSortBy);

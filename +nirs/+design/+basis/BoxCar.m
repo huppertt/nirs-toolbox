@@ -22,7 +22,16 @@ classdef BoxCar
             out = [zeros(nLag,1); s(1:end-nLag)];
                         
         end
-        
+        function h = draw(obj)
+           Fs =4; 
+           t = (0:1/Fs:(obj.irf_dur+obj.lagTime+5))';
+           s=zeros(size(t));
+           s(1)=1;
+           out = obj.convert(s, t );
+           h=plot(t,out,'k');
+            
+            
+        end
     end
     
 end

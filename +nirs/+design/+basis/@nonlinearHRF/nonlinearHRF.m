@@ -77,6 +77,39 @@ classdef nonlinearHRF
             end
             
         end
+        
+          function h = draw(obj)
+            
+            % params
+              a1 = obj.peakTime.value;
+            a2 = obj.uShootTime.value;
+            b1 = obj.peakDisp.value;
+            b2 = obj.uShootDisp.value;
+            c  = obj.ratio.value;
+            
+            % sampling freq
+            Fs = 4;
+            t = (0:1/Fs:obj.duration)';
+            
+            d = obj.getImpulseResponse( a1, b1, a2, b2, c, t );
+            h=plot(t,d,'k');
+            
+             if obj.incDeriv
+                da = 1e-6 * a1;
+                db = 1e-6 * b1;
+                
+                ha = (d - obj.getImpulseResponse(a1+da, b1, a2, b2, c, t) )/da;
+                hb = (d - obj.getImpulseResponse(a1, b1+db, a2, b2, c, t) )/da;
+                
+                hold on;
+                 h=plot(t,ha,'k--');
+                  h=plot(t,hb,'k--');
+                  
+            end
+            
+            
+        end
+        
     end
     
     methods ( Static )

@@ -1,4 +1,4 @@
-function [tbl] = roiAverage( data, R, names ,splitrois)
+function [tbl,ROIstats] = roiAverage( data, R, names ,splitrois)
 
 if(~iscell(R)); R={R}; end;
 
@@ -15,6 +15,28 @@ if(nargin<4)
     % put all roi time courses in a single object or split
     splitrois=false;
 end
+
+if(length(data)>1)
+    [tbl,ROIstats]=nirs.util.roiAverage(  data(i), R, names ,splitrois);
+    
+    if(isa(tbl,'table'))
+        
+        tbl=[table(repmat(cellstr(num2str(1)),height(tbl),1),'VariableNames',{'FileIdx'}) tbl];
+    end
+    for i=2:length(data)
+        if(~isempty(ROIstats))
+            [t,ROIstats(i,1)]=nirs.util.roiAverage(  data(i), R, names ,splitrois);
+        else
+            t=nirs.util.roiAverage(  data(i), R, names ,splitrois);
+        end
+        if(isa(tbl,'table'))
+            t=[table(repmat(cellstr(num2str(i)),height(t),1),'VariableNames',{'FileIdx'}) t];
+        end
+        tbl=[tbl; t];
+    end
+    return
+end
+
 
 
 %First deal with the NaN values;
@@ -198,6 +220,7 @@ if(isa(data,'nirs.core.Data'))
     end
     
     tbl=d;
+    ROIstats=[];
     
 elseif(isa(data,'nirs.core.sFCStats'))
      % loop over conditions
@@ -282,6 +305,11 @@ elseif(isa(data,'nirs.core.sFCStats'))
     [~,power] = nirs.math.MDC(tbl,.8,.05);
     tbl = [tbl table(q) table(power)];
     
+    ROIstats=[];
+    if(nargout==2)
+        warning('havent created roi connectivity model yet');
+    end
+    
     
 else
     
@@ -294,7 +322,7 @@ else
     uconds = unique(vars.cond, 'stable');
     
     % loop over conditions
-    varnames = {'ROI', 'Contrast','Beta', 'SE', 'DF', 'T', 'p'};
+    varnames = {'ROI','type', 'Contrast','Beta', 'SE', 'DF', 'T', 'p'};
     tbl = table;
     
     
@@ -308,25 +336,30 @@ else
         end
     end
     
+    cc=zeros(size(beta,1),length(R)*length(uconds));
+    vvs =table;
     for i = 1:length(uconds)
         lst = strcmp(vars.cond, uconds{i});
         b = beta(lst);
         C = covb(lst,lst);
         
-      
+        
         for j = 1:length(R)
             % contrast vector
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
             c=c/sum(c);
-           
+            
+            cc(lst,(i-1)*length(R)+j)=c;
+            vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];
             broi    = c'*b;
             se      = sqrt(c'*C*c);
             t       = broi / se;
             df      = data.dfe;
             p       = 2*tcdf(-abs(t),df);
             
-            tmp = cell2table({names{j}, uconds{i},  broi, se, df, t, p});
+            tmp = cell2table({namesOld(floor((j-1)/length(types))+1),...
+                types(mod(j-1,length(types))+1), uconds{i},  broi, se, df, t, p});
             tmp.Properties.VariableNames = varnames;
             
             if(ismember('model',vars.Properties.VariableNames))
@@ -353,6 +386,19 @@ else
     q   = nirs.math.fdr( tbl.p );
     [~,power] = nirs.math.MDC(tbl,.8,.05);
     tbl = [tbl table(q) table(power)];
+    
+    ROIstats=nirs.core.ChannelStats;
+    ROIstats.description='region of interest stats';
+    ROIstats.beta=tbl.Beta;
+    ROIstats.dfe=tbl.DF;
+    ROIstats.covb=cc'*covb*cc;
+    ROIstats.demographics=data.demographics;
+    ROIstats.basis=data.basis;
+    ROIstats.variables=vvs;
+    
+    ROIstats.probe=nirs.core.ProbeROI(names2);
+    
+    
 end
 
 end

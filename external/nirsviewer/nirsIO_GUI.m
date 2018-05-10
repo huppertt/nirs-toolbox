@@ -145,14 +145,14 @@ function pushbutton_add_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_add (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fileext='.nirs';
+fileext={'.nirs','.oxy3','.wl1','Probe*.csv'};
 
 tempdata=get(handles.figure1,'Userdata');
 if(isempty(tempdata)); tempdata=nirs.core.Data.empty; end;
 
 mtree=get(findobj('tag','IOtree'),'Userdata');
 nodes=mtree.getSelectedNodes;
-
+demo=[];
 seldir={}; selfile={};
 for idx=1:length(nodes);
     sel=nodes(idx).getValue;
@@ -177,12 +177,21 @@ end
 %if selected folder
 for idx=1:length(seldir)
     if(seldir{idx}(end)==filesep), seldir{idx}(end)=[]; end;
-    files = rdir([seldir{idx} filesep '**' filesep '*' fileext]);
+    
+    files = rdir([seldir{idx} filesep '**' filesep '*' fileext{1}]);
+    for ii=2:length(fileext)
+        files = [files; rdir([seldir{idx} filesep '**' filesep '*' fileext{ii}])];
+    end
     
     for iFile = 1:length( files )
         fsplit = strsplit( files(iFile).name, filesep );
         rsplit = strsplit( seldir{idx}, filesep );
         demo(iFile) = length(fsplit(length(rsplit)+1:end-1));
+        if(~isempty(strfind(files(iFile).name,'.wl1')))
+            demo(iFile)=demo(iFile)-1;
+        end
+        
+        
     end
     if(any(demo~=mean(demo)));
         warndlg('Files need to have the same folder heiraricah structure');
@@ -200,7 +209,7 @@ for idx=1:length(seldir)
         case 3
             demolabels={'group','subject','session'};
         otherwise
-            demolabels={'group','subject'};
+            demolabels={};
     end
     disp(['Loading a total of ' num2str(length(files)) ' files']);
     d=nirs.io.loadDirectory(seldir{idx},demolabels);
@@ -220,6 +229,8 @@ demo=[table({tempdata.description}','VariableNames',{'File_Name'}) demo];
 
 set(handles.uitable1,'Data',table2cell(demo));
 set(handles.uitable1,'ColumnName',demo.Properties.VariableNames);
+
+set(handles.uitable1,'ColumnEditable',[false true(1,length(demo.Properties.VariableNames))] );
 
 return
 

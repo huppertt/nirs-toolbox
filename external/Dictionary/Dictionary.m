@@ -119,6 +119,30 @@ classdef Dictionary
             out = keyexists;
         end
         
+        function disp(obj)
+           % tt=table(obj.values{:},'VariableNames',obj.keys);
+           if(obj.count>0)
+            disp(['Dictionary Class Containing:'])
+            for i=1:obj.count
+                if(isnumeric(obj.values{i}))
+                    str=num2str(obj.values{i});
+                elseif(ischar(obj.values{i}))
+                    str=obj.values{i};
+                else
+                    str=class(obj.values{i});
+                end
+                
+                disp(['     ' obj.keys{i} '  :  ' str]);
+            end
+            %disp(tt);
+           else
+               disp(['Empty Dictionary Class'])
+           end
+            
+            
+        end
+        
+        
         function out = isempty( obj )
             %% isempty - returns true if dictionary is empty
             out = obj.count == 0;
