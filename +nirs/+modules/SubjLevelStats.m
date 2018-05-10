@@ -47,7 +47,6 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                             hascond(j,:) = ismember(cond,nirs.getStimNames(S(lst(j))));
                         end
                         lstSingleCond = find(sum(hascond*1,1)==1);
-                        
                         if(~isempty(lstSingleCond))
                             j=nirs.modules.KeepStims;
                             j.listOfStims={cond{lstSingleCond}};
@@ -58,13 +57,13 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                             j=nirs.modules.RemoveStimless(j);
                             Scommon = j.run(S(lst));
                         else
+                            SS=S(1);
+                            SS(:)=[];
                             Scommon=S(lst);
-                            SS=[];
                         end
-                        
                         if(~isempty( Scommon))
                             disp([ 'running subject ' subjects{i}]);
-                                       G1=obj.runThis( Scommon);
+                            G1=obj.runThis( Scommon);
                             if(~isempty(SS))
                                 SS(end+1)=G1;
                             else
@@ -78,7 +77,7 @@ classdef SubjLevelStats < nirs.modules.AbstractModule
                     return
                 end
             end
-                    
+            
             % Return if there is nothing to average
             if(height(demo)==1)
                 G=S;

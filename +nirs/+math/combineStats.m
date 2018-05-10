@@ -15,7 +15,20 @@ if(any(sum(hascond*1,1)>1))
     return
 end
 
+basis=SS(1).basis;
+for i=2:length(SS)
+    b=SS(i).basis;
+    for j=1:b.base.count
+        basis.base(b.base.keys{j})=b.base(b.base.keys{j});
+    end
+     for j=1:b.stim.count
+        basis.stim(b.stim.keys{j})=b.stim(b.stim.keys{j});
+    end
+end
+
+
 S=SS(1);
+S.basis=basis;
 S.variables=vertcat(SS.variables);
 S.beta=vertcat(SS.beta);
 S.covb=blkdiag(SS.covb);
