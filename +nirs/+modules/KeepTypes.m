@@ -24,7 +24,7 @@ classdef KeepTypes < nirs.modules.AbstractModule
                 switch class(data)
                     case {'nirs.core.Data','nirs.core.sFCStats'}
                         tdata = data(i).probe.link.type;
-                    case {'nirs.core.ChannelStats','nirs.core.ChannelFStats'}
+                    case {'nirs.core.ChannelStats','nirs.core.ChannelFStats','nirs.core.ImageStats'}
                         tdata = data(i).variables.type;
                 end
                 tdata_probe = data(i).probe.link.type;
@@ -48,6 +48,11 @@ classdef KeepTypes < nirs.modules.AbstractModule
                     case {'nirs.core.ChannelFStats'}
                         data(i).variables = data(i).variables(keep_type,:);
                         data(i).F = data(i).F(keep_type);
+                    case {'nirs.core.ImageStats'}
+                        data(i).variables = data(i).variables(keep_type,:);
+                        data(i).beta = data(i).beta(keep_type);
+                        data(i).covb_chol = data(i).covb_chol(keep_type,:);
+                        data(i).typeII_StdE = data(i).typeII_StdE(keep_type);
                     case {'nirs.core.sFCStats'}
                         data(i).R = data(i).R(keep_type,keep_type,:);
                         if(~isempty(data(i).ZstdErr))
