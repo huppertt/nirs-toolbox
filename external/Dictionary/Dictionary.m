@@ -59,11 +59,12 @@ classdef Dictionary
             %     d = Dictionary({'a', 'b','c'}, {1, 2, 'hello'});
             
             % check java classpath
-            dictLoc = fileparts(which('Dictionary'));
-            clsPth  = javaclasspath('-dynamic');
-            if ~any( strcmp(dictLoc, clsPth) )
-                javaaddpath( dictLoc );
-            end
+            
+%             dictLoc = fileparts(which('Dictionary'));
+%             clsPth  = javaclasspath('-dynamic');
+%             if ~any( strcmp(dictLoc, clsPth) )
+%                 javaaddpath( dictLoc );
+%             end
             
             % if key/value pairs provide add to dict
             if nargin == 2
@@ -255,12 +256,12 @@ classdef Dictionary
     methods ( Static )
         function [h, b] = hash( key )
             %% hash - returns the hash of a key
-            b = getByteStreamFromArray(key);
-            h = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
+             b = getByteStreamFromArray(key);
+%             h = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
             
             % this can be used instead, but it is slower
-            % h = typecast(java.lang.String(b).hashCode(),'uint32');
-            % h = uint64(h(2));
+            h = typecast(java.lang.String(b).hashCode(),'uint32');
+            h = uint64(h(2));
         end
         
         function out = areUniqueKeys( keys )
@@ -276,8 +277,11 @@ classdef Dictionary
     methods ( Access = private )
         % find index
         function [i, keyexists] = getindex( obj, key )
-            b = getByteStreamFromArray(key);
-            i = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
+             b = getByteStreamFromArray(key);
+%             i = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
+%             
+            i = typecast(java.lang.String(b).hashCode(),'uint32');
+            i = uint64(i(2));
             
             i = mod(i, obj.TABLE_SIZE) + uint64(1);
             
