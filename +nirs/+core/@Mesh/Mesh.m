@@ -232,7 +232,7 @@ classdef Mesh
                 s=scatter3(obj.fiducials.X(lst),obj.fiducials.Y(lst),obj.fiducials.Z(lst),'k','filled');
                 hold off;
             end
-            
+            set(gcf,'color','k');
         end
     end
     

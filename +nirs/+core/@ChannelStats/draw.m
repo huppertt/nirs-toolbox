@@ -225,6 +225,9 @@ for iType = 1:length(utypes)
                 
                 c = colorbar; colormap(cmap); caxis(vrange);
                 
+                if(all(get(gcf,'color')==0))
+                   set(c,'Color','w')
+                end
                 ap = get(a, 'Position');
                 
                 cp = get(c, 'Position');

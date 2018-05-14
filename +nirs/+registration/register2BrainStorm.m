@@ -98,7 +98,7 @@ xyz=[pts1020.X pts1020.Y pts1020.Z];
 [TR,TT]=icp(v(:,1:3)',xyz(:,1:3)');
 v=(inv(TR) * (v(:,1:3)' - TT*ones(1,size(v,1))))';
 m(1)=nirs.core.Mesh(v,sHead.Faces);
-m(1).transparency=.1;
+m(1).transparency=.3;
 m(1)=m(1).addfiducials(pts1020);    
 m(1).fiducials.Draw(:)=false;
 
