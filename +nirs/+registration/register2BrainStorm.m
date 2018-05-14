@@ -8,8 +8,13 @@ function raw = register2BrainStorm(raw,folder)
 %               Axis Y: From the origin towards LPA in the plane defined by (NAS,LPA,RPA), and orthogonal to X axis
 %               Axiz Z: From the origin towards the top of the head 
 
+ProtocolName = 'NIRSToolbox';
+if ~brainstorm('status')
+    brainstorm('nogui');
+end
+gui_brainstorm('DeleteProtocol', ProtocolName);
+gui_brainstorm('CreateProtocol', ProtocolName, 0, 0);
 
-brainstorm nogui;
 import_anatomy(0);
 
 [sSubject, iSubject] = bst_get('Subject', 0);
