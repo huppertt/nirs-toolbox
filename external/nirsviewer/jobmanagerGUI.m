@@ -320,6 +320,10 @@ while(~isempty(j.prevJob))
 end
 lst=min(find(ismember(Names,toCharArray(name)')));
 
+if(isempty(lst) || ~ismember('javaoptions',methods(JJ{lst})))
+    return
+end
+
 prop=javaoptions(JJ{lst});
 
 com.mathworks.mwswing.MJUtilities.initJIDE;
