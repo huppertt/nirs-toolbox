@@ -226,14 +226,17 @@ for cIdx=1:length(obj.conditions)
                         hh=getframe(ax); % For some reason the image is sometimes distorted the first time, but never the 2nd
                         hh=hh.cdata;
                         for i=1:length(s1)
-                            s=scatter(h1,s1(i).XData(2),s1(i).YData(2),'filled','r','Sizedata',40);
+                            xdata = get(s1(i),'XData');
+                            ydata = get(s1(i),'YData');
+                            
+                            s=scatter(h1,xdata(2),ydata(2),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
                             opt1PosX=median(b)/size(hh2.cdata,2)*210-105;
                             opt1PosY=median(a)/size(hh2.cdata,1)*200-100;
                             delete(s);
 
-                            s=scatter(h1,s1(i).XData(1),s1(i).YData(1),'filled','r','Sizedata',40);
+                            s=scatter(h1,xdata(1),ydata(1),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
                             opt2PosX=median(b)/size(hh2.cdata,2)*210-105;
@@ -244,14 +247,17 @@ for cIdx=1:length(obj.conditions)
                             link.Y(i) = (opt1PosY + opt2PosY) / 2;
                         end
                         for i=1:length(s2)
-                            s=scatter(h2,s2(i).XData(2),s2(i).YData(2),'filled','r','Sizedata',40);
+                            xdata = get(s2(i),'XData');
+                            ydata = get(s2(i),'YData');
+                            
+                            s=scatter(h2,xdata(2),ydata(2),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
                             opt1PosX=median(b)/size(hh2.cdata,2)*210-105;
                             opt1PosY=median(a)/size(hh2.cdata,1)*200-100;
                             delete(s);
 
-                            s=scatter(h2,s2(i).XData(1),s2(i).YData(1),'filled','r','Sizedata',40);
+                            s=scatter(h2,xdata(1),ydata(1),'filled','r','Sizedata',40);
                             hh2=getframe(ax);
                             [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
                             opt2PosX=median(b)/size(hh2.cdata,2)*210-105;
