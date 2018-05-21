@@ -243,7 +243,7 @@ double gradphi(double g[4][3], double kappa[4], double val[4][4])
       val[ii][jj] = val[ii][jj]*dJt;
     }
   }
-  return;
+  return 0;
 }
 double phidotphi(double g[4][3], double mua[4], double val[4][4])
 {
@@ -349,7 +349,7 @@ double phidotphi(double g[4][3], double mua[4], double val[4][4])
       val[ii][jj] = val[ii][jj]*dJt;
     }
   }
-  return;
+  return 0;
 }
 
 double boundary_int(double gg[4][3], double bnd_index[4], double ksir[4], \
@@ -562,7 +562,7 @@ double boundary_int(double gg[4][3], double bnd_index[4], double ksir[4], \
     
     *valr = sres*side_size*ksitmp_r;  
   }
-  return;
+  return 0;
 }
 /* -------- Gate-way to matlab  ------------ */
 
