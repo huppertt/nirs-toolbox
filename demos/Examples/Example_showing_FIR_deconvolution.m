@@ -25,10 +25,9 @@ job .basis('default')=basis;
 SubjStats = job .run( hb );  % run the analysis model
 
 
-% This is a faster version of the group level model, but does not support
-% random effects at the moment
-job=nirs.modules.GroupAverage;
-job.formula='beta ~ -1 + cond'
+
+job=nirs.modules.MixedEffects;
+job.formula='beta ~ -1 + cond';
 GroupStats = job.run(SubjStats);
 
 

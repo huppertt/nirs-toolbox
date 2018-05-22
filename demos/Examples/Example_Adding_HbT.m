@@ -13,7 +13,7 @@ hb=job.run(raw);
 
 
 % Run the first level stats model
-job=nirs.modules.AR_IRLS;
+job=nirs.modules.GLM;
 SubjStats = job.run(hb);
 
 % We can also add total-Hb (and oxygen saturation) to the models

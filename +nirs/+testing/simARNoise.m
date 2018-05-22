@@ -94,3 +94,12 @@ function probe = defaultProbe()
         'VariableNames', {'source', 'detector', 'type'});
     
 end
+
+function [r,T]=mvnrnd(mu,sigma,cases)
+
+
+[T,err] = chol(sigma);
+r = randn(cases,size(T,1)) * T + ones(cases,1)*mu';
+
+end
+

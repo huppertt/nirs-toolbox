@@ -10,6 +10,10 @@ function S = ftest(obj, m)
     %     % of the first two variables
     %     stats.ftest([1 1 1; 1 1 0])
     
+    if(nargin<2)
+        m=true(length(obj.conditions),1);
+    end
+    
     if ~islogical(m)
         m = m > 0;
         warning('Converting mask to true/false.')

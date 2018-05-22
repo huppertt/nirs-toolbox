@@ -162,7 +162,7 @@ xrank = size(X,2);    % rank of weighted version of x
 while((iter==0) || any(abs(b-b0) > D*max(abs(b),abs(b0))))
    iter = iter+1;
    
-   disp(['Interation: ' num2str(iter) ' (delta=' num2str(norm(b-b0)) ')']);
+  % disp(['Interation: ' num2str(iter) ' (delta=' num2str(norm(b-b0)) ')']);
    
    if (iter>iterlim)
       warning(message('stats:statrobustfit:IterationLimit'));

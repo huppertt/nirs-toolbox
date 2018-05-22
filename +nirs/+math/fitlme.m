@@ -173,8 +173,15 @@ end
 
 warning('off','MATLAB:nearlySingularMatrix');
 
-opts = optimoptions('fminunc','Display','off','Algorithm','Quasi-Newton');
-theta = fminunc( @(x) calcLogLikelihood(X,y,Z,x) , theta0 , opts );
+
+if(~isempty(ver('optim')))
+    
+    opts = optimoptions('fminunc','Display','off','Algorithm','Quasi-Newton');
+    theta = fminunc( @(x) calcLogLikelihood(X,y,Z,x) , theta0 , opts );
+else
+     opts = optimset('MaxFunEvals', 1000,'Display','off');
+     theta=fminsearch(@(x) calcLogLikelihood(X,y,Z,x) , theta0 , opts);
+end
 
 warning('on','MATLAB:nearlySingularMatrix');
 end

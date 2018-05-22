@@ -82,7 +82,7 @@ else
      if(headsize.count>2)
         cstfcn=@(x)max(reshape(vertcat(cell2mat(cellfun(@(a){a(x)},cost)')),[],1));
         %s=lsqnonlin(cstfcn,[1 1 1],[.5 .5 .5],[2 2 2],opt);
-        s=fminbnd(cstfcn,[.5 .5 .5],[2 2 2],opt);
+        s=fminsearch(cstfcn,[1 1 1],opt);
     else
         cstfcn=@(x)max(reshape(vertcat(cell2mat(cellfun(@(a){a(x*[1 1 1])},cost)')),[],1));
         s=fminbnd(cstfcn,.5,2,opt);

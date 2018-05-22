@@ -110,7 +110,7 @@ function stats = ar_irls( d,X,Pmax,tune )
             yf = myFilter(f,y);
 
             % perform IRLS
-            [B, S] = robustfit(Xf,yf,'bisquare',tune,'off');
+            [B, S] = nirs.math.robustfit(Xf,yf,'bisquare',tune,'off');
             
             iter = iter + 1;
         end
