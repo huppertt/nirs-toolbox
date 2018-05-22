@@ -1,13 +1,20 @@
 function data=change_stimulus_duration(data,stimname,duration)
 % This function will change the duration of a stimulus in a data variable
 
+if(isempty(stimname))
+    stimname=unique(nirs.getStimNames(data));
+end
+
 if(~iscellstr(stimname))
     stimname={stimname};
 end
 
+if(length(duration)<length(stimname))
+    duration=duration(1)*ones(length(stimname),1);
+end
+
 for i=1:length(stimname)
-    
-    
+      
     stimtable=nirs.createStimulusTable(data);
     stimtable=stimtable(1,:);
     stimtable.FileIdx=NaN;
