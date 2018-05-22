@@ -233,6 +233,7 @@ classdef Mesh
                 hold off;
             end
             set(gcf,'color','k');
+            set(gca,'color','k');
         end
     end
     

@@ -163,11 +163,11 @@ dx=zeros(length(pos(:)),1);
 
 if(~isempty(ver('optim')))
     cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
-    opt = optimset('MaxFunEvals', 1000,'Display','off');
+    opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
     x=lsqnonlin(cost,dx,[],[],opt);
 else
     cost=@(dx)mad(mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1));
-    opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
+    opt = optimset('MaxFunEvals', 1000,'Display','off');
     x=fminsearch(cost,dx,opt);
 end
 

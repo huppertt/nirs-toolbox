@@ -56,17 +56,41 @@ for i=1:headsize.count
     end        
 end
 
- opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
- 
+% 
+% 
+%     cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
+%     opt = optimset('MaxFunEvals', 1000,'Display','off');
+%     x=lsqnonlin(cost,dx,[],[],opt);
+% else
+%     cost=@(dx)mad(mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1));
+%     opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
+%     x=fminsearch(cost,dx,opt);
+% end
 
-if(headsize.count>2)
-    cstfcn=@(x)vertcat(cell2mat(cellfun(@(a){a(x)},cost)'));
-    s=lsqnonlin(cstfcn,[1 1 1],[.5 .5 .5],[2 2 2],opt);
+if(~isempty(ver('optim')))
+    opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
+    if(headsize.count>2)
+        cstfcn=@(x)vertcat(cell2mat(cellfun(@(a){a(x)},cost)'));
+        s=lsqnonlin(cstfcn,[1 1 1],[.5 .5 .5],[2 2 2],opt);
+    else
+        cstfcn=@(x)vertcat(cell2mat(cellfun(@(a){a(x*[1 1 1])},cost)'));
+        s=lsqnonlin(cstfcn,1,.5,2,opt);
+        s=s*[1 1 1];
+    end
 else
-    cstfcn=@(x)vertcat(cell2mat(cellfun(@(a){a(x*[1 1 1])},cost)'));
-    s=lsqnonlin(cstfcn,1,.5,2,opt);
-    s=s*[1 1 1];
+    opt = optimset('MaxFunEvals', 1000,'Display','off');
+     if(headsize.count>2)
+        cstfcn=@(x)max(reshape(vertcat(cell2mat(cellfun(@(a){a(x)},cost)')),[],1));
+        %s=lsqnonlin(cstfcn,[1 1 1],[.5 .5 .5],[2 2 2],opt);
+        s=fminbnd(cstfcn,[.5 .5 .5],[2 2 2],opt);
+    else
+        cstfcn=@(x)max(reshape(vertcat(cell2mat(cellfun(@(a){a(x*[1 1 1])},cost)')),[],1));
+        s=fminbnd(cstfcn,.5,2,opt);
+        s=s*[1 1 1];
+    end
+    
 end
+
 
 tbl1020.X=XYZ(:,1)*s(1);
 tbl1020.Y=XYZ(:,2)*s(2);

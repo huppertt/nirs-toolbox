@@ -31,7 +31,7 @@ end
 
 system(['cp -r ' fullfile(pp,'private','nirstorm','data','@*') ' ' fullfile(bsfolder,folder,'data')]);
 
-system(['cp -r ' fullfile(pp,'private','nirstorm','data','anat','@*') ' ' fullfile(bsfolder,folder,'anat')]);
+system(['cp -r ' fullfile(pp,'private','nirstorm','anat','@*') ' ' fullfile(bsfolder,folder,'anat')]);
 
 
 brainstorm('startjava');

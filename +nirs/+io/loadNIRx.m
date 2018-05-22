@@ -42,16 +42,16 @@ else
     useshortdistances=false;
 end
 % 
-% info.S_D_Mask =[
-%     1     1     0     1
-%     1     1     1     0
-%     1     0     0     0
-%     1     0     0     0
-%     0     0     1     0
-%     0     0     1     0
-%     0     0     0     1
-%     0     0     0     1
-%     ];
+info.S_D_Mask =[
+    1     1     0     1
+    1     1     1     0
+    1     0     0     0
+    1     0     0     0
+    0     0     1     0
+    0     0     1     0
+    0     0     0     1
+    0     0     0     1
+    ];
 [s,d]=find(info.S_D_Mask);
 
 
