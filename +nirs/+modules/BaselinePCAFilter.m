@@ -89,11 +89,7 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
                         end
                     end
                     
-                    if(obj.discard)
-                        % remove non-filtered scans
-                        lst=[1:length(datafilt)];
-                        datafilt(~ismember(lst,obj.table.Task))=[];
-                    end
+                   
                 else
                     %use the baseline rest period from the data file itself
                     for i=1:numel(data)
@@ -146,7 +142,11 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
                     
                 end
             end
-            
+            if(obj.discard)
+                % remove non-filtered scans
+                lst=[1:length(datafilt)];
+                datafilt(~ismember(lst,obj.table.Task))=[];
+            end
         end
     end
 end
