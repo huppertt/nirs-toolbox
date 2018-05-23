@@ -145,7 +145,9 @@ else
     %canceled
     varargout{1} =[];
 end
-delete(handles.figure1);
+try;
+    delete(handles.figure1);
+end
 
 % --- Executes on selection change in popupmenu1.
 function popupmenu1_Callback(hObject, eventdata, handles)

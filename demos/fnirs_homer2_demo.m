@@ -151,6 +151,7 @@ j = nirs.modules.AR_IRLS(j);
 % wide enough.  Note, this is for the estimation of the impulse response
 % function (so the response is convolved with whatever the stimulus
 % duration is).  Let's make the width 15s by setting nbins =30
+FIRbasis.binwidth=5;
 FIRbasis.nbins=30;
 
 j.basis('default')=FIRbasis;
@@ -175,7 +176,7 @@ j = nirs.modules.BeerLambertLaw(j);
 j = nirs.modules.AR_IRLS(j);
 
 % Let's use a FIR model to show how to do deconvolution
- FIRbasis=nirs.design.basis.FIR;
+FIRbasis=nirs.design.basis.FIR;
 
 % FIRbasis = 
 %   FIR with properties:
@@ -188,6 +189,7 @@ j = nirs.modules.AR_IRLS(j);
 % wide enough.  Note, this is for the estimation of the impulse response
 % function (so the response is convolved with whatever the stimulus
 % duration is).  Let's make the width 15s by setting nbins =30
+FIRbasis.binwidth=5;
 FIRbasis.nbins=30;
 
 j.basis('default')=FIRbasis;

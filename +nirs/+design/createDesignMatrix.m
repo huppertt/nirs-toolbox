@@ -1,4 +1,4 @@
-function [X, names] = createDesignMatrix( stimulus, t, basis, type )
+function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
 
     if nargin < 4, type = ''; end
  
@@ -16,7 +16,7 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
             basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});     
     end
 
-
+    
    
     
    
@@ -75,8 +75,17 @@ function [X, names] = createDesignMatrix( stimulus, t, basis, type )
 
         % append to variable names & design matrix
         if size(x,2) > 1
+            if(isa(basisObj,'nirs.design.basis.FIR') && basisObj.nbins(1)<0)
+                bin=[basisObj.nbins(1):basisObj.nbins(2)];
+                offset=-basisObj.nbins(1)*basisObj.binwidth;
+            else
+                bin=1:size(x,2);
+                offset=0;
+            end
+                
+            
             for k = 1:size(x,2)
-                names{end+1} = [stim_keys{iKey} ':' sprintf('%02i',k)];
+                names{end+1} = [stim_keys{iKey} ':' sprintf('%02i',bin(k))];
             end
         else
             names{end+1} = stim_keys{iKey};

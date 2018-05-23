@@ -6,7 +6,7 @@ for i=1:length(data)
     if(~isempty(data(i).description))
         [~,sheetname]=fileparts(data(i).description);
     else
-        sheetname=['data-' num2str(i)];
+        sheetname=['File-' num2str(i)];
     end
     keys=data(i).stimulus.keys;
     Array={}; 
@@ -51,7 +51,7 @@ for i=1:length(data)
     else
     
     if(~isempty(sheetname))
-        sheetname=['data-' num2str(i)];
+        sheetname=['File-' num2str(i)];
     end
         
       nirs.util.write_xls(filename,Array,sheetname);

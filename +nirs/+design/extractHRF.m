@@ -58,7 +58,8 @@ for idx=1:duration.count
         stimulus(conditions{lst(j),1})=stim;
     end
 end
-[X, names] = nirs.design.createDesignMatrix( stimulus, t, basis);
+[X, names,offset] = nirs.design.createDesignMatrix( stimulus, t, basis);
+
 
 
 StimMapping=zeros(length(conditions),2);
@@ -92,9 +93,6 @@ for j=1:height(tbl2)
         c=sort_names(Stats.conditions(lst2,:));
         
         i=find(ismember(t.cond,Stats.conditions(lst2,:)));
-       
-       
-        
         
         if(strcmp(type,'hrf'))
             H = X(:,lst2)*t.beta(i);
@@ -125,7 +123,7 @@ npts = fix(min(max(i)+10,(max(dur)+lenHRF)*Fs));
 HRF=nirs.core.Data();
 HRF.description=['HRF from basis: ' Stats.description];
 HRF.probe=Stats.probe;
-HRF.time=[0:npts-1]'/Fs;
+HRF.time=[0:npts-1]'/Fs-offset/Fs;
 
 HRF.probe.link=var;
 HRF.data=data(1:npts,:);
