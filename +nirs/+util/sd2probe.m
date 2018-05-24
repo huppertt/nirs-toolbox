@@ -62,7 +62,7 @@ probe = nirs.core.Probe( SD.SrcPos*sc, SD.DetPos*sc, link );
 % If the distances are all less the 20, then the probe was probably in cm
 % and it is mislabeled.  Fix to mm
 if(median(probe.distances)<20)
-     SD.SpatialUnit='cm';
+    SD.SpatialUnit='cm';
     sc=10;  %assume given in cm
     probe = nirs.core.Probe( SD.SrcPos*sc, SD.DetPos*sc, link );
 end
@@ -70,7 +70,7 @@ end
 %If anchor infomation is present, add it
 if(isfield(SD,'AnchorList') && ~isempty(SD.AnchorList))
     PosAll=[SD.SrcPos; SD.DetPos; SD.DummyPos];
-    
+    Names={};
     cnt=1;
     
     for idx=1:size(SD.AnchorList,1)
@@ -97,11 +97,12 @@ if(isfield(SD,'AnchorList') && ~isempty(SD.AnchorList))
         
     end
     
-    
-    tbl=table(Names,Pos(:,1),Pos(:,2),Pos(:,3),Type,Units,...
-        'VariableNames',probe.optodes.Properties.VariableNames);
-    
-    probe.optodes=[probe.optodes; tbl];
+    if(~isempty(Names))
+        tbl=table(Names,Pos(:,1),Pos(:,2),Pos(:,3),Type,Units,...
+            'VariableNames',probe.optodes.Properties.VariableNames);
+        
+        probe.optodes=[probe.optodes; tbl];
+    end
     
     
 end

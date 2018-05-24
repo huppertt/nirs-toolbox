@@ -151,24 +151,41 @@ classdef sFCStats
             
             [i,j]=meshgrid(1:height(link),1:height(link));
            
-            sourceFrom=link.source(i);
-            detectorFrom=link.detector(i);
-            typeFrom=link.type(i);
-            
-            sourceTo=link.source(j);
-            detectorTo=link.detector(j);
-            typeTo=link.type(j);
-            out=table;
-            for i=1:length(obj.conditions)
-                cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
-                out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
-                    [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                    reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
-                    reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
-                    'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
-                    'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
+            if(isa(obj.probe,'nirs.core.ProbeROI'))
+                ROIFrom=link.ROI(i);
+                typeFrom=link.type(i);
+                
+                ROITo=link.ROI(j);
+                typeTo=link.type(j);
+                out=table;
+                for i=1:length(obj.conditions)
+                    cond=repmat({obj.conditions{i}},length(ROIFrom(:)),1);
+                    out = [out; table(cond,[ROIFrom(:)],{typeFrom{:}}',...
+                        [ROITo(:)],{typeTo{:}}',...
+                        reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
+                        reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
+                        'VariableNames',{'condition','ROIOrigin','TypeOrigin',...
+                        'ROIDest','TypeDest','R','Z','t','pvalue','qvalue'})];
+                end
+            else
+                sourceFrom=link.source(i);
+                detectorFrom=link.detector(i);
+                typeFrom=link.type(i);
+                
+                sourceTo=link.source(j);
+                detectorTo=link.detector(j);
+                typeTo=link.type(j);
+                out=table;
+                for i=1:length(obj.conditions)
+                    cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
+                    out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+                        [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
+                        reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
+                        reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
+                        'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
+                        'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
+                end
             end
-            
         end
         
         function grph=graph(obj,vtype,thresh,flip)
@@ -212,6 +229,14 @@ classdef sFCStats
                 
                 for k=1:length(lst)
                     j=lst(k);
+                    if(isa(obj(i).probe,'nirs.core.ProbeROI'))
+                         Name=['ROI-' obj(i).probe.link.ROI{j} ...
+                        ' ' obj(i).probe.link.type{j}];
+                        X=k*10;
+                        Y=0;
+                        Z=0;
+                    
+                    else
                     Name=['Src-' num2str(obj(i).probe.link.source(j)) ...
                         ':Det-' num2str(obj(i).probe.link.detector(j)) ...
                         ' ' obj(i).probe.link.type{j}];
@@ -221,6 +246,9 @@ classdef sFCStats
                         obj(i).probe.detPos(obj(i).probe.link.detector(j),2));
                     Z=.5*(obj(i).probe.srcPos(obj(i).probe.link.source(j),3)+...
                         obj(i).probe.detPos(obj(i).probe.link.detector(j),3));
+                    
+                    end
+                   
                     grph(i).nodeInfo.label{k}=Name;
                     grph(i).nodeInfo.X(k)=X;
                     grph(i).nodeInfo.Y(k)=Y;

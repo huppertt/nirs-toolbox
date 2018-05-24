@@ -22,16 +22,21 @@ end
 
 
 link=probe.link;
-if iscell(link.source)
+if(isa(probeShift,'nirs.core.ProbeROI'))
     for i=1:height(link)
-        link.source{i}=link.source{i}+size(probe.srcPos,1);
-        link.detector{i}=link.detector{i}+size(probe.detPos,1);
+        link.ROI{i}=[link.ROI{i} 'b'];
     end
 else
-    link.source=link.source+size(probe.srcPos,1);
-    link.detector=link.detector+size(probe.detPos,1);
+    if iscell(link.source)
+        for i=1:height(link)
+            link.source{i}=link.source{i}+size(probe.srcPos,1);
+            link.detector{i}=link.detector{i}+size(probe.detPos,1);
+        end
+    else
+        link.source=link.source+size(probe.srcPos,1);
+        link.detector=link.detector+size(probe.detPos,1);
+    end
 end
-
 probeShift.link=link;
 
 hyperscan=repmat('A',height(probe.link),1);

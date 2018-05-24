@@ -15,7 +15,16 @@ classdef OpticalDensity < nirs.modules.AbstractModule
             for i = 1:numel(data)
                 d = data(i).data;
                 
+                if(any(d(:)<=0))
+                    warning('negative intensities encountered');
+                    d= abs(d);
+                    d=max(d,eps(1));
+                end
+                
                 m = mean( d, 1 );
+                
+                
+                
                 d = bsxfun( @plus, -log(d), log(m) );
                 
                 data(i).data = real(d);

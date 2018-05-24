@@ -5,6 +5,9 @@ if(~isempty(strfind(filen,'_MES')))
     fileroot=fileroot(1:strfind(fileroot,'_MES')-1);
 elseif(~isempty(strfind(filen,'_EXT')))
     fileroot=fileroot(1:strfind(fileroot,'_EXT')-1);
+elseif(~isempty(strfind(filen,'_HBA')))
+    fileroot=fileroot(1:strfind(fileroot,'_HBA')-1);
+
 end
 
 %Read Data
@@ -40,8 +43,8 @@ for i=1:length(data)
     raw.data=horzcat(raw.data,data{i}(:,1+[1:length(info{i}.Wave_Length)]));
 end
 
-
-if(length(info)==1)
+probe=getprobefrominfo(info{i});
+if(2*height(probe.link)==size(raw.data,2) && length(info)==1)
     info{2}=info{1};
     info{2}.Probe2=info{2}.Probe1;
     info{2}=rmfield(info{2},'Probe1');
@@ -190,6 +193,12 @@ switch(info.Mode')
     case('3x3');
         m=3;
         n=3;
+    case('4x4');
+        m=4;
+        n=4;
+    case('11x3');
+        m=11;
+        n=3;    
     otherwise
         % I don't want to just assume I can do this based on the mode
         error('This is a different probe design');
@@ -203,9 +212,23 @@ else % type II
     [Y,X,Z]=meshgrid([-m+1:1:0]*30,-offset+[0:-1:-n+1]*30,0);    
 end
 
-SrcPos=[X(1:2:end)' Y(1:2:end)' Z(1:2:end)'];
-DetPos=[X(2:2:end)' Y(2:2:end)' Z(2:2:end)'];
-
+if(iseven(m) & iseven(n))
+    SrcPos=[];
+    DetPos=[];
+    for i=1:m
+        if(iseven(i))
+            SrcPos=[SrcPos; [X((i-1)*m+1:2:i*m)' Y((i-1)*m+1:2:i*m)' Z((i-1)*m+1:2:i*m)']];
+            DetPos=[DetPos; [X((i-1)*m+2:2:i*m)' Y((i-1)*m+2:2:i*m)' Z((i-1)*m+2:2:i*m)']];
+        else
+            SrcPos=[SrcPos; [X((i-1)*m+2:2:i*m)' Y((i-1)*m+2:2:i*m)' Z((i-1)*m+2:2:i*m)']];
+            DetPos=[DetPos; [X((i-1)*m+1:2:i*m)' Y((i-1)*m+1:2:i*m)' Z((i-1)*m+1:2:i*m)']];
+        end
+          
+    end
+else
+    SrcPos=[X(1:2:end)' Y(1:2:end)' Z(1:2:end)'];
+    DetPos=[X(2:2:end)' Y(2:2:end)' Z(2:2:end)'];
+end
 
 [sI,dI]=meshgrid([1:size(SrcPos,1)],[1:size(DetPos,1)]);
 

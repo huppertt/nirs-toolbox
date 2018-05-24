@@ -31,6 +31,10 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             obj.cache_dir='';
             obj.verbose=false;
             obj.cache_rebuild=false;
+            
+            obj.link=table(1,1,0,0,'VariableNames',{'ScanA','ScanB','OffsetA','OffsetB'});
+            obj.link(1,:)=[];
+            
             if nargin > 0
                 obj.prevJob = prevJob;
             end

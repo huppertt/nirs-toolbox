@@ -19,7 +19,8 @@ classdef FixFlatChans < nirs.modules.AbstractModule
                 Fs = data(i).Fs;
                 
                 % subtract mean
-                v = bsxfun(@minus, d, mean(d,1));
+                m= mean(d,1);
+                v = bsxfun(@minus, d,m);
                 
                 v = v.^2;
                 
@@ -32,6 +33,7 @@ classdef FixFlatChans < nirs.modules.AbstractModule
                 
                 % fill with noise
                 d(:,bad) = lognrnd(0, 1, [size(d,1) length(bad)]);
+                d(:,bad) = bsxfun(@plus, d(:,bad),m(bad));
                 data(i).data = d;
             end
         end
