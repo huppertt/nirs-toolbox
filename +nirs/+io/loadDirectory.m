@@ -8,7 +8,7 @@ if nargin < 3 || isempty(loadFunc),
 end
 
 if(~iscell(fileExt)); fileExt={fileExt}; end;
-if(~iscell(loadFunc)); loadFunct={loadFunc}; end;
+if(~iscell(loadFunc)); loadFunc={loadFunc}; end;
 
 % remove trailing file separator
 if rootFolder(end) == filesep
@@ -33,8 +33,8 @@ for i=1:length(fileExt)
         
         % load using load function
         try
-        disp(['loading: ' files(iFile).name]);
-        tmp = loadFunc{i}( files(iFile).name );
+            disp(['loading: ' files(iFile).name]);
+            tmp = loadFunc{i}( files(iFile).name );
         catch
             warning(['error reading file: ' files(iFile).name]);
             continue;
@@ -44,14 +44,14 @@ for i=1:length(fileExt)
             files(iFile).name=[fileparts(files(iFile).name) filesep];
         end
         if ~isempty(tmp)
-             if(~isempty(strfind(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)')) & isempty(data))
+             if(~strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)') & isempty(data))
                  disp('Loading NIRx file geometry from:')
                  disp(['     ' files(iFile).name]);
                  disp('      Note: This registration will be used for all subjects');
                  disp('      To load all use "loadDirectory(<>,<>,@(file)nirs.io.loadNIRx(file))"');
                  tmp = nirs.io.loadNIRx(files(iFile).name,true);
                  probe=tmp.probe;
-             elseif(~isempty(strfind(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)')))
+             elseif(~strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)'))
                  tmp.probe=probe;
             end
             
