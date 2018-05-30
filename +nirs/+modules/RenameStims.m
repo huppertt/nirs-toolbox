@@ -44,7 +44,7 @@ classdef RenameStims < nirs.modules.AbstractModule
                 
                 if any(lst)
                     if(isa(data(i),'nirs.core.Data') || isa(data(i),'eeg.core.Data'))
-                    keys = names(lst);
+                    keys = names(lst)';
                     values = data(i).stimulus.values;
 
                     ukeys = unique(keys,'stable');
