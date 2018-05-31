@@ -55,17 +55,22 @@ classdef AnovaN < nirs.modules.AbstractModule
             
             for i=1:height(sd)
                 ll=find(lst==i);
+                
+                c=false(size(vars,2));  %catagorical or not
                 for j=1:size(vars,2); 
                     L{j}=table2cell(vars(ll,j)); 
                     try;
                         if(isnumeric(vertcat(L{j}{:})))
                             L{j}=vertcat(L{j}{:});
+                            c(j)=true;
                         end
                     end
                     
                 end;
+               
+                
                [p,atab,stats,terms]=anovan(b(ll),L,'sstype',obj.sstype,...
-                   'model',obj.model,'display','off','varnames',vars.Properties.VariableNames);
+                   'model',obj.model,'display','off','varnames',vars.Properties.VariableNames,'continuous',c);
             
                 for j=1:size(atab,1)-3; 
                     F(i,j)=atab{1+j,6};
@@ -90,6 +95,10 @@ classdef AnovaN < nirs.modules.AbstractModule
             G.probe.link=sd;
             G = G.sorted();
             G.description = 'nway-ANOVA Model';
+            
+            G.demographics = nirs.util.combine_demographics(...
+                nirs.createDemographicsTable(S));
+            
         end
             
     end

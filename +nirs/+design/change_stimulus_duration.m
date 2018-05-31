@@ -1,6 +1,14 @@
 function data=change_stimulus_duration(data,stimname,duration)
 % This function will change the duration of a stimulus in a data variable
 
+
+if(length(data)>1)
+    for i=1:length(data)
+        data(i)=nirs.design.change_stimulus_duration(data(i),stimname,duration);
+    end
+    return
+end
+
 if(isempty(stimname))
     stimname=unique(nirs.getStimNames(data));
 end
@@ -25,6 +33,6 @@ for i=1:length(stimname)
     
     job=nirs.modules.ChangeStimulusInfo;
     job.ChangeTable=stimtable;
-   data=job.run(data);
+    data=job.run(data);
     
 end

@@ -702,7 +702,9 @@ end
 if isequal(filename,0) || isequal(pathname,0)
     return
 end
-
+if(exist(fullfile(pathname,filename),'file'))
+    delete(fullfile(pathname,filename));
+end
 
 str2=sprintf('%% Analysis script\n%%  created on %s\n\n',datestr(now));
 system(['echo "' str2 '" > ' fullfile(pathname,filename)]);

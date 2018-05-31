@@ -1,5 +1,11 @@
 function raw = loadHitachi(filen)
 
+if(~isempty(strfind(filen,'_HBA')))
+    raw=[];
+    disp(['skipping Hitachi hemoglobin file: ' filen]);
+    return
+end
+
 fileroot=filen(1:strfind(filen,'.csv')-1);
 if(~isempty(strfind(filen,'_MES')))
     fileroot=fileroot(1:strfind(fileroot,'_MES')-1);
@@ -196,9 +202,9 @@ switch(info.Mode')
     case('4x4');
         m=4;
         n=4;
-    case('11x3');
-        m=11;
-        n=3;    
+    case('3x11');
+        m=3;
+        n=11;    
     otherwise
         % I don't want to just assume I can do this based on the mode
         error('This is a different probe design');

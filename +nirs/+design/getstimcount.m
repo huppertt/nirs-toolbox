@@ -11,7 +11,11 @@ for i=1:length(data)
             cnt(i,j)=0;
         end
     end
-    [~,rows{i}]=fileparts(data(i).description);
+    try
+     [~,rows{i}]=fileparts(data(i).description);
+    catch
+        rows{i}=[];
+    end
     if(isempty(rows{i}))
         rows{i}=['file-' num2str(i)];
     end

@@ -202,7 +202,8 @@ if(isa(data,'nirs.core.Data'))
         d(cnt).data = data.data*c;
         d(cnt).time=data.time;
         d(cnt).stimulus=data.stimulus;
-       
+       d(cnt).demographics=data.demographics;
+       d(cnt).auxillary=data.auxillary;
         d(cnt).probe=nirs.core.ProbeROI({names{idx:idx+length(types)-1}});
        
         cnt=cnt+1;
@@ -309,6 +310,74 @@ elseif(isa(data,'nirs.core.sFCStats'))
     if(nargout==2)
         warning('havent created roi connectivity model yet');
     end
+    
+    
+elseif(isa(data,'nirs.core.ChannelFStats'))
+    [vars, ivars] = sortrows(data.variables, {'cond', 'source', 'detector', 'type'});
+    F = data.F(ivars);
+    df1 = data.df1(ivars);
+    df2 = data.df2(ivars);
+    uconds = unique(vars.cond, 'stable');
+   
+  
+   % loop over conditions
+    varnames = {'ROI','type', 'Contrast','F', 'DF1', 'DF2', 'p'};
+    tbl = table;
+    
+     % change ROIs to sorted indices
+    for i = 1:length(R)
+        R{i} = ilink(R{i});
+    end
+    if(~exist('ContVect'))
+        for i = 1:length(R)
+            ContVect{i} = 1/length(find(R{i}));
+        end
+    end
+    
+    cc=zeros(size(F,1),length(R)*length(uconds));
+    vvs =table;
+    for i = 1:length(uconds)
+        lst = strcmp(vars.cond, uconds{i});
+        b = F(lst);
+        d1 = df1(lst);
+        d2 = df2(lst);
+        
+        for j = 1:length(R)
+            % contrast vector
+            c = zeros(size(b));
+            c(R{j}) = ContVect{j};
+           
+            
+            cc(lst,(i-1)*length(R)+j)=c;
+            vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];
+            froi    = c'*b;
+            df1roi     = c'*d1;
+            df2roi     = c'*d2;
+            p       =  fcdf( 1./froi, df2roi,df1roi);
+            
+            tmp = cell2table({namesOld(floor((j-1)/length(types))+1),...
+                types(mod(j-1,length(types))+1), uconds{i},  froi, df1roi,df2roi,p});
+            tmp.Properties.VariableNames = varnames;
+            
+            
+            tbl = [tbl; tmp];
+        end
+    end
+    
+    q   = nirs.math.fdr( tbl.p );
+    tbl = [tbl table(q)];
+    
+    ROIstats=nirs.core.ChannelFStats;
+    ROIstats.description='region of interest F-stats';
+    ROIstats.F=tbl.F;
+    ROIstats.df1=tbl.DF1;
+    ROIstats.df2=tbl.DF2;
+    ROIstats.demographics=data.demographics;
+    ROIstats.variables=vvs;
+    
+    ROIstats.probe=nirs.core.ProbeROI(names2);
+    
+    
     
     
 else

@@ -191,11 +191,16 @@ classdef Data
                 % legend
                 l = legend(k{:});
                 set(l,'Interpreter', 'none');
-            else
+                 dmax = max( dmax,max(s(:)));
+                dmin = min( dmin,min(s(:)));
+            dsize = (dmax-dmin);
+                
+                
+            end
                 % min/max of axes
                	pmin = dmin - 0.1*dsize;
                 pmax = dmax + 0.1*dsize;
-            end
+            
             
             % plot data
             if(~isreal(d) & adderr)

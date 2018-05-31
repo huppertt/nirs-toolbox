@@ -1,4 +1,4 @@
-function probe1020 = registerprobe1020(probe,headsize,seperateflag)
+function probe1020 = registerprobe1020(probe,headsize,seperateflag,extrapoints)
 % This function registers a probe to the 10-20 system
 
 if(nargin>1 & ~isempty(headsize))
@@ -19,6 +19,10 @@ probe1020.link=probe.link;
 probe1020.optodes=probe.optodes;
 
 mesh=probe1020.getmesh;
+
+if(nargin>3)
+    mesh(1)=mesh(1).addfiducials(extrapoints);
+end
 
 if(seperateflag)
     % This handles disjointed probes (e.g. bihemisphere probes) by

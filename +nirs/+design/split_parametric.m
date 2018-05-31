@@ -35,6 +35,9 @@ end
 
 eqn =  formula(min(strfind(formula,'*'))+1:end);
 
+cond(strfind(cond,'<'))=[];
+cond(strfind(cond,'>'))=[];
+
 % Start by dealing with the wildcard/multiple condition versions of the
 % formula
 if(strcmp(cond,'?'))
@@ -126,7 +129,7 @@ if(isa(stim,'nirs.design.StimulusEvents'))
             newstim{end}.name = [stim.name ':time^' num2str(exp)];
             newstim{end}.amp = ones(size(stim.amp)).*(stim.onset.^exp-flag*mean(stim.onset.^exp));
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
-            eqn(strfind(lower(eqn),'time')+[0:5])=[];
+            eqn(strfind(lower(eqn),'time^')+[0:5])=[];
             cnt=cnt+1;
         elseif(~isempty(strfind(lower(eqn),'time')))
             newstim{end+1}=stim;
