@@ -19,6 +19,7 @@ spike_amp_Z = 6 * randn([1 num_spikes]);
 shift_amp_Z = 25 * randn([1 num_shifts]);
 
 means = mean(data.data);
+data.data = bsxfun(@plus, -log(data.data), log(means));
 stds = std(data.data);
 
 for i = 1:num_spikes
@@ -46,6 +47,8 @@ for i = 1:num_shifts
     data.data(shift_inds(i):end,:)  = bsxfun( @plus , data.data(shift_inds(i):end,:) , shift_amt );
     
 end
+
+data.data = exp( -bsxfun(@minus, data.data, log(means)) );
 
 if(nargout>1)
     if(~exist('truth','var'))
