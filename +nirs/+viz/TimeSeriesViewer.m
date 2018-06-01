@@ -201,30 +201,38 @@ classdef TimeSeriesViewer < handle
     methods
         function draw(obj)
             probe = obj.data(1).probe;
+            %find screen size - JP
+            set(0,'units','pixels');
+            pix_SS = get(0,'screensize');
+            %percent screen size - JP
+            scaleFig = .80;
+            res = [pix_SS(3).*scaleFig pix_SS(4).*scaleFig];
             
             % make figure window
-            figure('Position', [100 100 1000 800])
+            f = figure('Position', [res(1)*.092 res(2)*.081 res(1) res(2)]);
             
             % show tree
-            obj.tree = uitree('v0', 'Root', obj.root, 'SelectionChangeFcn', @(t, v) obj.treeSelectFun(t, v) );
+            %Cannot get it to resize appropriate
+            obj.tree = uitree('v0', 'Root', obj.root, 'SelectionChangeFcn',...
+                @(t, v) obj.treeSelectFun(t, v),'Position',...
+                [res(1)*.0293 res(2)*.057 res(1)*.329 res(2)*.325]);
             obj.tree.setMultipleSelectionEnabled(false)
-            obj.tree.Position = [25 25 400 350];
-            
+                        
             % menu for selecting data type
             types = unique(probe.link.type);
             
             % axis for plotting data
             obj.ax_data = gca;
-            setpixelposition( obj.ax_data, [50 450 925 300] )
+            setpixelposition( obj.ax_data, [res(1)*.046 res(2)*.635 res(1)*.906  res(2)*.2929] )
             
             % axis for plotting probe
             obj.ax_probe = axes;
-            setpixelposition( obj.ax_probe, [450 75 525 300] );
+            setpixelposition( obj.ax_probe, [res(1)*.412 res(2)*.122 res(1)*.534 res(2)*.439] );
             
             % data type menu
             dtypeMenu = uicontrol('Style', 'popupmenu',...
                 'String', types, ...
-                'Position', [450 25 525 25],...
+                'Position', [res(1)*.412 res(2)*.041 res(2)*.48 res(2)*.041],...
                 'Callback', @(s,v) obj.dtypeMenuSelectFun(s,v) );
             
             if isnumeric( types(1) )
@@ -239,4 +247,3 @@ classdef TimeSeriesViewer < handle
     end
     
 end
-
