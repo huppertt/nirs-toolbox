@@ -24,6 +24,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
         
         function data = runThis( obj, data )
             for i = 1:numel(data)
+                if(isa(data,'nirs.core.Data'))
                 d = data(i).data;
                 p = data(i).probe;
                 
@@ -85,7 +86,68 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 data(i).data  = d(:,idx);
                 data(i).probe = p;
+                elseif(isa(data,'nirs.core.ChannelStats'))
+                    
+                    
+                    
+                    if(~ismember('source',data(i).probe.link.Properties.VariableNames) & ...
+                            ismember('ROI',data(i).probe.link.Properties.VariableNames))
+                       data(i)=data(i).sorted({'ROI','type'});
+                    else
+                        % sort channels
+                        data(i)=data(i).sorted({'source','detector','type'});
+                    end
+                    var=data(i).variables;
+                    var.type=[];
+                    [~,idx]=unique(var);
+                    
+                    var2=data(i).variables;
+                    var2.cond=[];
+                    var2=unique(var2);
+                    
+                    clear type;
+                    
+                    F=zeros(height(data(i).variables));
+                    N=cell(height(data(i).variables),1);
+                    N2=cell(height(data(i).probe.link),1);
+                    for j = 1:length(idx)
+                        lst = find(ismember(var,var(idx(j),:)));
+                        lst2 = find(ismember(var2(:,1:2),var(idx(j),1:2)));
+                        assert( length(lst) > 1 )
+                        
+                        lambda = data(i).variables.type(lst);
+                        ext = nirs.media.getspectra( lambda );
+                        
+                        clist = [1 2]; % hbo and hbr; need to fix this
+                        
+                        % extinction coefficients
+                        E = ext(:,clist);
+                        
+                        % distances
+                        L = data(i).probe.distances(lst2);
+                        L=max(L,1);  % avoid issues with the short (0) seperation values
+                        
+                        % mbll model
+                        EL = bsxfun( @times, E, L*obj.PPF );
+                        iEL = pinv(EL);
+                        
+                        % calculates chromophore concentration (uM)
+                        F(lst,lst)=iEL' * 1e6;
+                        N(lst)={'hbo', 'hbr'};
+                        N2(lst2)={'hbo', 'hbr'};
+                        % new channel type
+                        
+                    end
                 
+                    data(i).beta=F*data(i).beta;
+                    data(i).covb=F*data(i).covb*F';
+                    data(i).variables.type=N;
+                    data(i).probe.link.type=N2;
+                    
+                    
+                else
+                    error('unsupported type');
+                end
             end
         end
     end
