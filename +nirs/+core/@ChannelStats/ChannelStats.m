@@ -130,14 +130,14 @@ classdef ChannelStats
             p = obj.p;
             q = obj.q;
             se = sqrt(diag(obj.covb));
-            dfe = obj.dfe * ones(size(p));
+            dfe = obj.dfe .* ones(size(p));
             
             [~,power] = nirs.math.MDC(obj,.8,.05);
             
             variab=obj.variables;
             
             if(isa(obj.probe,'nirs.core.ProbeROI'))
-                [~,i]=ismember(variab(:,1:3),obj.probe.link);
+                [~,i]=ismember(variab(:,1:2),obj.probe.link);
                 variab=[table({obj.probe.RegionNames{i}}','VariableNames',{'Region'}) variab];
                 variab.source=[];
                 variab.detector=[];

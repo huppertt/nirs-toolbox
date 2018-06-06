@@ -145,6 +145,8 @@ if(~isempty(find(isnan(A.detector))))
     end
 end
 
+A.weight=A.weight./sum(A.weight);
+B.weight=B.weight./sum(B.weight);
 
 
 unameA=unique(A.Name);

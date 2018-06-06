@@ -55,6 +55,7 @@ for idx=1:length(R)
  
     if(~ismember('weight',R{idx}.Properties.VariableNames))    
         R{idx}.weight=ones(height(R{idx}),1);
+        R{idx}.weight=R{idx}.weight./sum(R{idx}.weight);
     end
     if(~ismember('Name',R{idx}.Properties.VariableNames) & ismember('name',R{idx}.Properties.VariableNames))    
         R{idx}.Name=R{idx}.name;
@@ -193,7 +194,7 @@ if(isa(data,'nirs.core.Data'))
         c = zeros(size(data.data,2),length(types));
         for i=1:length(types)
             c(R{idx+i-1},i) = ContVect{idx+i-1};
-            c(:,i)=c(:,i)/sum(c(:,i));
+           % c(:,i)=c(:,i)/sum(c(:,i));
         end
         d(cnt)=nirs.core.Data;
         d(cnt).description=['ROI average' namesOld{floor((idx-1)/length(types))+1}];
@@ -279,7 +280,7 @@ elseif(isa(data,'nirs.core.sFCStats'))
                     % contrast vector
                     c = zeros(size(b));
                     c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
-                    c=c/sum(c(:));
+                    %c=c/sum(c(:));
                     CC=diag(C(:));
                     
                     c2=c-diag(diag(c));  %remove the self terms
@@ -417,7 +418,7 @@ else
             % contrast vector
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
-            c=c/sum(c);
+            %c=c/sum(c);
             
             cc(lst,(i-1)*length(R)+j)=c;
             vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];
@@ -478,7 +479,7 @@ function mdl = combineLinearModels(c,models)
 
 tbl=table();
 w=[];
-c=c/rms(c);
+%c=c/rms(c);
 
 for idx=1:length(models);
     if(c(idx)~=0)
