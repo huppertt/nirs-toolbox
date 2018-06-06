@@ -17,7 +17,7 @@ if(nargin<4)
 end
 
 if(length(data)>1)
-    [tbl,ROIstats]=nirs.util.roiAverage(  data(i), R, names ,splitrois);
+    [tbl,ROIstats]=nirs.util.roiAverage(  data(1), R, names ,splitrois);
     
     if(isa(tbl,'table'))
         
