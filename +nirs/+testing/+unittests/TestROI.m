@@ -31,10 +31,10 @@ classdef TestROI < matlab.unittest.TestCase
             channel_stats.variables = [probe.link table(repmat({'Test1'},height(probe.link),1),'VariableNames',{'cond'})];
             channel_stats.dfe = 40;
             channel_stats.beta = [ 3 -3  6 -6 ]';
-            channel_stats.covb = [ 9  0  0  0 ;
-                                   0  1  0  0 ;
-                                   0  0  1  0 ;
-                                   0  0  0  9 ];
+            channel_stats.covb = [ 9 -2  2 -3 ;
+                                  -2  3 -1  2 ;
+                                   2 -1  3 -2 ;
+                                  -3  2 -2  9 ];
             
             obj.data1 = channel_stats;
             
@@ -52,8 +52,14 @@ classdef TestROI < matlab.unittest.TestCase
             res = job.run( obj.data1 );
             
             % Manual calculation
-            true_betas = (obj.data1.beta([1 2]) + obj.data1.beta([3 4])) ./ 2;
-            true_covb = (obj.data1.covb([1 2],[1 2]) + obj.data1.covb([3 4],[3 4])) ./ 2;
+            hbo_inds = strcmp(obj.data1.variables.type,'hbo');
+            hbr_inds = strcmp(obj.data1.variables.type,'hbr');
+            true_betas(1,1) = sum(obj.data1.beta(hbo_inds)) / sum(hbo_inds);
+            true_betas(2,1) = sum(obj.data1.beta(hbr_inds)) / sum(hbr_inds);
+            true_covb(1,1) = mean(reshape(obj.data1.covb(hbo_inds,hbo_inds),[],1));
+            true_covb(1,2) = mean(reshape(obj.data1.covb(hbo_inds,hbr_inds),[],1));
+            true_covb(2,1) = mean(reshape(obj.data1.covb(hbr_inds,hbo_inds),[],1));
+            true_covb(2,2) = mean(reshape(obj.data1.covb(hbr_inds,hbr_inds),[],1));
             
             % Compare
             obj.verifyEqual(res.beta,true_betas);
@@ -70,12 +76,17 @@ classdef TestROI < matlab.unittest.TestCase
             res = job.run( obj.data1 );
             
             % Manual calculation
-            weights = 1./sqrt(diag(obj.data1.covb));
-            true_betas = (weights([1 2]) .* obj.data1.beta([1 2])...
-                        + weights([3 4]) .* obj.data1.beta([3 4])) ./ (weights([1 2])+weights([3 4]));
-            true_covb = diag((weights([1 2]) .* diag(obj.data1.covb([1 2],[1 2])) ... 
-                            + weights([3 4]) .* diag(obj.data1.covb([3 4],[3 4]))) ./ (weights([1 2])+weights([3 4])));
-            
+            weights = 1./diag(obj.data1.covb);
+            weights2 = weights .* weights';
+            hbo_inds = strcmp(obj.data1.variables.type,'hbo');
+            hbr_inds = strcmp(obj.data1.variables.type,'hbr');
+            true_betas(1,1) = sum(weights(hbo_inds) .* obj.data1.beta(hbo_inds)) / sum(weights(hbo_inds));
+            true_betas(2,1) = sum(weights(hbr_inds) .* obj.data1.beta(hbr_inds)) / sum(weights(hbr_inds));
+            true_covb(1,1) = sum(sum(weights2(hbo_inds,hbo_inds) .* obj.data1.covb(hbo_inds,hbo_inds))) / sum(sum(weights2(hbo_inds,hbo_inds)));
+            true_covb(1,2) = sum(sum(weights2(hbo_inds,hbr_inds) .* obj.data1.covb(hbo_inds,hbr_inds))) / sum(sum(weights2(hbo_inds,hbr_inds)));
+            true_covb(2,1) = sum(sum(weights2(hbr_inds,hbo_inds) .* obj.data1.covb(hbr_inds,hbo_inds))) / sum(sum(weights2(hbr_inds,hbo_inds)));
+            true_covb(2,2) = sum(sum(weights2(hbr_inds,hbr_inds) .* obj.data1.covb(hbr_inds,hbr_inds))) / sum(sum(weights2(hbr_inds,hbr_inds)));
+                                    
             % Compare
             obj.verifyEqual(res.beta,true_betas);
             obj.verifyLessThan(sum(res.covb(:)-true_covb(:)),10^-12);

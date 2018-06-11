@@ -56,7 +56,7 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         if obj.weighted
                             % Weights are the inverse of the robust standard deviation.  
                             % We apply to the mapping matrix and rescale so each column/ROI sums to 1
-                            weights = 1 ./ (1.4826 * mad( dataChannel(i).data ));
+                            weights = 1 ./ (1.4826 * mad( dataChannel(i).data )).^2;
                             tmpprojmat = bsxfun( @times , tmpprojmat , weights' );
                             tmpprojmat = bsxfun( @rdivide , tmpprojmat , sum(tmpprojmat) );
                         end
@@ -75,23 +75,20 @@ classdef ApplyROI < nirs.modules.AbstractModule
                         condvec = repmat(conds(:)',[height(probe.link) 1]);
                         condprojmat = kron(eye(numcond),projmat);
                         
-                        beta = dataChannel(i).beta(sort_inds);
-                        covb = dataChannel(i).covb(sort_inds,sort_inds);
-                        isgoodchan = ~(isnan(beta) | ~isfinite(beta)) & ~any(isnan(covb) | ~isfinite(covb),1)' & ~any(isnan(covb) | ~isfinite(covb),2);
+                        beta_channel = dataChannel(i).beta(sort_inds);
+                        covb_channel = dataChannel(i).covb(sort_inds,sort_inds);
+                        isgoodchan = ~(isnan(beta_channel) | ~isfinite(beta_channel)) & ~any(isnan(covb_channel) | ~isfinite(covb_channel),1)' & ~any(isnan(covb_channel) | ~isfinite(covb_channel),2);
                         isgoodcovb = double(isgoodchan)*double(isgoodchan)';
-                        beta(~isgoodchan) = 0;
-                        covb(~isgoodcovb) = 0;
+                        beta_channel(~isgoodchan) = 0;
+                        covb_channel(~isgoodcovb) = 0;
                         
                         if obj.weighted
-                            w = 1./sqrt(sum(covb)./sum(covb~=0));
-                            s = sum(condprojmat);
-                            condprojmat = bsxfun(@times,condprojmat,w');
-                            condprojmat = bsxfun(@rdivide,condprojmat,sum(condprojmat)./s);
-                        end
-                        condprojmat2 = sqrt(condprojmat);
+                            w = 1./diag(covb_channel); % Weight each channel by reciprocal of its variance
+                            condprojmat = bsxfun(@times,condprojmat,w);
+                        end                        
                         
-                        dataROI(i).beta = (condprojmat' * beta) ./ (condprojmat' * isgoodchan);
-                        dataROI(i).covb = (condprojmat2' * covb * condprojmat2) ./ sqrt(condprojmat' * isgoodcovb * condprojmat);
+                        dataROI(i).beta = (condprojmat' * beta_channel) ./ (condprojmat' * isgoodchan);
+                        dataROI(i).covb = (condprojmat' * covb_channel * condprojmat) ./ (condprojmat' * isgoodcovb * condprojmat);
                         dataROI(i).variables = repmat(probe.link,numcond,1);
                         dataROI(i).variables.cond = condvec(:);
                     end
