@@ -1,10 +1,10 @@
 function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
 
 if nargin < 4,
-    fileExt  = {'.nirs','.oxy3','.wl1','Probe*.csv'};
+    fileExt  = {'.nirs','.oxy3','.wl1','Probe*.csv','_fnirs.csv'};
 end
 if nargin < 3 || isempty(loadFunc),
-    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadHitachi};
+    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2};
 end
 
 if(~iscell(fileExt)); fileExt={fileExt}; end;

@@ -1,79 +1,120 @@
-function raw = loadHitachi(filen)
+function raw = loadHitachiV2(filen)
+%% this is for the Hitachi *_fnirs.csv files
 
-if(~isempty(strfind(filen,'_HBA')))
-    raw=[];
-    disp(['skipping Hitachi hemoglobin file: ' filen]);
+
+if(isempty(strfind(filen,'_fnirs')))
+    raw=[];  % wrong file type
     return
 end
 
-fileroot=filen(1:strfind(filen,'.csv')-1);
-if(~isempty(strfind(filen,'_MES')))
-    fileroot=fileroot(1:strfind(fileroot,'_MES')-1);
-elseif(~isempty(strfind(filen,'_EXT')))
-    fileroot=fileroot(1:strfind(fileroot,'_EXT')-1);
-elseif(~isempty(strfind(filen,'_HBA')))
-    fileroot=fileroot(1:strfind(fileroot,'_HBA')-1);
-end
-
 %Read Data
-fileMES=dir([fileroot '_MES*.csv']);
-p=fileparts(fileroot);
-for i=1:length(fileMES)
-    [info{i},data{i}]=parsefile(fullfile(p,fileMES(i).name));
-end
-%Read Aux 
-fileEXT=dir([fileroot '_EXT*.csv']);
-for i=1:length(fileEXT)
-    [infoEXT{i},dataEXT{i}]=parsefile(fullfile(p,fileEXT(i).name));
-end
+[info,data]=parsefile(filen);
+
+
 
 % Now put all the data together
 raw=nirs.core.Data;
-raw.demographics('Name')=info{1}.Name';
-if(~isempty(info{1}.Age))
-    raw.demographics('Age')=str2num(info{1}.Age(1:end-1)');
+if(~isempty(info.Name))
+    raw.demographics('Name')=info.Name;
 end
-raw.demographics('Gender')=info{1}.Sex';
-raw.demographics('ID')=info{1}.ID';
-if(~isempty(info{1}.Comment))
-    raw.demographics('Comment')=info{1}.Comment';
+if(~isempty(info.Age))
+    raw.demographics('Age')=str2num(info.Age(1:end-1));
+end
+if(~isempty(info.Sex))
+    raw.demographics('Gender')=info.Sex;
+end
+if(~isempty(info.Birth_Date))
+    raw.demographics('Birth_Date')=info.Birth_Date;
+end
+
+if(~isempty(info.ID))
+    raw.demographics('ID')=info.ID;
+end
+if(~isempty(info.Comment))
+    raw.demographics('Comment')=info.Comment;
 end
 %raw.demographics('Patient Info')=info{1}.Patient_Information';
 
 raw.description=fullfile(pwd,filen);
 
-raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Periods;
+raw.time=[0:size(data,1)-1]*info.Sampling_Periods{1};
 
-for i=1:length(data)
-    raw.data=horzcat(raw.data,data{i}(:,1+[1:length(info{i}.Wave_Length)]));
+raw.data=data;
+
+raw.probe=getprobefrominfo(info);
+
+
+p=fileparts(filen);
+if(exist(fullfile(p,'ch_config.csv')));
+    link=readtable(fullfile(p,'ch_config.csv'));
+    nch=height(link);
+    for i=2:length(info.Wavenm)
+        link=[link; link];
+    end
+    link=sortrows(link,{'Ch'});
+        
+    type=repmat(horzcat(info.Wavenm{:}),1,nch)';
+    link=table(link.Source,link.Detector,type,'VariableNames',{'source','detector','type'});
+    raw.probe.link=link;
 end
 
-probe=getprobefrominfo(info{i});
-if(2*height(probe.link)==size(raw.data,2) && length(info)==1)
-    info{2}=info{1};
-    info{2}.Probe2=info{2}.Probe1;
-    info{2}=rmfield(info{2},'Probe1');
-end
+if(exist(fullfile(p,'optode_positions_MNI.csv')));
+    warning('off','MATLAB:table:ModifiedVarnames');
+    optodes=readtable(fullfile(p,'optode_positions_MNI.csv'));
     
-% Now deal with the probe
-SrcPos=[]; DetPos=[]; link=table;
-for i=1:length(info)
-    probe=getprobefrominfo(info{i});
-    l=probe.link;
-    l.source=l.source+size(SrcPos,1);
-    l.detector=l.detector+size(DetPos,1);
-    SrcPos=[SrcPos; probe.srcPos];
-    DetPos=[DetPos; probe.detPos];
-    link=[link; l];
+    %TAL2MNI 
+    T =[ 0.9964    0.0178    0.0173   -0.0000
+        -0.0169    0.9957   -0.0444   -0.0000
+        -0.0151    0.0429    1.0215    0.0000
+        -0.4232  -17.5022   11.6967    1.0000];
+    
+    xyz=[optodes.X optodes.Y optodes.Z];
+    xyz(:,4)=1;
+    xyz=xyz*inv(T);
+    
+    for i=1:height(optodes)
+        if(strcmp(optodes.Optode_MNI_{i}(1),'S'))
+            str=['0000' optodes.Optode_MNI_{i}(2:end)];
+            Name{i,1}=['Source-' str(end-3:end)];
+            Type{i,1}='Source';
+        elseif(strcmp(optodes.Optode_MNI_{i}(1),'D'))
+            str=['0000' optodes.Optode_MNI_{i}(2:end)];
+            Name{i,1}=['Detector-' str(end-3:end)];
+            Type{i,1}='Detector';
+        else
+            error('unknown type');
+        end
+        
+        Units{i,1}='mm';
+        X(i,1)=xyz(i,1);
+        Y(i,1)=xyz(i,2);
+        Z(i,1)=xyz(i,3);
+        
+    end
+    optodes=table(Name,X,Y,Z,Type,Units);
+    optodes=sortrows(optodes,{'Type'});
+    
+    probe1020=nirs.core.Probe1020;
+    probe1020.link=raw.probe.link;
+    probe1020.optodes=raw.probe.optodes;
+    probe1020.optodes_registered=optodes;
+    
+    BEM=nirs.registration.Colin27.BEM(unique(raw.probe.link.type));
+    BEM.mesh(1).transparency=0.1;
+    BEM.mesh(1).fiducials.Draw(:)=false;
+    BEM.mesh(2).transparency=0.1;
+    
+    probe1020.opticalproperties=BEM.prop;
+    probe1020=probe1020.register_mesh2probe(BEM.mesh);
+    raw.probe=probe1020;
 end
-raw.probe=nirs.core.Probe(SrcPos,DetPos,link);
 
 
+    
 
 
 % Finally, see if we can deal with the stimulus marks
-MarkChan=find(ismember(info{1}.Probe1,'Mark'));
-marks=data{1}(:,1+MarkChan);
+marks=info.mark;
 
 mUniq=unique(marks);
 mUniq(1)=[];  %Remove zero
@@ -105,20 +146,23 @@ end
 TData=textscan(fid,s,'delimiter',',');
 
 %Start of data
-dIdx=find(ismember(TData{1},'Data'))+1;
+dIdx=find(ismember(TData{1},'Data'))-1;
 
-ChanIdx=find(ismember(TData{1},'PreScan'));
-nChan=ChanIdx-dIdx+1;
+ChanIdx=find(ismember(TData{1},'Probe1'));
+nChan=cnt;
 
 
 % Get the Data
-data=zeros((length(TData{1})-ChanIdx)/nChan,nChan);
+data=zeros((length(TData{1})-ChanIdx),nChan);
 
-f=[]; lstNum=[];
+f=[]; lstNum=[]; lstMark=[];
 for i=1:nChan
-    if(isempty(strfind(TData{1}{ChanIdx+i},':')))
+    if(~isempty(strfind(TData{i}{ChanIdx},'(')))
         f=[f '%f '];
         lstNum=[lstNum i];
+    elseif(strcmp(TData{i}{ChanIdx},'Mark'))
+        f=[f '%f '];
+        lstMark=[lstMark i];
     else
         f=[f '%s '];
     end
@@ -128,10 +172,10 @@ end
 % This is faster then getting the data from the TData cell
 %% 
 frewind(fid);
-for i=1:ChanIdx; fgetl(fid); end;
+for i=1:ChanIdx+1; fgetl(fid); end;
 data=textscan(fid,f,'delimiter',',');
 %% 
-
+mark=horzcat(data{lstMark});
 data=horzcat(data{lstNum});
 
 
@@ -153,6 +197,7 @@ for i=1:dIdx
         fld(strfind(fld,'['))=[];
         fld(strfind(fld,']'))=[];
         
+        if(~isempty(fld))
         val={};
         lst=strfind(vals,',');
         
@@ -177,7 +222,7 @@ for i=1:dIdx
        % try; val=vertcat(val{:}); end;
         
         info=setfield(info,fld,val');
-        
+        end
         if(~isempty(strfind(fld,'Probe1')) || ~isempty(strfind(fld,'EXT_AD')))
             break
         end
@@ -185,13 +230,19 @@ for i=1:dIdx
     end
 end
 
+info.mark=mark;
+
 end
 
 
 function probe=getprobefrominfo(info)
 
+if(iscell(info.Mode))
+    info.Mode=info.Mode{1};
+end
+
 % figure out what probe this is
-switch(info.Mode')
+switch(info.Mode)
     case('3x5')
        m=3;
        n=5;
@@ -202,8 +253,8 @@ switch(info.Mode')
         m=4;
         n=4;
     case('3x11');
-        m=3;
-        n=11;    
+        m=11;
+        n=3;    
     otherwise
         % I don't want to just assume I can do this based on the mode
         error('This is a different probe design');
