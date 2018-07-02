@@ -91,7 +91,7 @@ function [S,haserror] = ttest(obj, c, b, names)
     S.covb  = covb;
     
     if length(S.dfe)>1
-        S.dfe = C * S.dfe;
+        S.dfe = abs(C) * obj.dfe ./ sum(abs(C),2);
     end
 
     % new condition names

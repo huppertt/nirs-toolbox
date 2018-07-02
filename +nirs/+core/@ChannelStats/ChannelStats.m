@@ -87,14 +87,10 @@ classdef ChannelStats
             tstat = obj.beta ./ sqrt(diag(obj.covb));
         end
         
-             function p = get.p( obj )
-                 t = obj.tstat;
-                 if all(obj.dfe==obj.dfe(1))
-                    obj.dfe=obj.dfe(1);
-                 end
-                p = 2*tcdf(-abs(t), obj.dfe);
-
-            end
+        function p = get.p( obj )
+            t = obj.tstat;
+            p = 2*tcdf(-abs(t), obj.dfe);
+        end
    
         % q values
         function q = get.q( obj )
