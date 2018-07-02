@@ -89,6 +89,10 @@ function [S,haserror] = ttest(obj, c, b, names)
 
     S.beta  = beta;
     S.covb  = covb;
+    
+    if length(S.dfe)>1
+        S.dfe = C * S.dfe;
+    end
 
     % new condition names
     if nargin < 4 && isempty(names)

@@ -89,7 +89,9 @@ classdef ChannelStats
         
              function p = get.p( obj )
                  t = obj.tstat;
-                 
+                 if all(obj.dfe==obj.dfe(1))
+                    obj.dfe=obj.dfe(1);
+                 end
                 p = 2*tcdf(-abs(t), obj.dfe);
 
             end
