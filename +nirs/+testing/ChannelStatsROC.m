@@ -95,7 +95,7 @@ classdef ChannelStatsROC
         end
         
         function obj = run(obj, iter)
-            for i = 1:iter
+            for idx = 1:iter
                [data, truth] = obj.simfunc();
                if ~isempty(obj.artfunc)
                    data = obj.artfunc(data);
@@ -178,8 +178,7 @@ classdef ChannelStatsROC
                
                obj.types = Types;
             
-               it=round(length(obj.truth)/length(T));
-                disp( ['Finished iter: ' num2str(it)] )
+               disp( ['Finished iter: ' num2str(idx)] )
             end
         end
         
