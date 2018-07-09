@@ -89,14 +89,14 @@ if(isempty(fcn))
 end
 
 fid=fopen(fcn,'r');
-line=fgetl(fid);
-fclose(fid);
-
-line(1:min(find(double(line)~=double('%')))-1)=[];
-
-if(~isempty(strfind(line,'function')))
-    line(1:strfind(line,'function')+length('function'))=[];
+while ~feof(fid)
+    line=fgetl(fid);
+    if length(line)>9 && strcmp(line(1:9),'function ')
+        line = line(10:end);
+        break
+    end
 end
+fclose(fid);
     
 outputs=line(1:strfind(line,'=')-1);
 inputs=line(strfind(line,'(')+1:strfind(line,')')-1);
