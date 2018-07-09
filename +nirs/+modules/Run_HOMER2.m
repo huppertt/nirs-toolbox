@@ -242,13 +242,23 @@ for j=1:length(flds)
             if(~isempty(strfind(v.(flds{j}),'<linked>')))
                 v=getinher(nirs.modules.listToPipeline({lst{1:idx}}),v);
             end
+            oname=flds{j};
             
         elseif(~isempty(strfind(vars.(flds{j}),'<linked>:output-')))
             global HOMER2carryvars;
             v=HOMER2carryvars;
+            oflds=fieldnames(v);
+            ostr=strrep(vars.(flds{j}),'<linked>:output-','');
+            if all(isstrprop(ostr,'digit'))
+                oname=oflds{str2num(ostr)};
+            elseif any(strcmp(oflds,ostr))
+                oname=ostr;
+            else
+                error('Could not find %s in previous job output',ostr);
+            end
         end
         
-        var.(flds{j})=v.(flds{j});
+        vars.(flds{j})=v.(oname);
     end
 end
 end
