@@ -15,40 +15,44 @@ nsamp = length(data.time);
 spike_inds = randi([2 nsamp-1],[1 num_spikes]);
 shift_inds = randi([2 nsamp-1],[1 num_shifts]);
 
-spike_amp_Z = 6 * randn([1 num_spikes]);
+spike_amp_Z = 25 * randn([1 num_spikes]);
 shift_amp_Z = 25 * randn([1 num_shifts]);
 
-means = mean(data.data);
-data.data = bsxfun(@plus, -log(data.data), log(means));
 stds = std(data.data);
 
 for i = 1:num_spikes
     
-    amp = abs(spike_amp_Z(i)) .* stds;
-    width = 1.9*abs(rand) + .1;
+    width = 1.9*abs(rand) + .1; % Spike duration of 0.1-2.0s
     
     t_peak = data.time(spike_inds(i));
-    t_start = t_peak - width;
-    t_end = t_peak + width;
-    t_inds = find( (data.time > t_start) & (data.time < t_end) );
+    t_start = t_peak - width/2;
+    t_inds = find( (data.time > t_start) & (data.time <= t_peak) );
+    spike_time = [data.time(t_inds); data.time(t_inds(end-1:-1:1))] - t_start;
     
-    for j = 1:ceil(length(t_inds)/2)
+    amp = abs(spike_amp_Z(i));
+    amp = amp + .25*amp*randn([1 length(stds)]); % Jitter relative spike magnitude across channels
+    amp = amp .* stds;
+    amp = amp + bsxfun(@times, 2*rand(length(spike_time),length(stds))-1, .5*amp); % Add temporal jitter
+    
+    tau = width/2;
+
+    spike_data = amp .^ (spike_time./tau);
+
+    t_inds = t_inds(1):min(t_inds(1)+size(spike_data,1)-1,size(data.data,1));
+    
+    data.data(t_inds,:) = data.data(t_inds,:) + spike_data(1:length(t_inds),:);
         
-        t = data.time(t_inds(j)) - t_start;
-        data.data(t_inds(j),:) = data.data(t_inds(j),:) + amp .^ (t/width);
-        data.data(t_inds(end-j+1),:) = data.data(t_inds(end-j+1),:) + amp .^ (t/width);
-    end
-    
 end
 
 for i = 1:num_shifts
     
     shift_amt = shift_amp_Z(i) .* stds;
+    if any(any(bsxfun( @plus , data.data(shift_inds(i):end,:) , shift_amt )<=0))
+        shift_amt = -shift_amt;
+    end
     data.data(shift_inds(i):end,:)  = bsxfun( @plus , data.data(shift_inds(i):end,:) , shift_amt );
     
 end
-
-data.data = exp( -bsxfun(@minus, data.data, log(means)) );
 
 if(nargout>1)
     if(~exist('truth','var'))
