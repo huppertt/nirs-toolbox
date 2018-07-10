@@ -12,7 +12,27 @@ classdef Run_HOMER2 < nirs.modules.AbstractModule
     %    My toolbox does not use time masks (e.g. tInc)
     %    This function will not change data classes
     %    This function does not update the probe.link fields
-    
+    %
+    % Usage Example:
+    %     % Create a job to detect motion artifacts
+    %     job = nirs.modules.Run_HOMER2();
+    %     job.fcn = 'hmrMotionArtifactByChannel';
+    %     job.vars.tMotion = .5;
+    %     job.vars.tMask = 2;
+    %     job.vars.std_thresh = 14;
+    %     job.vars.amp_thresh = .2;
+    %     job.keepoutputs = true;  % Needed to pipe output to the next call into Homer2
+    %
+    %     % Add on a job to remove artifacts using previously-detected time points
+    %     job = nirs.modules.Run_HOMER2(job);
+    %     job.fcn = 'hmrMotionCorrectSpline';
+    %     job.vars.tInc = '<linked>:output-tIncCh'; % Use the 'tIncCh' output from the previous function
+    %     job.vars.tInc = '<linked>:output-2'; % ...Or specify the index of the output you want to use
+    %     job.vars.p = .99;
+    %     job.keepoutputs = true;
+    %
+    %     % Run both jobs
+    %     OD_corrected = job.run(OD);
     properties
         fcn=[];
         inputs={};
