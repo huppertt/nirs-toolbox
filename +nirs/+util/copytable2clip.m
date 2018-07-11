@@ -36,6 +36,9 @@ end
 S=[];
 for idx=1:size(DD,1)
     for idx2=1:size(DD,2)
+        if(isa(DD{idx,idx2},'datetime'))
+            DD{idx,idx2}=datestr(DD{idx,idx2});
+        end
         S=[S DD{idx,idx2}];
         if(idx2~=size(DD,2))
             S=[S char(9)];

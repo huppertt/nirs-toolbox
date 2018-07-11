@@ -59,6 +59,9 @@ if(~isempty(strfind(cond,'?')))
     return;
 end
 
+cond(strfind(cond,'<'))=[];
+cond(strfind(cond,'>'))=[];
+
 
 
 % Its probably just easier to brute force our way through this.  I hate

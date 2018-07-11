@@ -1,4 +1,4 @@
-function data = loadBOXY(filenames,CalibrationFile,CalibrationPhantom)
+function data = loadBOXY(filenames,mlkeep,CalibrationFile,CalibrationPhantom)
 % Inputs:
 %   calibration_file = file name or data file
 %                      may be cell array of multiples files/data
@@ -24,10 +24,10 @@ lambda=[676 690 750 788 800 808 830];
         filenames = {filenames};
     end
     
-    if(nargin==3)
+    if(nargin==4)
         WF = calibrate_from_phantom(CalibrationFile,CalibrationPhantom)
     else
-        if(nargin==2)
+        if(nargin==3)
             warning('Both calibration file (BOXY) and Properties need to be assigned');
         end
         
@@ -62,13 +62,26 @@ lambda=[676 690 750 788 800 808 830];
             ISSdata.SD.SrcPos = [10*ones(ISSdata.SD.NumSrc,1) linspace(-40,40,ISSdata.SD.NumSrc)' zeros(ISSdata.SD.NumSrc,1)];
             ISSdata.SD.DetPos = [-10*ones(ISSdata.SD.NumDet,1) linspace(-40,40,ISSdata.SD.NumDet)' zeros(ISSdata.SD.NumDet,1)];
             
+            lst=find(~ismember(ml(:,1:2),mlkeep,'rows'))
+            ml(lst,:)=[];
+            
             for i=1:size(a,1)
                 lst=find(ml(:,2)==a(i,1) & ml(:,5)==a(i,2));
                 ml(lst,1)=i;
             end
             ml(:,3)=1;
+            
+          
+            ml(lst,:)=[];
+            ISSdata.Data.AC(lst,:)=[];
+            ISSdata.Data.DC(lst,:)=[];
+            ISSdata.Data.Phase(lst,:)=[];
+            ISSdata.Distances(lst)=[];
+            
             ISSdata.SD.MeasList=ml(:,1:4);
                         
+            
+            
             %convert ISSdata to the new class structure
             data(iFile)=nirs.core.Data;
             data(iFile).description=filenames{iFile};
@@ -76,6 +89,8 @@ lambda=[676 690 750 788 800 808 830];
             data(iFile).probe=nirs.util.sd2probe(ISSdata.SD);
             data(iFile).probe.fixeddistances=ml(:,6);
             data(iFile).Fm=ISSdata.SD.ModFreq;
+            
+            
             
 %             ac = abs( data.data(:,lst) );
 %             phs = angle( data.data(:,lst) );

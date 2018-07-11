@@ -243,7 +243,7 @@ end
     axis off;
     
     cb=colorbar('SouthOutside');
-    caxis([0 30])
+    caxis([0 40])
     l=get(cb,'TickLabels');
     l{end}=['>' num2str(l{end})];
     set(cb,'TickLabels',l);

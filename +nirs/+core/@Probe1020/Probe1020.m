@@ -468,8 +468,9 @@ classdef Probe1020 < nirs.core.Probe
             dy=-y(find(ismember(obj.labels,'Cz')));
             scatter(x+dx,y+dy,'filled','MarkerFaceColor',[.8 .8 .8]);
          
-            
-            
+%             tbl=nirs.util.list_1020pts('?'); 
+%             for i=1:height(tbl); t(i)=text(x(i)+dx,y(i)+dy,tbl.Name{i}); end;
+%             
             
             % Todo-  draw the probe too
             h=[];
