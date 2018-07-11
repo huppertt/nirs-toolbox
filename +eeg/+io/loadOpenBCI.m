@@ -6,6 +6,8 @@ if(nargin<2)
     fs=250;
 end
 
+addnotch=true;
+
 Fs_raw = 250;
 
 data = load(filename);
@@ -14,6 +16,16 @@ n=round(Fs_raw/fs);
 
 d = data(2:end,2:9);
 aux = data(2:end,10);
+
+if(addnotch)
+    for i=60:60:Fs_raw/2
+        d1 = designfilt('bandstopiir','FilterOrder',2, ...
+               'HalfPowerFrequency1',i-5,'HalfPowerFrequency2',i+5, ...
+               'DesignMethod','butter','SampleRate',Fs_raw);
+        d = filtfilt(d1,d);
+    end
+end
+
 
 
 d=resample(double(d'),1,n)';
