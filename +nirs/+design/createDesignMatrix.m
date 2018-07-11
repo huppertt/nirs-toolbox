@@ -18,7 +18,7 @@ function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
 
     
    
-    
+    offset=0;
    
     
    
