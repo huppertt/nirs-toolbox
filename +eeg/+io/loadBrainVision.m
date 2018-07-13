@@ -57,7 +57,7 @@ end
 i=unique(i);
 
 for j=1:length(i)
-    if(length(onsets{i(j)})>30)
+    if(length(onsets{i(j)})>10)
         st=nirs.design.StimulusEvents;
         st.name=['aux_' num2str(i(j))];
         k=dsearchn(t,onsets{i(j)}'/fs);

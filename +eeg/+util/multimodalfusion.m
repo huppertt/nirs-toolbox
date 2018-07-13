@@ -32,6 +32,11 @@ for idx=1:length(nirsin)
     
     yfilt(size(X,1)+1:size(yfilt,1),:)=[];
     
+    n=min(size(yfilt,1),size(X,1));
+    yfilt=yfilt(1:n,:);
+       
+    X=X(1:n,:);
+    
     [A,B,R,U,V,stats]=canoncorr(yfilt,X);
     
     lst=find(stats.p<0.05);
@@ -49,6 +54,10 @@ for idx=1:length(nirsin)
     Xhat = V(:,lst)*pinv(B(:,lst))+ones(size(X,1),1)*mean(X,1);
     
     yfilt2hat=zeros(size(yfilt2));
+    
+    nn=ceil((size(yfilt2hat,1)-1)/lags);
+    Xhat(end+1:nn,:)=0;
+    
     cnt=0;
     n=size(yfilt2,2);
     for i=1:lags
