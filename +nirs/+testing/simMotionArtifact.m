@@ -18,6 +18,7 @@ shift_inds = randi([2 nsamp-1],[1 num_shifts]);
 spike_amp_Z = 25 * randn([1 num_spikes]);
 shift_amp_Z = 25 * randn([1 num_shifts]);
 
+mu = mean(data.data);
 stds = std(data.data);
 
 for i = 1:num_spikes
@@ -47,11 +48,17 @@ end
 for i = 1:num_shifts
     
     shift_amt = shift_amp_Z(i) .* stds;
-    if any(any(bsxfun( @plus , data.data(shift_inds(i):end,:) , shift_amt )<=0))
-        shift_amt = -shift_amt;
-    end
     data.data(shift_inds(i):end,:)  = bsxfun( @plus , data.data(shift_inds(i):end,:) , shift_amt );
     
+end
+
+% Restore original mean intensity
+data.data = bsxfun(@plus,bsxfun(@minus,data.data,mean(data.data)),mu);
+
+% Prevent negative intensities
+while any(data.data(:)<=0)
+    has_neg = any(data.data<0);
+    data.data(:,has_neg) = data.data(:,has_neg) + rand(1,sum(has_neg)) .* std(data.data(:,has_neg));
 end
 
 if(nargout>1)
