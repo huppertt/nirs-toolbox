@@ -18,17 +18,17 @@ time = data.time;
 
 % Generate cardiac oscillations
 cardiac_freq = 1 + .1*randn;
-cardiac_phase = cumsum( .01*2*pi*randn(nsamp,1) , 1 );
+cardiac_phase = cumsum( .1*randn(nsamp,1) * 2*pi/data.Fs , 1 );
 cardiac_data = sin( 2*pi*cardiac_freq*time + cardiac_phase );
 
 % Generate respiratory oscillations
 resp_freq = .25 + .025*randn;
-resp_phase = cumsum( .01*2*pi*randn(nsamp,1) , 1 );
+resp_phase = cumsum( .1*randn(nsamp,1) * 2*pi/data.Fs , 1 );
 resp_data = sin( 2*pi*resp_freq*time + resp_phase );
 
 % Generate Mayer waves
 mayer_freq = .1 + .01*randn;
-mayer_phase = cumsum( .01*2*pi*randn(nsamp,1) , 1 );
+mayer_phase = cumsum( .1*randn(nsamp,1) * 2*pi/data.Fs , 1 );
 mayer_data = sin( 2*pi*mayer_freq*time + mayer_phase );
 
 % Add noise to hb concentrations
