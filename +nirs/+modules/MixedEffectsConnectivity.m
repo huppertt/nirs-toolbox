@@ -109,26 +109,22 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             %Now sort back out
             G = nirs.core.sFCStats();
             G.type=S(1).type;
-            G.conditions=CoefficientNames;           
             
+            % Strip out coefficient name prefixes, e.g. "cond_Puzzle:group_Control" -> "Puzzle:Control"
             PredictorNames=lm.PredictorNames;
-            CondNames=cell(size(CoefficientNames));
             for i=1:length(CoefficientNames)
                 CoeffParts = strsplit(CoefficientNames{i},':');
                 for j = 1:length(CoeffParts)
                     for k = 1:length(PredictorNames)
                         if ~isempty(strfind( CoeffParts{j} , PredictorNames{k} ))
                             CoeffParts{j} = strrep( CoeffParts{j} , [PredictorNames{k} '_'] , '' );
-                            if strcmp(PredictorNames{k},'cond')
-                                CondNames{i} = CoeffParts{j};
-                            end
                         end
                     end
                 end
                 CoefficientNames{i} = strjoin( CoeffParts , ':' );
             end
             
-            G.conditions = CondNames;
+            G.conditions = CoefficientNames;
             G.description = 'Group Level Connectivity';
             G.probe=S(1).probe;           
             [n,m]=size(S(1).R);
