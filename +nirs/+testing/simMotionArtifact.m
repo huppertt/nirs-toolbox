@@ -23,7 +23,7 @@ stds = std(data.data);
 
 for i = 1:num_spikes
     
-    width = 1.9*abs(rand) + .1; % Spike duration of 0.1-2.0s
+    width = 9.9*rand + .1; % Spike duration of 0.1-10 seconds
     
     t_peak = data.time(spike_inds(i));
     t_start = t_peak - width/2;
