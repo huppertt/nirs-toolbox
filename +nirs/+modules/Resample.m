@@ -60,7 +60,7 @@ classdef Resample < nirs.modules.AbstractModule
                         % interpolation
                         N = floor((t(end)-t(1)) * obj.Fs)+1;
                         new_t = t(1) + (0:N-1)' / obj.Fs;
-                        d = interp1(t,d,new_t,'linear');
+                        d = interp1(t,d,new_t,'linear','extrap');
                     else
                         % The data is too large, use the resample function
                         % instead
