@@ -230,7 +230,7 @@ classdef RegisterProbe < nirs.modules.AbstractModule
             probe1020.optodes = probe.optodes;
             probe1020.optodes_registered = optodes;
             probe1020.link = probe.link;
-            probe1020 = probe1020.regsister_mesh2probe(fwdBEM.mesh);
+            probe1020 = probe1020.register_mesh2probe(fwdBEM.mesh);
             probe1020.opticalproperties = nirs.media.tissues.brain(0.7, 50,lambda);
             probe1020.defaultdrawfcn = '3D mesh (frontal)';
             
