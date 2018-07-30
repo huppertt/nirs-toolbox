@@ -236,7 +236,7 @@ else
 end
 
 if(registerprobe)
-    if(~isempty(find(ismember( ismember( probe.optodes.Type,'FID-anchor')))))
+    if(~isempty(find(ismember(probe.optodes.Type,'FID-anchor'))))
         probe1020=nirs.util.registerprobe1020(probe);
     else
         

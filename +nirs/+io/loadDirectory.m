@@ -4,7 +4,7 @@ if nargin < 4,
     fileExt  = {'.nirs','.oxy3','.wl1','Probe*.csv','_fnirs.csv'};
 end
 if nargin < 3 || isempty(loadFunc),
-    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2};
+    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2};
 end
 
 if(~iscell(fileExt)); fileExt={fileExt}; end;
@@ -44,17 +44,19 @@ for i=1:length(fileExt)
             files(iFile).name=[fileparts(files(iFile).name) filesep];
         end
         if ~isempty(tmp)
-             if(~isempty(strfind(func2str(loadFunc{i}),'nirs.io.loadNIRx')) & ...
-                 ~strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)') & isempty(data))
-                 disp('Loading NIRx file geometry from:')
-                 disp(['     ' files(iFile).name]);
-                 disp('      Note: This registration will be used for all subjects');
-                 disp('      To load all use "loadDirectory(<>,<>,@(file)nirs.io.loadNIRx(file))"');
-                 tmp = nirs.io.loadNIRx(files(iFile).name,true);
-                 probe=tmp.probe;
-             elseif(~isempty(strfind(func2str(loadFunc{i}),'nirs.io.loadNIRx')) & ...
-                     ~strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)'))
-                 tmp.probe=probe;
+            if(~isempty(strfind(func2str(loadFunc{i}),'nirs.io.loadNIRx')) && ...
+                ~strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)') && isempty(data))
+                disp('Loading NIRx file geometry from:')
+                disp(['     ' files(iFile).name]);
+                disp('      Note: This registration will be used for all subjects');
+                disp('      To load all use "loadDirectory(<>,<>,@(file)nirs.io.loadNIRx(file,true))"');
+                tmp = nirs.io.loadNIRx(files(iFile).name,true);
+                probe=tmp.probe;
+                loadFunc{i} = @(file)nirs.io.loadNIRx(file,false);
+            end
+            
+            if exist('probe','var')
+                tmp.probe=probe;
             end
             
             data(end+1) = tmp;
