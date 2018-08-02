@@ -67,6 +67,9 @@ classdef OLS < nirs.modules.AbstractGLM
                 obj.checkRank( [X C] )
                 obj.checkCondition( [X C] )
                 
+                ncond = length(names);
+                nchan = size(data(i).probe.link, 1);
+                
                 % run regression
                 stats = struct;
                 if(rank([X C]) < size([X C],2) & obj.goforit)
@@ -75,34 +78,36 @@ classdef OLS < nirs.modules.AbstractGLM
                     lst=find(diag(s)>eps(1)*10);
                     V=V(:,lst);
                     A=U(:,lst)*s(lst,lst);
-                    stats.beta = A\ d;
-                    for j = 1:size(d,2)
-                        stats.covb(:,:,j) = pinv(A'*A) * var(d(:,j) - A*stats.beta(:,j));
+                    stats.beta = A\ d;                    
+                    iXtX = V*pinv(A'*A)*V';
+                    Cres = cov(d - A*stats.beta);                    
+                    covb = zeros(ncond*nchan,ncond*nchan);
+                    for j = 1:nchan
+                        for k = 1:nchan
+                            idx1 = (0:ncond-1)*nchan + j;
+                            idx2 = (0:ncond-1)*nchan + k;
+                            covb(idx1,idx2) = iXtX(1:ncond,1:ncond) * Cres(j,k);
+                        end
                     end
-                    
-                    stats.beta=V*stats.beta;
-                    for j=1:size(stats.covb,3)
-                        c(:,:,j)=V*squeeze(stats.covb(:,:,j))*V';
-                    end
-                    stats.covb=c;
+                    stats.beta = V*stats.beta;
+                    stats.covb = covb;
                     stats.dfe = size(d,1) - rank(A);
                 else
                     stats.beta = [X C]\ d;
-                    for j = 1:size(d,2)
-                        stats.covb(:,:,j) = pinv([X C]'*[X C]) * var(d(:,j) - [X C]*stats.beta(:,j));
+                    iXtX = pinv([X C]'*[X C]);
+                    Cres = cov(d - [X C]*stats.beta);
+                    covb = zeros(ncond*nchan,ncond*nchan);
+                    for j = 1:nchan
+                        for k = 1:nchan
+                            idx1 = (0:ncond-1)*nchan + j;
+                            idx2 = (0:ncond-1)*nchan + k;
+                            covb(idx1,idx2) = iXtX(1:ncond,1:ncond) * Cres(j,k);
+                        end
                     end
                     stats.dfe = size(d,1) - rank([X C]);
                 end
                 
-                %stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
-
-                
-                
-                
                 % put stats
-                ncond = length(names);
-                nchan = size(data(i).probe.link, 1);
-                
                 link = repmat( probe.link, [ncond 1] );
                 cond = repmat(names(:)', [nchan 1]);
                 cond = cond(:);
@@ -118,12 +123,6 @@ classdef OLS < nirs.modules.AbstractGLM
                 
                 S(i).variables = [link table(cond)];
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
-                
-                covb = zeros( nchan*ncond );
-                for j = 1:nchan
-                   idx = (0:ncond-1)*nchan + j;
-                   covb(idx, idx) = stats.covb(1:ncond, 1:ncond, j);
-                end
                 
                 S(i).covb = covb;
                 
