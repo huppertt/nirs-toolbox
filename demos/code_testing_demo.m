@@ -204,7 +204,7 @@ ROCtest.pipeline=jobs;
 List=nirs.modules.pipelineToList(jobs);
 
 % But, now, lets replace the AR-IRLS with an ordinary least squares
-List{9}=nirs.modules.GLM;
+List{9}=nirs.modules.OLS;
 jobs = nirs.modules.listToPipeline(List);
 ROCtest.pipeline(2)=jobs;
 % Placing a second job in the array will run both jobs for comparision
