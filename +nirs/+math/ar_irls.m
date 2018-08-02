@@ -136,7 +136,7 @@ function stats = ar_irls( d,X,Pmax,tune )
                stats.P(i) = length(a)-1;
         
         L = pinv(Xf'*Xf); % more stable
-        Xfall{i}=Xf;
+        Xfall{i}=wXf;
         stats.covb(:,:,i) = 1.1265*L*S.mad_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
@@ -148,7 +148,7 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
 
         
-        resid(:,i)=S.resid;
+        resid(:,i)=S.rstud*S.s;
         stats.filter{i}=f;
         stats.R2(i)=max(1-mad(yf-Xf*B)/mad(yf),0);
 %         yfiltered=[yfiltered; yf];
@@ -159,15 +159,31 @@ function stats = ar_irls( d,X,Pmax,tune )
    
     covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
     
+    for i=1:size(stats.beta,2)
+        for j=1:size(stats.beta,2)
+            a=resid(:,i)-median(resid(:,i));
+            b=resid(:,j)-median(resid(:,j));
+            
+            C(i,j)=1.1265*(median(a.*b));
+        end
+        %C(i,i)=stats.sigma2(i);
+    end
+    C=C*(mean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
     
-    C=cov(resid);
+    %C=cov(resid);
     for i=1:size(stats.beta,2)
         for j=1:size(stats.beta,2)
             covb(:,:,i,j) = pinv(Xfall{i}'*Xfall{j})*C(i,j);
         end
     end
     
-   
+%     figure(1); cla; d=[];
+%     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;
+%     plot(log(squeeze(stats.covb(2,2,:))),'b')
+%     hold on;
+%     plot(log(d),'r--')
+%     pause;
+    
     stats.covb = covb;
 % 
 %     for i=1:size(stats.beta,2)

@@ -1,5 +1,6 @@
 function [nirsout,eegout]=multimodalfusion(nirsin,eegin);
-
+no=nirsin;
+eo=eegin;
 for idx=1:length(nirsin)
     
     ndc=mean(nirsin(idx).data,1);

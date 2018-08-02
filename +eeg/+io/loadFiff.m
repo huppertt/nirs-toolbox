@@ -37,9 +37,10 @@ data.time=[0:size(d,2)-1]/fs;
 data.description=which(filename);
 
 data.probe=eeg.core.MEGProbe(hdr);
-
+try
 stim=findstim(aux,hdr.sfreq,data.time);
 data.stimulus=stim;
+end
 data.description=filename;
 end
 
@@ -81,7 +82,7 @@ for j=1:length(i)
         st=nirs.design.StimulusEvents;
         st.name=['aux_' num2str(i(j))];
         k=dsearchn(t,onsets{i(j)}'/fs);
-         k1=dsearchn(t,offsets{i(j)}'/fs);
+        k1=dsearchn(t,offsets{i(j)}'/fs);
         st.onset=t(k);
             tempmin=min(length(t(k)), length(t(k1)));
             k(tempmin+1:end)=[];
