@@ -300,7 +300,7 @@ if(registerprobe)
         lst2=[lst2 lst3];
         
     else
-        lst=[probeInfo.probes.index_s; probeInfo.probes.index_d];
+        lst=[probeInfo.probes.index_s probeInfo.probes.index_d];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst2]=ismember(labels,fid_1020.Name);
         
