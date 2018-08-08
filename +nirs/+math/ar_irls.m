@@ -158,6 +158,7 @@ function stats = ar_irls( d,X,Pmax,tune )
     end   
    
     covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
+     
     
     for i=1:size(stats.beta,2)
         for j=1:size(stats.beta,2)
@@ -166,16 +167,17 @@ function stats = ar_irls( d,X,Pmax,tune )
             
             C(i,j)=1.1265*(median(a.*b));
         end
-        %C(i,i)=stats.sigma2(i);
     end
     C=C*(mean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
     
-    %C=cov(resid);
+
     for i=1:size(stats.beta,2)
         for j=1:size(stats.beta,2)
-            covb(:,:,i,j) = pinv(Xfall{i}'*Xfall{j})*C(i,j);
+            covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}'*Xfall{j})*C(i,j);
+            covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}'*Xfall{i})*C(j,i);  % done to ensure symmetry
         end
     end
+    covb=covb/2;
     
 %     figure(1); cla; d=[];
 %     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;

@@ -63,6 +63,7 @@ classdef ChannelFStats
             p = zeros(size(obj.F));
             for i = 1:numel(obj.F)
                 p(i) = fcdf( 1./obj.F(i), obj.df2(i), obj.df1(i) );
+                
             end
         end
         

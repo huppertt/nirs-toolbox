@@ -18,10 +18,20 @@ function out = jointTest( obj )
     % loop through pairs/conditions
     for i = 1:max(utests)
        m = utests == i;
-       T2 = obj.beta(m)'*pinv(obj.covb(m,m))*obj.beta(m);
+       covb=obj.covb(m,m);
+       
+       % sometimes not positive/definant due to numerical issues. 
+       [U,s,V]=svd(covb);
+       covb=0.5*(U*s*U'+V'*s*V);
+       
+       T2 = obj.beta(m)'*pinv(covb)*obj.beta(m);
        
        n = obj.dfe;
        k = sum(m);
+       
+       %Saitterwaitte estimate of effective DOF
+       n=trace(covb)^2/(trace(covb^2))/(1/(n-1));
+       
        
        F(i,1) = (n-k+1) ./ k ./ n .* T2;
        df1(i,1) = k;
