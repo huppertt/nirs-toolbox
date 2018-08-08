@@ -1,4 +1,4 @@
-function data = loadBOXY(filenames,mlkeep,CalibrationFile,CalibrationPhantom)
+function data = loadBOXY(filenames,SD,CalibrationFile,CalibrationPhantom)
 % Inputs:
 %   calibration_file = file name or data file
 %                      may be cell array of multiples files/data
@@ -13,12 +13,13 @@ warning('nirs.io.loadBOXY.m function has hardcoded wavelength info specific for 
 wavelengthlst{1}=[1 16 17 32];  %676
 wavelengthlst{2}=[2 15 18 31];  %690
 wavelengthlst{3}=[3 14 19 30]; %750
-wavelengthlst{4}=[4 13 20 29 8 9 24 25]; %788
+wavelengthlst{4}=[4 13 20 29 ]; %788
 wavelengthlst{5}=[5 12 21 28]; %800
 wavelengthlst{6}=[6 11 22 27]; %808
 wavelengthlst{7}=[7 10 23 26]; %830
+wavelengthlst{8}=[8 9 24 25];
 
-lambda=[676 690 750 788 800 808 830];
+lambda=[676 690 750 788 800 808 830 788.1];
 
     if ischar( filenames )
         filenames = {filenames};
@@ -44,57 +45,52 @@ lambda=[676 690 750 788 800 808 830];
             
             ml=ISSdata.Data.MeasurementList;
             
-            wIdx=zeros(size(ml,1),1);
-            for i=1:size(ml,1)
-                for j=1:length(wavelengthlst)
-                    if(ismember(ml(i,1),wavelengthlst{j}))
-                        wIdx(i)=j;
-                    end
-                end
+            laserPos=zeros(32,1);
+            wav=zeros(32,1);
+            for j=1:length(SD.LaserPos)
+                laserPos(SD.LaserPos{j})=j;
             end
-            ml(:,4)=wIdx;
-            
-            ml(:,5)=ISSdata.Distances(sub2ind(size(ISSdata.Distances),ml(:,2),ml(:,1)));
-            ml(:,6)=ml(:,5);
-            ml(:,5)=round(ml(:,5)/.5)*.5;
-            [a]=unique(ml(:,[2 5]),'rows');
-            ISSdata.SD.NumSrc=size(a,1);
-            ISSdata.SD.SrcPos = [10*ones(ISSdata.SD.NumSrc,1) linspace(-40,40,ISSdata.SD.NumSrc)' zeros(ISSdata.SD.NumSrc,1)];
-            ISSdata.SD.DetPos = [-10*ones(ISSdata.SD.NumDet,1) linspace(-40,40,ISSdata.SD.NumDet)' zeros(ISSdata.SD.NumDet,1)];
-            
-            lst=find(~ismember(ml(:,1:2),mlkeep,'rows'))
-            ml(lst,:)=[];
-            
-            for i=1:size(a,1)
-                lst=find(ml(:,2)==a(i,1) & ml(:,5)==a(i,2));
-                ml(lst,1)=i;
+            for j=1:length(wavelengthlst)
+                wav(wavelengthlst{j})=lambda(j);
             end
-            ml(:,3)=1;
             
-          
-            ml(lst,:)=[];
+            
+            ml(:,3)=laserPos(ml(:,1));
+            ml(:,4)=wav(ml(:,1));
+            
+            link=table(ml(:,3),ml(:,2),ml(:,4),'VariableNames',{'source','detector','type'});
+            lst=~ismember(ml(:,[3 2]),SD.MeasList,'rows');
+           link(lst,:)=[];
+           
+            probe=nirs.core.Probe(SD.SrcPos,SD.DetPos,link);
+            
+            
+            
+            dist=zeros(size(ml,1),1);
+            for i=1:length(dist)
+                dist(i)=ISSdata.Distances(ml(i,2),ml(i,1));
+            end
+            
             ISSdata.Data.AC(lst,:)=[];
             ISSdata.Data.DC(lst,:)=[];
             ISSdata.Data.Phase(lst,:)=[];
             ISSdata.Distances(lst)=[];
             
-            ISSdata.SD.MeasList=ml(:,1:4);
-                        
             
             
             %convert ISSdata to the new class structure
             data(iFile)=nirs.core.Data;
             data(iFile).description=filenames{iFile};
             data(iFile).time=ISSdata.Data.time;
-            data(iFile).probe=nirs.util.sd2probe(ISSdata.SD);
-            data(iFile).probe.fixeddistances=ml(:,6);
+            data(iFile).probe=probe;
+            data(iFile).probe.fixeddistances=dist;
             data(iFile).Fm=ISSdata.SD.ModFreq;
             
             
             
 %             ac = abs( data.data(:,lst) );
 %             phs = angle( data.data(:,lst) );
-            ISSdata.Data.Phase=phase_unwrap(ISSdata.Data.Phase,ml(:,6),data(iFile).Fm);
+            ISSdata.Data.Phase=phase_unwrap(ISSdata.Data.Phase,ISSdata.Distances',data(iFile).Fm);
             d=ISSdata.Data.AC.*(cos(ISSdata.Data.Phase)+1i*sin(ISSdata.Data.Phase));
             data(iFile).data=d';
             
