@@ -82,7 +82,7 @@ lambda=[676 690 750 788 800 808 830 788.1];
             data(iFile)=nirs.core.Data;
             data(iFile).description=filenames{iFile};
             data(iFile).time=ISSdata.Data.time;
-            data(iFile).probe=probe;
+            
             data(iFile).probe.fixeddistances=dist;
             data(iFile).Fm=ISSdata.SD.ModFreq;
             
@@ -94,7 +94,44 @@ lambda=[676 690 750 788 800 808 830 788.1];
             d=ISSdata.Data.AC.*(cos(ISSdata.Data.Phase)+1i*sin(ISSdata.Data.Phase));
             data(iFile).data=d';
             
-          
+            %aux data
+                a=ISSdata.Data.Aux';
+              
+                for i=1:size(a,2)
+                    name{i,1}=['aux-' num2str(i)];
+                end
+                aux=nirs.core.GenericData(a,ISSdata.Data.time,table(name,repmat({'aux'},length(name),1),'VariableNames',{'name','type'}));
+                aux.description=data(iFile).description;
+                data(iFile).auxillary('aux')=aux;
+               
+               for i=1:size(ml,1)
+                    ISSdata.CalibrationValues.WF;
+                    WF.Term(i,1)=ISSdata.CalibrationValues.WF.Term(ml(i,2),ml(i,1));
+                    WF.Factor(i,1)=ISSdata.CalibrationValues.WF.Factor(ml(i,2),ml(i,1));
+                    
+               end
+                WF.Term(lst)=[];
+                WF.Factor(lst)=[];
+                data(iFile).auxillary('calibration')=WF;
+                
+                data(iFile).auxillary('ISS Aquistion Info')=ISSdata.ACQinfo;
+                
+                ModFreq=ones(height(probe.link),1)*110;  % hardcoded 110Hz for ISS Boxy
+                probe.link=[probe.link table(ModFreq)];                
+                
+                
+                if(isfield(SD,'MeasGroup'))
+                    Group=zeros(height(probe.link),1);
+                    for i=1:height(probe.link)
+                        Group(i,1)=SD.MeasGroup(find(SD.MeasList(:,1)==probe.link.source(i) & SD.MeasList(:,2)==probe.link.detector(i)));
+                    end
+                    probe.link=[probe.link table(Group,'VariableNames',{'MeasurementGroup'})];
+                end
+                
+                probe.link=[probe.link table(WF.Term,WF.Factor,true(size(WF.Term)),'VariableNames',{'Calibration_Term','Calibration_Factor','Calibration_Applied'})];
+                
+                data(iFile).probe=probe;
+               
         catch err
             if(~exist('ISSdata') || ~isfield(ISSdata,'Data') || isempty(ISSdata.Data))
                  disp('Empty file found (skipping):');
