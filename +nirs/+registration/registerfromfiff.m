@@ -67,12 +67,12 @@ pts1020=nirs.util.list_1020pts('?');
 
 [loca,locb]=ismember(pts1020.Name,digpts.kind);
 lst=find(loca);
-xyz=[pts1020.X(loca(lst)) pts1020.Y(loca) pts1020.Z(loca(lst))];
+xyz=[pts1020.X(lst) pts1020.Y(lst) pts1020.Z(lst)];
 xyz2=[digpts.X(locb(lst)) digpts.Y(locb(lst)) digpts.Z(locb(lst))];
 xyz(:,4)=1;
 xyz2(:,4)=1;
 T=xyz2\xyz;
-T(3,3)=1;
+T(4,4)=1;
 
 p = [digpts.X digpts.Y digpts.Z ones(size(digpts.X))]*T;
 
