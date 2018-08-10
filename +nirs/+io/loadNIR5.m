@@ -192,7 +192,7 @@ for id=1:cnt
                         end
                     end
                     if(~isempty(m))
-                        data(id).probe=data(id).probe.regsister_mesh2probe(m,true);
+                        data(id).probe=data(id).probe.register_mesh2probe(m,true);
                     end
                     
                     

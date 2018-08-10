@@ -20,7 +20,7 @@ vol2=convn(double(vol.img),c,'same');
 vol2=vol2./mean(vol2(:))*200;
 vol2(:,:,1:end/2)=0;
 
-[faces,nodes]=isosurface(vol2,1000);
+[faces,nodes]=isosurface(vol2,max(vol2(:))*.85);
 
 nodes=nodes(:,[2 1 3]);
 nodes(:,1)=nodes(:,1)*vol.hdr.dime.pixdim(1);
@@ -34,7 +34,6 @@ nodes=(Tf*nodes')';
 nodes(:,4)=[];
 %% 
 
-vol2(find(vol2>500))=0;
 [faces2,nodes2]=isosurface(vol2,50);
 nodes2=nodes2(:,[2 1 3]);
 nodes2(:,1)=nodes2(:,1)*vol.hdr.dime.pixdim(1);

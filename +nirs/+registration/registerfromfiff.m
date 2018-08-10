@@ -105,7 +105,7 @@ probe1020.link=probe.link;
 probe1020.optodes_registered=[optodes_reg; fid];
 
 BEM.mesh(1).fiducials.Draw(:)=false;
-probe1020=probe1020.regsister_mesh2probe(BEM.mesh);
+probe1020=probe1020.register_mesh2probe(BEM.mesh);
 probe1020.defaultdrawfcn='3D mesh';
 
 

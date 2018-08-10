@@ -229,7 +229,12 @@ classdef Probe1020 < nirs.core.Probe
             mesh=obj.mesh;
         end
         
-        function obj=set_mesh(obj);
+        function obj=set_mesh(obj,mesh)
+            
+            if(nargin==2)
+                obj.mesh=mesh;
+            else
+            
             mesh(1) = nirs.util.spheremesh;
             mesh(2) = nirs.util.spheremesh;
             mesh(3) = nirs.util.spheremesh;
@@ -266,6 +271,7 @@ classdef Probe1020 < nirs.core.Probe
             mesh(1).transparency=.2;
             mesh(2).transparency=.1;
             obj.mesh=mesh;
+            end
             
         end
         
