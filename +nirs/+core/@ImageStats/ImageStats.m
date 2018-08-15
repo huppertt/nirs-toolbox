@@ -85,7 +85,7 @@ classdef ImageStats
             se=1/tcrit;
             t=1./sqrt(se.^2+obj.typeII_StdE.^2);
           
-            pwr = 1-2*tcdf(-abs(t), obj.dfe);
+            pwr = 2*tcdf(-abs(t), obj.dfe);
         
         end
         

@@ -54,7 +54,7 @@ Amp=[10 -5; 10 -5];  % Amplitude of the two conditions x HbO2/Hb
 
 mesh.regions=ones(size(mesh.nodes,1),1);
 lambda=unique(probe.link.type)';  %List of wavelengths from the probe
-prop{1} = nirs.media.tissues.brain(0.7, 50,lambda);
+prop{1} = nirs.media.tissues.brain(lambda,0.7, 50);
 
 % Now, create the forward model
 % fwdFEM = nirs.forward.NirfastFEM();

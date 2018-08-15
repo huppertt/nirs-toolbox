@@ -26,7 +26,7 @@ if(exist(fullfile(folder,'ColinBEM.mat'))==2 && ~force)
         prop{1} = nirs.media.tissues.skin(lambda);
         prop{2} = nirs.media.tissues.bone(lambda);
         prop{3} = nirs.media.tissues.water(lambda);
-        prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
+        prop{4} = nirs.media.tissues.brain(lambda,0.7, 50);
     else
         prop={};
     end
@@ -82,7 +82,7 @@ if(nargin>1)
     prop{1} = nirs.media.tissues.skin(lambda);
     prop{2} = nirs.media.tissues.bone(lambda);
     prop{3} = nirs.media.tissues.water(lambda);
-    prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
+    prop{4} = nirs.media.tissues.brain(lambda,0.7, 50);
 else
     prop={};
 end

@@ -63,7 +63,7 @@ classdef Probe1020 < nirs.core.Probe
             
             obj=obj.set_mesh;
             
-            obj.opticalproperties = nirs.media.tissues.brain(0.7, 50,lambda);
+            obj.opticalproperties = nirs.media.tissues.brain(lambda,0.7, 50);
             
             obj.defaultdrawfcn='draw1020';
         end
