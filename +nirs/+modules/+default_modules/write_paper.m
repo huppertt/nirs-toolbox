@@ -62,7 +62,7 @@ if(evalin('base','isa(raw(1).probe,''nirs.core.Probe1020'')'))
     probe=evalin('base','raw(1).probe');
     Slab.probe=probe;
     lambda=unique(probe.link.type);
-    Slab.prop=nirs.media.tissues.brain(.7,50,lambda);
+    Slab.prop=nirs.media.tissues.brain(lambda,.7,50);
     Slab.mesh=probe.getmesh();
     Slab.mesh=Slab.mesh(end);
     Slab.mesh=Slab.mesh.reducemesh(.1);

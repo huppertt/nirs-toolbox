@@ -22,7 +22,7 @@ for id=1:length(regions)
     depth(:,id)=d.depth(ismember(d.Type,'Link'));
 end
 
-prop=nirs.media.tissues.brain(.7,50,808);
+prop=nirs.media.tissues.brain(808,.7,50);
 V = prop.v ./ prop.ri;
 D = V ./ (3 * (prop.musp +prop.mua));
 K = sqrt(V .* prop.mua ./ D);

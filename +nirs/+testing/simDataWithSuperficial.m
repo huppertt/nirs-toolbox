@@ -79,7 +79,7 @@ data = j.run(dOD);
 % 
 % FwdModel=nirs.forward.ApproxSlab;
 % FwdModel.mesh=mesh;
-% FwdModel.prop=nirs.media.tissues.brain(.7,50,lambda);
+% FwdModel.prop=nirs.media.tissues.brain(lambda,.7,50);
 % FwdModel.Fm=0;
 % 
 % m=size(mesh.nodes,1);

@@ -158,7 +158,7 @@ classdef NirfastBEM
                 
                  lambda = unique(obj.probe.link.type);
             obj.prop{1}=nirs.media.tissues.skin(lambda);
-            obj.prop{2}=nirs.media.tissues.brain(.70,50,lambda);
+            obj.prop{2}=nirs.media.tissues.brain(lambda,.70,50);
 
             end
            
