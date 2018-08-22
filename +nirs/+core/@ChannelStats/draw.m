@@ -13,6 +13,9 @@ function f = draw( obj, vtype, vrange, thresh,figH)
 % type is either beta or tstat
 if nargin < 2, vtype = 'tstat'; end
 
+% Need to make sure variables and link tables are in same order
+obj = obj.sorted();
+
 v=[];
 for ii=1:length(obj)
     values{ii} = obj(ii).(vtype);
