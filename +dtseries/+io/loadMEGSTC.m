@@ -47,9 +47,11 @@ for iFile = 1:size(filenames,1)
         gunzip(srcfiff_file{iFile});
         space=mne_read_source_spaces(fullfile(p,f));
         delete(fullfile(p,f));
+    else
+        space=mne_read_source_spaces( srcfiff_file{iFile});
     end
-    mesh=nirs.core.Mesh(space(1).rr,space(1).use_tris);
-    mesh(2)=nirs.core.Mesh(space(2).rr,space(2).use_tris);
+    mesh=nirs.core.Mesh(space(1).rr,space(1).use_tris+1);
+    mesh(2)=nirs.core.Mesh(space(2).rr,space(2).use_tris+1);
     mesh(1)=nirs.util.mesh_remove_unused(mesh(1));
     mesh(2)=nirs.util.mesh_remove_unused(mesh(2));
     
