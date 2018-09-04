@@ -61,19 +61,22 @@ for iFile = 1:length(filenames)
     
     vertex=[1:size(d,2)]';
     lst=find([any(isnan(d),1) | all(d==0,1) | sqrt(var(d,[],1))<eps(1)*10]);
+    lstN=1:size(d,2); lstN(lst)=[];
     vertex(lst)=[];
     d(:,lst)=[];
     
     if( usesvd)
         [u,s,proj]=nirs.math.mysvd(d);
-        lst=find(diag(s)<eps(single(1)));
-        u(:,lst)=[]; s(lst,:)=[]; s(:,lst)=[]; proj(lst,:)=[];
-        
-        proj=sparse(proj);
+        lst1=find(diag(s)<eps(single(1)));
+        u(:,lst1)=[]; s(lst1,:)=[]; s(:,lst1)=[]; proj(:,lst1)=[];
+      
+        p=zeros(size(c.(type),1),size(proj,2));
+        p(lstN,:)=proj;
+        p=sparse(p);
         
         data(iFile).data=u*s;
-        data(iFile).projectors=proj;
-        data(iFile).cov=speye(size(proj,2),size(proj,2));
+        data(iFile).projectors=p';
+        data(iFile).cov=speye(size(p,2),size(p,2));
     else
         data(iFile).data=d;
         data(iFile).projectors=speye(size(d,2),size(d,2));
