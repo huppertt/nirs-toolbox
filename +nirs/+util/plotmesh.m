@@ -44,7 +44,8 @@ function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
         camlight; lighting gouraud
         colormap(cmap), colorbar
         caxis([-vmax vmax])
-        
+        daspect([1 1 1]);
+        axis off;
     end
 
 
