@@ -133,6 +133,12 @@ classdef ImageStats
         function out = sorted( obj, colsToSortBy )
             %% sorted - returns sorted stats by columns in variables
             out = obj;
+            if(length(obj)>1)
+                for idx=1:length(obj)
+                    out(idx)=sorted(obj(idx),colsToSortBy);
+                end
+                return
+            end
             if nargin < 2 | ~all(ismember(out.variables.Properties.VariableNames,colsToSortBy))
                 colsToSortBy = {'VoxID', 'type', 'cond'};
             end
