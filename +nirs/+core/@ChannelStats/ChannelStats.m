@@ -147,7 +147,11 @@ classdef ChannelStats
             %% sorted - returns sorted stats by columns in variables
             out = obj;
             if nargin < 2
+                if( isa(obj.probe,'nirs.core.ProbeROI'))
+                    colsToSortBy = {'ROI', 'type', 'cond'};
+                else
                 colsToSortBy = {'source', 'detector', 'type', 'cond'};
+                end
             end
             
             if(length(obj)>1)

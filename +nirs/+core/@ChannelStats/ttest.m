@@ -105,7 +105,11 @@ function [S,haserror] = ttest(obj, c, b, names)
 
     
         link = repmat( obj.probe.link, [size(c,1) 1] );
+        if(isa(S.probe,'nirs.core.ProbeROI'))
+            link = nirs.util.sortrows(link, {'ROI', 'type'});
+        else
         link = nirs.util.sortrows(link, {'source', 'detector', 'type'});
+        end
         S.variables = [link table(cond)];
   
     S.description = 'T-test';

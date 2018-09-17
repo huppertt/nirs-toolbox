@@ -154,10 +154,29 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
                 
                 covb = zeros( nchan*ncond );
-                for j = 1:nchan
-                   idx = (0:ncond-1)*nchan + j;
-                   covb(idx, idx) = stats.covb(1:ncond, 1:ncond, j);
+                if(ndims(stats.covb)==4)
+                    for j = 1:nchan
+                        for k=1:nchan
+                            idx = (0:ncond-1)*nchan + j;
+                            idx2 = (0:ncond-1)*nchan + k;
+                            covb(idx, idx2) = stats.covb(1:ncond, 1:ncond, j,k);
+                        end
+                    end
+                elseif(ndims(stats.covb)==3)
+                    for j = 1:nchan
+                        idx = (0:ncond-1)*nchan + j;
+                        covb(idx, idx) = stats.covb(1:ncond, 1:ncond, j);
+                        
+                    end
+                else
+                    covb = stats.covb(1:ncond*nchan,1:ncond*nchan);
                 end
+                
+                %ensure positive/definant (sometimes off due to numerical
+                %prec.
+                
+                [U,s,V]=svd(covb);
+                covb=0.5*(U*s*U'+V*s*V');
                 
                 S(i).covb = covb;
                 

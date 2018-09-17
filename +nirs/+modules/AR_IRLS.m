@@ -73,12 +73,15 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
-                    lst=find(diag(s)>eps(1)*10);
+                    lst=find(diag(s)>eps(1)*100);
                     V=V(:,lst);
                     stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
                     stats.beta=V*stats.beta;
+                    c=[];
                     for j=1:size(stats.covb,3)
-                        c(:,:,j)=V*squeeze(stats.covb(:,:,j))*V';
+                        for j2=1:size(stats.covb,4)
+                            c(:,:,j,j2)=V*squeeze(stats.covb(:,:,j,j2))*V';
+                        end
                     end
                     stats.covb=c;
                 else

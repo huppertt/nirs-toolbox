@@ -109,8 +109,11 @@ if tag.size > 0
             fseek(fid,pos,'bof');
             
             matrix_type = bitand(data_type,tag.type);
+            if(ndim==1)
+                dims(2)=1;
+            end
             
-            if ndim == 2
+            if ndim == 2 | ndim==1
                 switch matrix_type
                     case FIFF.FIFFT_INT
                         idata = fread(fid,dims(1)*dims(2),'int32=>int32');

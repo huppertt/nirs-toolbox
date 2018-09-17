@@ -44,7 +44,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
                 if(~obj.goforit)
                     error( 'Design matrix is rank deficient.' )
                 else
-                    warning( 'Design matrix is rank deficient.' )
+                    disp( 'Design matrix is rank deficient.' )
                 end
             end
         end
@@ -53,7 +53,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
         function checkCondition(obj,X )
             maxCond = 300; 
             if cond(X) > maxCond
-                warning(['High collinearity: cond(X) = ' num2str(cond(X)) '.'])
+                disp(['High collinearity: cond(X) = ' num2str(cond(X)) '.'])
             end
         end
     end
