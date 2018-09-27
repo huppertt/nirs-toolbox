@@ -14,6 +14,17 @@ function S = ftest(obj, m)
         m=true(length(obj.conditions),1);
     end
     
+    if(isstr(m) || iscell(m) || iscellstr(m))
+        if(isstr(m)); c=cellstr(m); end;
+        [m,haserror] = nirs.design.contrastvector(m,obj.conditions,obj.basis);
+        m = m > 0;
+        if(haserror)
+            warning(['error processing: ' obj.description]);
+            
+        end
+        
+    end
+    
     if ~islogical(m)
         m = m > 0;
         warning('Converting mask to true/false.')

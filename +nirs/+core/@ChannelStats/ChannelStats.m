@@ -1,7 +1,7 @@
 classdef ChannelStats
     %% CHANNELSTATS - Holds regression stats for channel space.
-    % 
-    % Properties: 
+    %
+    % Properties:
     %     description  - description of data (e.g. filename)
     %     variables    - a table containing w/ source, detector, type, cond for
     %                    each regression coefficient
@@ -15,17 +15,17 @@ classdef ChannelStats
     %     tstat        - (dependent) t-stats of beta
     %     p            - (dependent) p-values of beta
     %     q            - (dependent) q-values of beta (false discovery rate)
-    %     
+    %
     %  Methods:
     %     getCritT    - returns critical t value
     %     draw        - draws beta or tstat values on top of probe geometry
     %     table       - returns a table of all stats (minus full covariance)
     %     ttest       - performs a t-test and returns a new ChannelStats object
-    %     ftest       - performs an F-test across conditions 
+    %     ftest       - performs an F-test across conditions
     %     jointTest   - performs a joint hypothesis test across all channels in
     %                   each SD pair (i.e. joint test of hbo & hbr for S1-D1)
     %     sorted      - returns new ChannelStats object with sorted channels
-
+    
     properties
         description     % description of data (e.g. filename)
         
@@ -34,7 +34,7 @@ classdef ChannelStats
         beta            % regression coefficients
         covb            % covariance of beta
         dfe          	% degrees of freedom
-        
+        tail ='two-sided'; % {two-sided,right,left}  tail for ttest
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
         basis           % basis set info used to create model
@@ -44,12 +44,12 @@ classdef ChannelStats
         conditions      % (dependent) list of stim conditions
         
         tstat           % (dependent) t-stats of beta
-         p               % (dependent) p-values of beta
-      
+        p               % (dependent) p-values of beta
+        
         q               % (dependent) q-values of beta (false discovery rate)
     end
-   
-
+    
+    
     
     
     
@@ -57,9 +57,21 @@ classdef ChannelStats
         
         
         
-        function hrf=HRF(obj,type)
-        % function extracts the HRF from the stats variable
         
+        function obj = set.tail(obj,tail)
+            validtypes={'left','right','one-sided','two-sided'};
+            if(~ismember(lower(tail),validtypes))
+                disp('type must be one of : ')
+                disp(strvcat(validtypes));
+                return;
+            else
+                obj.tail=lower(tail);
+            end
+        end
+        
+        function hrf=HRF(obj,type)
+            % function extracts the HRF from the stats variable
+            
             if(nargin<2)
                 type='hrf';
             end
@@ -76,7 +88,7 @@ classdef ChannelStats
         % unique conditions
         function c = get.conditions( obj )
             if ~isempty(obj.variables)
-                c = unique(obj.variables.cond); 
+                c = unique(obj.variables.cond);
             else
                 c = [];
             end
@@ -89,9 +101,16 @@ classdef ChannelStats
         
         function p = get.p( obj )
             t = obj.tstat;
-            p = 2*tcdf(-abs(t), obj.dfe);
+            
+            if(strcmp(lower(obj.tail),'right') | strcmp(lower(obj.tail),'one-sided'))
+                p = tcdf(-t, obj.dfe);
+            elseif(strcmp(lower(obj.tail),'left'))
+                p = tcdf(t, obj.dfe);
+            else % two-side or unknown
+                p = 2*tcdf(-abs(t), obj.dfe);
+            end
         end
-   
+        
         % q values
         function q = get.q( obj )
             q = reshape( nirs.math.fdr( obj.p(:) )', size(obj.p) );
@@ -100,11 +119,11 @@ classdef ChannelStats
         % critical value
         function out = getCritT( obj, s )
             %% getCritT - returns critical t-stat
-            % 
+            %
             % Args:
             %     s - string specifying statistical significance
             %         (e.g. 'p < 0.05' or 'q < 0.1')
-        
+            
             s = strtrim( strsplit( s, '<' ) );
             
             if s{1} == 'p'
@@ -150,7 +169,7 @@ classdef ChannelStats
                 if( isa(obj.probe,'nirs.core.ProbeROI'))
                     colsToSortBy = {'ROI', 'type', 'cond'};
                 else
-                colsToSortBy = {'source', 'detector', 'type', 'cond'};
+                    colsToSortBy = {'source', 'detector', 'type', 'cond'};
                 end
             end
             
@@ -161,7 +180,7 @@ classdef ChannelStats
                 return
             end
             [out.variables, idx] = nirs.util.sortrows(out.variables, colsToSortBy);
-            out.probe.link = nirs.util.sortrows(out.probe.link,{colsToSortBy{ismember(colsToSortBy,out.probe.link.Properties.VariableNames)}}); %out.probe.link(idx,:); 
+            out.probe.link = nirs.util.sortrows(out.probe.link,{colsToSortBy{ismember(colsToSortBy,out.probe.link.Properties.VariableNames)}}); %out.probe.link(idx,:);
             out.beta = obj.beta(idx);
             out.covb = obj.covb(idx, idx);
         end
@@ -174,13 +193,13 @@ classdef ChannelStats
         
         printAll( obj, vtype, vrange, thresh, folder, ext );
         
-       
+        
         
     end
     
-        
+    
     methods (Access = protected)
         newNames = transformNames( obj, T );
     end
-  
+    
 end

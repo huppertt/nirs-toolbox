@@ -47,6 +47,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 
                clear type;
+              lstrm=[];
                 for j = 1:max(idx)
                     lst = idx == j;
                     
@@ -69,11 +70,20 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)
-                    d(:,lst) = (d(:,lst)*iEL') * 1e6;
+                    lst2=find(lst);
+                    if(length(lst2)>2)
+                        lstrm=[lstrm lst2(3:end)];
+                        lst2=lst2(1:2);
+                    end
+                    d(:,lst2) = (d(:,lst)*iEL') * 1e6;
                     
                     % new channel type
-                    type(lst,1) = {'hbo', 'hbr'};
+                    type(lst2,1) = {'hbo', 'hbr'};
                 end
+                type(lstrm(find(lstrm<=length(type))))=[];
+                d(:,lstrm)=[];
+                p.link(lstrm,:)=[];
+                p.link.type = type;
                 
                 p.link.type = type;
                 
