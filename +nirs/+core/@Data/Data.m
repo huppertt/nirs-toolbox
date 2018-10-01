@@ -183,7 +183,7 @@ classdef Data
                 pmax = dmax + 0.2*dsize;
 
                 % adjust amplitude so stims are visible
-                s = 0.15*dsize*s + dmin - 0.25*dsize;
+                s = dsize*s + dmin - 0.25*dsize;
                 
                 % plot
                 plot( t, s, 'LineWidth', 3 );
