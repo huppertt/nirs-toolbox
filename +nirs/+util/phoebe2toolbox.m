@@ -3,6 +3,16 @@ function probe1020=phoebe2toolbox(filename)
 filename=strtok(filename,'.');
 load([filename '.SD'],'-MAT','SD');
 
+if(all(SD.SrcPos(:,3)==0))
+    % 2D probe, see if we can register it via phoebe
+    handles=[];
+    load_atlas;
+    [ handles ] = load_dig_pts( handles, [filename '.txt']); 
+    SD.SrcPos=handles.src_pts;
+    SD.DetPos=handles.det_pts;
+end
+
+
 
 probe=nirs.util.sd2probe(SD);
 
@@ -20,6 +30,7 @@ probe1020.link=probe.link;
 probe1020=probe1020.register_mesh2probe(mesh,false);
 
 XYZ=[probe.optodes.X probe.optodes.Y probe.optodes.Z];
+
 probe1020.optodes=probe.optodes;
 
 [probe1020.optodes.X,probe1020.optodes.Y]=probe1020.convert2d(XYZ);
