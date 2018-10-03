@@ -91,7 +91,7 @@ function [data, truth] = simData_registered( noise, stim, beta, channels, basis 
      
     % Likewise, this will register a mesh onto your probe.  Note- the mesh is
     % the thing that is warped to mathc the head size (not the probe).
-    probe1020=probe1020.regsister_mesh2probe(fwdBEM.mesh);
+    probe1020=probe1020.register_mesh2probe(fwdBEM.mesh);
     
     probe1020.defaultdrawfcn='10-20';
     data.probe=probe1020;

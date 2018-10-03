@@ -6,9 +6,9 @@ function sd = probe2sd( probe )
     
     [~,~,iWL] = unique( probe.link.type );
     
-    sd.NumSrc = size( probe.srcPos, 1);
-    sd.NumDet = size( probe.detPos, 1);
-    sd.Description = ['This is a ' num2str(sd.NumSrc) 'x' num2str(sd.NumDet) ' probe.'];
+    sd.nSrcs = size( probe.srcPos, 1);
+    sd.nDets = size( probe.detPos, 1);
+    sd.Description = ['This is a ' num2str(sd.nSrcs) 'x' num2str(sd.nDets) ' probe.'];
     
     sd.MeasList = ones( length(iWL), 5 );
     sd.MeasList(:,1) = probe.link.source;
