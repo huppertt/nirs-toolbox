@@ -74,10 +74,12 @@ end
 scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
 
 if(useshortdistances && info.ShortDetectors>0)
-    ShortDetPos=SrcPos;
-    ShortSrcPos=SrcPos;
-    s=[1:info.ShortDetectors]';
-    d=(info.Detectors-info.ShortDetectors)+[1:info.ShortDetectors]';
+    
+     d=(info.Detectors-info.ShortDetectors)+[1:info.ShortDetectors]';
+    s=dsearchn(probeInfo.probes.coords_s2,probeInfo.probes.coords_d2(d,:));
+   
+    ShortDetPos=SrcPos(s,:);
+    %ShortSrcPos=SrcPos(s,:);
     
     Shortlink=table(repmat(s,length(info.Wavelengths),1),...
         repmat(d,length(info.Wavelengths),1),...
@@ -168,20 +170,17 @@ if(isfield(probeInfo,'geom'))
     fid_1020 = table(Name,X,Y,Z,Type,Units,Draw);
     
     % Add FID locations to the 2D probe
-    lst=find(probeInfo.probes.index_s(:,2)~=0);
-    fidS=table(fid_1020.Name(probeInfo.probes.index_s(lst,2)),...
-        probe.srcPos(probeInfo.probes.index_s(lst,1),1),...
-        probe.srcPos(probeInfo.probes.index_s(lst,1),2),...
-        probe.srcPos(probeInfo.probes.index_s(lst,1),3),...
-        repmat({'FID-anchor'},length(lst),1),repmat({'mm'},length(lst),1),...
+    fidS=table(fid_1020.Name(probeInfo.probes.index_s(:,2)),...
+        probe.srcPos(probeInfo.probes.index_s(:,1),1),...
+        probe.srcPos(probeInfo.probes.index_s(:,1),2),...
+        probe.srcPos(probeInfo.probes.index_s(:,1),3),...
+        repmat({'FID-anchor'},length(probeInfo.probes.index_s),1),repmat({'mm'},length(probeInfo.probes.index_s),1),...
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
-    
-    lst=find(probeInfo.probes.index_d(:,2)~=0);
-    fidD=table(fid_1020.Name(probeInfo.probes.index_d(lst,1)),...
-        probe.detPos(probeInfo.probes.index_d(lst,1),1),...
-        probe.detPos(probeInfo.probes.index_d(lst,1),2),...
-        probe.detPos(probeInfo.probes.index_d(lst,1),3),...
-        repmat({'FID-anchor'},length(lst),1),repmat({'mm'},length(lst),1),...
+    fidD=table(fid_1020.Name(probeInfo.probes.index_d(:,1)),...
+        probe.detPos(probeInfo.probes.index_d(:,1),1),...
+        probe.detPos(probeInfo.probes.index_d(:,1),2),...
+        probe.detPos(probeInfo.probes.index_d(:,1),3),...
+        repmat({'FID-anchor'},length(probeInfo.probes.index_d),1),repmat({'mm'},length(probeInfo.probes.index_d),1),...
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
     
     % and concatinate it to the probe
@@ -236,19 +235,8 @@ else
 end
 
 if(registerprobe)
-    if(~isempty(find(ismember(probe.optodes.Type,'FID-anchor'))))
-        probe1020=nirs.util.registerprobe1020(probe);
-    else
-        
-        XYZ=[probeInfo.probes.coords_s3; probeInfo.probes.coords_d3];
-        probe1020=nirs.core.Probe1020;
-        probe1020.optodes=probe.optodes;
-        probe1020.link=probe.link;
-        probe1020.optodes_registered=probe.optodes;
-        probe1020.optodes_registered.X=XYZ(:,1);
-        probe1020.optodes_registered.Y=XYZ(:,2);
-        probe1020.optodes_registered.Z=XYZ(:,3);
-    end
+    probe1020=nirs.util.registerprobe1020(probe);
+    
     if(isfield(probeInfo,'geom'))
         % old NIRx data format
         
@@ -277,7 +265,7 @@ if(registerprobe)
     prop{1} = nirs.media.tissues.skin(lambda);
     prop{2} = nirs.media.tissues.bone(lambda);
     prop{3} = nirs.media.tissues.water(lambda);
-    prop{4} = nirs.media.tissues.brain(lambda,0.7, 50);
+    prop{4} = nirs.media.tissues.brain(0.7, 50,lambda);
     
     fwdBEM=nirs.forward.NirfastBEM;
     fwdBEM.mesh=BEM;
@@ -290,17 +278,27 @@ if(registerprobe)
     fid_1020=m(1).fiducials;
     
     if(useshortdistances)
-        lst=[probeInfo.probes.index_s; probeInfo.probes.index_d(1:info.Detectors-info.ShortDetectors);...
-            probeInfo.probes.index_s];
+        
+        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF1'}))}='AFF1';
+        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF2'}))}='AFF2';
+        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF5'}))}='AFF5';
+        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF6'}))}='AFF6';
+        
+       
+        index_s= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s))';
+        index_d= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d))';
+        
+        lst=[index_s; index_d;...
+            index_s(1:info.ShortDetectors)];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst2]=ismember(labels,fid_1020.Name);
-        lst=[probeInfo.probes.index_s; probeInfo.probes.index_d];
+        lst=[index_s; index_d];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst3]=ismember(labels,fid_1020.Name);
         lst2=[lst2 lst3];
         
     else
-        lst=[probeInfo.probes.index_s(:); probeInfo.probes.index_d(:)];
+        lst=[probeInfo.probes.index_s; probeInfo.probes.index_d];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst2]=ismember(labels,fid_1020.Name);
         
@@ -332,7 +330,6 @@ if(registerprobe)
         probe1020.optodes_registered.Y=XYZ(:,2);
         probe1020.optodes_registered.Z=XYZ(:,3);
     end
-
     raw.probe=probe1020;
 else
     raw.probe=probe;
