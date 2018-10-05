@@ -52,6 +52,22 @@ end
 %     0     0     0     1
 %     0     0     0     1
 %     ];
+
+% I keep having issues with the NIRx measurements having a few weird
+% channel combinations that we think are not in the aquistion setup.  This
+% is a bit of a hack to fix this, since NIRx does save all data
+
+for sI=1:size(info.S_D_Mask,1)
+    for dI=1:size(info.S_D_Mask,2)
+        dist(sI,dI)=norm(probeInfo.probes.coords_s3(sI,:)-probeInfo.probes.coords_d3(dI,:));
+    end
+end
+d=median(dist(info.S_D_Mask==1))+std(dist(info.S_D_Mask==1));
+if(any(any((dist<d)~=(info.S_D_Mask==1))))
+    warning('Missing Src-Det pairs missing from NIRx file:  adding additional measurements');
+    info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
+end
+
 [s,d]=find(info.S_D_Mask);
 
 
@@ -72,6 +88,7 @@ end
 
 % Not sure why the units on the 2D probe in the NIRx file are so off
 scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
+probe.fixeddistances=dist(sub2ind(size(info.S_D_Mask),s,d))*10;
 
 if(useshortdistances && info.ShortDetectors>0)
     
