@@ -4,10 +4,12 @@ classdef TrimBaseline < nirs.modules.AbstractModule
 % Options:
 %     preBaseline  - maximum baseline (seconds) at the beginning of scan
 %     postBaseline - maximum baseline (seconds) after final task period ends
+%     resetTime    - flag indicating whether the time vector should be reset so t(1)=0 (default: false)
     
     properties
         preBaseline  = 30;  % maximum baseline (seconds) at the beginning of scan
         postBaseline = 30;  % maximum baseline (seconds) after final task period ends
+        resetTime = false;  % flag indicating whether the time vector should be reset so t(1)=0 (default: false)
     end
     
     methods
@@ -60,6 +62,22 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                 lst = t >= t_min & t <= t_max;
                 t = t(lst);
                 d = d(lst,:);
+                
+                % Reset time so t(1)=0
+                if obj.resetTime
+                    
+                    tmin = min(t);
+                    t = t - tmin;
+                    conds = data(i).stimulus.keys;
+                    for j = 1:length(conds)
+                        stims = data(i).stimulus(conds{j});
+                        if(isa(stims,'nirs.design.StimulusEvents'))
+                            stims.onset = stims.onset - tmin;
+                            data(i).stimulus(conds{j}) = stims;
+                        end
+                    end
+                    
+                end
                 
                 data(i).data = d;
                 data(i).time = t;
