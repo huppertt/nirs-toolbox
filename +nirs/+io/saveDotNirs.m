@@ -13,7 +13,7 @@ if nargin<2, out_dir = ''; end
 if nargin<3, filename_pattern = ''; end
 
 if isempty(out_dir), out_dir = pwd; end
-out_dir = GetFullPath(out_dir);
+%out_dir = GetFullPath(out_dir);
 if ~exist(out_dir,'dir'), mkdir(out_dir); end
 
 if isempty(filename_pattern)

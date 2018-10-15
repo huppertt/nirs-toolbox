@@ -282,16 +282,23 @@ elseif(isa(data,'nirs.core.sFCStats'))
                     c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
                     %c=c/sum(c(:));
                     CC=diag(C(:));
-                    
+                    CC(isnan(CC))=1E6;
                     c2=c-diag(diag(c));  %remove the self terms
-                    
-                    broi    = c2(:)'*b(:);
-                    se      = sqrt(c(:)'*CC*c(:));
-                    t       = broi / se;
-                    df      = data.dfe;
-                    p       = 2*tcdf(-abs(t),df);
-                    
+                    c2= c2.*(triu(ones(size(c2))));
+                    b(isnan(b))=0;
+                    broi    = c2(:)'*b(:)/sum(c2(:));
                     rroi=tanh(broi);
+                    df  =data.dfe;
+                    
+                    if(~isempty(covZ))
+                        se = sqrt(c2(:)'*CC*c2(:));
+                    else
+                        se = sqrt(1 - rroi.^2./(df-2));
+                    end
+                        
+                    t       = broi ./ se;
+                    
+                    p       = 2*tcdf(-abs(t),df);
                     
                     tmp = cell2table({names{j},names{j2} uconds{i}, rroi,broi, se, df, t, p});
                     tmp.Properties.VariableNames = varnames;
@@ -470,6 +477,8 @@ else
     
     
 end
+
+tbl(isnan(tbl.power),:)=[];
 
 end
 

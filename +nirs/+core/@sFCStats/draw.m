@@ -376,14 +376,11 @@ for cIdx=1:length(obj.conditions)
                         figure(f(cIdx));
                         subplot(length(utypesOrigin),1,cnt);
                         
-                        h2=[];
-                        for idx=1:length(vals)
-                            if(m(idx))
-                                h2(end+1)=line(X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:));
-                            end
-                        end
                         
-                        %Draw the probe
+                        
+
+                        
+%                        Draw the probe
                         link=obj.probe.link;
                         s=obj.probe.srcPos;
                         d=obj.probe.detPos;
@@ -396,6 +393,14 @@ for cIdx=1:length(obj.conditions)
                             
                             h3 = line(x, y, 'Color', [.7 .7 .7]);
                         end
+                        
+                        h2=[];
+                        for idx=1:length(vals)
+                            if(m(idx))
+                                h2(end+1)=line(X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:));
+                            end
+                        end
+                        
                         for i = 1:size(s,1)
                             x = s(i,1);
                             y = s(i,2);
