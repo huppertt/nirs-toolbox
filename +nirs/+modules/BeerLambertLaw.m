@@ -47,7 +47,75 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 
                clear type;
-              lstrm=[];
+%               lstrm=[];
+%                 for j = 1:max(idx)
+%                     lst = idx == j;
+%                     
+%                     assert( length(lst) > 1 )
+%                     
+%                     lambda = p.link.type(lst);
+%                     ext = nirs.media.getspectra( lambda );
+%                     
+%                     clist = [1 2]; % hbo and hbr; need to fix this
+%                     
+%                     % extinction coefficients
+%                     E = ext(:,clist);
+%                     
+%                     % distances
+%                     L = p.distances(lst);
+%                     L=max(L,1);  % avoid issues with the short (0) seperation values
+%                     
+%                     % mbll model
+%                     EL = bsxfun( @times, E, L*obj.PPF );
+%                     iEL = pinv(EL);
+%                     
+%                     % calculates chromophore concentration (uM)
+%                     lst2=find(lst);
+%                     if(length(lst2)>2)
+%                         lstrm=[lstrm lst2(3:end)];
+%                         lst2=lst2(1:2);
+%                     end
+%                     d(:,lst2) = (d(:,lst)*iEL') * 1e6;
+%                     
+%                     % new channel type
+%                     type(lst2,1) = {'hbo', 'hbr'};
+%                 end
+%                 type(lstrm(find(lstrm<=length(type))))=[];
+%                 d(:,lstrm)=[];
+%                 p.link(lstrm,:)=[];
+%                 p.link.type = type;
+%                 
+%                 p.link.type = type;
+%                 
+%                 if(~ismember('source',p.link.Properties.VariableNames) & ...
+%                         ismember('ROI',p.link.Properties.VariableNames))
+%                     [p.link,idx] = nirs.util.sortrows(p.link,{'ROI','type'});
+%                 else
+%                     [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
+%                 end
+%                 
+%                 data(i).data  = d(:,idx);
+%                 data(i).probe = p;
+
+
+               clear type;
+               
+               %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+               % Revisions by bdz 25 Sept 2018
+               
+               % Allocate a new data matrix because there are only two
+               % chromophore concentrations, regardless of # of wavelengths
+               
+               % determine number of wavelengths measured
+               nWav = unique(p.link.type);
+               
+               % d_chr will store delta chromophore data (d conc)
+               % initial size of d_chr will be t x 2 (hbo,hbr) x chan
+               d_chr = nan(size(d,1), 2, size(d,2)/length(nWav));
+               
+               % initial size of type_chr will likewise be 2 x chan
+               type_chr = cell(2,size(d,2)/length(nWav));
+               
                 for j = 1:max(idx)
                     lst = idx == j;
                     
@@ -70,22 +138,18 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)
-                    lst2=find(lst);
-                    if(length(lst2)>2)
-                        lstrm=[lstrm lst2(3:end)];
-                        lst2=lst2(1:2);
-                    end
-                    d(:,lst2) = (d(:,lst)*iEL') * 1e6;
+                    d_chr(:,:,j) = (d(:,lst)*iEL') * 1e6;
                     
                     % new channel type
-                    type(lst2,1) = {'hbo', 'hbr'};
+                    type_chr(:,j) = {'hbo','hbr'};
+                    
                 end
-                type(lstrm(find(lstrm<=length(type))))=[];
-                d(:,lstrm)=[];
-                p.link(lstrm,:)=[];
-                p.link.type = type;
                 
-                p.link.type = type;
+                % p.link needs to be redefined because there are only 2
+                % observations per optode-pair, not n-many (for n Lambdas)
+                keep_ind = sort([1:length(nWav):size(p.link,1),2:length(nWav):size(p.link,1)]);
+                p.link = p.link(keep_ind,:);
+                p.link.type = reshape(type_chr,size(type_chr,1)*size(type_chr,2),1);
                 
                 if(~ismember('source',p.link.Properties.VariableNames) & ...
                         ismember('ROI',p.link.Properties.VariableNames))
@@ -94,8 +158,13 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
                 end
                 
-                data(i).data  = d(:,idx);
+                % concatenate the channels (3rd dim) into the columns (2nd dim)
+                % data is now: t x (species x channel)
+                data(i).data  = reshape(d_chr,size(d_chr,1),size(d_chr,2)*size(d_chr,3));
                 data(i).probe = p;
+                
+                % End revisions
+                
                 elseif(isa(data,'nirs.core.ChannelStats'))
                     
                     

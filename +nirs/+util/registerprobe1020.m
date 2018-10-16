@@ -44,7 +44,7 @@ if(seperateflag)
     while(length(unacounted)>0)
         lst=find(detxdet(unacounted(1),:));
         cluster{i}=lst;
-        unacounted(ismember(lst,unacounted))=[];
+        unacounted(ismember(unacounted,lst))=[];
         i=i+1;
     end
     srcPos=probe.srcPos;
