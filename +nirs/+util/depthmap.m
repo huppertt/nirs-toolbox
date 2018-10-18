@@ -85,13 +85,14 @@ for i=1:length(aal.ROI)
 end
 
 lstNodes=[];
-
+useMNI=false;
 % Add any MNI coordinates
 for i=1:length(label)
     pt=sscanf(label{i},'[%d %d %d]')';
     if(~isempty(pt))
         lstNodes(end+1)=dsearchn(aal.BORDER_XYZ',pt);
     end
+    useMNI=true;
 end
 
 if(isempty(lst) & isempty(lstNodes))
@@ -100,6 +101,13 @@ if(isempty(lst) & isempty(lstNodes))
     disp(' >> nirs.util.listAtlasRegions')
     depth=[];
     return
+end
+
+if(useMNI)
+    for i=1:length(lstNodes)
+        [~,depth{length(aal.ROI)+i}]=dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
+        
+    end
 end
 
 for i=1:length(aal.ROI)
@@ -115,6 +123,7 @@ for i=1:length(aal.ROI)
         depth{i}=[];
     end
 end
+
 
 
 
