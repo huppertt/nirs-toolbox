@@ -6,6 +6,10 @@ function data = simARNoise( probe, t, P, sigma, N_files )
     if (nargin < 2 || isempty(t)), t = (0:1/10:300)'; end
     if (nargin < 1 || isempty(probe)), probe = defaultProbe(); end
     
+    if(strcmp(class(probe),'double'))
+        probe = defaultProbe(probe);
+    end
+    
     if (N_files>1)
         data(1:N_files,1) = nirs.core.Data;
         for i = 1:N_files
@@ -42,8 +46,11 @@ function a = randAR( P )
     a = a / sum(a) * 0.99;
 end
 
-function probe = defaultProbe()
+function probe = defaultProbe(lambda)
 
+if(nargin==0)
+    lambda=[690 830];
+end
     
     
     srcPos(:,1) = (-80:20:80)';
@@ -55,38 +62,23 @@ function probe = defaultProbe()
     
     probe = nirs.core.Probe(srcPos,detPos);
     
-    link = [1	1	690
-        2	1	690
-        2	2	690
-        3	2	690
-        3	3	690
-        4	3	690
-        4	4	690
-        5	4	690
-        5	5	690
-        6	5	690
-        6	6	690
-        7	6	690
-        7	7	690
-        8	7	690
-        8	8	690
-        9	8	690
-        1	1	830
-        2	1	830
-        2	2	830
-        3	2	830
-        3	3	830
-        4	3	830
-        4	4	830
-        5	4	830
-        5	5	830
-        6	5	830
-        6	6	830
-        7	6	830
-        7	7	830
-        8	7	830
-        8	8	830
-        9	8	830];
+    link = [1	1	
+        2	1	
+        2	2	
+        3	2	
+        3	3	
+        4	3	
+        4	4	
+        5	4	
+        5	5	
+        6	5	
+        6	6	
+        7	6	
+        7	7	
+        8	7	
+        8	8	
+        9	8	];
+    link=[repmat(link,length(lambda),1) reshape(repmat(lambda(:)',size(link,1),1),1,[])'];
     
     link = sortrows(link);
     

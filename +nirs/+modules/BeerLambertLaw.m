@@ -133,12 +133,30 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     L = p.distances(lst);
                     L=max(L,1);  % avoid issues with the short (0) seperation values
                     
+                    if(length(obj.PPF)==1)
+                        PPF=repmat(obj.PPF,length(lambda),1);
+                    else
+                        PPF=obj.PPF(:);
+                    end
+                    
+                    if(length(lambda)>2)
+                        r=d(:,lst)';
+                        s = mad(r, 0) / 0.6745;
+                        r = r/s/4.685;
+                        w = diag((1 - r.^2) .* (r < 1 & r > -1));
+                        
+                        
+                    else
+                        w=diag([1 1]);
+                    end
+                    
                     % mbll model
-                    EL = bsxfun( @times, E, L*obj.PPF );
+                    EL = bsxfun( @times, E, w*L.*PPF );
+                    
                     iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)
-                    d_chr(:,:,j) = (d(:,lst)*iEL') * 1e6;
+                    d_chr(:,:,j) = (d(:,lst)*w*iEL') * 1e6;
                     
                     % new channel type
                     type_chr(:,j) = {'hbo','hbr'};
