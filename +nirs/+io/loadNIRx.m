@@ -299,15 +299,24 @@ if(registerprobe)
     
     if(useshortdistances)
         
-        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF1'}))}='AFF1';
-        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF2'}))}='AFF2';
-        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF5'}))}='AFF5';
-        probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF6'}))}='AFF6';
+        try
+            probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF1'}))}='AFF1';
+            probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF2'}))}='AFF2';
+            probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF5'}))}='AFF5';
+            probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF6'}))}='AFF6';
+        end
         
-       
+       if(~isfield(probeInfo.probes,'index_s'))
         index_s= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s))';
         index_d= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d))';
-        
+       else
+           index_s=probeInfo.probes.index_s;
+           index_d=probeInfo.probes.index_d;
+           if(length(index_d)~=info.Detectors)
+               index_d=[index_d(1:end-1); index_s];
+           end
+       end
+       
         lst=[index_s; index_d;...
             index_s(1:info.ShortDetectors)];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
@@ -321,8 +330,9 @@ if(registerprobe)
         lst=[probeInfo.probes.index_s; probeInfo.probes.index_d];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst2]=ismember(labels,fid_1020.Name);
-        
-        lst2=[lst2 lst2];
+        if(length(lst)*2==info.Detectors+info.Sources)
+            lst2=[lst2 lst2];
+        end
     end
     
     if(~probeInfo.newversion)
@@ -346,9 +356,9 @@ if(registerprobe)
         %     XYZ=XYZ*R;
         
         probe1020.optodes_registered=probe1020.optodes;
-        probe1020.optodes_registered.X=XYZ(:,1);
-        probe1020.optodes_registered.Y=XYZ(:,2);
-        probe1020.optodes_registered.Z=XYZ(:,3);
+        probe1020.optodes_registered.X(1:length(lst2))=XYZ(:,1);
+        probe1020.optodes_registered.Y(1:length(lst2))=XYZ(:,2);
+        probe1020.optodes_registered.Z(1:length(lst2))=XYZ(:,3);
     end
     raw.probe=probe1020;
 else
