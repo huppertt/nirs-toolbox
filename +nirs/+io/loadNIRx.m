@@ -92,9 +92,12 @@ probe.fixeddistances=dist(sub2ind(size(info.S_D_Mask),s,d))*10;
 
 if(useshortdistances && info.ShortDetectors>0)
     
-     d=(info.Detectors-info.ShortDetectors)+[1:info.ShortDetectors]';
-    s=dsearchn(probeInfo.probes.coords_s2,probeInfo.probes.coords_d2(d,:));
-   
+    d=(info.Detectors-info.ShortDetectors)+[1:info.ShortDetectors]';
+    if(size(probeInfo.probes.coords_d2,1)==info.Detectors)
+        s=dsearchn(probeInfo.probes.coords_s2,probeInfo.probes.coords_d2(d,:));
+    else
+        s=[1:info.ShortDetectors]';
+    end
     ShortDetPos=SrcPos(s,:);
     %ShortSrcPos=SrcPos(s,:);
     
