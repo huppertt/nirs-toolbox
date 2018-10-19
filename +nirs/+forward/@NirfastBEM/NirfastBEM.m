@@ -34,7 +34,7 @@ classdef NirfastBEM
                 return
             end
             if(all(probe.optodes.Z==0))
-                disp('warning: changing probe to 3D using "swap_reg" function');
+               % disp('warning: changing probe to 3D using "swap_reg" function');
                 probe=probe.swap_reg;
             end
             obj.probe=probe;
@@ -101,6 +101,13 @@ classdef NirfastBEM
             close(f);
             
             BEM(1)=nirs.core.Mesh();
+            
+            if(~isfield(atlas.headsurf,'T_2ras'))
+                % new version
+                c=atlas.headsurf.center;
+                atlas.headsurf.T_2ras=[1 0 0 c(1); 0 0 -1 c(2); 0 1 0 c(3); 0 0 0 1];
+            end
+            
             T = atlas.headsurf.T_2ras(1:3,1:3);
             BEM(1).nodes=atlas.headsurf.mesh.vertices;
             BEM(1).nodes=(BEM(1).nodes-ones(size(BEM(1).nodes,1),1)*atlas.headsurf.T_2ras(1:3,4)')*T;

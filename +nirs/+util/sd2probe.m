@@ -35,6 +35,13 @@ if(~isfield(SD,'SpatialUnit'))
     SD.SpatialUnit='mm';
 end
 
+if(isfield(SD,'optpos_reg') && ~isempty(SD.optpos_reg))
+    SD.SrcPos=SD.optpos(1:size(SD.SrcPos,1),:);
+    SD.DetPos=SD.optpos(1+size(SD.SrcPos,1):end,:);
+    SD.SrcPos(:,3)=0;
+    SD.DetPos(:,3)=0;
+end
+    
 
 iSrc    = SD.MeasList(:,1);
 iDet    = SD.MeasList(:,2);
@@ -102,6 +109,37 @@ if(isfield(SD,'AnchorList') && ~isempty(SD.AnchorList))
             'VariableNames',probe.optodes.Properties.VariableNames);
         
         probe.optodes=[probe.optodes; tbl];
+    end
+    
+    if(isfield(SD,'optpos_reg') && ~isempty(SD.optpos_reg))
+            probe1020=nirs.core.Probe1020;
+            probe1020.link=probe.link;
+            probe1020.optodes=probe.optodes;
+            
+            T=eye(3);
+            if(strcmp(SD.orientation(1),'L'))
+                T(1,1)=1;
+            end
+            if(strcmp(SD.orientation(2),'I'))
+                T(2,2)=-1;
+            end
+            if(strcmp(SD.orientation(3),'P'))
+                T(3,3)=-1;
+            end
+            SP=SD.optpos_reg(1:size(SD.SrcPos,1),:);
+            DP=SD.optpos_reg(size(SD.SrcPos,1)+1:end,:);
+            SP=SP-ones(size(SP,1),1)*SD.center;
+            DP=DP-ones(size(DP,1),1)*SD.center;
+            SP=SP*T;
+            DP=DP*T;
+            
+            p2=nirs.core.Probe( SP(:,[1 3 2]), DP(:,[1 3 2]), link );
+            
+            
+            probe1020.optodes_registered=p2.optodes;
+            probe=probe1020;
+            
+    
     end
     
     

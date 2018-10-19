@@ -19,7 +19,7 @@ probe1020.link=MESH.probe.link;
 MESH.mesh(1).transparency=.1;
 MESH.mesh(2).transparency=1;
 
-probe1020=probe1020.regsister_mesh2probe(MESH.mesh);
+probe1020=probe1020.register_mesh2probe(MESH.mesh,false);
 
 % Use the corrdinates in the atlasiewer file instead of our re-registration
 fidtbl =probe1020.getmesh.fiducials;
