@@ -49,10 +49,10 @@ if (isnumeric(label))
     rois = cell(1, n_rois);
     i_rois = [];
     for i = 1:n_rois
-        pt_diff = aal.BORDER_XYZ' - label(i, 1:3);
+        pt_diff = aal.BORDER_XYZ' - repmat(label(i, 1:3), size(aal.BORDER_XYZ, 2), 1);
         pt_dist = sqrt(pt_diff(:,1).^2 + pt_diff(:,2).^2 + pt_diff(:,3).^2);
         rois(i) = {find(pt_dist <= label(i, 4))};
-        i_rois = [i_rois, repelem(i, length(rois{i}))];
+        i_rois = [i_rois, repmat(i, 1, length(rois{i}))];
     end
 end
 
