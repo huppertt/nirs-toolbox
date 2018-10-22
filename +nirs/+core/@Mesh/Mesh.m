@@ -183,7 +183,7 @@ classdef Mesh
                 
         
         
-        function h = draw( obj, values, vmax, thresh, cmap )
+        function h = draw( obj, values, vmax, thresh, cmap,axis_handle)
             %% draw - displays mesh
             % 
             % Args:
@@ -192,6 +192,7 @@ classdef Mesh
             %     thresh - (optional) only display values > thresh
             %     cmap   - (optional) colormap
             
+            if nargin < 6, axis_handle=gca; end;
             if nargin < 5, cmap     = []; end  
             if nargin < 4, thresh   = []; end
             if nargin < 3, vmax     = []; end
@@ -206,8 +207,8 @@ classdef Mesh
                         valuesi=[];
                     end
                     cnt=cnt+size(obj(i).nodes,1);
-                    h(i) = draw( obj(i), valuesi, vmax, thresh, cmap );
-                    hold on;
+                    h(i) = draw( obj(i), valuesi, vmax, thresh, cmap,axis_handle );
+                    hold(axis_handle,'on');
                 end
                 return
             end
@@ -218,22 +219,24 @@ classdef Mesh
             
           if ~isempty(obj.elems)
                h = nirs.util.plotmesh( obj.nodes, obj.elems, ...
-                	values, vmax, thresh, cmap );
+                	values, vmax, thresh, cmap,axis_handle );
             else
                 h = nirs.util.plotmesh( obj.nodes, obj.faces, ...
-                	values, vmax, thresh, cmap );
+                	values, vmax, thresh, cmap,axis_handle );
           end
             set(h,'FaceAlpha',obj.transparency);
             
             %Draw the fiducial points
             if(height(obj.fiducials)>0)
-                hold on;
+                hold(axis_handle,'on');
                 lst=find(obj.fiducials.Draw);
-                s=scatter3(obj.fiducials.X(lst),obj.fiducials.Y(lst),obj.fiducials.Z(lst),'k','filled');
-                hold off;
+                s=scatter3(axis_handle,obj.fiducials.X(lst),obj.fiducials.Y(lst),obj.fiducials.Z(lst),'k','filled');
+                hold(axis_handle,'off');
             end
-            set(gcf,'color','k');
-            set(gca,'color','k');
+            %set(gcf,'color','k');
+            set(axis_handle,'color','k');
+            
+            %rotate3d(axis_handle,'on');
         end
     end
     

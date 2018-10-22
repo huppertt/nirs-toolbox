@@ -61,6 +61,7 @@ function data = loadDotNirs( filenames )
                         stimname = ['stim_channel' num2str(idx)];
                     end
 
+                    if(islogical(d.s)); d.s=d.s*1; end;
                     d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
 
                     s = nirs.design.vector2event( d.t , d.s(:,idx) , stimname );

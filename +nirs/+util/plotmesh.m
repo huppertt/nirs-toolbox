@@ -1,13 +1,17 @@
-function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
+function h = plotmesh( nodes, faces, values, vmax, thresh, cmap,axis_handle)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
     
+if(nargin<7)
+    axis_handle=gca;
+end
     
     if nargin < 3 || isempty(values)
-        h = patch('vertices',nodes,'faces',faces, ...
+        h = patch(axis_handle,'vertices',nodes,'faces',faces, ...
             'facecolor',[0.9 0.9 0.9], ...
             'edgecolor','none'); 
-        camlight; lighting gouraud
+        camlight(axis_handle); 
+        lighting(axis_handle,'gouraud');
     else
     
         if nargin < 5 || isempty(thresh)
@@ -37,15 +41,17 @@ function h = plotmesh( nodes, faces, values, vmax, thresh, cmap )
         cmap(lst,:) = repmat( cmap(round((n-1)/2+1), :), [sum(lst) 1] );
 
 
-        h = patch('vertices',nodes,'faces',faces, ...
+        h = patch(axis_handle,'vertices',nodes,'faces',faces, ...
             'FaceVertexCdata',values, ...
             'facecolor','interp', ...
             'edgecolor','none'); 
-        camlight; lighting gouraud
-        colormap(cmap), colorbar
-        caxis([-vmax vmax])
-        daspect([1 1 1]);
-        axis off;
+        camlight(axis_handle); 
+        lighting(axis_handle,'gouraud');
+        colormap(cmap), colorbar('peer',axis_handle);
+        caxis(axis_handle,[-vmax vmax]);
+        daspect(axis_handle,[1 1 1]);
+        axis(axis_handle,'off');
+      
     end
 
 

@@ -118,18 +118,22 @@ classdef Data
             out.data = out.data(:,idx);
         end
         
-        function varargout=draw( obj, lstChannels,adderr )
+        function varargout=draw( obj, lstChannels,adderr,axis_handle )
             %% draw - Plots the probe geometry.
             % 
             % Args:
             %     lstChannels - list of channels to show
             
+            if(nargin<4 || isempty(axis_handle))
+                axis_handle=gca;
+            end
+            
             % get data
-            if nargin == 1
+            if (nargin == 1)
                 lstChannels = 1:size(obj(1).data,2);
                 
             end
-            if(nargin<3)
+            if(nargin<3 || isempty(adderr))
                 adderr=false;
             end
             
@@ -168,7 +172,7 @@ classdef Data
             
 
             % plots
-            gca; hold on;
+            hold(axis_handle,'on');
             
             % data min/max/size
             dmax = max( real(d(:)) );
@@ -179,17 +183,17 @@ classdef Data
             if ~isempty(s) 
                 s=s./(ones(size(s,1),1)*max(s(:)));
                 % min/max of axes
-                pmin = dmin - 0.3*dsize;
-                pmax = dmax + 0.2*dsize;
+                pmin = dmin - 0.2*dsize;
+                pmax = dmin - 0.05*dsize;
 
                 % adjust amplitude so stims are visible
-                s = dsize*s + dmin - 0.25*dsize;
+                s = (pmax-pmin)*s + pmin ;
                 
                 % plot
-                plot( t, s, 'LineWidth', 3 );
+                plot(axis_handle, t, s, 'LineWidth', 3 );
                 
                 % legend
-                l = legend(k{:});
+                l = legend(axis_handle,k{:});
                 set(l,'Interpreter', 'none');
                  dmax = max( dmax,max(s(:)));
                 dmin = min( dmin,min(s(:)));
@@ -204,21 +208,29 @@ classdef Data
             
             % plot data
             if(~isreal(d) & adderr)
-                h=errorbar( t, real(d),imag(d) );
+                h=errorbar(axis_handle, t, real(d),imag(d) );
             else
-                h=plot( t, real(d) );
+                h=plot(axis_handle, t, real(d) );
             end
-            xlabel( 'seconds' );
+            xlabel(axis_handle, 'seconds' );
             for i = 1:length(obj.stimulus.keys)
-                legend(obj.stimulus.keys)
+                legend(axis_handle,obj.stimulus.keys)
             end
             
+                
+            if(isempty(t) || min(t)==max(t))
             % axes limits
-            xlim( [min(t) max(t)] );
-            if pmin == pmax
-                ylim(pmin + [-1 1]);
+             xlim(axis_handle, [0 1] );
             else
-                ylim( [pmin pmax] );
+                xlim(axis_handle, [min(t) max(t)] );
+            end
+            if(isempty(pmin))
+                ylim(axis_handle,[-1 1]);
+            elseif (pmin == pmax)
+                
+                ylim(axis_handle,pmin + [-1 1]);
+            else
+                ylim(axis_handle, [pmin pmax] );
             end
             
             if(~showplot)

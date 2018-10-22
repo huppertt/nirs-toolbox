@@ -48,8 +48,8 @@ function varargout=draw( obj, colors, lineStyles, axis_handle )
 end
 
 function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
-    axes(axis_handle);
-    hold on;
+%    axes(axis_handle);
+    hold(axis_handle,'on');
     h = [];
     for iChan = 1:height(link)
         if iscell(link.source(iChan))
@@ -64,24 +64,24 @@ function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
             x = [s(iSrc(j),1) d(iDet(j),1)]';
             y = [s(iSrc(j),2) d(iDet(j),2)]';
 
-            h(iChan) = line(x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
+            h(iChan) = line(axis_handle,x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
         end
         
         set(h(iChan),'UserData',[iSrc iDet]);
     end
     
-    hold off;
+    hold(axis_handle,'off');
 end
 
 function labelOptodes( axis_handle, s, d )
-    axes(axis_handle);
-    hold on;
+ %   axes(axis_handle);
+    hold(axis_handle,'on');
      
     for i = 1:size(s,1)
         x = s(i,1);
         y = s(i,2);
         
-        h = text(x, y,['S' num2str(i)], 'FontSize', 14);
+        h = text(axis_handle,x, y,['S' num2str(i)], 'FontSize', 14);
         set(h, 'UserData', ['S' num2str(i)]);
     end
     
@@ -89,17 +89,17 @@ function labelOptodes( axis_handle, s, d )
         x = d(i,1);
         y = d(i,2);
         
-        h = text(x, y,['D' num2str(i)], 'FontSize', 14);
+        h = text(axis_handle,x, y,['D' num2str(i)], 'FontSize', 14);
         set(h, 'UserData', ['D' num2str(i)]);
     end
     
-    hold off;
+    hold(axis_handle,'off');
 end
 
 function rescaleAxes( axis_handle, s, d )
-    axes(axis_handle)
+   % axes(axis_handle)
 
-    axis equal
+    axis(axis_handle,'equal');
     
     p = [s; d];
     
@@ -120,7 +120,7 @@ function rescaleAxes( axis_handle, s, d )
     xl = 1.2*diff(xl)/2*[-1 1]+mean(xl);
     yl = 1.2*diff(yl)/2*[-1 1]+mean(yl);
     
-    axis([xl yl])
+    axis(axis_handle,[xl yl])
     
-    axis off
+    axis(axis_handle,'off')
 end

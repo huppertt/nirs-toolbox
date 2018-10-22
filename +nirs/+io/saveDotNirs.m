@@ -20,6 +20,7 @@ if isempty(filename_pattern)
     filename_pattern = '%index%.nirs';
 end
 
+
 %% Generate index string for filename pattern
 num_dec = floor(log10(length(data))) + 1;
 index = cell(length(data),1);
@@ -29,28 +30,32 @@ end
 demo = nirs.createDemographicsTable(data);
 demo.index = index;
 
-%% Detect demo variable names in filename
-vars = strrep(regexp(filename_pattern,'%\w*%','match'),'%','');
-consts = regexp(filename_pattern,'%\w*%','split');
-
-unmatched = setdiff(vars,demo.Properties.VariableNames);
-if ~isempty(unmatched)
-    error('Unknown variable: %s',unmatched);
-end
-
-%% Generate filenames
-filenames = cell(length(data),1);
-for i = 1:length(data)
-    filenames{i} = [out_dir filesep consts{1}];
-    for j = 1:length(vars)
-        filenames{i} = [filenames{i} demo.(vars{j}){i} consts{j+1}];
+if(isempty(strfind(filename_pattern,'%')) & length(data)==1)
+    filenames{1}=filename_pattern;
+else
+    %% Detect demo variable names in filename
+    vars = strrep(regexp(filename_pattern,'%\w*%','match'),'%','');
+    consts = regexp(filename_pattern,'%\w*%','split');
+    
+    unmatched = setdiff(vars,demo.Properties.VariableNames);
+    if ~isempty(unmatched)
+        error('Unknown variable: %s',unmatched);
+    end
+    
+    %% Generate filenames
+    filenames = cell(length(data),1);
+    for i = 1:length(data)
+        filenames{i} = [out_dir filesep consts{1}];
+        for j = 1:length(vars)
+            filenames{i} = [filenames{i} demo.(vars{j}){i} consts{j+1}];
+        end
     end
 end
 
 for i = 1:length(data)
     %% Skip overwrite existing files
     if exist(filenames{i},'file'), warning('File exists: %s. Skipping',filenames{i}); continue; end
-    if ~exist(fileparts(filenames{i}),'dir')
+    if (~exist(fileparts(filenames{i}),'dir') & ~isempty(fileparts(filenames{i})))
         mkdir(fileparts(filenames{i}));
     end
     

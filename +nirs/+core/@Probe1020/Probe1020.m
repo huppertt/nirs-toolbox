@@ -105,6 +105,16 @@ classdef Probe1020 < nirs.core.Probe
         end
         
               
+        function obj=SetFiducialsVisibility(obj,flag)
+           if(nargin<2)
+               flag=false;
+           end
+           obj.mesh(1).fiducials.Draw(:)=flag;
+        end
+        
+        
+        
+        
         function headsize=get_headsize(obj)
             headsize=Dictionary();
             headsize('lpa-cz-rpa')=obj.LR_arclength;
@@ -161,17 +171,29 @@ classdef Probe1020 < nirs.core.Probe
                 
                 l=draw3d(obj,varargin{:});
                 if(~isempty(strfind(obj.defaultdrawfcn,'mesh')))
+                    axis_handle=[];
+                    for i=1:length(varargin)
+                        if(isa(varargin{i},'matlab.ui.control.UIAxes') | isa(varargin{i},'matlab.graphics.axis.Axes'))
+                            axis_handle=varargin{i};
+                        end
+                    end
+                    if(isempty(axis_handle))
+                        axis_handle=gca;
+                    end
+                    
+                    
                     mesh=obj.getmesh;
-                    h=mesh.draw;
-                    axis tight;
-                    nirs.util.rotateview(get(h(1),'Parent'),v)
-                 end
+                    h=mesh.draw([],[],[],[],axis_handle);
+                    axis(axis_handle,'tight');
+                    nirs.util.rotateview(get(h(1),'Parent'),v);
+                end
                 
             elseif(~isempty(strfind(obj.defaultdrawfcn,'10-20')));
                 l=draw1020(obj,varargin{:});
             else
                 l=draw@nirs.core.Probe(obj,varargin{:});
             end
+           
             if(nargout>0)
                 varargout{1}=l;
             end
@@ -310,11 +332,11 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,2)=obj.optodes_registered.Y;
             Pos(:,3)=obj.optodes_registered.Z;
             
-            hold on;
+            hold(axis_handle,'on');
             lstS=find(ismember(obj.optodes_registered.Type,'Source'));
-            scatter3(Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r')
+            scatter3(axis_handle,Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r')
             lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
-            scatter3(Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b')
+            scatter3(axis_handle,Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b')
             
             h=[];
             for i=1:height(link)
@@ -328,12 +350,12 @@ classdef Probe1020 < nirs.core.Probe
                 for j=1:length(source)
                     s = source(j);
                     d = detector(j);
-                    h(i)=line(Pos([lstS(s) lstD(d)],1),Pos([lstS(s) lstD(d)],2),Pos([lstS(s) lstD(d)],3),'Color', colors(i, :), lineStyles{i, :});
+                    h(i)=line(axis_handle,Pos([lstS(s) lstD(d)],1),Pos([lstS(s) lstD(d)],2),Pos([lstS(s) lstD(d)],3),'Color', colors(i, :), lineStyles{i, :});
                     set(h(i),'UserData',[s d]);
                 end
             end
             
-            axis equal;
+            axis(axis_handle,'equal');
             
             if(nargout>0)
                 varargout{1}=h;
@@ -416,7 +438,7 @@ classdef Probe1020 < nirs.core.Probe
             cm(:,:,2)=mask.*cm(:,:,2);
             cm(:,:,3)=mask.*cm(:,:,3);
             
-            i=imagesc(x2(:),y2(:),cm);
+            i=imagesc(axis_handle,x2(:),y2(:),cm);
             h=draw1020(obj,[],[],axis_handle);
             set(h,'LineWidth',.1,'color',[.3 .3 .3]);
             set(i,'alphaData',~isnan(cm(:,:,1)));
@@ -468,11 +490,14 @@ classdef Probe1020 < nirs.core.Probe
                 axis_handle = axes();
             end
             
-            hold on;
+            hold(axis_handle,'on');
+            set(axis_handle,'Projection','orthographic');
+            view(axis_handle,[0 -90]);
+            
             [x,y]=obj.convert2d(obj.pts1020);
             dx=-x(find(ismember(obj.labels,'Cz')));
             dy=-y(find(ismember(obj.labels,'Cz')));
-            scatter(x+dx,y+dy,'filled','MarkerFaceColor',[.8 .8 .8]);
+            scatter(axis_handle,x+dx,y+dy,'filled','MarkerFaceColor',[.8 .8 .8]);
          
 %             tbl=nirs.util.list_1020pts('?'); 
 %             for i=1:height(tbl); t(i)=text(x(i)+dx,y(i)+dy,tbl.Name{i}); end;
@@ -489,9 +514,9 @@ classdef Probe1020 < nirs.core.Probe
                 [x,y]=obj.convert2d(Pos);
                 xop=x; yop=y;
                 lstS=find(ismember(obj.optodes_registered.Type,'Source'));
-                scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r')
+                scatter(axis_handle,x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r')
                 lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
-                scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b')
+                scatter(axis_handle,x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b')
                 
                 for i=1:height(link)
                     if iscell(link.source(i))
@@ -504,7 +529,7 @@ classdef Probe1020 < nirs.core.Probe
                     for j=1:length(source)
                         s = source(j);
                         d = detector(j);
-                        h(i)=line(x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'Color', colors(i, :), lineStyles{i, :});
+                        h(i)=line(axis_handle,x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'Color', colors(i, :), lineStyles{i, :});
                         set(h(i),'UserData',[s d]);
                     end
                 end
@@ -513,9 +538,9 @@ classdef Probe1020 < nirs.core.Probe
                 h=[];
             end
             
-            axis tight;
-            axis equal;
-            axis off;
+            axis(axis_handle,'tight');
+            axis(axis_handle,'equal');
+            axis(axis_handle,'off');
             [x,y]=obj.convert2d(obj.pts1020);
             headradius=obj.headcircum/(2*pi);
             
@@ -527,18 +552,18 @@ classdef Probe1020 < nirs.core.Probe
 %             
             % add a circle for the head
             theta = linspace(0,2*pi);
-            plot(headradius*cos(theta),headradius*sin(theta),'color',[.4 .4 .4],'linestyle','--');
+            plot(axis_handle,headradius*cos(theta),headradius*sin(theta),'color',[.4 .4 .4],'linestyle','--');
             
             headradius=norm([x(find(ismember(obj.labels,'nas'))) y(find(ismember(obj.labels,'nas')))]-...
                 [x(find(ismember(obj.labels,'Cz'))) y(find(ismember(obj.labels,'Cz')))]);
             
-            plot(headradius*cos(theta),headradius*sin(theta),'k');
-            plot([-headradius headradius],[0 0],'color',[.6 .6 .6],'linestyle','--')
-            plot([0 0],[-headradius headradius],'color',[.6 .6 .6],'linestyle','--')
+            plot(axis_handle,headradius*cos(theta),headradius*sin(theta),'k');
+            plot(axis_handle,[-headradius headradius],[0 0],'color',[.6 .6 .6],'linestyle','--')
+            plot(axis_handle,[0 0],[-headradius headradius],'color',[.6 .6 .6],'linestyle','--')
             
-            line([-10 0],[-headradius -headradius-10],'color','k');
-            line([10 0],[-headradius -headradius-10],'color','k');
-            scatter([-15 15],[-headradius -headradius],'filled','k','sizedata',120);
+            line(axis_handle,[-10 0],[-headradius -headradius-10],'color','k');
+            line(axis_handle,[10 0],[-headradius -headradius-10],'color','k');
+            scatter(axis_handle,[-15 15],[-headradius -headradius],'filled','k','sizedata',120);
             
             % Draw the central sulcus
            
@@ -550,7 +575,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             xx=[min(pts(:,1)):.1:max(pts(:,1))];
             p=polyfit(pts(:,1),pts(:,2),2);
-            plot(xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
+            plot(axis_handle,xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
             
             %lst2={'CpZ','C4','C6-FC6'}
             pts=[x(find(ismember(obj.labels,'CPz'))), x(find(ismember(obj.labels,'C4'))), ...
@@ -560,7 +585,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             xx=[min(pts(:,1)):.1:max(pts(:,1))];
             p=polyfit(pts(:,1),pts(:,2),2);
-            plot(xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
+            plot(axis_handle,xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
             
             % Add the insular sulcus
            % lst={'FT9','FT7','C5','Cp5'}
@@ -572,7 +597,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             yy=[min(pts(:,2)):.1:max(pts(:,2))];
             p=polyfit(pts(:,2),pts(:,1),3);
-            plot(polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
+            plot(axis_handle,polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
             
             % lst={'FT10','FT8','C6','Cp6'}
             pts=[x(find(ismember(obj.labels,'FT10'))), x(find(ismember(obj.labels,'FT8'))), ...
@@ -582,18 +607,18 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             yy=[min(pts(:,2)):.1:max(pts(:,2))];
             p=polyfit(pts(:,2),pts(:,1),3);
-            plot(polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
+            plot(axis_handle,polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
             
-            set(gca,'YDir','reverse');
-            set(gcf,'color','w');
+            %set(gcf,'color','w');
             
             if(obj.zoom)
                 dx=(max(xop)-min(xop))/10;
                 dy=(max(yop)-min(yop))/10;
-                set(gca,'Xlim',[min(xop)-dx max(xop)+dx]);
-                set(gca,'Ylim',[-headradius*1.13 max(yop)+dy]);
+                set(axis_handle,'Xlim',[min(xop)-dx max(xop)+dx]);
+                set(axis_handle,'Ylim',[-headradius*1.13 max(yop)+dy]);
             end
-            set(gca,'Xdir','reverse');
+            set(axis_handle,'Xdir','reverse');
+            %set(axis_handle,'YDir','reverse')
             if(nargout>0)
                 varargout{1}=h;
             end
