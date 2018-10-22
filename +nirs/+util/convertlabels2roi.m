@@ -1,10 +1,10 @@
-function R = convertlabels2roi(probe1020,regions,type)
+function R = convertlabels2roi(probe1020,label,type)
 % This function uses the registration of a probe to define the set of
 % region labels and the weight for each label
 
 
-if(nargin<2 || isempty(regions))
-    regions='?';
+if(nargin<2 || isempty(label))
+    label='?';
     type={'BA'};
 end
 
@@ -12,14 +12,24 @@ if(nargin<3 & ~exist('type','var'))
      type={'BA','gyrus'};
 end
 
+if (isnumeric(label))
+   type = {'customize'}; 
+end
 
     
-d=nirs.util.depthmap(regions,probe1020,type);
+d=nirs.util.depthmap(label,probe1020,type);
 regions=unique(d.region(ismember(d.Type,'Link')));
 
-for id=1:length(regions)
-    d=nirs.util.depthmap(regions{id},probe1020);
-    depth(:,id)=d.depth(ismember(d.Type,'Link'));
+if (~isnumeric(label))
+    for id=1:length(regions)
+        d=nirs.util.depthmap(regions{id},probe1020);
+        depth(:,id)=d.depth(ismember(d.Type,'Link'));
+    end
+else
+    for id=1:length(regions)
+        d=nirs.util.depthmap(label(id, :),probe1020);
+        depth(:,id)=d.depth(ismember(d.Type,'Link'));
+    end
 end
 
 prop=nirs.media.tissues.brain(808,.7,50);
@@ -35,8 +45,16 @@ R=[];
 
 MeasList=unique([probe1020.link.source probe1020.link.detector],'rows');
 
-for id=1:length(regions)
-    R=[R; table(MeasList(:,1),MeasList(:,2),W(:,id),...
-    repmat({regions{id}},size(MeasList,1),1),...
-    'VariableNames',{'source','detector','weight','Name'})];
+if (~isnumeric(label))
+    for id=1:length(regions)
+        R=[R; table(MeasList(:,1),MeasList(:,2),W(:,id),...
+        repmat({regions{id}},size(MeasList,1),1),...
+        'VariableNames',{'source','detector','weight','Name'})];
+    end
+else
+    for id=1:length(regions)
+        R=[R; table(MeasList(:,1),MeasList(:,2),W(:,id),...
+        repmat({regions(id)},size(MeasList,1),1),...
+        'VariableNames',{'source','detector','weight','Name'})];
+    end
 end
