@@ -71,8 +71,9 @@ classdef Data
         
         
         function obj = set.time( obj, time )
-           assert( isvector(time) )
+           assert( isvector(time) | isempty(time))
            obj.time = time(:);
+           
         end
         
         function out = get.Fs( obj )

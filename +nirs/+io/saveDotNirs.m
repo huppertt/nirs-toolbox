@@ -78,7 +78,7 @@ for i = 1:length(data)
     end
     
     %% Write
-    save(filenames{i},'-struct','odata');
+    save(filenames{i},'-struct','odata','-MAT');
     
 end
 
