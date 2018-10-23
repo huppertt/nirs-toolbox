@@ -7,6 +7,13 @@ end
 if nargin<2 || ~exist('spikes_per_minute','var') || isempty(spikes_per_minute), spikes_per_minute = 2; end
 if nargin<3 || ~exist('shifts_per_minute','var') || isempty(shifts_per_minute), shifts_per_minute = .5; end
 
+if length(data)>1
+    for i = 1:length(data)
+        data(i) = nirs.testing.simMotionArtifact( data(i) , spikes_per_minute , shifts_per_minute );
+    end
+    return
+end
+
 num_spikes = round( spikes_per_minute * (data.time(end)-data.time(1))/60 );
 num_shifts = round( shifts_per_minute * (data.time(end)-data.time(1))/60 );
 

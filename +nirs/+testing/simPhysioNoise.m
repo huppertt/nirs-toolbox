@@ -13,6 +13,13 @@ if nargin<3 || isempty(mayer_amp)
     mayer_amp = .25;
 end
 
+if length(data)>1
+    for i = 1:length(data)
+        data(i) = nirs.testing.simPhysioNoise( data(i) , cardiac_amp , resp_amp , mayer_amp );
+    end
+    return
+end
+
 time = data.time;
 [nsamp,nchan] = size(data.data);
 
