@@ -32,7 +32,7 @@ end
 
 % Mask out boundary values
 for ch = 1:size(yfilt,2)
-    yfilt(1:length(f{ch})) = nan;
+    yfilt(1:length(f{ch}),:) = nan;
 end
 
 if(robust_flag)
