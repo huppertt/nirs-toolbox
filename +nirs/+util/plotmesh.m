@@ -40,6 +40,7 @@ end
 
         cmap(lst,:) = repmat( cmap(round((n-1)/2+1), :), [sum(lst) 1] );
 
+        values(isnan(values))=0;
 
         h = patch(axis_handle,'vertices',nodes,'faces',faces, ...
             'FaceVertexCdata',values, ...
