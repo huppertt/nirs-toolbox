@@ -153,12 +153,20 @@ classdef ChannelStats
             
             variab=obj.variables;
             
-            if(isa(obj.probe,'nirs.core.ProbeROI'))
-                [~,i]=ismember(variab(:,1:2),obj.probe.link);
-                variab=[table({obj.probe.RegionNames{i}}','VariableNames',{'Region'}) variab];
-                variab.source=[];
-                variab.detector=[];
-            end
+%             if(isa(obj.probe,'nirs.core.ProbeROI'))
+%                 [~,i]=ismember(variab(:,1:2),obj.probe.link);
+%                 for j=1:height(obj.probe.link)
+%                     if(iscellstr(obj.probe.link.type{j}) | ischar(obj.probe.link.type{j}))
+%                     N{j}=[obj.probe.link.ROI{j} ':' obj.probe.link.type{j}];
+%                     else
+%                          N{j}=[obj.probe.link.ROI{j} ':' num2str(obj.probe.link.type(j))];
+%                     end
+%                 end
+%                         
+%                 variab=[table({N{i}}','VariableNames',{'Region'}) variab];
+%                 variab.source=[];
+%                 variab.detector=[];
+%             end
             out = [variab table(beta, se, tstat, dfe, p, q,power)];
         end
         

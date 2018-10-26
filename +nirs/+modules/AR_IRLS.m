@@ -65,6 +65,15 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 C = obj.getTrendMatrix( t );
                 
                 X(find(isnan(X)))=0;
+                lstNull=find(all(X==0,1));
+                if(~isempty(lstNull))
+                    for id=1:length(lstNull)
+                        disp(['Stim Condition : ' names{lstNull(id)} ' is all zeros- removing']);
+                    end
+                    X(:,lstNull)=[];
+                    lstA=1:length(names); lstA(lstNull)=[];
+                    names={names{lstA}};
+                end
                 
                 % check model
                 obj.checkRank( [X C] )
