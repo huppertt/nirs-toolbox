@@ -66,10 +66,20 @@ classdef AddDemographics < nirs.modules.AbstractModule
                 % add demo info from row
                 for j = 1:length(lst)
                     key = colNames{lst(j)};
-                    val = obj.demoTable.(colNames{lst(j)}) (idx);
+                    coldata = obj.demoTable.(colNames{lst(j)});
                     
-                    if iscell( val )
-                        val = val{1};
+                    if isempty(idx)
+                        if isnumeric(coldata)
+                            val = nan;
+                        else
+                            val = '';
+                        end
+                    else
+                        val = coldata(idx);
+
+                        if iscell( val )
+                            val = val{1};
+                        end
                     end
                     
                     data(i).demographics( key ) = val;
