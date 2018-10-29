@@ -6,9 +6,11 @@ classdef AddDemographics < nirs.modules.AbstractModule
 %     varToMatch    - the column of demoTable which also matches an
 %                     existing demographics variable (e.g. match on subject
 %                     name)
+%     allowMissing  - Flag to prevent erroring out on missing subjects (default: false)
     properties
         demoTable                  % a matlab table with the demographics info
         varToMatch = 'subject';    % the column of demoTable to match files with
+        allowMissing = false;
     end
     
     methods
@@ -51,7 +53,11 @@ classdef AddDemographics < nirs.modules.AbstractModule
                     data(i).demographics(obj.varToMatch) ) );
                 
                 if(isempty(idx))
-                    error(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
+                    if obj.allowMissing
+                        warning(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
+                    else
+                        error(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
+                    end
                 end
                 if(numel(idx)>1)
                     error(['Duplicate entry: ' data(i).demographics(obj.varToMatch)]);
