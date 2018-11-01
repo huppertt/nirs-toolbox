@@ -43,5 +43,15 @@ classdef StimulusEvents
             
         end
         
+        function draw(obj)
+            time=[0:.1:max(obj.onset+obj.dur)+30];
+            vec=obj.getStimVector(time);
+            figure;
+            plot(time,vec);
+            xlabel('time (sec)')
+            ylabel(obj.name);
+        end
+        
+        
     end
 end

@@ -14,6 +14,14 @@ classdef StimulusVector
             vec = interp1( obj.time, obj.vector, time );
 
         end
+        
+        function draw(obj)
+            figure;
+            plot(obj.time,obj.vector);
+            xlabel('Time (sec)')
+            ylabel(obj.name);
+        end
+        
     end
     
 end

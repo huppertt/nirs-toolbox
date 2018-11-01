@@ -56,6 +56,8 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                 end
                 
                 t_min=min(o)- obj.preBaseline;
+                n=min(length(o),length(du));
+                o(n+1:end)=[]; du(n+1:end)=[];
                 t_max=max(o+du)+ obj.postBaseline;
 
                 % extract data from the time inverval t_min to t_max

@@ -10,7 +10,7 @@ DD={};
 flds = tbl.Properties.VariableNames;
 for i=1:length(flds)
     DD{1,i}=flds{i};
-    DD{2,i}=[char(13) '-----------------'];
+  %  DD{2,i}=[char(13) '-----------------'];
     
     for j=1:height(tbl)
         if(iscell(tbl.(flds{i})))
@@ -28,7 +28,7 @@ for i=1:length(flds)
                 a='FALSE';
             end
         end
-        DD{2+j,i}=a;
+        DD{1+j,i}=a;
     end
 end
 
