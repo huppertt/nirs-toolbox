@@ -431,4 +431,11 @@ if(isfield(info,'Wavelengths'))
     end
 end
 
+try
+    % added to fix bug issue #57.  11/1/2018
+    if isfield(info, 'ShortDetIndex') && isfield(info,'ShortBundles') && info.ShortBundles > 0
+        info.ShortDetectors = length(str2num(info.ShortDetIndex));
+    end
+end
+
 end

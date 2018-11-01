@@ -1,10 +1,10 @@
 function st=time_parmod(stim,time,center,reset)
 % This function creates a time-paramtricaly modulated stimulus
 
-if(nargin<2)
+if(nargin<3)
     center=true;
 end
-if(nargin<3)
+if(nargin<4)
     reset=false;
 end
 
