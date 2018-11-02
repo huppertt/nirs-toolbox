@@ -37,12 +37,18 @@ classdef sFCStats
         Z           % Fisher-Z transform
         q
         t               %holds t-statistic value
-         
+        ishyperscan
+        ishypersymm
+        numunique
     end
-    
-    
+    properties (Hidden = true, Dependent = true)
+        uniqueinds
+    end
     methods
-      
+         function ishyperscan = get.ishyperscan(obj)
+             ishyperscan = any(strcmpi(obj.probe.link.Properties.VariableNames,'hyperscan'));
+         end
+        
          function Z = get.Z( obj )
              Z = abs(.5*log((1+obj.R)./(1-obj.R))).*sign(obj.R);
              Z(Z>6)=6;  % Fix the R=1 -> inf;  tanh(6) ~1 so cut there to keep the scale
@@ -75,27 +81,48 @@ classdef sFCStats
              end
          end
          
-         function q = get.q(obj)
-            p=obj.p;
-            q=ones(size(p));
-            
-            
-            if mod(size(p,1),2)==0 % Dont check for symmetry if odd # of channels
+         function ishypersymm = get.ishypersymm(obj)
+            if obj.ishyperscan
                 hyper = obj.Z(1:end/2,end/2+1:end,:); % select the between-subject portion of matrix
-                sym = (norm(reshape(hyper,size(hyper,1),[])-reshape(permute(hyper,[2 1 3]),size(hyper,1),[]))<eps(1)*10);
+                ishypersymm = (norm(reshape(hyper,size(hyper,1),[])-reshape(permute(hyper,[2 1 3]),size(hyper,1),[]))<eps(1)*10);
             else
-                sym = false;
+                ishypersymm = false;
             end
+         end
+         
+         function uniqueinds = get.uniqueinds(obj)
+            p=obj.p;
             
-            if(sym)
+            % Select upper triangle of whole matrix or of upper-right quadrant
+            if(obj.ishypersymm)
                 mask=repmat(triu(true(size(p,1)),size(p,1)/2),1,1,size(p,3));
             else
                 mask=repmat(triu(true(size(p,1)),1),1,1,size(p,3));
             end
-            lst=find(mask);
+            
+            % Mask out within-subject portion
+            if(obj.ishyperscan)
+                mask(1:end/2,1:end/2,:) = false;
+                mask(end/2+1:end,end/2+1:end,:) = false;
+            end
+            
+            uniqueinds=find(mask);
+            
+         end
+         
+         function numunique = get.numunique(obj)
+             numunique = length(obj.uniqueinds);
+         end
+         
+         function q = get.q(obj)
+                        
+            p=obj.p;
+            q=ones(size(p));
+            lst = obj.uniqueinds;
+            
             q(lst)=nirs.math.BenjaminiHochberg(p(lst));
            
-            if(sym)
+            if(obj.ishypersymm)
                 for i=1:size(q,3)
                     hyper = q(1:end/2,end/2+1:end,i);
                     hyper = min(hyper,hyper');
