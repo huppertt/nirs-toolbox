@@ -142,11 +142,69 @@ classdef MixedEffects < nirs.modules.AbstractModule
             obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
-            lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
-                obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
-            
-            X = lm1.designMatrix('Fixed');
-            Z = lm1.designMatrix('Random');
+            try
+                lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
+                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                
+                X = lm1.designMatrix('Fixed');
+                Z = lm1.designMatrix('Random');
+                 cnames = lm1.CoefficientNames(:);
+            catch
+                % This was added to handle the case where (e.g.) one subject group has tasks that are not in the other group. 
+                
+                [a,err]=lasterr;
+                if(strcmp(err,'stats:classreg:regr:lmeutils:StandardLinearLikeMixedModel:MustBeFullRank_X'))
+                    t=[table(beta,'VariableNames',{respvar}) tmp];
+                    t2=unique(t(:,6:end));
+                    lst2=[];
+                    for i=1:length(t2.Properties.VariableNames)
+                        if(isempty(strfind(obj.formula,t2.Properties.VariableNames{i})))
+                           lst2=[lst2 i];
+                        end
+                    end
+                    t2(:,lst2)=[];
+                    t(:,5+lst2)=[];
+                    t3=t2;
+                    for i=1:size(t2,2)
+                        uV{i}=unique(t2.(t2.Properties.VariableNames{i}));
+                        un(i)=length(uV{i});
+                    end
+                    t4=[]; lstrm=[];
+                    for i=1:size(t2,2)
+                        order=[i 1:i-1 i+1:size(t2)];
+                        if(iscellstr(uV{i}))
+                            t4=[t4 table(reshape(permute(repmat(uV{i},un),order),[],1),'VariableNames',{t2.Properties.VariableNames{i}})];
+                        else
+                            lstrm=[lstrm i];
+                        end
+                    end
+                    % T4 is now every possible combination of catagorical
+                    % variable
+                    t3(:,lstrm)=[];
+                    missing=setdiff(t4,t3);
+                    missing=repmat([repmat(t(1,[1:5 5+lstrm]),height(missing),1) missing],1+length(lstrm),1);
+                    if(length(lstrm)>0)
+                        missing.(missing.Properties.VariableNames{5+[1:length(lstrm)]})=randn(height(missing),1);
+                    end
+                    lm1 = fitlme([t; missing], obj.formula, 'dummyVarCoding',...
+                        obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                    
+                    X = lm1.designMatrix('Fixed');
+                    Z = lm1.designMatrix('Random');
+                    X(height(t)+1:end,:)=[];
+                    Z(height(t)+1:end,:)=[];
+                    
+                    lstmissing=find(all(X==0,1));
+                    X(:,lstmissing)=[];
+                    Z(:,find(all(Z==0,1)))=[];
+                    cnames = lm1.CoefficientNames(:);
+                    cnames(lstmissing)=[]; 
+                    
+                else
+                    rethrow(lasterr);   
+                    return;
+                end
+            end
             
             nchan = max(lst);
             
@@ -224,7 +282,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 disp(['Finished solving: time elapsed ' num2str(toc) 's']);
                 
             end
-            cnames = lm1.CoefficientNames(:);
+           
             for idx=1:length(cnames);
                 cnames{idx}=cnames{idx}(max([0 min(strfind(cnames{idx},'_'))])+1:end);
                 %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end;
