@@ -64,7 +64,7 @@ function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
             x = [s(iSrc(j),1) d(iDet(j),1)]';
             y = [s(iSrc(j),2) d(iDet(j),2)]';
 
-            h(iChan) = line(axis_handle,x, y, 'Color', colors(iChan, :), lineStyles{iChan, :});
+            h(iChan) = line(x, y,'parent',axis_handle, 'Color', colors(iChan, :), lineStyles{iChan, :});
         end
         
         set(h(iChan),'UserData',[iSrc iDet]);
@@ -81,7 +81,7 @@ function labelOptodes( axis_handle, s, d )
         x = s(i,1);
         y = s(i,2);
         
-        h = text(axis_handle,x, y,['S' num2str(i)], 'FontSize', 14);
+        h = text(x, y,['S' num2str(i)],'parent',axis_handle, 'FontSize', 14);
         set(h, 'UserData', ['S' num2str(i)]);
     end
     
@@ -89,7 +89,7 @@ function labelOptodes( axis_handle, s, d )
         x = d(i,1);
         y = d(i,2);
         
-        h = text(axis_handle,x, y,['D' num2str(i)], 'FontSize', 14);
+        h = text(x, y,['D' num2str(i)],'parent',axis_handle, 'FontSize', 14);
         set(h, 'UserData', ['D' num2str(i)]);
     end
     

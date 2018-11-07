@@ -12,7 +12,13 @@
 clear 
 
 % change this to save results somewhere else
-root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+end
+ 
 
 %% Example 1.  Statement of the problem.
 % Before we look at the toolbox, let's look at the problem of

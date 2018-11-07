@@ -72,7 +72,24 @@ classdef TestPreprocessing < matlab.unittest.TestCase
             obj.od(2).data = d;
             
             % Resample
-            [d,time]=resample(d,obj.od(2).time,4);
+           if(verLessThan('signal','7.0'));
+               t=obj.od(2).time;
+               ord = floor( length(t) / 10 );
+               Fc = 4/obj.od(2).Fs;
+               
+               b = fir1(ord,Fc);
+               
+               % zero phase filtering
+               d = filtfilt(b,1,d);
+               
+               % interpolation
+               N = floor((t(end)-t(1)) *4)+1;
+               new_t = t(1) + (0:N-1)' /4;
+               d = interp1(t,d,new_t,'linear','extrap');
+               time=new_t;
+           else
+                [d,time]=resample(d,obj.od(2).time,4);
+           end
             obj.od_resample(2) = raw;
             obj.od_resample(2).time = time;
             obj.od_resample(2).data = d;

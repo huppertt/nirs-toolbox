@@ -7,8 +7,12 @@
 
 clear 
 % change this to save results somewhere else
-root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+ end
 
 % Download the sample data from the HOMER-2 site
 if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'SampleData'),'dir'))

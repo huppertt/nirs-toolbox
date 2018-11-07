@@ -45,7 +45,7 @@ for i=1:length(fileExt)
         end
         if ~isempty(tmp)
             if(~isempty(strfind(func2str(loadFunc{i}),'nirs.io.loadNIRx')) && ...
-                ~strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)') && isempty(data))
+                strcmp(func2str(loadFunc{i}),'@(file)nirs.io.loadNIRx(file,false)') && isempty(data))
                 disp('Loading NIRx file geometry from:')
                 disp(['     ' files(iFile).name]);
                 disp('      Note: This registration will be used for all subjects');

@@ -2,7 +2,13 @@
 clear
 
 % TODO - directory to download the sample data into
-root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+end
+ 
 
 % TODO- number of iteractions for ROC curve demo
 num_iter = 10;  

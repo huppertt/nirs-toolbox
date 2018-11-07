@@ -22,7 +22,7 @@ if(isempty(file)); raw=[]; return; end;
 info = parsehdr(fullfile(folder,file(1).name));
 
 %now read the probeInfo file and convert to a probe class
-file = dir(fullfile(folder,'*_probeInfo.mat'));
+file = dir(fullfile(folder,'*robeInfo.mat'));
 if(isempty(file)); raw=[]; return; end;
 
 load(fullfile(folder,file(1).name)); % --> probeInfo
@@ -64,7 +64,7 @@ for sI=1:size(info.S_D_Mask,1)
 end
 d=median(dist(info.S_D_Mask==1))+std(dist(info.S_D_Mask==1));
 if(any(any((dist<d)~=(info.S_D_Mask==1))))
-    warning('Missing Src-Det pairs missing from NIRx file:  adding additional measurements');
+    disp('Adding a few Src-Det pairs missing from NIRx file');
     info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
 end
 
@@ -88,7 +88,7 @@ end
 
 % Not sure why the units on the 2D probe in the NIRx file are so off
 scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
-probe.fixeddistances=dist(sub2ind(size(info.S_D_Mask),s,d))*10;
+probe.fixeddistances=probe.distances*scale;
 
 if(useshortdistances && info.ShortDetectors>0)
     
@@ -360,6 +360,8 @@ if(registerprobe)
         probe1020.optodes_registered.Y(1:length(lst2))=XYZ(:,2);
         probe1020.optodes_registered.Z(1:length(lst2))=XYZ(:,3);
     end
+    probe1020.link=probe.link;
+    probe1020.fixeddistances=probe.distances;
     raw.probe=probe1020;
 else
     raw.probe=probe;

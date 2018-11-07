@@ -83,7 +83,7 @@ else
     uconds = unique(obj.variables.cond, 'stable');
 end
 % colormap
-[~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
+[~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',128) )');
 z = linspace(vrange(1), vrange(2), size(cmap,1))';
 
 hind = 0;

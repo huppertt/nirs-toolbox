@@ -182,7 +182,7 @@ classdef Data
             
             % plot stim blocks if available
             if ~isempty(s) 
-                s=s./(ones(size(s,1),1)*max(s(:)));
+                s=s./(ones(size(s))*max(s(:)));
                 % min/max of axes
                 pmin = dmin - 0.2*dsize;
                 pmax = dmin - 0.05*dsize;

@@ -155,20 +155,25 @@ classdef TestChannelStats < matlab.unittest.TestCase
             b = obj.stats.beta;
             covb = obj.stats.covb;
             
+           
+             
             for i = 1:size(M,1)
                 idx = M(i,:);
+                
+                c=covb(idx,idx);
+                n=obj.stats.dfe;
+                n=trace(c)^2/(trace(c^2))/(1/(n-1));
                 T2(i,1)     = b(idx)'*inv(covb(idx,idx))*b(idx);
                 df1(i,1)    = sum(idx);
-                df2(i,1)    = obj.stats.dfe - df1(i) + 1;
-                F(i,1)      = df2(i) / df1(i) / obj.stats.dfe * T2(i);
+                df2(i,1)    = n - df1(i) + 1;
+                F(i,1)      = df2(i) / df1(i) / n * T2(i);
                 p(i,1)      = fcdf(1./F(i), df2(i), df1(i));
             end
-            
-            obj.verifyEqual(F, f.F);
-            obj.verifyEqual(df1, f.df1);
-            obj.verifyEqual(df2, f.df2);
-            obj.verifyEqual(p, f.p);
-            
+                 
+            obj.verifyLessThan(abs(F-f.F),1E-14);
+            obj.verifyLessThan(abs(df1-f.df1),1E-14);
+            obj.verifyLessThan(abs(df2-f.df2),1E-14);
+            obj.verifyLessThan(abs(p-f.p),1E-14);
             newF = obj.permStats.jointTest();
             
             obj.verifyEqual(f, newF);

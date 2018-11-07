@@ -46,7 +46,7 @@ classdef Resample < nirs.modules.AbstractModule
                     mu = nanmean(d);
                     d = bsxfun(@minus,d,mu);
                     
-                    if obj.antialias
+                    if obj.antialias | verLessThan('signal','7.0')
 
                         % anti-aliasing filter
                         ord = floor( length(t) / 10 );

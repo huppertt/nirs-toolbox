@@ -135,9 +135,9 @@ classdef Probe
             end
             
             if(~isempty(obj.fixeddistances))
-                if(any((d-obj.fixeddistances)~=0))
-                    warning('probe distances do not match layout');
-                end
+%                 if(any((d-obj.fixeddistances)~=0))
+%                     warning('probe distances do not match layout');
+%                 end
                 d=obj.fixeddistances;
                 return
             end

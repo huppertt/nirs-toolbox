@@ -9,8 +9,12 @@
 % TODO - Add ROC analysis section 
 
 
-root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
 
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+ end
 
 %% Retrieve the sample data from BitBucket (same as previous demo)
 if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))

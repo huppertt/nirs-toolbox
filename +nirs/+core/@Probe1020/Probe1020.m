@@ -497,7 +497,7 @@ classdef Probe1020 < nirs.core.Probe
             [x,y]=obj.convert2d(obj.pts1020);
             dx=-x(find(ismember(obj.labels,'Cz')));
             dy=-y(find(ismember(obj.labels,'Cz')));
-            scatter(axis_handle,x+dx,y+dy,'filled','MarkerFaceColor',[.8 .8 .8]);
+            scatter(x+dx,y+dy,'filled','MarkerFaceColor',[.8 .8 .8],'parent',axis_handle);
          
 %             tbl=nirs.util.list_1020pts('?'); 
 %             for i=1:height(tbl); t(i)=text(x(i)+dx,y(i)+dy,tbl.Name{i}); end;
@@ -514,9 +514,9 @@ classdef Probe1020 < nirs.core.Probe
                 [x,y]=obj.convert2d(Pos);
                 xop=x; yop=y;
                 lstS=find(ismember(obj.optodes_registered.Type,'Source'));
-                scatter(axis_handle,x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r')
+                scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r','parent',axis_handle)
                 lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
-                scatter(axis_handle,x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b')
+                scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b','parent',axis_handle)
                 
                 for i=1:height(link)
                     if iscell(link.source(i))
@@ -529,7 +529,7 @@ classdef Probe1020 < nirs.core.Probe
                     for j=1:length(source)
                         s = source(j);
                         d = detector(j);
-                        h(i)=line(axis_handle,x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'Color', colors(i, :), lineStyles{i, :});
+                        h(i)=line(x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'parent',axis_handle,'Color', colors(i, :), lineStyles{i, :});
                         set(h(i),'UserData',[s d]);
                     end
                 end
@@ -538,9 +538,7 @@ classdef Probe1020 < nirs.core.Probe
                 h=[];
             end
             
-            axis(axis_handle,'tight');
-            axis(axis_handle,'equal');
-            axis(axis_handle,'off');
+          
             [x,y]=obj.convert2d(obj.pts1020);
             headradius=obj.headcircum/(2*pi);
             
@@ -552,18 +550,18 @@ classdef Probe1020 < nirs.core.Probe
 %             
             % add a circle for the head
             theta = linspace(0,2*pi);
-            plot(axis_handle,headradius*cos(theta),headradius*sin(theta),'color',[.4 .4 .4],'linestyle','--');
+            plot(headradius*cos(theta),headradius*sin(theta),'color',[.4 .4 .4],'linestyle','--','parent',axis_handle);
             
             headradius=norm([x(find(ismember(obj.labels,'nas'))) y(find(ismember(obj.labels,'nas')))]-...
                 [x(find(ismember(obj.labels,'Cz'))) y(find(ismember(obj.labels,'Cz')))]);
             
-            plot(axis_handle,headradius*cos(theta),headradius*sin(theta),'k');
-            plot(axis_handle,[-headradius headradius],[0 0],'color',[.6 .6 .6],'linestyle','--')
-            plot(axis_handle,[0 0],[-headradius headradius],'color',[.6 .6 .6],'linestyle','--')
+            plot(headradius*cos(theta),headradius*sin(theta),'k','parent',axis_handle);
+            plot([-headradius headradius],[0 0],'color',[.6 .6 .6],'linestyle','--','parent',axis_handle)
+            plot([0 0],[-headradius headradius],'color',[.6 .6 .6],'linestyle','--','parent',axis_handle)
             
-            line(axis_handle,[-10 0],[-headradius -headradius-10],'color','k');
-            line(axis_handle,[10 0],[-headradius -headradius-10],'color','k');
-            scatter(axis_handle,[-15 15],[-headradius -headradius],'filled','k','sizedata',120);
+            line([-10 0],[-headradius -headradius-10],'color','k','parent',axis_handle);
+            line([10 0],[-headradius -headradius-10],'color','k','parent',axis_handle);
+            scatter([-15 15],[-headradius -headradius],'filled','k','sizedata',120,'parent',axis_handle);
             
             % Draw the central sulcus
            
@@ -575,7 +573,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             xx=[min(pts(:,1)):.1:max(pts(:,1))];
             p=polyfit(pts(:,1),pts(:,2),2);
-            plot(axis_handle,xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
+            plot(xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-','parent',axis_handle);
             
             %lst2={'CpZ','C4','C6-FC6'}
             pts=[x(find(ismember(obj.labels,'CPz'))), x(find(ismember(obj.labels,'C4'))), ...
@@ -585,7 +583,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             xx=[min(pts(:,1)):.1:max(pts(:,1))];
             p=polyfit(pts(:,1),pts(:,2),2);
-            plot(axis_handle,xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-');
+            plot(xx,polyval(p,xx),'color',[.4 .4 .4],'linestyle','-','parent',axis_handle);
             
             % Add the insular sulcus
            % lst={'FT9','FT7','C5','Cp5'}
@@ -597,7 +595,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             yy=[min(pts(:,2)):.1:max(pts(:,2))];
             p=polyfit(pts(:,2),pts(:,1),3);
-            plot(axis_handle,polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
+            plot(polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-','parent',axis_handle);
             
             % lst={'FT10','FT8','C6','Cp6'}
             pts=[x(find(ismember(obj.labels,'FT10'))), x(find(ismember(obj.labels,'FT8'))), ...
@@ -607,7 +605,7 @@ classdef Probe1020 < nirs.core.Probe
             pts(:,1)=pts(:,1)+dx; pts(:,2)=pts(:,2)+dy;
             yy=[min(pts(:,2)):.1:max(pts(:,2))];
             p=polyfit(pts(:,2),pts(:,1),3);
-            plot(axis_handle,polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-');
+            plot(polyval(p,yy),yy,'color',[.4 .4 .4],'linestyle','-','parent',axis_handle);
             
             %set(gcf,'color','w');
             
@@ -622,7 +620,10 @@ classdef Probe1020 < nirs.core.Probe
             if(nargout>0)
                 varargout{1}=h;
             end
-            
+              axis(axis_handle,'tight');
+            axis(axis_handle,'equal');
+            axis(axis_handle,'off');
+            set(get(axis_handle,'parent'),'color','w');
         end
         
         function headcircum = get.headcircum(obj)

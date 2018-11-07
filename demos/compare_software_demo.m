@@ -17,7 +17,11 @@
 
 
 % Directory to download and unpack the demo data
-root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+ end
 
 % number of iterations to run in ROC tests (more = better; but longer run time)
 num_iter = 20;  % In the paper, I ran 1000, but this took over a day to run on 

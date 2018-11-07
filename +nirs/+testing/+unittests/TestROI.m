@@ -77,7 +77,7 @@ classdef TestROI < matlab.unittest.TestCase
             
             % Manual calculation
             weights = 1./diag(obj.data1.covb);
-            weights2 = weights .* weights';
+            weights2 = weights * weights';
             hbo_inds = strcmp(obj.data1.variables.type,'hbo');
             hbr_inds = strcmp(obj.data1.variables.type,'hbr');
             true_betas(1,1) = sum(weights(hbo_inds) .* obj.data1.beta(hbo_inds)) / sum(weights(hbo_inds));
