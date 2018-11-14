@@ -108,11 +108,11 @@ cm=lines(length(utypes));
 
 for i=1:length(h)
     if(~isempty(strfind(utypes{i},'hbo')))
-        set(h{i},'Color','r');
+        set(h{i},'Color','r','LineWidth',5);
     elseif(~isempty(strfind(utypes{i},'hbr')))
-        set(h{i},'Color','b');
+        set(h{i},'Color','b','LineWidth',5);
      elseif(~isempty(strfind(utypes{i},'hbt')))
-        set(h{i},'Color','g');
+        set(h{i},'Color','g','LineWidth',5);
     else
         set(h{i},'Color',cm(i,:));
     end

@@ -56,7 +56,7 @@ classdef AnovaN < nirs.modules.AbstractModule
             for i=1:height(sd)
                 ll=find(lst==i);
                 
-                c=false(size(vars,2));  %catagorical or not
+                c=false(size(vars,2),1);   % add the second dimension argument
                 for j=1:size(vars,2); 
                     L{j}=table2cell(vars(ll,j)); 
                     try;
@@ -67,6 +67,7 @@ classdef AnovaN < nirs.modules.AbstractModule
                     end
                     
                 end;
+                c=find(c);   % convert from logical to array of indices
                
                 
                [p,atab,stats,terms]=anovan(b(ll),L,'sstype',obj.sstype,...
