@@ -10,15 +10,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         symetric;
         verbose;
         ignore;  % seconds at start/end of each scan or block to ignore
-        multitrial; % flag to enable computing once per condition rather than averaging over blocks/trials
     end
-    properties(Hidden=true)
-        % I like to hide options that I don't want the average person
-        % playing with
-        
-        cache_dir;  % (optional) directory to cache results (unset disables caching)
-        cache_rebuild;  % (optional) force rebuild of cached results (don't load previous results from cache, only save new results)
-    end
+
     methods
         function obj = Hyperscanning( prevJob )
             obj.name = 'Hyperscanning';
@@ -27,10 +20,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             obj.min_event_duration=30;
             obj.symetric=true;
             obj.ignore=10;
-            obj.multitrial=false; 
-            obj.cache_dir='';
             obj.verbose=false;
-            obj.cache_rebuild=false;
             
             obj.link=table(1,1,0,0,'VariableNames',{'ScanA','ScanB','OffsetA','OffsetB'});
             obj.link(1,:)=[];
@@ -128,32 +118,16 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             r=zeros(n1,n1,length(s.onset));
                             dfe=zeros(length(s.onset),1);
                             tmp=nirs.core.Data;
-                            if obj.multitrial % 3-D stack of blocks to calc FC once
-                                dur = min(s.dur) - 2*obj.ignore;
-                                nsamp = floor( dur * data(idxA).Fs );
-                                tmp.data = zeros([nsamp 2*size(dataA,2) length(s.onset)]);
-                                for j=1:length(s.onset)
-                                    if(obj.verbose)
-                                        disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
-                                    end
-                                    startpt = find(time>(s.onset(j)+obj.ignore),1,'first');
-                                    lstpts=startpt:min(length(time),startpt+nsamp-1);
-                                    tmp.data(1:length(lstpts),:,j)=[dataA(lstpts,:) dataB(lstpts,:)];
+
+                            for j=1:length(s.onset)
+                                if(obj.verbose)
+                                    disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
                                 end
+                                lstpts=find(time>s.onset(j)+obj.ignore &...
+                                    time<s.onset(j)+s.dur(j)-obj.ignore);
+                                tmp.data=[dataA(lstpts,:) dataB(lstpts,:)];
                                 tmp.time=time(lstpts);
-                                [r,p,dfe]=obj.corrfcn(tmp);
-                                
-                            else  % Iterate over each block to calc FC
-                                for j=1:length(s.onset)
-                                    if(obj.verbose)
-                                        disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
-                                    end
-                                    lstpts=find(time>s.onset(j)+obj.ignore &...
-                                        time<s.onset(j)+s.dur(j)-obj.ignore);
-                                    tmp.data=[dataA(lstpts,:) dataB(lstpts,:)];
-                                    tmp.time=time(lstpts);
-                                    [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
-                                end
+                                [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
                             end
                             
                             if(obj.symetric)
@@ -212,37 +186,6 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     connStats(i).R=r;
                     connStats(i).conditions=cellstr('rest');
                 end
-                
-                
-                
-                % Compute data hash and load cached result if match is found
-                %                 clear hash cache_file
-                %                 if exist(obj.cache_dir,'dir')
-                %                     hashopt.Method = 'SHA-256';
-                %                     tmpobj = obj;
-                %                     tmpobj.link = []; tmpobj.cache_dir = []; tmpobj.cache_rebuild = [];
-                %                     tmpobj.corrfcn = func2str(tmpobj.corrfcn); tmpobj.prevJob = [];
-                %                     hash = DataHash( {dataA,dataB,tmpobj,mask} , hashopt );
-                %                     cache_file = fullfile( obj.cache_dir , [hash '.mat'] );
-                %                     if ~obj.cache_rebuild && exist(cache_file,'file')
-                %                         tmp = load(cache_file,'connStats');
-                %                         connStats(i).R = tmp.connStats.R;
-                %                         connStats(i).dfe = tmp.connStats.dfe;
-                %                         disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link)) ' (cached)'])
-                %                         continue;
-                %                     end
-                %                 end
-                
-                connStats(i).R(1:end/2,1:end/2,:)=0;
-                connStats(i).R(1+end/2:end,1+end/2:end,:)=0;
-                
-                disp(['Finished ' num2str(i) ' of ' num2str(height(obj.link))])
-                
-                %                 if exist('cache_file','var')
-                %                     tmp = [];
-                %                     tmp.connStats = connStats(i);
-                %                     save(cache_file,'-struct','tmp');
-                %                 end
                 
             end
             
