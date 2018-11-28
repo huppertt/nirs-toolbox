@@ -10,6 +10,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         symetric;
         verbose;
         ignore;  % seconds at start/end of each scan or block to ignore
+        estimate_null; % flag to also estimate connectivity between all non-paired subjects 
+                       %  and creates an 'Pairing' demographic field in the output with values 'Actual' or 'Null'
     end
 
     methods
@@ -21,6 +23,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             obj.symetric=true;
             obj.ignore=10;
             obj.verbose=false;
+            obj.estimate_null=false;
             
             obj.link=table(1,1,0,0,'VariableNames',{'ScanA','ScanB','OffsetA','OffsetB'});
             obj.link(1,:)=[];
@@ -64,6 +67,29 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 end
             end
             
+            % Add null distribution pairings
+            if obj.estimate_null
+                
+                obj.link.isNull(:) = false;
+                
+                % Create list of all file pairings
+                combos = combnk(1:length(data),2);
+                
+                % Remove true pairings from the list
+                combos = setdiff(combos,[obj.link.ScanA obj.link.ScanB],'rows');
+                
+                % Check the number is correct
+                num_nulls = (length(data)^2 - 2*length(data))/2;
+                assert(size(combos,1)==num_nulls,'Unexpected number of null pairings: %i',size(combos,1));
+                
+                % Create null link table
+                link_null = table(combos(:,1),combos(:,2),zeros(num_nulls,1),zeros(num_nulls,1),true(num_nulls,1),...
+                    'VariableNames',{'ScanA','ScanB','OffsetA','OffsetB','isNull'});
+                
+                obj.link = [obj.link; link_null];
+                
+            end
+            
             connStats(1:height(obj.link))=nirs.core.sFCStats();
             
             for i=1:height(obj.link)
@@ -94,6 +120,15 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 connStats(i).probe = nirs.util.createhyperscanprobe(data(idxA).probe);
                 connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
                 connStats(i).R=[];
+                if obj.estimate_null
+                    if obj.link.isNull(i)
+                        connStats(i).demographics{1}('Pairing') = {'Null'};
+                        connStats(i).demographics{2}('Pairing') = {'Null'};
+                    else
+                        connStats(i).demographics{1}('Pairing') = {'Actual'};
+                        connStats(i).demographics{2}('Pairing') = {'Actual'};
+                    end
+                end
                 
                 if(obj.divide_events)
                     stim=data(idxA).stimulus;
@@ -145,6 +180,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             connStats(i).dfe(cnt)=sum(dfe);
                             connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
                             connStats(i).conditions{cnt}=stim.keys{idx};
+                            
                             cnt=cnt+1;
                             
                         else
@@ -185,7 +221,10 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     connStats(i).dfe=dfe;
                     connStats(i).R=r;
                     connStats(i).conditions=cellstr('rest');
+                                        
                 end
+                
+                fprintf('Finished processing dyad %i of %i (%5.4g%%)\n',i,height(obj.link),100*i/height(obj.link));
                 
             end
             
