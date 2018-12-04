@@ -26,6 +26,8 @@ file = dir(fullfile(folder,'*robeInfo.mat'));
 if(isempty(file)); raw=[]; return; end;
 
 load(fullfile(folder,file(1).name)); % --> probeInfo
+
+
 SrcPos = probeInfo.probes.coords_s2;
 SrcPos(:,3)=0;
 
@@ -56,17 +58,17 @@ end
 % I keep having issues with the NIRx measurements having a few weird
 % channel combinations that we think are not in the aquistion setup.  This
 % is a bit of a hack to fix this, since NIRx does save all data
-
-for sI=1:size(info.S_D_Mask,1)
-    for dI=1:size(info.S_D_Mask,2)
-        dist(sI,dI)=norm(probeInfo.probes.coords_s3(sI,:)-probeInfo.probes.coords_d3(dI,:));
-    end
-end
-d=median(dist(info.S_D_Mask==1))+std(dist(info.S_D_Mask==1));
-if(any(any((dist<d)~=(info.S_D_Mask==1))))
-    disp('Adding a few Src-Det pairs missing from NIRx file');
-    info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
-end
+% 
+% for sI=1:size(info.S_D_Mask,1)
+%     for dI=1:size(info.S_D_Mask,2)
+%         dist(sI,dI)=norm(probeInfo.probes.coords_s3(sI,:)-probeInfo.probes.coords_d3(dI,:));
+%     end
+% end
+% d=median(dist(info.S_D_Mask==1))+std(dist(info.S_D_Mask==1));
+% if(any(any((dist<d)~=(info.S_D_Mask==1))))
+%     disp('Adding a few Src-Det pairs missing from NIRx file');
+%     info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
+% end
 
 [s,d]=find(info.S_D_Mask);
 
