@@ -1,8 +1,12 @@
-function [sni,moco] = structnoiseindex(d)
+function [sni,moco] = structnoiseindex(d,n)
 d=bsxfun(@minus,d,mean(d));
 d=bsxfun(@minus,d,mean(d));
 
-y=nirs.math.innovations(d,5);
+if(nargin<2)
+    n=5;
+end
+
+y=nirs.math.innovations(d,n);
 
 tiny_s = 1e-6 * std(y);
 t = 4.685;
