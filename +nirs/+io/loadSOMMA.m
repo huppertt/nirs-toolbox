@@ -82,24 +82,28 @@ function info=gethdrinfo(hdr)
 
 info=[];
 for i=1:size(hdr.line)
-    if(~isempty(strfind(hdr.line(i,:),'SSID')))
-        info.SSID=hdr.line(i,strfind(hdr.line(i,:),':')+1:end);
-        info.SSID=strtrim(info.SSID);
-    end
-    if(~isempty(strfind(hdr.line(i,:),'SubjID:')))
-        info.SubjID=hdr.line(i,strfind(hdr.line(i,:),':')+1:end);
+    if(~isempty(strfind(hdr.line(i,:),'subjid')))
+        info.SubjID=hdr.line(i+1,:);
         info.SubjID=strtrim(info.SubjID);
     end
-    if(~isempty(strfind(hdr.line(i,:),'IP Address:')))
-        info.IP=hdr.line(i,strfind(hdr.line(i,:),':')+1:end);
-        info.IP=strtrim(info.IP);
+    if(~isempty(strfind(hdr.line(i,:),'session')))
+        info.Session=hdr.line(i+1);
+        info.Session=strtrim(info.Session);
     end
-    if(~isempty(strfind(hdr.line(i,:),'signal strength (RSSI)')))
-        info.signal=hdr.line(i,strfind(hdr.line(i,:),':')+1:end);
-        info.signal=strtrim(info.signal);
+    if(~isempty(strfind(hdr.line(i,:),'date')))
+        info.Date=hdr.line(i+1,:);
+        info.Date=strtrim(info.Date);
     end
-    if(~isempty(strfind(hdr.line(i,:),'Comments')))
-        info.Comments=hdr.line(i,strfind(hdr.line(i,:),':')+1:end);
+    if(~isempty(strfind(hdr.line(i,:),'site')))
+        info.Site=hdr.line(i+1,:);
+        info.Site=strtrim(info.Site);
+    end
+    if(~isempty(strfind(hdr.line(i,:),'deviceid')))
+        info.DeviceID=hdr.line(i+1,:);
+        info.DeviceID=strtrim(info.DeviceID);
+    end
+    if(~isempty(strfind(hdr.line(i,:),'comments')))
+        info.Comments=hdr.line(i+1,:);
         info.Comments=strtrim(info.Comments);
     end
 end
@@ -164,8 +168,10 @@ end
 data.time=time-time(1);
 data.data=[d0-d1 d0-d2];
 data.demographics('subject')=hdr.info.SubjID;
-data.demographics('device')=hdr.info.SSID;
-data.demographics('scan')=hdr.info.scan;
+data.demographics('date')=hdr.info.Date;
+data.demographics('site')=hdr.info.Site;
+data.demographics('device')=hdr.info.DeviceID;
+data.demographics('session')=hdr.info.Session;
 data.auxillary('comments')=hdr.info.Comments;
 
 end

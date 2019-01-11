@@ -155,6 +155,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 [a,err]=lasterr;
                 if(strcmp(err,'stats:classreg:regr:lmeutils:StandardLinearLikeMixedModel:MustBeFullRank_X'))
                     t=[table(beta,'VariableNames',{respvar}) tmp];
+                    if(ismember('Comment',t.Properties.VariableNames))
+                        t.Comment=[];
+                    end
                     t2=unique(t(:,6:end));
                     lst2=[];
                     for i=1:length(t2.Properties.VariableNames)
@@ -171,9 +174,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     end
                     t4=[]; lstrm=[];
                     for i=1:size(t2,2)
-                        order=[i 1:i-1 i+1:size(t2)];
+                        order=[i 1:i-1 i+1:size(t2,2)];
                         if(iscellstr(uV{i}))
-                            t4=[t4 table(reshape(permute(repmat(uV{i},un),order),[],1),'VariableNames',{t2.Properties.VariableNames{i}})];
+                            t4=[t4 table(reshape(permute(repmat(uV{i},[1 un(order(2:end))]),order),[],1),'VariableNames',{t2.Properties.VariableNames{i}})];
                         else
                             lstrm=[lstrm i];
                         end

@@ -244,6 +244,145 @@ classdef Data
             
         end
         
+          function varargout=drawwaterfall( obj, lstChannels,adderr,axis_handle )
+            %% draw - Plots the probe geometry.
+            % 
+            % Args:
+            %     lstChannels - list of channels to show
+            
+            if(nargin<4 || isempty(axis_handle))
+                axis_handle=gca;
+            end
+            
+            % get data
+            if (nargin == 1)
+                lstChannels = 1:size(obj(1).data,2);
+                
+            end
+            if(nargin<3 || isempty(adderr))
+                adderr=false;
+            end
+            
+            if(isempty(lstChannels))
+                % draw a plot, but then turn it off to only show the stim
+                % marks
+                lstChannels=1;
+                showplot=false;
+            else
+                showplot=true;
+            end
+            if(isempty(obj(1).data))
+                lstChannels=[];
+            end
+            
+            if(length(obj)>1)
+                figure;
+                a=round(sqrt(length(obj)));
+                b=ceil(sqrt(length(obj)));
+                for i=1:length(obj)
+                    subplot(a,b,i);
+                    obj(i).draw(lstChannels,adderr);
+                    legend off;
+                end
+                return
+            end
+            
+            t = obj.time;
+            d = obj.data(:,lstChannels);
+            
+            % get stim vecs
+            s = []; k = obj.stimulus.keys;
+            for i = 1:length( obj.stimulus.keys )
+                s = [s obj.stimulus.values{i}.getStimVector( t )];
+            end
+            
+
+            % plots
+            hold(axis_handle,'on');
+            
+            % data min/max/size
+            dmax = max( real(d(:)) );
+            dmin = min( real(d(:)) );
+            dsize = (dmax-dmin);
+            set(axis_handle,'view',[  -44.0191   74.3316])
+            % plot stim blocks if available
+            if ~isempty(s) 
+                s=s./(ones(size(s))*max(s(:)));
+                % min/max of axes
+                pmin = dmin;
+                pmax = dmax;
+
+                % adjust amplitude so stims are visible
+                s = .2*(pmax-pmin)*s + pmin ;
+                
+                % plot
+                waterfall(1, t, s, 'parent',axis_handle );
+                
+                % legend
+                l = legend(axis_handle,k{:});
+                set(l,'Interpreter', 'none');
+           
+            dsize = (dmax-dmin);
+                
+                
+            end
+                % min/max of axes
+               	pmin = dmin - 0.1*dsize;
+                pmax = dmax + 0.1*dsize;
+            
+            
+            % plot data
+            cc=colorcube(size(d,2));
+            for ii=1:size(d,2)
+                h(ii)=plot3(ones(size(t))*(ii+1),t,d(:,ii));
+            end
+            ylabel(axis_handle, 'seconds' );
+            for i = 1:length(obj.stimulus.keys)
+                legend(axis_handle,obj.stimulus.keys)
+            end
+            
+                
+         
+             
+            if(isempty(t) || min(t)==max(t))
+            % axes limits
+             ylim(axis_handle, [0 1] );
+            else
+                ylim(axis_handle, [min(t) max(t)] );
+            end
+            if(isempty(pmin))
+                zlim(axis_handle,[-1 1]);
+            elseif (pmin == pmax)
+                 zlim(axis_handle,pmin + [-1 1]);
+            else
+                zlim(axis_handle, [dmin dmax] );
+            end
+            set(axis_handle,'xlim',[0 (size(d,2)+2)]);
+            set(axis_handle,'YDir','reverse');
+            
+            names{1}='Stim';
+            for i=1:length(lstChannels)
+               type=obj.probe.link.type(lstChannels(i));
+               if(~iscellstr(type))
+                   type=[num2str(type) 'nm'];
+               end
+                names{i+1}=['Src' num2str(obj.probe.link.source(lstChannels(i))) '-Det' ...
+                    num2str(obj.probe.link.detector(lstChannels(i))) ' (' type ')'];
+            end
+            set(axis_handle,'XTick',[1:size(d,2)+1]);
+            set(axis_handle,'XTickLabel',names);
+            set(axis_handle,'XTickLabelRotation',300);
+            
+            if(~showplot)
+                set(h,'visible','off');
+            end
+            
+            if(nargout>0)
+                varargout{1}=h;
+            end
+            
+        end
+        
     end
 end
 

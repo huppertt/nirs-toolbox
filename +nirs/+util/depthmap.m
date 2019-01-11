@@ -1,12 +1,5 @@
 function varargout = depthmap(label,headshape,type)
 
-if(nargin<3 || isempty(type))
-    if (isnumeric(label))
-        type = {'customize'};
-    else
-        type={'BA','gyrus'};
-    end
-end
 
 if(nargin==0)
     if(nargout==0)
@@ -17,6 +10,13 @@ if(nargin==0)
     return
 end
 
+if(nargin<3 || isempty(type))
+    if (exist('label') && ~isempty(label) && isnumeric(label))
+        type = {'customize'};
+    else
+        type={'BA','gyrus'};
+    end
+end
 if(~iscellstr(label) && ~isnumeric(label))
     label=cellstr(label);
 end
@@ -102,8 +102,9 @@ if (~isnumeric(label))
         pt=sscanf(label{i},'[%d %d %d]')';
         if(~isempty(pt))
             lstNodes(end+1)=dsearchn(aal.BORDER_XYZ',pt);
+            useMNI=true;
         end
-        useMNI=true;
+        
     end
     
     if(isempty(lst) & isempty(lstNodes))
