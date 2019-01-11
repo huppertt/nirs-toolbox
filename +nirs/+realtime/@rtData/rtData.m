@@ -1,4 +1,7 @@
-classdef Data
+classdef rtData < handle
+% this is a data class but inheriting the handle super class allows
+% this to be passed by references saving data transfer overhead.
+
     %% DATA - Holds NIRS data.
     % 
     % Properties: 
@@ -19,21 +22,30 @@ classdef Data
     
     properties
         description
-        data               % channel time series in columns
         probe;             % object describing geometry
-        time               % vector of time points
         Fm = 0             % modulation frequency in MHz: 0 for CW; 110 for ISS
         auxillary = Dictionary();  % to hold generic time series information
         stimulus        = Dictionary();	% struct containing stim vectors (vectors, names, types)
         demographics    = Dictionary();	% table containing demographics (names, values)
+        
+        updatefunction = {};
+        
+    end
+    properties (Hidden=true)
+        alldata;
+        alltime;
+        datacount;
     end
     
     properties( Dependent = true )
         Fs = 0;             % sampling frequency in Hz
+        data;
+        time;               % vector of time points
+        
     end
 
     methods
-        function obj = Data( data, time, probe, Fm, stimulus, demographics, description )
+        function obj = rtData(probe, Fm, stimulus, demographics, description )
             %% Data - Creates a Data object.
             % 
             % Args:
@@ -45,14 +57,40 @@ classdef Data
             %     demographics - (optional) a Dictionary object containing demographics info
             %     description  - (optional) description of data (e.g. filename)
 
-            if nargin > 0, obj.data         = data;         end
-            if nargin > 1, obj.time         = time;         end
-            if nargin > 2, obj.probe        = probe;        end
-            if nargin > 3, obj.Fm           = Fm;           end
-            if nargin > 4, obj.stimulus     = stimulus;     end
-            if nargin > 5, obj.demographics = demographics; end
-            if nargin > 6, obj.description  = description;  end
+            if nargin > 1, obj.probe        = probe;        end
+            if nargin > 2, obj.Fm           = Fm;           end
+            if nargin > 3, obj.stimulus     = stimulus;     end
+            if nargin > 4, obj.demographics = demographics; end
+            if nargin > 5, obj.description  = description;  end
+            obj.datacount=0;
+          
         end
+        
+        function obj = adddata(obj,d,t)
+            if(isempty(obj.alldata))
+                obj.alldata=nan(1E6,size(d,2));
+                obj.alltime=nan(1E6,1);
+                obj.datacount=0;
+            end
+            
+            for i=1:length(obj.updatefunction)
+                if(~isempty(strfind(class(obj.updatefunction{i}),'nirs.realtime')))
+                    d=obj.updatefunction{i}.update(d,t);
+                end
+            end
+            
+            obj.alldata(obj.datacount+1:obj.datacount+size(d,1),:)=d;
+            obj.alltime(obj.datacount+1:obj.datacount+size(d,1))=t;
+            obj.datacount=obj.datacount+size(d,1);
+        end
+        
+        function d = get.data(obj)
+            d=obj.alldata(1:obj.datacount,:);
+        end
+        function t=get.time(obj)
+            t=obj.alltime(1:obj.datacount);
+        end
+        
         
         function obj = set.stimulus( obj, stim )
            assert( isa(stim,'Dictionary') )
@@ -68,13 +106,7 @@ classdef Data
             assert( isa(auxillary,'Dictionary') )
             obj.auxillary= auxillary;
         end
-        
-        
-        function obj = set.time( obj, time )
-           assert( isvector(time) | isempty(time))
-           obj.time = time(:);
-           
-        end
+       
         
         function out = get.Fs( obj )
             if length(obj.time) > 1
@@ -116,7 +148,7 @@ classdef Data
                 return
             end
             [out.probe.link, idx] = sortrows(out.probe.link, colsToSortBy);
-            out.data = out.data(:,idx);
+            out.alldata = out.alldata(:,idx);
         end
         
         function varargout=draw( obj, lstChannels,adderr,axis_handle )
@@ -131,7 +163,7 @@ classdef Data
             
             % get data
             if (nargin == 1)
-                lstChannels = 1:size(obj(1).data,2);
+                lstChannels = 1:size(obj(1).alldata,2);
                 
             end
             if(nargin<3 || isempty(adderr))
@@ -182,7 +214,7 @@ classdef Data
             
             % plot stim blocks if available
             if ~isempty(s) 
-                s=s./(ones(size(s))*max(s(:)));
+                s=s./(ones(size(s,1),1)*max(s(:)));
                 % min/max of axes
                 pmin = dmin - 0.2*dsize;
                 pmax = dmin - 0.05*dsize;
@@ -244,145 +276,16 @@ classdef Data
             
         end
         
-          function varargout=drawwaterfall( obj, lstChannels,adderr,axis_handle )
-            %% draw - Plots the probe geometry.
-            % 
-            % Args:
-            %     lstChannels - list of channels to show
-            
-            if(nargin<4 || isempty(axis_handle))
-                axis_handle=gca;
-            end
-            
-            % get data
-            if (nargin == 1)
-                lstChannels = 1:size(obj(1).data,2);
-                
-            end
-            if(nargin<3 || isempty(adderr))
-                adderr=false;
-            end
-            
-            if(isempty(lstChannels))
-                % draw a plot, but then turn it off to only show the stim
-                % marks
-                lstChannels=1;
-                showplot=false;
-            else
-                showplot=true;
-            end
-            if(isempty(obj(1).data))
-                lstChannels=[];
-            end
-            
-            if(length(obj)>1)
-                figure;
-                a=round(sqrt(length(obj)));
-                b=ceil(sqrt(length(obj)));
-                for i=1:length(obj)
-                    subplot(a,b,i);
-                    obj(i).draw(lstChannels,adderr);
-                    legend off;
-                end
-                return
-            end
-            
-            t = obj.time;
-            d = obj.data(:,lstChannels);
-            
-            % get stim vecs
-            s = []; k = obj.stimulus.keys;
-            for i = 1:length( obj.stimulus.keys )
-                s = [s obj.stimulus.values{i}.getStimVector( t )];
-            end
-            
-
-            % plots
-            hold(axis_handle,'on');
-            
-            % data min/max/size
-            dmax = max( real(d(:)) );
-            dmin = min( real(d(:)) );
-            dsize = (dmax-dmin);
-            set(axis_handle,'view',[  -44.0191   74.3316])
-            % plot stim blocks if available
-            if ~isempty(s) 
-                s=s./(ones(size(s))*max(s(:)));
-                % min/max of axes
-                pmin = dmin;
-                pmax = dmax;
-
-                % adjust amplitude so stims are visible
-                s = .2*(pmax-pmin)*s + pmin ;
-                
-                % plot
-                waterfall(1, t, s, 'parent',axis_handle );
-                
-                % legend
-                l = legend(axis_handle,k{:});
-                set(l,'Interpreter', 'none');
-           
-            dsize = (dmax-dmin);
-                
-                
-            end
-                % min/max of axes
-               	pmin = dmin - 0.1*dsize;
-                pmax = dmax + 0.1*dsize;
-            
-            
-            % plot data
-            cc=colorcube(size(d,2));
-            for ii=1:size(d,2)
-                h(ii)=plot3(ones(size(t))*(ii+1),t,d(:,ii));
-            end
-            ylabel(axis_handle, 'seconds' );
-            for i = 1:length(obj.stimulus.keys)
-                legend(axis_handle,obj.stimulus.keys)
-            end
-            
-                
-         
-             
-            if(isempty(t) || min(t)==max(t))
-            % axes limits
-             ylim(axis_handle, [0 1] );
-            else
-                ylim(axis_handle, [min(t) max(t)] );
-            end
-            if(isempty(pmin))
-                zlim(axis_handle,[-1 1]);
-            elseif (pmin == pmax)
-                 zlim(axis_handle,pmin + [-1 1]);
-            else
-                zlim(axis_handle, [dmin dmax] );
-            end
-            set(axis_handle,'xlim',[0 (size(d,2)+2)]);
-            set(axis_handle,'YDir','reverse');
-            
-            names{1}='Stim';
-            for i=1:length(lstChannels)
-               type=obj.probe.link.type(lstChannels(i));
-               if(~iscellstr(type))
-                   type=[num2str(type) 'nm'];
-               end
-                names{i+1}=['Src' num2str(obj.probe.link.source(lstChannels(i))) '-Det' ...
-                    num2str(obj.probe.link.detector(lstChannels(i))) ' (' type ')'];
-            end
-            set(axis_handle,'XTick',[1:size(d,2)+1]);
-            set(axis_handle,'XTickLabel',names);
-            set(axis_handle,'XTickLabelRotation',300);
-            
-            if(~showplot)
-                set(h,'visible','off');
-            end
-            
-            if(nargout>0)
-                varargout{1}=h;
-            end
+        function data = convert(obj)
+            data=nirs.core.Data;
+            data.probe=obj.probe;
+            data.stimulus=obj.stimulus;
+            data.demographics=obj.demographics;
+            data.time=obj.time;
+            data.data=obj.data;
+            data.description=obj.description;
             
         end
         
     end
 end
-

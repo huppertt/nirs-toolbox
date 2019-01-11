@@ -234,7 +234,7 @@ classdef Mesh
                 hold(axis_handle,'off');
             end
             %set(gcf,'color','k');
-            set(axis_handle,'color','k');
+            set(axis_handle,'color','w');
             
             %rotate3d(axis_handle,'on');
         end

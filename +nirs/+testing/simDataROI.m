@@ -11,6 +11,41 @@ if isempty(reg_err)
    reg_err = 8; 
 end
 
+if (isempty(noise) && ~isempty(probe))    
+    if (isempty(intersect(probe.optodes.Type, [{'FID-anchor'}, {'FID-attractor'}])))
+        Name{1}='FpZ';
+        %xyz(1,:)=[0 0 0];
+        xyz(1,:)=[randn(1, 2) * reg_err, 0];
+        Type{1}='FID-anchor';  % This is an anchor point
+        Units{1}='mm';
+        
+        %Now let's add a few more
+        Name{2}='Cz';
+        xyz(2,:)=[0 100 0] + [randn(1, 2) * reg_err, 0];
+        Type{2}='FID-attractor';  % This is an attractor
+        Units{2}='mm';
+        
+        Name{3}='T7';
+        xyz(3,:)=[-200 0 0] + [randn(1, 2) * reg_err, 0];
+        Type{3}='FID-attractor';  % This is an attractor
+        Units{3}='mm';
+        
+        Name{4}='T8';
+        xyz(4,:)=[200 0 0] + [randn(1, 2) * reg_err, 0];
+        Type{4}='FID-attractor';  % This is an attractor
+        Units{4}='mm';
+        
+        fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
+            'VariableNames',{'Name','X','Y','Z','Type','Units'});
+        % and concatinate it to the probe
+        probe.optodes=[probe.optodes; fid];
+    end
+    
+    headsize=Dictionary();
+    headsize('circumference')=circum_mean+randn(1)*circum_std;    
+    
+    probe=nirs.util.registerprobe1020(probe,headsize); 
+end
 
 if(nargin<2 || isempty(probe))
     noise = nirs.testing.simARNoise;
@@ -52,8 +87,6 @@ if(nargin<2 || isempty(probe))
     
     probe=nirs.util.registerprobe1020(probe,headsize);    
 end
-
-
 
 if(length(probe)>1)
 

@@ -60,7 +60,7 @@ classdef AddDemographics < nirs.modules.AbstractModule
                     end
                 end
                 if(numel(idx)>1)
-                    error(['Duplicate entry: ' data(i).demographics(obj.varToMatch)]);
+                    warning(['Duplicate entry: ' data(i).demographics(obj.varToMatch)]);
                 end
                     
                 % add demo info from row

@@ -72,7 +72,7 @@ classdef TestPreprocessing < matlab.unittest.TestCase
             obj.od(2).data = d;
             
             % Resample
-           if(verLessThan('signal','7.0'));
+           if(isempty(ver('signal')) || verLessThan('signal','7.0'));
                t=obj.od(2).time;
                ord = floor( length(t) / 10 );
                Fc = 4/obj.od(2).Fs;

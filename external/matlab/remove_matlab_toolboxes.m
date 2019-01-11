@@ -7,7 +7,7 @@ p=path;
 
 
 %keep toolboxs
-keep={'local','eml','coder','matlab','simulink','compiler'};
+keep={'local','eml','coder','matlab','simulink','compiler','javabuilder','stm'};
 fold=dir(fullfile(matlabroot,'toolbox'));
 warning('off','MATLAB:rmpath:DirNotFound');
 for i=1:length(fold)
