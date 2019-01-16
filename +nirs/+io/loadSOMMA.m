@@ -61,6 +61,7 @@ while(~feof(fid))
     str=strcat(dd{:});
     str(strfind(str,','))=' ';
     c=sscanf(str,'%f');
+    c=c(1:floor(size(c,1)/6)*6);
     data{end+1}=reshape(c,6,[])';
     hdr(end).nrows=cnt2-cnt;
     cnt=cnt2;
