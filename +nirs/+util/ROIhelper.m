@@ -132,32 +132,37 @@ end
 
 
 
-    % The region definition is a table, parse it to the contrast vector
-    types=unique(link.type);
-    
-    RNew=cell(length(R)*length(types),1);
-    NamesNew=cell(length(R)*length(types),1);
-    cnt=1;
-     for idx2=1:length(R)
+% The region definition is a table, parse it to the contrast vector
+types=unique(link.type);
+
+RNew=cell(length(R)*length(types),1);
+NamesNew=cell(length(R)*length(types),1);
+cnt=1;
+for idx2=1:length(R)
     for idx=1:length(types)
-       
-            if(iscell(types))
-                RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
-                    'VariableNames',{'type'})]);
-                NamesNew{cnt}=[names{idx2} ':' types{idx}];
-            else
-                RNew{cnt}=ismember(link,[R{idx2} table(repmat([types(idx)],height(R{idx2}),1),...
-                    'VariableNames',{'type'})]);
-                NamesNew{cnt}=[names{idx2} ':' num2str(types(idx))];
-            end
-            
-            if(exist('ContVect'))
-                ContVectNew{cnt}=ContVect{idx2};
-            end
-            cnt=cnt+1;
+        
+        if(iscell(types))
+            RNew{cnt}=ismember(link,[R{idx2} table(repmat({types{idx}},height(R{idx2}),1),...
+                'VariableNames',{'type'})]);
+            NamesNew{cnt}=[names{idx2} ':' types{idx}];
+        else
+            RNew{cnt}=ismember(link,[R{idx2} table(repmat([types(idx)],height(R{idx2}),1),...
+                'VariableNames',{'type'})]);
+            NamesNew{cnt}=[names{idx2} ':' num2str(types(idx))];
         end
+        
+        if(exist('ContVect'))
+            ContVectNew{cnt}=ContVect{idx2};
+        end
+        cnt=cnt+1;
     end
-    R=RNew;
-    namesOld=names;
-    names=NamesNew;
-    ContVect=ContVectNew;
+end
+R=RNew;
+
+for i = 1:length(R)
+    R{i} = ilink(R{i});
+end
+
+namesOld=names;
+names=NamesNew;
+ContVect=ContVectNew;
