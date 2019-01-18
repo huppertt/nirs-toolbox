@@ -242,9 +242,9 @@ elseif(isa(data,'nirs.core.sFCStats'))
 
     
     % change ROIs to sorted indices
-    for i = 1:length(R)
-        R{i} = ilink(R{i});
-    end
+%     for i = 1:length(R)
+%         R{i} = ilink(R{i});
+%     end
     if(~exist('ContVect'))
         for i = 1:length(R)
             ContVect{i} = 1/length(find(R{i}));
@@ -331,9 +331,9 @@ elseif(isa(data,'nirs.core.ChannelFStats'))
     tbl = table;
     
      % change ROIs to sorted indices
-    for i = 1:length(R)
-        R{i} = ilink(R{i});
-    end
+%     for i = 1:length(R)
+%         R{i} = ilink(R{i});
+%     end
     if(~exist('ContVect'))
         for i = 1:length(R)
             ContVect{i} = 1/length(find(R{i}));
@@ -401,9 +401,9 @@ else
     
     
     % change ROIs to sorted indices
-    for i = 1:length(R)
-        R{i} = ilink(R{i});
-    end
+%     for i = 1:length(R)
+%         R{i} = ilink(R{i});
+%     end
     if(~exist('ContVect'))
         for i = 1:length(R)
             ContVect{i} = 1/length(find(R{i}));
@@ -470,7 +470,7 @@ else
     ROIstats.basis=data.basis;
     ROIstats.variables=vvs;
     
-    ROIstats.probe=nirs.core.ProbeROI(names2);
+    ROIstats.probe=nirs.core.ProbeROI(names);
     tbl(isnan(tbl.power),:)=[];    
 end
 
