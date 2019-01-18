@@ -217,6 +217,15 @@ if(nargout>0)
         tbl=repmat(tbl,n,1);
         depth=[tbl table(vertcat(depth{:}),vertcat(region{:}),'VariableNames',{'depth','region'})];
     end
+    
+    if(ismember(type,'customize'))
+        depth2=depth;
+        depth2.region=repmat(cellstr('custom'),height(depth2),1);
+        depth2=unique(depth2);
+    else
+        depth2=table;
+    end
+    
     if (~isnumeric(label))
         if(isempty(find(ismember(alllabels,{'?','*','any'}))))
             depth=depth(ismember(depth.region,alllabels),:);
@@ -238,7 +247,9 @@ if(nargout>0)
             end
         end
         depth(lst,:)=[];
+    
     end
+    depth=[depth; depth2];
     
     varargout{1}=depth;
     return;

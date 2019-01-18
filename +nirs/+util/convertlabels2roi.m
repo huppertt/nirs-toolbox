@@ -8,26 +8,39 @@ if(nargin<2 || isempty(label))
     type={'BA'};
 end
 
+
+useMNI=false;
+% Add any MNI coordinates
+for i=1:length(label)
+    pt=sscanf(label{i},'[%d %d %d]')';
+    if(~isempty(pt))
+       useMNI=true;
+    end
+    
+end
+
+
 if(nargin<3 & ~exist('type','var'))
      type={'BA','gyrus'};
 end
 
-if (isnumeric(label))
+if (useMNI || isnumeric(label))
    type = {'customize'}; 
 end
+
 
     
 d=nirs.util.depthmap(label,probe1020,type);
 regions=unique(d.region(ismember(d.Type,'Link')));
 
-if (~isnumeric(label))
+if (~useMNI & ~isnumeric(label))
     for id=1:length(regions)
-        d=nirs.util.depthmap(regions{id},probe1020);
+        d=nirs.util.depthmap(regions{id},probe1020,type);
         depth(:,id)=d.depth(ismember(d.Type,'Link'));
     end
 else
     for id=1:length(regions)
-        d=nirs.util.depthmap(label(id, :),probe1020);
+        d=nirs.util.depthmap(label(id, :),probe1020,type);
         depth(:,id)=d.depth(ismember(d.Type,'Link'));
     end
 end
