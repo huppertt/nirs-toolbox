@@ -52,6 +52,8 @@ function tbl = createDemographicsTable( data )
                 for j = 1:length(demo.keys)
                     if(isa(demo.values{j},'Dictionary'))
                          tbl(i).(demo.keys{j}) = {demo.values{j}};
+                    elseif(isa(demo.values{j},'char'))
+                        tbl(i).(demo.keys{j}) = cellstr(demo.values{j});
                     else
                     tbl(i).(demo.keys{j}) = demo.values{j};
                     end
