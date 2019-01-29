@@ -1,16 +1,23 @@
-function probe1020=phoebe2toolbox(filename)
+function probe1020=phoebe2toolbox(filename,lambda)
 
 filename=strtok(filename,'.');
 load([filename '.SD'],'-MAT','SD');
 
-if(all(SD.SrcPos(:,3)==0))
-    % 2D probe, see if we can register it via phoebe
-    handles=[];
-    load_atlas;
-    [ handles ] = load_dig_pts( handles, [filename '.txt']); 
-    SD.SrcPos=handles.src_pts;
-    SD.DetPos=handles.det_pts;
+if ~isfield(SD,'Lambda')
+    if(nargin>1)
+        SD.Lambda=lambda;
+    else
+        SD.Lambda = [690 830];
+        warning('Assuming wavelengths = [690 830]');
+    end
 end
+
+% register it via phoebe
+handles=[];
+load_atlas;
+[ handles ] = load_dig_pts( handles, [filename '.txt']);
+SD.SrcPos=handles.src_pts;
+SD.DetPos=handles.det_pts;
 
 
 

@@ -1,6 +1,7 @@
-function h = plot2d(data,adderr)
+function h = plot2d(data,adderr,allonsamefig)
 % This function plots the time-series data in a spatial arrangement
 % according to the probe layout
+
 
 
 [tform,edges]=mapprobe2edges(data.probe,[0.1 0.1 .9 .9],'2D');
@@ -17,14 +18,26 @@ end
 if(nargin<2)
     adderr=false;
 end
+if(nargin<3)
+    allonsamefig=false;
+end
 
 types={};
 for i=1:length(utypes)
     types{i}=utypes{i}(min(strfind(utypes{i},'_'))+1:end);
 end
 [~,~,figIdx]=unique(types);
+
 for idx=1:length(unique(figIdx))
+    if(~ allonsamefig)
     figs(idx)=figure;
+    else
+        if(idx==1)
+            figs(idx)=figure;
+        else
+            figs(idx)=figs(1);
+        end
+    end
     set(figs(idx),'color','w');
     aa(idx)=axes('parent',figs(idx),'units','normalized','position',[0 0 1 1]);
     if(isa(data.probe,'nirs.core.Probe1020'))

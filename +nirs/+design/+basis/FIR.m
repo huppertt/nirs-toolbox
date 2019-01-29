@@ -9,7 +9,7 @@ classdef FIR
     methods
         function out = convert( obj, s, t )
 %             
-%             Fs = 1/(t(2)-t(1));
+
 %             nlag = round(Fs * obj.duration);
 %             
 %             out = lagmatrix(s, 0:nlag);
@@ -23,6 +23,16 @@ classdef FIR
             end
             on = [on( floor(obj.binwidth/2)+1:end ); zeros(floor(obj.binwidth/2),1)];
             
+            if(isstr(obj.nbins))
+               Fs = 1/(t(2)-t(1));
+                if(~isempty(strfind(obj.nbins,'s')))
+                    nsec = str2num(obj.nbins(1:strfind(obj.nbins,'s')-1));
+                    obj.nbins=ceil(nsec*Fs);
+                else(~isempty(strfind(lower(obj.nbins),'fs*')))
+                    nsec = str2num(obj.nbins(strfind(lower(obj.nbins),'fs*')+3:end));
+                    obj.nbins=ceil(nsec*Fs);
+                end
+            end
            if(length(obj.nbins)>1 && obj.nbins(1)<0)
                on=[on; zeros(-obj.binwidth*obj.nbins(1),1)];
                n=sum(abs(obj.nbins))+1;

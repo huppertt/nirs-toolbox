@@ -105,7 +105,7 @@ for j=1:height(tbl2)
     
     tt=tbl2(j,:);
     tt=repmat(tt,stimulus.count,1);
-    tt.type=strcat(tt.type,repmat('-',stimulus.count,1),stimulus.keys(:));
+    tt.type=strcat(tt.type,repmat('_',stimulus.count,1),stimulus.keys(:));
     var=[var; tt];
 end
 

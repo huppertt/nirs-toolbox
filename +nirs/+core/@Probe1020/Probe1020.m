@@ -79,7 +79,11 @@ classdef Probe1020 < nirs.core.Probe
                 'VariableNames',{'Name','X','Y','Z'});
             
             if(~noreg)
-                T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
+                if(height(mesh(1).fiducials)>3)
+                    T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
+                else
+                    T=eye(4);
+                end
                 for idx=1:length(mesh)
                     n=mesh(idx).nodes;
                     n(:,4)=1;
