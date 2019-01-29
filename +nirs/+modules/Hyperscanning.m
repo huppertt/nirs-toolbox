@@ -152,9 +152,9 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                             n1=size(dataA,2)+size(dataB,2);
                             r=zeros(n1,n1,length(s.onset));
                             dfe=zeros(length(s.onset),1);
-                            tmp=nirs.core.Data;
-
-                            for j=1:length(s.onset)
+                            
+                            parfor j=1:length(s.onset)
+                                tmp=nirs.core.Data;
                                 if(obj.verbose)
                                     disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
                                 end
