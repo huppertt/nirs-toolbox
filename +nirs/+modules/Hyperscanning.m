@@ -70,7 +70,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             % Add null distribution pairings
             if obj.estimate_null
                 
-                obj.link.isNull(:) = false;
+                obj.link.isNull = false(height(obj.link),1);
                 
                 % Create list of all file pairings
                 combos = combnk(1:length(data),2);
