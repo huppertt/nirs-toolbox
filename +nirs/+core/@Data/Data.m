@@ -381,7 +381,9 @@ classdef Data
                 varargout{1}=h;
             end
             
-        end
+          end
+        
+          f = gui( obj);
         
     end
 end

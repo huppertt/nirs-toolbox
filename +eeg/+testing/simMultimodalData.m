@@ -33,7 +33,7 @@ if(nargin<3 || isempty(fwdmodel))
     fwd.nirs.Fm=0;
     fwd.nirs.mesh=mesh.mesh(3);
     lambda=unique(data.nirs.probe.link.type);
-    fwd.nirs.prop=nirs.media.tissues.brain(.7,50,lambda);
+    fwd.nirs.prop=nirs.media.tissues.brain(lambda,.7,50);
     fwd.nirs.probe=data.nirs.probe.swap_reg;
     
     fwd.eeg=eeg.forward.FieldTrip;

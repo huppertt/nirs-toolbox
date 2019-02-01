@@ -201,7 +201,7 @@ classdef ChannelStats
         
         printAll( obj, vtype, vrange, thresh, folder, ext );
         
-        
+        f = gui(obj);
         
     end
     

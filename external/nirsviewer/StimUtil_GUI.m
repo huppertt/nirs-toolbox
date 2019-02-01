@@ -22,7 +22,7 @@ function varargout = StimUtil_GUI(varargin)
 
 % Edit the above text to modify the response to help StimUtil_GUI
 
-% Last Modified by GUIDE v2.5 25-Mar-2018 10:17:29
+% Last Modified by GUIDE v2.5 01-Feb-2019 10:12:15
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -762,3 +762,160 @@ function ViewData_Callback(hObject, eventdata, handles)
 % hObject    handle to ViewData (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_1_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_2_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_2 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menu_removegaps_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_removegaps (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+ prompt={'Max Gap duration','Min inter-stim inteval'};
+   name='Remove Gaps';
+   numlines=1;
+   defaultanswer={'2','NaN'};
+   
+   answer=inputdlg(prompt,name,numlines,defaultanswer);
+   job=nirs.modules.RemoveStimGaps;
+   job.maxDuration=str2num(answer{1});
+   job.minISI=str2num(answer{2});
+   job.seperate_conditions=true;
+   
+   raw=get(handles.figure1,'UserData');
+   selected=get(handles.popupmenu1,'value');
+   
+   stimnames=nirs.getStimNames(raw(selected));
+   idx=get(handles.listbox1,'Value');
+   
+   st=raw(selected).stimulus;
+   raw(selected).stimulus=Dictionary;
+   raw(selected).stimulus(stimnames{idx})=st(stimnames{idx});
+   raw(selected)=job.run(raw(selected));
+   st(stimnames{idx})=raw(selected).stimulus(stimnames{idx});
+   raw(selected).stimulus=st;
+   set(handles.figure1,'UserData',raw);
+   StimUtil_GUI('updateDraw');
+
+return
+
+% --------------------------------------------------------------------
+function menu_importtemplate_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_importtemplate (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function Untitled_4_Callback(hObject, eventdata, handles)
+% hObject    handle to Untitled_4 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function menu_duplicate_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_duplicate (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+stimnames=nirs.getStimNames(raw(selected));
+idx=get(handles.listbox1,'Value');
+
+raw(selected).stimulus([stimnames{idx} '_copy'])=raw(selected).stimulus(stimnames{idx});
+   set(handles.figure1,'UserData',raw);
+   StimUtil_GUI('updateDraw');
+
+return
+
+% --------------------------------------------------------------------
+function menu_import_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_import (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+return
+
+% --------------------------------------------------------------------
+function menu_removeodds_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_removeodds (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+stimnames=nirs.getStimNames(raw(selected));
+idx=get(handles.listbox1,'Value');
+st=raw(selected).stimulus(stimnames{idx});
+st.onset(1:2:end)=[];
+st.dur(1:2:end)=[];
+st.amp(1:2:end)=[];
+raw(selected).stimulus(stimnames{idx})=st;
+   set(handles.figure1,'UserData',raw);
+   StimUtil_GUI('updateDraw');
+
+
+return
+
+% --------------------------------------------------------------------
+function menu_removeevens_Callback(hObject, eventdata, handles)
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+stimnames=nirs.getStimNames(raw(selected));
+idx=get(handles.listbox1,'Value');
+st=raw(selected).stimulus(stimnames{idx});
+st.onset(2:2:end)=[];
+st.dur(2:2:end)=[];
+st.amp(2:2:end)=[];
+raw(selected).stimulus(stimnames{idx})=st;
+   set(handles.figure1,'UserData',raw);
+   StimUtil_GUI('updateDraw');
+return
+
+% --------------------------------------------------------------------
+function menu_removecustom_Callback(hObject, eventdata, handles)
+% hObject    handle to menu_removecustom (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+
+
+ prompt={'Enter list to remove'};
+   name='Remove events';
+   numlines=1;
+   defaultanswer={'[1:3:end]'};
+answer=inputdlg(prompt,name,numlines,defaultanswer);
+
+
+stimnames=nirs.getStimNames(raw(selected));
+idx=get(handles.listbox1,'Value');
+st=raw(selected).stimulus(stimnames{idx});
+eval(['st.onset(' answer{1} ')=[];']);
+eval(['st.dur(' answer{1} ')=[];']);
+eval(['st.amp(' answer{1} ')=[];']);
+
+raw(selected).stimulus(stimnames{idx})=st;
+   set(handles.figure1,'UserData',raw);
+   StimUtil_GUI('updateDraw');
+
+return
