@@ -42,7 +42,7 @@ end
 %First deal with the NaN values;
 [ContVect,R,names,namesOld,types]=nirs.util.ROIhelper(data,R,names);
 
-% [link, ilink] = sortrows(link, {'type','source', 'detector'});
+%[link, ilink] = sortrows(link, {'type','source', 'detector'});
 % 
 % allSrc=unique(link.source);
 % allDet=unique(link.detector);

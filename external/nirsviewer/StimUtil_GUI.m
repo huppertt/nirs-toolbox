@@ -70,9 +70,14 @@ end
 
 Filenames={};
 for i=1:length(raw)
-    if(~isempty(raw(i).description) && exist(raw(i).description,'file'))
+    if(~isempty(raw(i).description) && exist(raw(i).description,'file')==2)
         [~,Filenames{i}]=fileparts(raw(i).description);
+    elseif(~isempty(raw(i).description) && exist(raw(i).description,'file')==7)
+        % NIRx data
+        lst=strfind(raw(i).description,filesep);
+        Filenames{i}=raw(i).description(lst(end-2)+1:lst(end)-1);
     else
+        
         Filenames{i}=['File-' num2str(i)];
         raw(i).description=Filenames{i};
     end

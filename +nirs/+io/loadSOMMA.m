@@ -113,15 +113,15 @@ end
 
 function data=parseData(hdr,d)
 data = nirs.core.Data;
-a=1;
-lst=find(d(:,2)==1);
+a=0;
+lst=find(d(:,2)==0);
 lstg=find(diff([-100; lst; 100])>2);
 for i=1:length(lstg)-1
     data1(i,:)=median(d(lst(lstg(i)+a:lstg(i+1)-a),[3:end]));
     t1(i)=mean(d(lst(lstg(i)+a:lstg(i+1)-a),1),1);
 end
 
-lst=find(d(:,2)==2);
+lst=find(d(:,2)==1);
 lstg=find(diff([-100; lst; 100])>2);
 for i=1:length(lstg)-1
     data2(i,:)=median(d(lst(lstg(i)+a:lstg(i+1)-a),[3:end]));
