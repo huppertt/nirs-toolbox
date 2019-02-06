@@ -369,6 +369,13 @@ else
     raw.probe=probe;
 end
 
+if(exist(fullfile(folder,'stimulus.mat')))
+    load(fullfile(folder,'stimulus.mat'))
+    raw.auxillary('stim')=raw.stimulus;
+    raw.stimulus=stimulus;
+end
+
+
 end
 
 
