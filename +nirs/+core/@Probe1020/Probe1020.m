@@ -162,8 +162,37 @@ classdef Probe1020 < nirs.core.Probe
                 obj.zoom=false;
             end
             
+            if ~isempty(strfind(obj.defaultdrawfcn,'3D ball')) && length(varargin)>1
+                obj.defaultdrawfcn = '3D Mesh';
+            end
+            
             if(~isempty(strfind(obj.defaultdrawfcn,'10-20 map')));
                 l=draw1020interp(obj,varargin{:});
+            elseif(~isempty(strfind(lower(obj.defaultdrawfcn),'3d ball')))
+                if(strfind(obj.defaultdrawfcn,'('))
+                    v=obj.defaultdrawfcn(strfind(obj.defaultdrawfcn,'(')+1:end);
+                    v=v(1:strfind(v,')')-1);
+                else
+                    v='frontal';
+                end
+                
+                l=draw3d_ballandstick(obj,varargin{:});
+                axis_handle=[];
+                for i=1:length(varargin)
+                    if(isa(varargin{i},'matlab.ui.control.UIAxes') | isa(varargin{i},'matlab.graphics.axis.Axes'))
+                        axis_handle=varargin{i};
+                    end
+                end
+                if(isempty(axis_handle))
+                    axis_handle=gca;
+                end
+
+
+                mesh=obj.getmesh;
+                h=mesh.draw([],[],[],[],axis_handle);
+                axis(axis_handle,'tight');
+                nirs.util.rotateview(get(h(1),'Parent'),v);
+
             elseif(~isempty(strfind(obj.defaultdrawfcn,'3D')));
                
                 if(strfind(obj.defaultdrawfcn,'('))
@@ -191,7 +220,6 @@ classdef Probe1020 < nirs.core.Probe
                     axis(axis_handle,'tight');
                     nirs.util.rotateview(get(h(1),'Parent'),v);
                 end
-                
             elseif(~isempty(strfind(obj.defaultdrawfcn,'10-20')));
                 l=draw1020(obj,varargin{:});
             else
@@ -228,6 +256,7 @@ classdef Probe1020 < nirs.core.Probe
                 '3D mesh (back)', '3D line drawing overlain on mesh';...
                 '3D mesh (inferior)', '3D line drawing overlain on mesh';...
                 '3D mesh (bottom)', '3D line drawing overlain on mesh';...
+                '3D ball', '3D ball and stick drawing overlain on mesh';...
                 '2D', '2D probe layout'};
             
             if(~isempty(str))
@@ -356,6 +385,80 @@ classdef Probe1020 < nirs.core.Probe
                     d = detector(j);
                     h(i)=line(axis_handle,Pos([lstS(s) lstD(d)],1),Pos([lstS(s) lstD(d)],2),Pos([lstS(s) lstD(d)],3),'Color', colors(i, :), lineStyles{i, :});
                     set(h(i),'UserData',[s d]);
+                end
+            end
+            
+            axis(axis_handle,'equal');
+            
+            if(nargout>0)
+                varargout{1}=h;
+            end
+            
+        end
+        
+        function varargout=draw3d_ballandstick(obj,axis_handle)
+            
+            if(~isempty(obj.link))
+                if isnumeric(obj.link.type)
+                    link = obj.link(obj.link.type==obj.link.type(1),1:2);
+                else
+                    link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+                end
+            else
+                link=table;
+            end
+            
+            n = height(link);
+                        
+            if nargin < 2
+                axis_handle = axes();
+            end
+            
+            % Points from the probe
+            Pos(:,1)=obj.optodes_registered.X;
+            Pos(:,2)=obj.optodes_registered.Y;
+            Pos(:,3)=obj.optodes_registered.Z;
+            
+            hold(axis_handle,'on');
+            
+            % Create shapes for 3D probe rendering
+            [x_sph,y_sph,z_sph] = sphere(50);
+            x_sph = 4*x_sph;
+            y_sph = 4*y_sph;
+            z_sph = 4*z_sph;
+            
+            % Draw optodes
+            lstS=find(ismember(obj.optodes_registered.Type,'Source'));
+            lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
+            src_coord = Pos(lstS,:);
+            det_coord = Pos(lstD,:);
+            for i=1:size(src_coord,1)
+                surf(axis_handle, x_sph+src_coord(i,1), y_sph+src_coord(i,2), z_sph+src_coord(i,3) ,[],'FaceColor',[1 0 0],'EdgeAlpha',0);
+            end
+            for i=1:size(det_coord,1)
+                surf(axis_handle, x_sph+det_coord(i,1), y_sph+det_coord(i,2), z_sph+det_coord(i,3) ,[],'FaceColor',[0 0 1],'EdgeAlpha',0);
+            end
+            
+            % Draw channels
+            h=[];
+            for i=1:height(link)
+                if iscell(link.source(i))
+                    source = link.source{i};
+                    detector = link.detector{i};
+                else
+                    source = link.source(i);
+                    detector = link.detector(i);
+                end
+                for j=1:length(source)
+                    s = source(j);
+                    d = detector(j);
+                    
+                    src = Pos(lstS(s),:);
+                    det = Pos(lstD(d),:);
+
+                    [x,y,z] = cylinder2P(2,100,src,det);
+                    surf(x,y,z,[],'FaceColor',[0 1 0],'EdgeAlpha',0);
+
                 end
             end
             
