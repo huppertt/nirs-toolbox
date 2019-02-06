@@ -349,7 +349,7 @@ if(registerprobe)
         %     XYZ=[SrcPos3D; DetPos3D; FID3D];
         %
         %     fidPts=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Type,'FID-anchor'),:);
-        %     XYZ_reg=[fidPts.X fidPts.Y fidPts.Z];
+        %     XYZ_reg=[fidPts.X fidPts.Y fidPts.Z];x
         %     XYZ_reg(:,4)=1;
         %     FID3D(:,4)=1;
         %     XYZ(:,4)=1;
