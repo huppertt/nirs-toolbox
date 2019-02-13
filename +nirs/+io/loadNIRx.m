@@ -70,6 +70,14 @@ end
 %     info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
 % end
 
+if(~isempty(dir(fullfile(folder,'*_SDmask.mat'))))
+    fi=dir(fullfile(folder,'*_SDmask.mat'));
+    load(fullfile(folder,fi(1).name));
+    disp('loading mask from file');
+    info.S_D_Mask=SD_mask;
+end
+    
+
 [s,d]=find(info.S_D_Mask);
 
 
@@ -373,6 +381,7 @@ if(exist(fullfile(folder,'stimulus.mat')))
     load(fullfile(folder,'stimulus.mat'))
     raw.auxillary('stim')=raw.stimulus;
     raw.stimulus=stimulus;
+    disp('loading stim-events from file');
 end
 
 
