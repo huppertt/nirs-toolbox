@@ -113,29 +113,36 @@ end
 
 function data=parseData(hdr,d)
 data = nirs.core.Data;
-a=0;
-lst=find(d(:,2)==0);
-lstg=find(diff([-100; lst; 100])>2);
-for i=1:length(lstg)-1
-    data1(i,:)=median(d(lst(lstg(i)+a:lstg(i+1)-a),[3:end]));
-    t1(i)=mean(d(lst(lstg(i)+a:lstg(i+1)-a),1),1);
-end
 
-lst=find(d(:,2)==1);
-lstg=find(diff([-100; lst; 100])>2);
-for i=1:length(lstg)-1
-    data2(i,:)=median(d(lst(lstg(i)+a:lstg(i+1)-a),[3:end]));
-    t2(i)=mean(d(lst(lstg(i)+a:lstg(i+1)-a),1),1);
+for i=3:6
+    dd=medfilt1(d(:,i),3);
+    for j=2:size(dd,1)-1; 
+        d1(j,i-2)=min(dd(j-1:j+1)); 
+        d2(j,i-2)=max(dd(j-1:j+1)); 
+    end;
 end
+d1=medfilt1(d1,11);
+d2=medfilt1(d2,11);
 
-fs=1000/mean([median(diff(t2)) median(diff(t1))]);
+fs=1000./mean(diff(d(:,1)));
+[fa,fb]=butter(4,10*2/fs);
+d1=filtfilt(fa,fb,d1);
+d2=filtfilt(fa,fb,d2);
+
+t=d(1:end-1,1);
 fs=fix(fs*50)/50;
-time=min(t1(1),t2(1))/1000:1/fs:max(t1(end),t2(end))/1000;
+time=t(1)/1000:1/fs:t(end-2)/1000;
 
-for i=1:size(data1,2)
-    d1(:,i)=interp1(t1/1000,data1(:,i),time,'spline','extrap');
-    d2(:,i)=interp1(t2/1000,data2(:,i),time,'spline','extrap');
+
+for i=1:size(d1,2)
+    dd1(:,i)=interp1(t/1000,d1(:,i),time,'spline','extrap');
+    dd2(:,i)=interp1(t/1000,d2(:,i),time,'spline','extrap');
 end
+dd2=2^12-dd2;
+dd1=2^12-dd1;
+% 
+% dd1=dd2-dd1;
+
 
 srcPos=[0 0 0];
 detPos=[0 10 0;
@@ -158,7 +165,7 @@ if(~isempty(hdr.marks))
     data.stimulus('Mark')=stim;
 end
 data.time=time-time(1);
-data.data=2^16/2-[d1 d2];
+data.data=[dd2 dd1];
 data.demographics('subject')=hdr.info.SubjID;
 data.demographics('date')=hdr.info.Date;
 data.demographics('site')=hdr.info.Site;

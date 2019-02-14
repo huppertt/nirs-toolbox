@@ -58,7 +58,7 @@ fwdnirs=nirs.forward.ApproxSlab;
 fwdnirs.Fm=0;
 fwdnirs.mesh=Colin.mesh(3);
 lambda=unique(NIRS_Stats.probe.link.type);
-fwdnirs.prop=nirs.media.tissues.brain(.7,50,lambda);
+fwdnirs.prop=nirs.media.tissues.brain(lambda,.7,50);
 fwdnirs.probe=NIRS_Stats.probe.swap_reg;
 JacobNIRS=fwdnirs.jacobian('spectral');
 
