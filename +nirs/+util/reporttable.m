@@ -43,7 +43,7 @@ for idx=1:height(tbl)
         else
             if(iscell(entry)); entry=entry{1}; end;
             if(isnumeric(entry)); entry=num2str(entry); end;
-            
+            if(islogical(entry)); if(entry); entry='true'; else entry='false'; end; end;
             
             cfr_text{cnt} = rptgen.cfr_text('Content',entry);
             set(cfr_paragraph{cnt},'ParaTextComp',cfr_text{cnt});

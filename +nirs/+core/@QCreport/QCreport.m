@@ -161,7 +161,7 @@ classdef QCreport
             
         end
         
-        function draw(obj,type)
+        function f=draw(obj,type)
             % types can be: SNI, SNR, Mean, Median, Max, Min, Motion, KPSS,
             % ADtest
             
@@ -225,7 +225,7 @@ classdef QCreport
             colors = cmap(idx, :);
             
             u=unique(obj.probe.link.type);
-            figure;
+            f=figure;
             for i=1:length(u);
                 lst=ismember(obj.probe.link.type,u(i));
                 h=subplot(length(u),1,i);
@@ -242,7 +242,7 @@ classdef QCreport
         end
         
         
-        function plot(obj,type,chan)
+        function f=plot(obj,type,chan)
             
             types={'motion','innovations','autocorr','dist',...
                 'logdist','student','integral',...
@@ -338,7 +338,7 @@ classdef QCreport
                     t=obj.time;
             end
             clear dd;
-            figure;
+            f=figure;
             plot(t,d(:,chan),'color',[.6 .6 .6]);
             hold on;
             if(length(chan)>2)
@@ -357,9 +357,261 @@ classdef QCreport
             
         end
         
-        
+        function writePDF(obj,filename)
+            filename=strtok(filename,'.');
+            files={};
+            
+            rpt = RptgenML.CReport('Description','This is a report generated for the nirs.core.chanstats variable',...
+                'FilenameName',filename,'FilenameType','other','DirectoryType','pwd');
+            set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
+            
+            cfr_titlepage = rptgen.cfr_titlepage;
+            cfr_titlepage.Title='NIRS Analysis Report';  %TODO - add some info here
+            cfr_titlepage.Subtitle=['Analysis run on ' datestr(now)];
+            setParent(cfr_titlepage,rpt);
+            
+            cfr_section1 = rptgen.cfr_section('StyleName','rgChapterTitle',...
+                'SectionTitle',['Quality Report']);
+            setParent(cfr_section1,rpt);
+            
+             
+            addrptstr(cfr_section1,['NIRS Quality Report (' obj.class ')']);
+            addrptstr(cfr_section1,'----------------------------------------------');
+             if(~isempty(obj.description))
+                 addrptstr(cfr_section1,['Description: ' obj.description]);
+             end
+             addrptstr(cfr_section1,['Scan length: ' num2str(obj.time(end)-obj.time(1)) 's '...
+                 ' [ ' num2str(length(obj.time)) ' samples ]']);
+             u=unique(obj.probe.link.type);
+             str='';
+             for i=1:length(u)
+                 if(iscellstr(u))
+                     str=[str ' ' u{i}];
+                 else
+                     str=[str ' ' num2str(u(i)) 'nm'];
+                 end
+             end
+             addrptstr(cfr_section1,['Number of Channels: ' num2str(height(obj.probe.link)) ...
+                 ' [' str ' ]'],true);
+            if(strcmp(obj.class,'nirs.core.Data') & isnumeric(u))
+                SNR=median(obj.data)./std(obj.data);
+                addrptstr(cfr_section1,['SNR: ' num2str(median(SNR)) ' [ ' num2str(min(SNR)) '-'...
+                    num2str(max(SNR)) ' ]']);
+                for i=1:length(u)
+                    if(iscellstr(u))
+                        str=u{i};
+                    else
+                        str=[num2str(u(i)) 'nm'];
+                    end
+                    lst=find(ismember(obj.probe.link.type,u(i)));
+                    SNRa=median(obj.data(:,lst))./std(obj.data(:,lst));
+                    addrptstr(cfr_section1,['     ' num2str(median(SNRa)) ' [ ' num2str(min(SNRa)) '-'...
+                        num2str(max(SNRa)) ' ] @' str]);
+                end
+                tcric=2*-tinv(0.05,size(obj.data,2));
+                addrptstr(cfr_section1,['  ' num2str(length(find(zscore(SNR)>tcric))) ' outliers @p<0.05']);
+                
+            end
+            
+            %-------
+            SNI=mad(obj.data,1,1)./mad(obj.inn,1,1);
+            addrptstr(cfr_section1,['SNI: ' num2str(median(SNI)) ' [ ' num2str(min(SNI)) '-'...
+                num2str(max(SNI)) ' ]'],true);
+            for i=1:length(u)
+                if(iscellstr(u))
+                    str=u{i};
+                else
+                    str=[num2str(u(i)) 'nm'];
+                end
+                lst=find(ismember(obj.probe.link.type,u(i)));
+                SNIa=mad(obj.data(:,lst),1,1)./mad(obj.inn(:,lst),1,1);
+                addrptstr(cfr_section1,['     ' num2str(median(SNIa)) ' [ ' num2str(min(SNIa)) '-'...
+                    num2str(max(SNIa)) ' ] @' str]);
+            end
+            tcric=2*-tinv(0.05,size(obj.data,2));
+            addrptstr(cfr_section1,['     ' num2str(length(find(zscore(SNI)>tcric))) ' outliers @p<0.05']);
+            
+            %-------
+            tcric=2*-tinv(0.05,length(obj.data));
+            mocoevents(1)=length(find(max(zscore(obj.inn)')>tcric))/length(obj.data);
+            tcric=2*-tinv(0.01,length(obj.data));
+            mocoevents(2)=length(find(max(zscore(obj.inn)')>tcric))/length(obj.data);
+            addrptstr(cfr_section1,['Motion events: ' num2str(100*mocoevents(1)) '% @ p<0.05'],true);
+            addrptstr(cfr_section1,['     ' num2str(100*mocoevents(2)) '% @ p<0.01']);
+            
+            
+            
+            addrptstr(cfr_section1,'---------------------------------');
+            a=rptgen.cfr_paragraph('ParaText','Demographics:');
+            setParent(a,cfr_section1);
+            tbl=nirs.createDemographicsTable(obj);
+            
+            
+            addrptstr(cfr_section1,'---------------------------------');
+            cfr_table=nirs.util.reporttable(tbl);
+            setParent( cfr_table, cfr_section1);
+            
+            tbl=obj.table;
+            tbl2=tbl;
+            
+            tbl.Median=[];
+            tbl.Anderson_Darling=[];
+            tbl.KPSS=[];
+            tbl.MotionFraction=[];
+            tbl.Outlier=[];
+            
+            addrptstr(cfr_section1,'---------------------------------');
+            cfr_table=nirs.util.reporttable(tbl);
+            sectionSumm = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle','SNR Summary');
+            setParent(cfr_table,sectionSumm);
+            
+            
+            f=obj.draw('SNI');
+            files{end+1}=['tmp_' num2str(length(files)) '.jpg'];
+            saveas(f,files{end},'jpg');
+            close(f);
+            addrptimage(sectionSumm,files{end},7);
+            setParent(sectionSumm,rpt);
+            
+            tbl2.Mean=[];
+            tbl2.Outlier=[];
+            tbl2.Median=[];
+            tbl2.SNI=[];
+            tbl2.SNR=[];
+            tbl2.StdErr=[];
+            cfr_table2=nirs.util.reporttable(tbl2);
+            sectionSumm2 = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle','Motion Summary');
+            setParent(cfr_table2,sectionSumm2);
+            
+           
+            f=obj.plot('motion');
+            files{end+1}=['tmp_' num2str(length(files)) '.jpg'];
+            saveas(f,files{end},'jpg');
+            close(f);
+            addrptimage(sectionSumm2,files{end},7);
+            setParent(sectionSumm2,rpt);
+             
+            %----------------------
+            cfr_section2 = rptgen.cfr_section('StyleName','rgChapterTitle',...
+                'SectionTitle',['Task Events']);
+            
+            
+            keys=obj.stimulus.keys;
+            for i=1:length(keys)
+                sectionSumm2 = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle',keys{i});
+                
+                stim=obj.stimulus(keys{i});
+                addrptstr(sectionSumm2,['Event: ' keys{i}]);
+                addrptstr(sectionSumm2,['       ' num2str(length(stim.onset)) ' events']);
+                addrptstr(sectionSumm2,['       ' num2str(mean(stim.dur)) ...
+                    ' duration [' num2str(min(stim.dur)) '-' num2str(max(stim.dur)) ']' ]);
+                
+                onsets=stim.onset;
+                duration=stim.dur;
+                amplitude=stim.amp;
+                cfr_table2=nirs.util.reporttable(table(onsets,duration,amplitude));
+                setParent(cfr_table2,sectionSumm2);
+            
+                setParent(sectionSumm2,cfr_section2);
+            end
+            setParent(cfr_section2,rpt);
+            
+            f=figure;
+            t=obj.time;
+            s = []; k = obj.stimulus.keys;
+            for i = 1:length( obj.stimulus.keys )
+                s = [s obj.stimulus.values{i}.getStimVector( t )];
+            end
+            s=s./(ones(size(s))*max(s(:)));
+            % min/max of axes
+           
+            % plot
+            plot(t, s, 'LineWidth', 3 );
+            
+            % legend
+            l = legend(keys{:});
+            set(l,'Interpreter', 'none');
+            xlabel('time (sec)');
+            files{end+1}=['tmp_' num2str(length(files)) '.jpg'];
+            saveas(f,files{end},'jpg');
+            close(f);
+            addrptimage(cfr_section2,files{end},7);
+            
+            %--------
+             cfr_section3 = rptgen.cfr_section('StyleName','rgChapterTitle',...
+                'SectionTitle',['Data']);
+            link=obj.probe.link;
+            ulink=link;
+            ulink.type=[];
+            ulink=unique(ulink);
+            for i=1:height(ulink)
+                lst=find(link.source==ulink.source(i) & link.detector==ulink.detector(i));
+                
+                sectionSumm = rptgen.cfr_section('StyleName','rgChapterTitle','SectionTitle',['Src-' num2str(ulink.source(i)) ...
+                    ':' 'Det-' num2str(ulink.detector(i))]);
+                
+                f=figure;
+                plot(obj.time,obj.data(:,lst));
+                set(gca,'ylim',[min(obj.data(:)) max(obj.data(:))]);
+                xlabel('time (sec)');
+                files{end+1}=['tmp_' num2str(length(files)) '.jpg'];
+                saveas(f,files{end},'jpg');
+                close(f);
+                addrptimage(sectionSumm,files{end},[7 2]);
+                
+                setParent(sectionSumm,cfr_section3);
+            end
+            
+          setParent(cfr_section3,rpt);
+            
+            
+            
+            
+            set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
+            report(rpt);
+            
+            for i=1:length(files);
+                delete(files{i});
+            end
+            
+        end
         
         
     end
     
 end
+
+function addrptstr(parent,str,isbold)
+
+a=rptgen.cfr_paragraph('ParaText',str);
+a.ParaTextComp.isLiteral=true;
+if(nargin>2)
+    a.ParaTextComp.isBold=isbold;
+end
+setParent(a,parent);
+end
+
+
+function addrptimage(parent,file,siz)
+
+if(nargin>2)
+    n=siz(1);
+    if(length(siz)==1)
+        n2=siz(1);
+    else
+        n2=siz(2);
+    end
+else
+    n=4;
+    n2=4;
+end
+
+a=rptgen.cfr_image('MaxViewportSize',[n n2],...
+    'ViewportSize',[n n2],...
+    'ViewportType','fixed',...
+    'DocHorizAlign','center');
+
+a.FileName=file;
+setParent(a,parent);
+end
+
