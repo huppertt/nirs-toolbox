@@ -2,7 +2,7 @@ function sd = probe2sd( probe )
 %UNTITLED2 Summary of this function goes here
 %   Detailed explanation goes here
         
-    assert( isnumeric(probe.link.type) )
+    assert( isnumeric(probe.link.type), 'Must use Intensity or Optical Density probe (i.e. before applying Beer-Lambert)' )
     
     [~,~,iWL] = unique( probe.link.type );
     

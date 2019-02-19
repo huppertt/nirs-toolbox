@@ -227,7 +227,7 @@ classdef RegisterProbe < nirs.modules.AbstractModule
 
             % Assign outputs
             probe1020 = nirs.core.Probe1020;
-            probe1020.optodes = probe.optodes;
+            probe1020.optodes = optodes;
             probe1020.optodes_registered = optodes;
             probe1020.link = probe.link;
             probe1020 = probe1020.register_mesh2probe(fwdBEM.mesh);
