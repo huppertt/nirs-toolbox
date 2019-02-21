@@ -36,7 +36,7 @@ function tbl = createDemographicsTable( data )
                         elseif(isstr(demo{k}.values{j}) && ~strcmp(tbl(i).(demo{k}.keys{j}),demo{k}.values{j}))
                             
                             tbl(i).([demo{k}.keys{j} '_' num2str(k)]) = demo{k}.values{j};
-                        elseif(tbl(i).(demo{k}.keys{j}) ~= demo{k}.values{j})
+                        elseif(~isequaln(tbl(i).(demo{k}.keys{j}), demo{k}.values{j}))
                             tbl(i).([demo{k}.keys{j} '_' num2str(k)]) = demo{k}.values{j};
                         end
                     end

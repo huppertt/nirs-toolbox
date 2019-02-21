@@ -39,4 +39,29 @@ end
 % Convert to table
 tbl=cell2table(outcell(:,sidx),'VariableNames',fields(sidx));
 
+% Prune duplicate hyperscanning fields
+if iscell(data(1).demographics) && length(data(1).demographics)>1
+    origfields = sort(data(1).demographics{1}.keys);
+    for i = 1:length(origfields)
+        
+        % Check if fields are duplicates
+        isduplicate = true;
+        for j = 2:length(data(1).demographics)
+            tmpkey = strcat(origfields{i},'_',num2str(j));
+            if ~isequaln(tbl.(origfields{i}),tbl.(tmpkey))
+                isduplicate = false;
+            end
+        end
+        
+        % Remove duplicate fields
+        if isduplicate
+            for j = 2:length(data(1).demographics)
+                tmpkey = strcat(origfields{i},'_',num2str(j));
+                tbl.(tmpkey) = [];
+            end 
+        end
+        
+    end
+end
+
 end
