@@ -79,6 +79,10 @@ function stats = ar_irls( d,X,Pmax,tune )
     for i = 1:nChan
         y = d(:,i);
         
+        if ~any(y)  % In case y is all zeros (e.g., null hb)...
+            y = sqrt(0.01)*randn(length(y),1);  %...a non-null vector prevents a robustfit error without creating false positives 
+        end
+            
         % initial fit
         B = X \ y;
         B0 = 1e6*ones(size(B));
