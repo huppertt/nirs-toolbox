@@ -146,8 +146,10 @@ classdef QCreport
             w=sqrt(w);
             MotionFraction=(1-sum(w,1)/length(w))';
             
+           
             for i=1:size(obj.data,2)
                 [~,Anderson_Darling(i,1)]=adtest(obj.inn(:,i));
+                 warning('off','econ:kpsstest:StatTooSmall');
                 [~,p]=kpsstest(obj.inn(:,i));
                 if(p==0.1)
                     KPSS{i,1}='--';

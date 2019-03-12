@@ -70,8 +70,8 @@ end
 %     info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
 % end
 
-if(~isempty(dir(fullfile(folder,'*_SDmask.mat'))))
-    fi=dir(fullfile(folder,'*_SDmask.mat'));
+if(~isempty(dir(fullfile(folder,'*SDmask.mat'))))
+    fi=dir(fullfile(folder,'*SDmask.mat'));
     load(fullfile(folder,fi(1).name));
     disp('loading mask from file');
     info.S_D_Mask=SD_mask;
