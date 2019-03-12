@@ -11,8 +11,11 @@ function out = getspectra( lambda )
 % D. J. Segelstein, "The complex refractive index of water," University of
 % Missouri-Kansas City, (1981).
 
-    load([fileparts(which('nirs.media.getspectra')) filesep 'spectra.mat'])
-
+    try
+        load([fileparts(which('nirs.media.getspectra')) filesep 'spectra.mat'])
+    catch
+        load('spectra.mat');
+    end
     if(iscell(lambda))
         lambda=str2num(cell2mat(lambda));
     end

@@ -37,6 +37,7 @@ for i=1:length(fileExt)
             tmp = loadFunc{i}( files(iFile).name );
         catch
             warning(['error reading file: ' files(iFile).name]);
+            disp(lasterr)
             continue;
         end
         % NIRx data uses folders instead of files... back up one

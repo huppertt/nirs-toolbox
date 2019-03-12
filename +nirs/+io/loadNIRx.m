@@ -21,12 +21,12 @@ file = dir(fullfile(folder,'*.hdr'));
 if(isempty(file)); raw=[]; return; end;
 info = parsehdr(fullfile(folder,file(1).name));
 
+
 %now read the probeInfo file and convert to a probe class
 file = dir(fullfile(folder,'*robeInfo.mat'));
 if(isempty(file)); raw=[]; return; end;
 
 load(fullfile(folder,file(1).name)); % --> probeInfo
-
 
 SrcPos = probeInfo.probes.coords_s2;
 SrcPos(:,3)=0;
@@ -126,6 +126,8 @@ end
 probe.optodes.X=scale*probe.optodes.X;
 probe.optodes.Y=scale*probe.optodes.Y;
 probe.optodes.Z=scale*probe.optodes.Z;
+
+
 
 %% Now, let's get the data
 raw = nirs.core.Data();
@@ -264,6 +266,7 @@ else
     
 end
 
+
 if(registerprobe)
     probe1020=nirs.util.registerprobe1020(probe);
     
@@ -287,9 +290,10 @@ if(registerprobe)
         BEM(3).transparency=1;
     else
         %new NIRx data format
-        C27=nirs.registration.Colin27.BEM;
+         C27=nirs.registration.Colin27.BEM;
         BEM=C27.mesh;
     end
+  
     % This will allow NIRFAST to directly use the info for the BEM model
     lambda=unique(probe.link.type);
     prop{1} = nirs.media.tissues.skin(lambda);

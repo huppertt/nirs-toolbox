@@ -20,7 +20,11 @@ end
  folder=fileparts(a); 
  
 if(exist(fullfile(folder,'ColinBEM.mat'))==2 && ~force)
-    load(fullfile(folder,'ColinBEM.mat'));
+    try
+        load(fullfile(folder,'ColinBEM.mat'));
+    catch
+        load('ColinBEM.mat')
+    end
     
     if(nargin>0)
         prop{1} = nirs.media.tissues.skin(lambda);

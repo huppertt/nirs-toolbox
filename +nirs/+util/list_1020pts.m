@@ -1,8 +1,15 @@
 function varargout = list_1020pts(str,headsize)
 
+try
 fid=fopen(which('ext1020.sfp'),'r');
 marker=textscan(fid,'%s\t%d\t%d\t%d');
 fclose(fid);
+catch
+    fid=fopen('ext1020.sfp','r');
+marker=textscan(fid,'%s\t%d\t%d\t%d');
+fclose(fid);
+
+end
 
 XYZ(:,1)=double(marker{2});
 XYZ(:,2)=double(marker{3});
