@@ -261,9 +261,10 @@ else
     % and concatinate it to the probe
     probe.optodes=[probe.optodes(:,1)  [fidS2(:,2:end); fidD2(:,2:end)]; fidS; fidD];
     probe.optodes(ismember(probe.optodes.Name,''),:)=[];
-    probeInfo.probes.index_s=find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s));
-    probeInfo.probes.index_d=find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d));
-    
+    [log,idx] = ismember(probeInfo.probes.labels_s,probeInfo.geom.NIRxHead.ext1020sys.labels);
+    probeInfo.probes.index_s = idx(log);
+    [log,idx] = ismember(probeInfo.probes.labels_d,probeInfo.geom.NIRxHead.ext1020sys.labels);
+    probeInfo.probes.index_d = idx(log);
 end
 
 
