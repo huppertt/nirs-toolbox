@@ -30,6 +30,7 @@ mesh=nirs.core.Mesh(vertices(:,2:4),faces(:,2:4));
 fid=table({'nas';'rpa';'lpa'},fiducials(:,1),fiducials(:,2),fiducials(:,3),repmat(cellstr('10-20'),3,1),repmat(cellstr('mm'),3,1),...
     'VariableNames',{'Name','X','Y','Z','Type','Units'}); 
 mesh=mesh.addfiducials(fid);
+mesh.transparency = .4;
 
 probe1020=nirs.core.Probe1020;
 probe1020.optodes_registered=probe.optodes;
