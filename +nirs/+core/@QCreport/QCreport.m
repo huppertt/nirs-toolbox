@@ -368,8 +368,9 @@ classdef QCreport
             set(rpt,'Format','pdf-fop','Stylesheet','fo-NoChapterNumbers');
             
             cfr_titlepage = rptgen.cfr_titlepage;
-            cfr_titlepage.Title='NIRS Analysis Report';  %TODO - add some info here
+            cfr_titlepage.Title=['NIRS Report: ' filename];  %TODO - add some info here
             cfr_titlepage.Subtitle=['Analysis run on ' datestr(now)];
+            cfr_titlepage.Abstract=filename;
             setParent(cfr_titlepage,rpt);
             
             cfr_section1 = rptgen.cfr_section('StyleName','rgChapterTitle',...
@@ -553,8 +554,10 @@ classdef QCreport
                     ':' 'Det-' num2str(ulink.detector(i))]);
                 
                 f=figure;
-                plot(obj.time,obj.data(:,lst));
-                set(gca,'ylim',[min(obj.data(:)) max(obj.data(:))]);
+%                 plot(obj.time,obj.data(:,lst));
+%                 set(gca,'ylim',[min(obj.data(:)) max(obj.data(:))]);
+                plot(obj.time,obj.data(:,lst), 'linewidth', 2);
+                set(gca,'fontsize',22);
                 xlabel('time (sec)');
                 files{end+1}=['tmp_' num2str(length(files)) '.jpg'];
                 saveas(f,files{end},'jpg');
