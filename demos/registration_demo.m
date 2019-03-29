@@ -73,7 +73,7 @@ Units{4}='mm';
 % fiducials
 fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
     'VariableNames',{'Name','X','Y','Z','Type','Units'});
-% and concatinate it to the probe
+
 probe.optodes=[probe.optodes; fid];
 % NOTE- these fiducials are automatically imported from the AtlasViewer
 % format when you use the command nirs.util.sd2probe

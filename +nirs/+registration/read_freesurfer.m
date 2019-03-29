@@ -1,34 +1,74 @@
-function fwdModel = read_freesurfer(SubjectsDIR,lambda)
-
+function varargout = read_freesurfer(SubjectsDIR,lambda)
+% this function reads in a subject folder which has been analyzed in
+% freesurfer format and imports the data as a BEM model within the toolbox
 
 if(nargin<2)
     lambda=[690 830];
 end
 
-% this assumes MNI watershed has been run
+readMRI=true;
+if(exist(fullfile(SubjectsDIR,'bem'),'dir')==7)
+    try
+        disp('Loading skin/skull from MNE-watershed models');
+        readMRI=false;
+        % this assumes MNI watershed has been run
+        f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skin_surface')); ...
+            rdir(fullfile(SubjectsDIR,'bem','outer_skin.surf'))];
+        
+        [nodes,faces]=read_surf(f(1).name);
+        mesh(1,1)=nirs.core.Mesh(nodes,faces+1);
+        mesh(1).transparency=.1;
+        f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skull_surface')) ...
+            rdir(fullfile(SubjectsDIR,'bem','outer_skull.surf'))];
+        [nodes,faces]=read_surf(f(1).name);
+        mesh(2,1)=nirs.core.Mesh(nodes,faces+1);
+        mesh(2).transparency=.2;
+        f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_inner_skull_surface'))...
+            rdir(fullfile(SubjectsDIR,'bem','inner_skull.surf'))];
+        [nodes,faces]=read_surf(f(1).name);
+        mesh(3,1)=nirs.core.Mesh(nodes,faces+1);
+        mesh(3).transparency=.2;
+    catch
+         disp('MNE-watershed failed');
+        readMRI=true;
+    end
+ 
+end
 
-f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skin_surface')); ...
-    rdir(fullfile(SubjectsDIR,'bem','outer_skin.surf'))];
+if(readMRI)
+     disp('Loading skin/skull from volume models');
+% get the surfaces from an isosurface of the masks
+    head=load_mgh(fullfile(SubjectsDIR,'mri/seghead.mgz'));
+    brain=load_mgh(fullfile(SubjectsDIR,'mri/brainmask.mgz'));
+
+    p=isosurface(head~=0);
+    [f,v]=reducepatch(p, .1);
+    v(:,1)=v(:,1)-128;
+    v(:,2)=v(:,2)-128;
+    v(:,3)=v(:,3)-128;
+    v=v(:,[2 3 1]);
+    v(:,3)=-v(:,3);
+    mesh(1)=nirs.core.Mesh(v,f);
+    mesh(1).transparency=.1;
+    p=isosurface(brain~=0);
+        [f,v]=reducepatch(p, .1);
+        v(:,1)=v(:,1)-128;
+    v(:,2)=v(:,2)-128;
+    v(:,3)=v(:,3)-128;
+    v=v(:,[2 3 1]);
+    v(:,3)=-v(:,3);
+    mesh(2)=nirs.core.Mesh(v,f);
+    mesh(2).transparency=.2;
     
-[nodes,faces]=read_surf(f(1).name);
-mesh(1,1)=nirs.core.Mesh(nodes,faces+1);
-mesh(1).transparency=.1;
-f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_outer_skull_surface')) ...
-    rdir(fullfile(SubjectsDIR,'bem','outer_skull.surf'))];
-[nodes,faces]=read_surf(f(1).name);
-mesh(2,1)=nirs.core.Mesh(nodes,faces+1);
-mesh(2).transparency=.2;
-f=[rdir(fullfile(SubjectsDIR,'bem','watershed','**','*_inner_skull_surface'))...
-    rdir(fullfile(SubjectsDIR,'bem','inner_skull.surf'))];
-[nodes,faces]=read_surf(f(1).name);
-mesh(3,1)=nirs.core.Mesh(nodes,faces+1);
-mesh(3).transparency=.2;
+end
+
+ disp('Computing wavelet model of pial surface');
 
 % Use the wavelet methods defined in 
 % Phys Med Biol. 2009 Oct 21;54(20):6383-413. doi: 10.1088/0031-9155/54/20/023. Epub 2009 Oct 7.
 % Topographic localization of brain activation in diffuse optical imaging using spherical wavelets.
 % Abdelnour F1, Schmidt B, Huppert TJ.
-J=6;  %levels of wavelets in the model (=ico6)
+J=5;  %levels of wavelets in the model (=ico5)
 
 options=struct('base_mesh', 'ico', 'keep_subdivision', true);
 [vertex,face] = compute_semiregular_sphere(J,options);
@@ -43,7 +83,7 @@ kr=dsearchn(rsv/100,vertex{end}');
 [lv,lf]=read_surf(fullfile(SubjectsDIR,'surf','lh.pial'));
 [rv,rf]=read_surf(fullfile(SubjectsDIR,'surf','rh.pial'));
 
-mesh(4,1)=nirs.core.Mesh([lv(kl,:); rv(kr,:)],[face{end}'; face{end}'+length(kl)]);  
+mesh(end+1)=nirs.core.Mesh([lv(kl,:); rv(kr,:)],[face{end}'; face{end}'+length(kl)]);  
 
 
 
@@ -164,12 +204,24 @@ end
 
 
     
-mesh(4).labels=Labels;
+mesh(end).labels=Labels;
 
+if(nargin<2)
+    varargout{1}=mesh;
+else
+    
 % Now make the forward model
 fwdModel=nirs.forward.NirfastBEM;
 fwdModel.mesh=mesh;
-fwdModel.prop={nirs.media.tissues.skin(lambda)...
-               nirs.media.tissues.bone(lambda)...
-               nirs.media.tissues.water(lambda)...
-               nirs.media.tissues.brain(lambda,.7,60)};
+if(length(mesh)==4)
+    fwdModel.prop={nirs.media.tissues.skin(lambda)...
+        nirs.media.tissues.bone(lambda)...
+        nirs.media.tissues.water(lambda)...
+        nirs.media.tissues.brain(lambda,.7,60)};
+else
+    fwdModel.prop={nirs.media.tissues.skin(lambda)...
+        nirs.media.tissues.water(lambda)...
+        nirs.media.tissues.brain(lambda,.7,60)};
+end
+   varargout{1}=fwdModel;
+end

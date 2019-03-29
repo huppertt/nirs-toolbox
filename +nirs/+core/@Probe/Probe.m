@@ -26,6 +26,7 @@ classdef Probe
         distances   % (dependent) returns measurement distances
         srcPos      % nsrc x 3 array of source positions (mm)
         detPos      % ndet x 3 array of detector positions (mm)
+        types
     end
     
     properties(Hidden = true)
@@ -85,6 +86,10 @@ classdef Probe
             
         end
 
+        function types = get.types(obj)
+            types=unique(obj.link.type);
+        end
+        
         function srcPos = get.srcPos(obj)
             %% This function returns the src pos (in mm)
             tbl=sortrows(obj.optodes,{'Type','Name'});

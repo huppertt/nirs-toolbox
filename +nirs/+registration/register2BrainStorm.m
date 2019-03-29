@@ -26,7 +26,12 @@ sCortex = in_tess_bst(cort_mesh_fn);
 
 sMri = in_mri_bst(sSubject.Anatomy(sSubject.iAnatomy).FileName);
 
-probe1020=raw.probe;
+if(isa(raw,'nirs.core.Data'))  
+    probe1020=raw.probe;
+else
+    probe1020=raw;
+end
+
 LE=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Name,'LPA'),:);
 LE=[LE.X LE.Y LE.Z];
 RE=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Name,'RPA'),:);
@@ -126,7 +131,11 @@ probe1020=probe1020.register_mesh2probe(m,true);
 
 probe1020.defaultdrawfcn='3D mesh (top)';
 
-raw.probe=probe1020;
+if(isa(raw,'nirs.core.Data'))
+    raw.probe=probe1020;
+else
+    raw=probe1020;
+end
 
 
 

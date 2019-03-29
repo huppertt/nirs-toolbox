@@ -57,7 +57,16 @@ for idx=1:length(subtype)
 end
 
 SDGhandlesBase=obj(1).probe.draw([],[],handles.axis_sdg);
-set(SDGhandlesBase,'Color',[.8 .8 .8]);
+if(strcmp(class(SDGhandlesBase),...
+        'matlab.graphics.chart.primitive.Bar'))
+    set(SDGhandlesBase,'FaceColor',[.8 .8 .8]);
+    colorfield='FaceColor';
+    legend(handles.axis_sdg,'off');
+    axis(handles.axis_sdg,'off');
+else
+    set(SDGhandlesBase,'Color',[.8 .8 .8]);
+    colorfield='Color';
+end
 
 lines=findobj('type','line','parent',handles.axis_main,'tag','dataline');
 isvis={};
@@ -65,12 +74,15 @@ for idx=1:length(lines)
     isvis{idx}=get(lines(idx),'visible');
 end
 
+hold(handles.axis_sdg,'on')
 SDGhandles=obj(1).probe.draw([],[],handles.axis_sdg);
+legend(handles.axis_sdg,'off');
+axis(handles.axis_sdg,'off');
 ii=get(handles.selecttype,'value');
 for idx=1:length(SDGhandles)
     set(SDGhandles(idx),'tag',['SDG' num2str(idx)]);
     set(SDGhandlesBase(idx),'tag',['SDG' num2str(idx)]);
-    set(SDGhandles(idx),'color',SDcolors(idx,:));
+    set(SDGhandles(idx),colorfield,SDcolors(idx,:));
     linelinks(idx)=linkprop([linehandles(LstAll(idx,ii)),SDGhandles(idx)],{'Visible','Color'});
 end
 
@@ -228,7 +240,7 @@ for idx=1:length(handles.SDGhandles)
         set(handles.SDGhandles(idx),'visible','on');
         set(handles.linehandles(handles.LstAll(idx,ii)),'visible','on');
     end
-    
+    warning('off','MATLAB:linkprop:InvalidProperty');
     handles.linelinks(idx)=linkprop([handles.linehandles(handles.LstAll(idx,ii)),handles.SDGhandles(idx)],{'Visible','Color'});
 end
 set(handles.nirsviewer,'userdata',handles);

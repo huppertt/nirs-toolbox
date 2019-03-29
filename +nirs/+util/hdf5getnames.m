@@ -1,11 +1,11 @@
-function [names,vals] =hdf5getnames(filename)
+function [names,val] =hdf5getnames(filename)
 
 if(isunix & strcmp(filename(1),'~'))
     filename = [getenv('HOME') filename(2:end)];
 end
-
-[p,filename,e]=fileparts(filename);
-filename=fullfile(p,[filename '.nir5']);
+% 
+% [p,filename,e]=fileparts(filename);
+% filename=fullfile(p,[filename '.nir5']);
 info=hdf5info(filename);
 
 names={};
@@ -26,7 +26,7 @@ if(nargout>1)
     for i=1:length(names)
          val{i}=hdf5read(filename,names{i});
     end
-    varargout{1}=vals;
+    varargout{1}=val;
 end
 
 function names= getgroups(in)

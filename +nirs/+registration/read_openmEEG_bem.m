@@ -1,4 +1,4 @@
-function fwdModel = read_openmEEG_bem(filename,lambda)
+function varargout = read_openmEEG_bem(filename,lambda)
 % Conversion code for reading OpenMEEG - BrainStorm files
 
 %filename='brainstormsubject.mat';
@@ -22,7 +22,7 @@ for i=1:length(fields)
         f.(fields{i})=load(fullfile(pth,f.(fields{i})(max(strfind(f.(fields{i}),filesep))+1:end)));
     elseif(exist(f.(fields{i})(max(strfind(f.(fields{i}),filesep))+1:end),'file')==2)
         %try to read from current folder
-        f.(fields{i})=load(f.(fields{i})(max(strfind(f.(fields{i}),filesep))+1:end));     
+        f.(fields{i})=load(f.(fields{i})(max(strfind(f.(fields{i}),filesep))+1:end));
         
     else
         warning(['unable to load ' fields{i} ' file']);
@@ -65,7 +65,7 @@ x=ones(4001,1)*(.5*(pts(2,:)+pts(3,:)))+[0:.05:200]'*v;
 [~,id]=min(d);
 pts(4,:)=x(id,:);
 
-pts2=[tbl1020.X(1:3) tbl1020.Y(1:3) tbl1020.Z(1:3)]; 
+pts2=[tbl1020.X(1:3) tbl1020.Y(1:3) tbl1020.Z(1:3)];
 a=pts2(1,:)-.5*(pts2(2,:)+pts2(3,:));
 b=pts2(2,:)-.5*(pts2(2,:)+pts2(3,:));
 a=a/norm(a);
@@ -113,21 +113,25 @@ for i=1:length(f.Cortex.Atlas)
             S.Region{j}=f.Cortex.Atlas(i).Scouts(j).Region;
         end
         
-    Labels(name)=S;
+        Labels(name)=S;
     end
 end
 
 mesh(4).labels=Labels;
 
-% Now make the forward model
-fwdModel=nirs.forward.NirfastBEM;
-fwdModel.mesh=mesh;
-fwdModel.prop={nirs.media.tissues.skin(lambda)...
-               nirs.media.tissues.bone(lambda)...
-               nirs.media.tissues.water(lambda)...
-               nirs.media.tissues.brain(lambda,.7,60)};
-
-
+if(nargin<2)
+    varargout{1}=mesh;
+else
+    % Now make the forward model
+    fwdModel=nirs.forward.NirfastBEM;
+    fwdModel.mesh=mesh;
+    fwdModel.prop={nirs.media.tissues.skin(lambda)...
+        nirs.media.tissues.bone(lambda)...
+        nirs.media.tissues.water(lambda)...
+        nirs.media.tissues.brain(lambda,.7,60)};
+    varargout{1}=fwdModel;
+    
+end
 
 
 

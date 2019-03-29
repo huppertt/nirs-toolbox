@@ -93,7 +93,7 @@ classdef ProbeROI < nirs.core.Probe
              if(nargin<5)
                 conditions={''};
              end
-            
+            conditions=unique(conditions);
             n = length(obj.RegionNames)*length(conditions);
             if nargin < 2 || isempty(colors)
                 colors = repmat([0.3 0.5 1], [n 1]);
@@ -142,9 +142,11 @@ classdef ProbeROI < nirs.core.Probe
                axis_handle = axes();
            end
            vals=reshape(vals,length(obj.RegionNames),length(conditions));
-           h=bar(axis_handle,vals,'grouped');
-           
-           set(gca,'XtickLabel',conditions);
+           hold(axis_handle,'on');
+           for i=1:size(vals,1)
+               h(i)=bar(axis_handle,i,vals(i,:),'grouped');
+           end
+           set(gca,'XtickLabel',[]);
            legend(obj.RegionNames);
             if(nargout==1)
                 varargout{1}=h;

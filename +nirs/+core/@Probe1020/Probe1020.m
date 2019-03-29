@@ -764,6 +764,44 @@ classdef Probe1020 < nirs.core.Probe
             
         end
         
+        function fwdModel = convert2FwdModel(obj,type)
+            if(nargin<2)
+                type='SLAB';
+            end
+            switch(upper(type))
+                case('BEM')
+                    fwdModel=nirs.forward.NirfastBEM;
+                    fwdModel.mesh=obj.getmesh;
+                    fwdModel.prop=obj.opticalproperties;
+                    fwdModel.probe=obj;
+                case('FEM')
+                    fwdModel=nirs.forward.NirfastFEM;
+                    fwdModel.mesh=obj.getmesh;
+                    fwdModel.mesh=fwdModel.mesh.convert2FEM;
+                    fwdModel.prop=obj.opticalproperties;
+                    fwdModel.probe=obj;
+                case('SLAB')
+                    fwdModel=nirs.forward.ApproxSlab;
+                    fwdModel.mesh=obj.getmesh;
+                    fwdModel.prop=obj.opticalproperties;
+                    fwdModel.probe=obj;
+                case('MMC')
+                    fwdModel=nirs.nirs.forward.MMCLab;
+                    fwdModel.mesh=obj.getmesh;
+                    fwdModel.mesh=fwdModel.mesh.convert2FEM;
+                    fwdModel.prop=obj.opticalproperties;
+                    fwdModel.probe=obj;
+                case('MCX')
+                    fwdModel=nirs.forward.MCXLab;
+                    fwdModel.mesh=obj.getmesh;
+                    fwdModel.mesh=fwdModel.mesh.convert2image;
+                    fwdModel.prop=obj.opticalproperties;
+                    fwdModel.probe=obj;
+            end
+                    
+        end
+        
+        
         %draw1020image;  % Code to draw an image in 10-20space
         % makeimage;  % code to do simple image reconstruction in 10-20 space
         %registerprobe;

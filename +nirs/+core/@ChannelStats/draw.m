@@ -148,7 +148,9 @@ for iType = 1:length(utypes)
            
             obj(ii).probe.draw(colors, lineStyles,a,obj(ii).variables.cond(lst),vals);
             
-            if(~strcmp(lower(obj(ii).probe.defaultdrawfcn),'bar'))
+            if(~strcmp(lower(obj(ii).probe.defaultdrawfcn),'bar') & ...
+                    ~(isempty(obj(ii).probe.defaultdrawfcn) & ...
+                    isa(obj(ii).probe,'nirs.core.ProbeROI')))
                 c = colorbar; colormap(cmap); caxis(vrange);
                 ap = get(a, 'Position');
                 
