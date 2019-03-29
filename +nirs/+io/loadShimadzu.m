@@ -50,8 +50,8 @@ raw.data=horzcat(c{5:end});
 raw.time=c{1};
 
 nt=length(unique(n));
-raw.probe.link=table(reshape(repmat(raw.probe.link.source,1,nt),[],1),...
-    reshape(repmat(raw.probe.link.detector,1,nt),[],1),n','VariableNames',{'source','detector','type'});
+% raw.probe.link=table(reshape(repmat(raw.probe.link.source,1,nt),[],1),...
+%     reshape(repmat(raw.probe.link.detector,1,nt),[],1),n','VariableNames',{'source','detector','type'});
 
 events=unique(Task);
 events(events==0)=[];
