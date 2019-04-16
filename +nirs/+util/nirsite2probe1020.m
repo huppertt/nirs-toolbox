@@ -5,8 +5,8 @@ function probe1020 = nirsite2probe1020(montage_folder)
 
 
 %% Load probeInfo created by NIRSite
-file = dir(fullfile([pwd filesep '*probeInfo.mat']));
-load(file.name,'-mat')
+file = dir(fullfile([montage_folder filesep '*probeInfo.mat']));
+load([file.folder filesep file.name],'-mat');
 
 SrcPos = probeInfo.probes.coords_s2;
 SrcPos(:,3)=0;
@@ -14,8 +14,8 @@ DetPos = probeInfo.probes.coords_d2;
 DetPos(:,3)=0;
 
 %% Load the probe
-file = dir(fullfile([pwd filesep '*Channels.txt']));
-channels = importdata(file.name);
+file = dir(fullfile([montage_folder filesep '*Channels.txt']));
+channels = importdata([file.folder filesep file.name]);
 link = table(repmat(channels(:,2),2,1),repmat(channels(:,3),2,1),...
     reshape(repmat([760 850],length(channels(:,2)),1),[],1),...
     'VariableNames',{'source','detector','type'});
