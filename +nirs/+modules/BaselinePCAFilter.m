@@ -142,7 +142,7 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
                     
                 end
             end
-            if(obj.discard)
+            if(obj.discard & (~isempty(uniqBaseline)))
                 % remove non-filtered scans
                 lst=[1:length(datafilt)];
                 datafilt(~ismember(lst,obj.table.Task))=[];

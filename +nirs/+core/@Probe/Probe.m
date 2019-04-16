@@ -92,7 +92,17 @@ classdef Probe
         
         function srcPos = get.srcPos(obj)
             %% This function returns the src pos (in mm)
-            tbl=sortrows(obj.optodes,{'Type','Name'});
+            
+            optodes=obj.optodes;
+            lst=[];
+            for i=1:height(optodes)
+                if(isempty(optodes.Name{i}))
+                    lst=[lst; i];
+                end
+            end
+            optodes(lst,:)=[];
+            
+            tbl=sortrows(optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Source'));
             
             
@@ -104,8 +114,18 @@ classdef Probe
         end
         
         function detPos = get.detPos(obj)
+            
+             optodes=obj.optodes;
+            lst=[];
+            for i=1:height(optodes)
+                if(isempty(optodes.Name{i}))
+                    lst=[lst; i];
+                end
+            end
+            optodes(lst,:)=[];
+            
             %% This function returns the det pos (in mm)
-             tbl=sortrows(obj.optodes,{'Type','Name'});
+             tbl=sortrows(optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Detector'));
             
             
@@ -139,14 +159,14 @@ classdef Probe
                 d = sqrt( sum( vec.^2,2 ) );
             end
             
-            if(~isempty(obj.fixeddistances))
-%                 if(any((d-obj.fixeddistances)~=0))
-%                     warning('probe distances do not match layout');
-%                 end
-                d=obj.fixeddistances;
-                return
-            end
-            
+%             if(~isempty(obj.fixeddistances))
+% %                 if(any((d-obj.fixeddistances)~=0))
+% %                     warning('probe distances do not match layout');
+% %                 end
+%                 d=obj.fixeddistances;
+%                 return
+%             end
+%             
             
         end
         

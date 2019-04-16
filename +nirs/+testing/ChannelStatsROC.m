@@ -116,8 +116,11 @@ classdef ChannelStatsROC
                
                for i=1:length(obj.pipeline)
                    
-                   stats = obj.pipeline(i).run(data);
-                   
+                   if(iscell(obj.pipeline))
+                       stats = obj.pipeline{i}.run(data);
+                   else
+                    stats = obj.pipeline(i).run(data);
+                   end
                    if(size(stats.beta,1)>length(truth) & ~isempty(find(isnan(truth))))
                        truth(isnan(truth))=[];
                    end

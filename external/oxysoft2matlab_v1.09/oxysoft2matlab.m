@@ -198,7 +198,7 @@ end
 
 % check whether the file extension is supported
 % supported_extensions = {'.txt', '.xml', '.oxy3', '.oxy', '.evt'};
-supported_extensions = {'.oxy3'};
+supported_extensions = {'.oxy3','.oxy4'};
 [filepath, filename, extension] = fileparts(filename);
 
 if ~ismember(extension, supported_extensions)
@@ -267,8 +267,7 @@ switch(extension)
   case '.oxy3'
     % import to matlab function
     [rawOD,metaInfo,ADvalues] = readoxy3file(fullfile(filepath, sprintf('%s%s', filename, extension)));
-    
-    %     case '.txt'
+      %     case '.txt'
     %         [rawOD, metaInfo, ADvalues] = readoxy3txtfile(fullfile(filepath, sprintf('%s%s', filename, extension)));
     %         keyboard;
     

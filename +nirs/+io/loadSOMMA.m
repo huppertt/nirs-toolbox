@@ -45,26 +45,32 @@ while(~feof(fid))
     cnt2=cnt;
     while(1)
         line=fgetl(fid);
-        cnt2=cnt2+1;
-        if(~isempty(strfind(line,'MARK')))
-            hdr(end).marks(end+1)=str2num(line(1:strfind(line,',')));
-        elseif(~isempty(strfind(line,'</DATA>')))
-            break;
-        else
-            dd{end+1}=[line ','];
+        if(~isempty(line) & ~feof(fid))
+            line=strtrim(line);
+            cnt2=cnt2+1;
+            if(~isempty(strfind(line,'MARK')))
+                hdr(end).marks(end+1)=str2num(line(1:strfind(line,',')));
+            elseif(~isempty(strfind(line,'</DATA>')))
+                line=strtrim(line(1:strfind(line,'</DATA>')-1));
+                dd{end+1}=[line ','];
+                break;
+            else
+                dd{end+1}=[line ','];
+            end
+            
         end
-        
-       
         % cnt=cnt+1;
         if(feof(fid)); break; end
     end
-    str=strcat(dd{:});
-    str(strfind(str,','))=' ';
-    c=sscanf(str,'%f');
-    c=c(1:floor(size(c,1)/6)*6);
-    data{end+1}=reshape(c,6,[])';
-    hdr(end).nrows=cnt2-cnt;
-    cnt=cnt2;
+    if(~isempty(dd))
+        str=strcat(dd{:});
+        str(strfind(str,','))=' ';
+        c=sscanf(str,'%f');
+        c=c(1:floor(size(c,1)/6)*6);
+        data{end+1}=reshape(c,6,[])';
+        hdr(end).nrows=cnt2-cnt;
+        cnt=cnt2;
+    end
 end
 fclose(fid);
 hdr(1)=[];
@@ -83,27 +89,40 @@ function info=gethdrinfo(hdr)
 
 info=[];
 for i=1:size(hdr.line)
-    if(~isempty(strfind(hdr.line(i,:),'subjid')))
+     if(~isempty(strfind(hdr.line(i,:),'<project>')))
+        info.Project=hdr.line(i+1,:);
+        info.Project=strtrim(info.Project);
+     end
+         if(~isempty(strfind(hdr.line(i,:),'<version>')))
+        info.Version=hdr.line(i+1,:);
+        info.Version=strtrim(info.Version);
+     end
+     
+    if(~isempty(strfind(hdr.line(i,:),'<subjid>')))
         info.SubjID=hdr.line(i+1,:);
         info.SubjID=strtrim(info.SubjID);
     end
-    if(~isempty(strfind(hdr.line(i,:),'session')))
-        info.Session=hdr.line(i+1);
+    if(~isempty(strfind(hdr.line(i,:),'<session>')))
+        info.Session=hdr.line(i+1,:);
         info.Session=strtrim(info.Session);
     end
-    if(~isempty(strfind(hdr.line(i,:),'date')))
+    if(~isempty(strfind(hdr.line(i,:),'<date>')))
         info.Date=hdr.line(i+1,:);
         info.Date=strtrim(info.Date);
     end
-    if(~isempty(strfind(hdr.line(i,:),'site')))
+     if(~isempty(strfind(hdr.line(i,:),'<site>')))
         info.Site=hdr.line(i+1,:);
         info.Site=strtrim(info.Site);
     end
-    if(~isempty(strfind(hdr.line(i,:),'deviceid')))
+    if(~isempty(strfind(hdr.line(i,:),'<site>')))
+        info.Site=hdr.line(i+1,:);
+        info.Site=strtrim(info.Site);
+    end
+    if(~isempty(strfind(hdr.line(i,:),'<ssid>')))
         info.DeviceID=hdr.line(i+1,:);
         info.DeviceID=strtrim(info.DeviceID);
     end
-    if(~isempty(strfind(hdr.line(i,:),'comments')))
+    if(~isempty(strfind(hdr.line(i,:),'<comments>')))
         info.Comments=hdr.line(i+1,:);
         info.Comments=strtrim(info.Comments);
     end
@@ -114,34 +133,23 @@ end
 function data=parseData(hdr,d)
 data = nirs.core.Data;
 
-for i=3:6
-    dd=medfilt1(d(:,i),3);
-    for j=2:size(dd,1)-1; 
-        d1(j,i-2)=min(dd(j-1:j+1)); 
-        d2(j,i-2)=max(dd(j-1:j+1)); 
-    end;
+t=d(:,1);
+t=(t-t(1))/1000;
+
+lst1=find(d(:,2)==0);
+dd1=d(lst1,3:end);
+lst2=find(d(:,2)==1);
+dd2=d(lst2,3:end);
+
+time=[t(1):min(diff(t)):t(end)];
+
+for i=1:4
+    d1(:,i)=interp1(t(lst1),dd1(:,i),time,'spline');
+    d2(:,i)=interp1(t(lst1),dd2(:,i),time,'spline');
 end
-d1=medfilt1(d1,11);
-d2=medfilt1(d2,11);
 
-fs=1000./mean(diff(d(:,1)));
-[fa,fb]=butter(4,10*2/fs);
-d1=filtfilt(fa,fb,d1);
-d2=filtfilt(fa,fb,d2);
-
-t=d(1:end-1,1);
-fs=fix(fs*50)/50;
-time=t(1)/1000:1/fs:t(end-2)/1000;
-
-
-for i=1:size(d1,2)
-    dd1(:,i)=interp1(t/1000,d1(:,i),time,'spline','extrap');
-    dd2(:,i)=interp1(t/1000,d2(:,i),time,'spline','extrap');
-end
-dd2=2^12-dd2;
-dd1=2^12-dd1;
-% 
-% dd1=dd2-dd1;
+d2=2^12-d2;
+d1=2^12-d1;
 
 
 srcPos=[0 0 0];
@@ -164,8 +172,8 @@ if(~isempty(hdr.marks))
     stim.name='Mark'; stim.onset=onsets; stim.dur=dur; stim.amp=amp;
     data.stimulus('Mark')=stim;
 end
-data.time=time-time(1);
-data.data=[dd2 dd1];
+data.time=time;
+data.data=[d2 d1];
 data.demographics('subject')=hdr.info.SubjID;
 data.demographics('date')=hdr.info.Date;
 data.demographics('site')=hdr.info.Site;
