@@ -145,7 +145,7 @@ time=[t(1):min(diff(t)):t(end)];
 
 for i=1:4
     d1(:,i)=interp1(t(lst1),dd1(:,i),time,'spline');
-    d2(:,i)=interp1(t(lst1),dd2(:,i),time,'spline');
+    d2(:,i)=interp1(t(lst2),dd2(:,i),time,'spline');
 end
 
 d2=2^12-d2;
