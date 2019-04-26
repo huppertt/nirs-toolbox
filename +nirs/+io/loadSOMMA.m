@@ -118,7 +118,11 @@ for i=1:size(hdr.line)
         info.Site=hdr.line(i+1,:);
         info.Site=strtrim(info.Site);
     end
-    if(~isempty(strfind(hdr.line(i,:),'<ssid>')))
+    if(~isempty(strfind(hdr.line(i,:),'deviceid>')))
+        info.DeviceID=hdr.line(i+1,:);
+        info.DeviceID=strtrim(info.DeviceID);
+    end
+        if(~isempty(strfind(hdr.line(i,:),'<ssid>')))
         info.DeviceID=hdr.line(i+1,:);
         info.DeviceID=strtrim(info.DeviceID);
     end
@@ -137,16 +141,32 @@ t=d(:,1);
 t=(t-t(1))/1000;
 
 lst1=find(d(:,2)==0);
-dd1=d(lst1,3:end);
 lst2=find(d(:,2)==1);
-dd2=d(lst2,3:end);
+
+a=10;
+for i=3:6
+    dd1(:,i-2)=medfilt1(d(lst1,i),a);
+    dd2(:,i-2)=medfilt1(d(lst2,i),a);
+end
+
 
 time=[t(1):min(diff(t)):t(end)];
-
+clear d1 d2
 for i=1:4
     d1(:,i)=interp1(t(lst1),dd1(:,i),time,'spline');
     d2(:,i)=interp1(t(lst2),dd2(:,i),time,'spline');
+    d1(:,i)=medfilt1(d1(:,i),100);
+    d2(:,i)=medfilt1(d2(:,i),100);     
 end
+
+[fa,fb]=butter(4,4*2*mean(diff(time)));
+d1=filtfilt(fa,fb,d1);
+d2=filtfilt(fa,fb,d2);
+
+time([1:100 end-100:end])=[];
+d1([1:100 end-100:end],:)=[];
+d2([1:100 end-100:end],:)=[];
+
 
 d2=2^12-d2;
 d1=2^12-d1;

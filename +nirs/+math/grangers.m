@@ -1,5 +1,24 @@
 function C = grangers( x, y, Pmax )
 
+if(nargin==2)
+    % assume that the fcn was grangers(X,Pmax) where X is a matrix
+    n=size(x,2);
+    C=zeros(n,n); 
+    Pmax=y;
+    for i=1:n
+        for j=1:n
+            if(i~=j)
+                C(i,j)=nirs.math.grangers(x(:,i),x(:,j),Pmax);
+            end
+        end
+    end
+    return
+
+end
+
+
+
+
     n = length(y);
     
     X = nirs.math.lagmatrix(x, 1:Pmax);
