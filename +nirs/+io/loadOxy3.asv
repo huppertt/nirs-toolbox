@@ -58,13 +58,11 @@ if(isfield(nirs_data,'ADvalues') && ~isempty(nirs_data.ADvalues))
                 stim(nirs_data.ADlabel{i})=s;
             end
         end
-        d=nirs.core.GenericData;
-    d.time=raw.time;
-    d.data=nirs_data.ADvalues(:,i);
-    
-    raw.auxillary(nirs_data.ADlabel{i})=d;
     end
-
+    d=nirs.core.GenericData;
+    d
+    
+    raw.auxillary(nirs_data.ADlabel{i})=nirs_data.ADvalues(:,i);
     raw.stimulus=stim;
 end
 
