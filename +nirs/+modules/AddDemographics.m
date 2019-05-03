@@ -36,21 +36,27 @@ classdef AddDemographics < nirs.modules.AbstractModule
             
             % columns of the table that arent varToMatch
             colNames = obj.demoTable.Properties.VariableNames;
-            lst = find( ~strcmp( obj.varToMatch, colNames ) );
-                
-          
-            
+            if ~iscell(obj.varToMatch)
+                lst = find( ~strcmp( obj.varToMatch, colNames ) );
+            else
+                lst = find(~ismember(colNames,obj.varToMatch));
+            end
             
             for i = 1:numel(data)
 
+                if ~iscell(obj.varToMatch)
+                    % Make this case-insensitive
+                    varToMatchA=obj.demoTable.Properties.VariableNames{find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch)))};
+                     % row idx of demo table
+                    idx = find( strcmpi( obj.demoTable.(varToMatchA), data(i).demographics(obj.varToMatch) ) );
+                else
+                    varToMatchA=obj.demoTable.Properties.VariableNames(find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch))));
+                    % row idx of demo table
+                    T = cell2table(data(i).demographics(obj.varToMatch),'VariableNames',varToMatchA);
+                    [~,idx] = ismember(T,obj.demoTable(:,varToMatchA));
+                end
                 
-                % Make this case-insensitive
-                varToMatchA=obj.demoTable.Properties.VariableNames{find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch)))};
-                
-                
-                % row idx of demo table
-                idx = find( strcmpi( obj.demoTable.(varToMatchA), ...
-                    data(i).demographics(obj.varToMatch) ) );
+               
                 
                 if(isempty(idx))
                     if obj.allowMissing
