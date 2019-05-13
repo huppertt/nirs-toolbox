@@ -56,7 +56,7 @@ if ~strcmpi(criterion,'MAX')
     
     % Find model order with best information criterion
     % crit = nirs.math.infocrit( LogL ,  o*(m-orders') , n^2 * orders' , criterion );
-    crit = nirs.math.mv_infocrit( LogL ,  o*(m-orders') , n , orders', criterion );
+    crit = nirs.math.var_infocrit( LogL ,  o*(m-orders') , n , orders', criterion );
     Pmax = find(crit==nanmin(crit),1,'first');
     if isempty(Pmax), Pmax = 1; end
 

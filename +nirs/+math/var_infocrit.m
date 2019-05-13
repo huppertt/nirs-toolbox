@@ -17,7 +17,7 @@ if nargin<4
     criterion = 'BIC';
 end
 
-LogL = LogL + num_obs .* num_var .* (log (2*pi) + 1);
+LogL = LogL + num_obs .* num_var;
 unknown_params = (num_param .* num_var.^2 + num_var .* (num_var + 1)/2);
 switch upper(criterion)
     case 'BIC'
