@@ -51,11 +51,12 @@ if ~strcmpi(criterion,'MAX')
         b = tmpX \ tmpY;
         E = tmpY - tmpX*b;
         DSIG = det((E'*E)/(N-1));
-        LogL(i) = -(N/2) * log(DSIG);
+        LogL(i) = N * log(DSIG);
     end
     
     % Find model order with best information criterion
-    crit = nirs.math.infocrit( LogL ,  o*(m-orders') , n^2 * orders' , criterion );
+    % crit = nirs.math.infocrit( LogL ,  o*(m-orders') , n^2 * orders' , criterion );
+    crit = nirs.math.mv_infocrit( LogL ,  o*(m-orders') , n , orders', criterion );
     Pmax = find(crit==nanmin(crit),1,'first');
     if isempty(Pmax), Pmax = 1; end
 
@@ -120,7 +121,7 @@ end
 G = bsxfun( @minus , log(SSEr) , log(SSEu) );
 G(G<0) = 0; % Due to numerical imprecision
 
-df1 = Pmax * (n-1);          % Number of cross (non-auto) predictors [unrestricted parameters - restricted]
+df1 = Pmax * n;          % Number of cross (non-auto) predictors [unrestricted parameters - restricted]
 df2 = o*(m-Pmax) - (n*Pmax); % Effective observations (obs-order) - full # of predictors
 
 assert(df2>0,'Degrees of freedom are too small. Increase number of samples or decrease model order.');
