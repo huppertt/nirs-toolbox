@@ -1,4 +1,4 @@
-function crit = mv_infocrit( LogL, num_obs, num_var, num_param, criterion )
+function crit = var_infocrit( LogL, num_obs, num_var, num_param, criterion )
 % Calculate information criterion from Log-Likelihood (BIC, AIC, AICc, CAIC, MAX)
 % crit = mv_infocrit(LogL, num_obs, num_var, num_param, criterion)
 %
