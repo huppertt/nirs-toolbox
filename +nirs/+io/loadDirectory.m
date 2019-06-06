@@ -4,7 +4,7 @@ if nargin < 4,
     fileExt  = {'.nirs','.oxy3','.wl1','Probe*.csv','_fnirs.csv','nir5'};
 end
 if nargin < 3 || isempty(loadFunc),
-    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2,@nirs.io.loadNIR5};
+    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2,@nirs.io.loadNIR5};
 end
 
 if(~iscell(fileExt)); fileExt={fileExt}; end;

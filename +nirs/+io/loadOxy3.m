@@ -22,6 +22,16 @@ for i=1:length(nirs_data.ODlabel)
     
     type(i,1)=str2num(nirs_data.ODlabel{i}(strfind(nirs_data.ODlabel{1},'@')+1:strfind(nirs_data.ODlabel{1},'nm')-1));
 end
+
+[~,~,i]=unique(round(type/10)*10);
+ui=unique(i);
+for id=1:length(ui)
+    type(i==ui(id))=round(mean(type(i==ui(id))));
+end
+
+source(:)=nirs_data.Rx_TxId(2,:);
+detector(:)=nirs_data.Rx_TxId(1,:);
+
 link=table(source,detector,type);  
 
 % Create the probe object
