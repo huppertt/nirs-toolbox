@@ -94,8 +94,8 @@ function draw( obj, vtype, vrange, thresh )
    
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
   
-    f(1)=figure;
-    f(2)=figure;
+   f(1)=figure;
+   f(2)=figure;
     
     cnt=1;
     for ii=1:length(utypesOrigin)
@@ -185,6 +185,7 @@ function draw( obj, vtype, vrange, thresh )
             set(gca,'XtickLabelRotation',90);
             title([utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
             cnt=cnt+1;
+            return
         end
     end
     

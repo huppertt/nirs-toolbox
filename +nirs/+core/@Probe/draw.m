@@ -98,7 +98,7 @@ end
 
 function rescaleAxes( axis_handle, s, d )
    % axes(axis_handle)
-
+return
     axis(axis_handle,'equal');
     
     p = [s; d];

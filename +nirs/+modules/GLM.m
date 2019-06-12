@@ -22,6 +22,7 @@ classdef GLM < nirs.modules.AbstractGLM
 %     specified explicitly in the stimulus design with BoxCar basis functions
     properties
         type;
+        AddShortSepRegressors = false;
         options;
     end
     methods
@@ -30,7 +31,7 @@ classdef GLM < nirs.modules.AbstractGLM
             
             obj.name = 'GLM model';
             obj.basis('default') = nirs.design.basis.Canonical();
-            obj.type='AR-IRLS';
+            obj.type='AR-IRLS'; 
             obj.options=[];
         end
         
@@ -77,17 +78,26 @@ classdef GLM < nirs.modules.AbstractGLM
         end
         
         function S = runThis( obj, data )
+            if (obj.AddShortSepRegressors)
+                
+                j=nirs.modules.AddShortSeperationRegressors();
+                j=nirs.modules.RemoveShortSeperations(j);
+            else
+                j=nirs.modules.Assert;
+                j.condition=@(data)isa(data,'nirs.core.Data');
+            end
+            
             switch(obj.type)
                 case('OLS')
-                    j=nirs.modules.OLS();
+                    j=nirs.modules.OLS(j);
                 case('AR-IRLS');
-                    j=nirs.modules.AR_IRLS();
+                    j=nirs.modules.AR_IRLS(j);
                 case('NIRS-SPM')
-                    j=nirs.modules.NIRS_SPM_GLM();
+                    j=nirs.modules.NIRS_SPM_GLM(j);
                 case('MV-GLM')
-                    j=nirs.modules.MultiVarGLM();
+                    j=nirs.modules.MultiVarGLM(j);
                 case('Nonlinear')
-                    j=nirs.modules.nonlin_GLM();
+                    j=nirs.modules.nonlin_GLM(j);
                 otherwise
                     error('type not recognized');
             end
@@ -104,7 +114,13 @@ classdef GLM < nirs.modules.AbstractGLM
                 end
             end
             
+            if (obj.AddShortSepRegressors)
+                Stim=unique(nirs.getStimNames(data));
+                j=nirs.modules.KeepStims(j);
+                j.listOfStims=Stim;
+            end
             
+                   
             S=j.run(data);
                     
                     

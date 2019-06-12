@@ -64,6 +64,12 @@ if nargin < 4 || isempty(channels)
     channels = sd(1:round(end/2),:);
 end
 
+if(istable(channels))
+    channels=[channels.source channels.detector];
+end
+    
+
+
 % loop through and add
 data = noise.sorted();
 
