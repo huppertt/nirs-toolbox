@@ -23,7 +23,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'NIRx_data_SS'),'dir'))
 else
     disp(['Data found in: ' root_dir ': skipping download']);
 end
-raw = nirs.io.loadDirectory(pwd);
+raw = nirs.io.loadDirectory([root_dir filesep 'NIRx_data_SS']);
 
 %% Pre-proc
 j=nirs.modules.Resample;
