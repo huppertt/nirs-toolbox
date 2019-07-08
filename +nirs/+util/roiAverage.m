@@ -213,7 +213,7 @@ if(isa(data,'nirs.core.Data'))
         dd=d(1);
         for i=2:length(d)
             dd.data=[dd.data d(i).data];
-            dd.probe.RegionNames={dd.probe.RegionNames{:}; d(i).probe.RegionNames{:}}; 
+            dd.probe.RegionNames={dd.probe.RegionNames{:} d(i).probe.RegionNames{:}}; 
         end
         dd.probe.RegionNames=names;
         d=dd;

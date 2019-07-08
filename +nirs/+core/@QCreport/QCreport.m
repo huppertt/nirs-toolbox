@@ -163,6 +163,49 @@ classdef QCreport
             
         end
         
+        function out = sni(obj)
+            out=(mad(obj.data,1,1)./mad(obj.inn,1,1))';
+        end
+        function out = snr(obj)
+            out=(median(obj.data)./std(obj.data))';
+        end
+        function out = mean(obj)
+            out=(mean(obj.data))';
+        end
+        function out = median(obj)
+            out=(median(obj.data))';
+        end
+        function out = max(obj)
+            out=max(obj.data,[],1)';
+        end
+        function out = min(obj)
+            out=min(obj.data,[],1)';
+        end
+        function out = motion(obj)
+            tcric=2*-tinv(0.05,size(obj.data,2));
+            SNI=(mad(obj.data,1,1)./mad(obj.inn,1,1))';
+            
+            tiny_s = 1e-6 * std(obj.inn);
+            t = 4.685;
+            s = median(abs(obj.inn)) / 0.6745;
+            r=obj.inn./(ones(size(obj.inn,1),1)*(max(s,tiny_s)*t));
+            w = (abs(r)<1) .* (1 - r.^2).^2;
+            w=sqrt(w);
+            out=(1-sum(w,1)/length(w))';
+        end
+        function out = kpss(obj)
+            for i=1:size(obj.data,2)
+                [~,out(i,1)]=kpsstest(obj.inn(:,i));
+            end
+        end
+        function out = adtest(obj)
+            for i=1:size(obj.data,2)
+                [~,out(i,1)]=adtest(obj.inn(:,i));
+            end
+        end
+
+              
+        
         function f=draw(obj,type)
             % types can be: SNI, SNR, Mean, Median, Max, Min, Motion, KPSS,
             % ADtest
