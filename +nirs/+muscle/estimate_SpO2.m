@@ -1,10 +1,13 @@
-function SpO2 = estimate_SpO2(rawInten)
+function SpO2 = estimate_SpO2(rawInten,flag)
 %
 % Calibration-Free Pulse Oximetry Based on Two Wavelengths in
 % the Infrared ? A Preliminary Study
 % Meir Nitzan, Salman Noach, Elias Tobal, Yair Adar, Yaacov Miller, Eran Shalom 
 % and Shlomo Engelberg. Sensors 2014, 14, 7420-7434; doi:10.3390/s140407420
 
+if(nargin<2)
+    flag=true;
+end
 
 if(length(rawInten)>1)
     for i=1:length(rawInten)
@@ -47,8 +50,10 @@ for i=1:height(link)
     SO2(:,i)=(E(1,2)-R*E(2,2))./(R*(E(2,1)-E(2,2))+(E(1,2)-E(1,1)));
 end
 
-SO2=min(SO2,1);
-SO2=max(SO2,0);
+if(flag)
+    SO2=min(SO2,1);
+    SO2=max(SO2,0);
+end
 
 SpO2 = rawInten;
 SpO2.data=SO2;

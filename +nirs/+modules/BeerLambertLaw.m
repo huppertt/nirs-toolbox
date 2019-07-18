@@ -109,16 +109,22 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                % determine number of wavelengths measured
                nWav = unique(p.link.type);
                
+               nchan = unique([p.link.source p.link.detector]);
+               
+               
                % d_chr will store delta chromophore data (d conc)
                % initial size of d_chr will be t x 2 (hbo,hbr) x chan
-               d_chr = nan(size(d,1), 2, size(d,2)/length(nWav));
+               d_chr = nan(size(d,1), 2, length(nchan));
                
                % initial size of type_chr will likewise be 2 x chan
-               type_chr = cell(2,size(d,2)/length(nWav));
+               type_chr = cell(2,length(nchan));
+               
+               link=table;
                
                 for j = 1:max(idx)
                     lst = idx == j;
-                    
+                    lst=find(lst);
+                    link=[link; p.link(lst(1:2),:)];
                     assert( length(lst) > 1 )
                     
                     lambda = p.link.type(lst);
@@ -165,8 +171,9 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 % p.link needs to be redefined because there are only 2
                 % observations per optode-pair, not n-many (for n Lambdas)
-                keep_ind = sort([1:length(nWav):size(p.link,1),2:length(nWav):size(p.link,1)]);
-                p.link = p.link(keep_ind,:);
+%                 keep_ind = sort([1:length(nWav):size(p.link,1),2:length(nWav):size(p.link,1)]);
+%                 p.link = p.link(keep_ind,:);
+                p.link = link;
                 p.link.type = reshape(type_chr,size(type_chr,1)*size(type_chr,2),1);
                 
                 if(~ismember('source',p.link.Properties.VariableNames) & ...

@@ -10,7 +10,7 @@ end
         h = patch(axis_handle,'vertices',nodes,'faces',faces, ...
             'facecolor',[0.9 0.9 0.9], ...
             'edgecolor','none'); 
-        camlight; %(axis_handle); 
+        camlight(axis_handle); 
         lighting(axis_handle,'gouraud');
     else
     

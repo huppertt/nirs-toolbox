@@ -143,15 +143,6 @@ t=(t-t(1))/1000;
 lst1=find(d(:,2)==0);
 lst2=find(d(:,2)==1);
 
-ll=find(diff(lst1)>1);
-llo=ll; for i=1:7; ll=[ll; llo+i]; end;
-lst1(ll)=[];
-
-ll=find(diff(lst2)>1);
-llo=ll; for i=1:7; ll=[ll; llo+i]; end;
-lst2(ll)=[];
-
-
 a=10;
 for i=3:6
     dd1(:,i-2)=medfilt1(d(lst1,i),a);
@@ -162,20 +153,19 @@ end
 time=[t(1):min(diff(t)):t(end)];
 clear d1 d2
 for i=1:4
-    d1(:,i)=interp1(t(lst1),dd1(:,i),time,'linear');
-    d2(:,i)=interp1(t(lst2),dd2(:,i),time,'linear');
-    d1(:,i)=medfilt1(d1(:,i),30);
-    d2(:,i)=medfilt1(d2(:,i),30);     
+    d1(:,i)=interp1(t(lst1),dd1(:,i),time,'spline');
+    d2(:,i)=interp1(t(lst2),dd2(:,i),time,'spline');
+    d1(:,i)=medfilt1(d1(:,i),100);
+    d2(:,i)=medfilt1(d2(:,i),100);     
 end
 
-ll=[any(isnan(d1),2) | any(isnan(d2),2)];
-time(ll)=[];
-d1(ll,:)=[];
-d2(ll,:)=[];
 [fa,fb]=butter(4,4*2*mean(diff(time)));
 d1=filtfilt(fa,fb,d1);
 d2=filtfilt(fa,fb,d2);
 
+time([1:100 end-100:end])=[];
+d1([1:100 end-100:end],:)=[];
+d2([1:100 end-100:end],:)=[];
 
 
 d2=2^12-d2;
@@ -189,7 +179,7 @@ detPos=[0 10 0;
     0 40 0];
 source=ones(8,1);
 detector=[1:4 1:4]';
-type=[850 850 850 850 690 690 690 690 ]';
+type=[780 780 780 780 850 850 850 850]';
 link=table(source,detector,type);
 
 data.probe=nirs.core.Probe( srcPos, detPos, link );
