@@ -50,12 +50,16 @@ function tbl = createDemographicsTable( data )
             % create struct
             if(isprop(demo,'keys'))
                 for j = 1:length(demo.keys)
+                    keys=demo.keys{j};
+                    keys(strfind(keys,'-'))='_';
+                    keys(strfind(keys,' '))='_';
+                    
                     if(isa(demo.values{j},'Dictionary'))
-                         tbl(i).(demo.keys{j}) = {demo.values{j}};
+                        tbl(i).(keys) = {demo.values{j}};
                     elseif(isa(demo.values{j},'char'))
-                        tbl(i).(demo.keys{j}) = cellstr(demo.values{j});
+                        tbl(i).(keys) = cellstr(demo.values{j});
                     else
-                    tbl(i).(demo.keys{j}) = demo.values{j};
+                    tbl(i).(keys) = demo.values{j};
                     end
                 end
             end
