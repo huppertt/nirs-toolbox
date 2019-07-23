@@ -14,7 +14,7 @@ function out = getspectra( lambda )
     try
         load([fileparts(which('nirs.media.getspectra')) filesep 'spectra.mat'])
     catch
-        load('spectra.mat');
+        load('NIRS_spectra.mat');
     end
     if(iscell(lambda))
         lambda=str2num(cell2mat(lambda));
