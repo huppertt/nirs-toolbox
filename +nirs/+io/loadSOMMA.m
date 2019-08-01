@@ -12,12 +12,11 @@ for iFile = 1:length(filenames)
     try
         [hdr,d]=readSOMMAheader(filenames{iFile});
         for i=1:length(d)
-            data(cnt)=parseData(hdr(i),d{i});
-            data(cnt).description=filenames{iFile};
+            data(cnt,1)=parseData(hdr(i),d{i});
+            data(cnt,1).description=filenames{iFile};
             cnt=cnt+1;
         end
     end
-  
 end
 
 
@@ -143,44 +142,93 @@ t=(t-t(1))/1000;
 lst1=find(d(:,2)==0);
 lst2=find(d(:,2)==1);
 
-ll=find(diff(lst1)>1);
-llo=ll; for i=1:7; ll=[ll; llo+i]; end;
-lst1(ll)=[];
+lst1D = find(diff(lst1)>1);
 
-ll=find(diff(lst2)>1);
-llo=ll; for i=1:7; ll=[ll; llo+i]; end;
-lst2(ll)=[];
+DD = nan(length(lst1D)-1,max(diff(lst1D)),4);
+t1=zeros(length(lst1D)-1,1);
+lst1D=[0; lst1D];
+for i=2:length(lst1D)
+    a=d(lst1(lst1D(i-1)+1:lst1D(i)),3:end);
+    a(1:5,:)=[]; % a(end-3:end,:)=[];
+    DD(i-1,1:size(a,1),:)=a;
+    t1(i-1)=mean(d(lst1(lst1D(i-1)+1:lst1D(i)),1));
+end    
+    
+
+lst2D = find(diff(lst2)>1);
+
+DD2 = nan(length(lst2D)-1,max(diff(lst2D)),4);
+t2=zeros(length(lst2D)-1,1);
+lst2D=[0; lst2D];
+for i=2:length(lst2D)
+    a=d(lst2(lst2D(i-1)+1:lst2D(i)),3:end);
+    a(1:5,:)=[]; % a(end-3:end,:)=[];
+    DD2(i-1,1:size(a,1),:)=a;
+    t2(i-1)=mean(d(lst2(lst2D(i-1)+1:lst2D(i)),1));
+end    
+    
 
 
-a=10;
-for i=3:6
-    dd1(:,i-2)=medfilt1(d(lst1,i),a);
-    dd2(:,i-2)=medfilt1(d(lst2,i),a);
-end
+% 
+% 
+% ll=find(diff(lst1)>1);
+% llo=ll; for i=1:7; ll=[ll; llo+i]; end;
+% lst1(ll)=[];
+% 
+% ll=find(diff(lst2)>1);
+% llo=ll; for i=1:7; ll=[ll; llo+i]; end;
+% lst2(ll)=[];
+% 
+% 
+% a=10;
+% for i=3:6
+%     dd1(:,i-2)=medfilt1(d(lst1,i),a);
+%     dd2(:,i-2)=medfilt1(d(lst2,i),a);
+% end
+% 
+% 
+% time=[t(1):min(diff(t)):t(end)];
+% clear d1 d2
+% for i=1:4
+%     d1(:,i)=interp1(t(lst1),dd1(:,i),time,'linear');
+%     d2(:,i)=interp1(t(lst2),dd2(:,i),time,'linear');
+%     d1(:,i)=medfilt1(d1(:,i),30);
+%     d2(:,i)=medfilt1(d2(:,i),30);     
+% end
+% 
+% ll=[any(isnan(d1),2) | any(isnan(d2),2)];
+% time(ll)=[];
+% d1(ll,:)=[];
+% d2(ll,:)=[];
+% [fa,fb]=butter(4,4*2*mean(diff(time)));
+% d1=filtfilt(fa,fb,d1);
+% d2=filtfilt(fa,fb,d2);
+% 
+% 
+% 
+% d2=2^12-d2;
+% d1=2^12-d1;
 
+d1=squeeze(nanmedian(DD,2));
+d2=squeeze(nanmedian(DD2,2));
 
-time=[t(1):min(diff(t)):t(end)];
-clear d1 d2
+n=min(length(t1),length(t2));
+d1=d1(1:n,:);
+d2=d2(1:n,:);
+t1=t1(1:n);
+t2=t2(1:n);
+
+time=(t1+t2)/2;
+
+clear dd1 dd2
 for i=1:4
-    d1(:,i)=interp1(t(lst1),dd1(:,i),time,'linear');
-    d2(:,i)=interp1(t(lst2),dd2(:,i),time,'linear');
-    d1(:,i)=medfilt1(d1(:,i),30);
-    d2(:,i)=medfilt1(d2(:,i),30);     
-end
+     dd1(:,i)=interp1(t1,d1(:,i),time,'linear');
+     dd2(:,i)=interp1(t2,d2(:,i),time,'linear');
+%     d1(:,i)=medfilt1(d1(:,i),30);
+%     d2(:,i)=medfilt1(d2(:,i),30);     
+ end
 
-ll=[any(isnan(d1),2) | any(isnan(d2),2)];
-time(ll)=[];
-d1(ll,:)=[];
-d2(ll,:)=[];
-[fa,fb]=butter(4,4*2*mean(diff(time)));
-d1=filtfilt(fa,fb,d1);
-d2=filtfilt(fa,fb,d2);
-
-
-
-d2=2^12-d2;
-d1=2^12-d1;
-
+d1=dd1; d2=dd2;
 
 srcPos=[0 0 0];
 detPos=[0 10 0;
@@ -202,8 +250,15 @@ if(~isempty(hdr.marks))
     stim.name='Mark'; stim.onset=onsets; stim.dur=dur; stim.amp=amp;
     data.stimulus('Mark')=stim;
 end
-data.time=time;
+data.time=time/1000;
 data.data=[d2 d1];
+
+data.time(end)=[];
+data.data(end,:)=[];
+
+data.time(1)=[];
+data.data(1,:)=[];
+
 data.demographics('subject')=hdr.info.SubjID;
 data.demographics('date')=hdr.info.Date;
 data.demographics('site')=hdr.info.Site;
