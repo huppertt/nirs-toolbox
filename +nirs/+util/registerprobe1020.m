@@ -7,7 +7,7 @@ else
     probe1020 = nirs.core.Probe1020;
 end
 
-if(nargin<3)
+if(nargin<3 || isempty(seperateflag))
     seperateflag=false;
 end
 

@@ -258,6 +258,8 @@ else
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
     
     
+    XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3]*10;
+    
     % and concatinate it to the probe
     probe.optodes=[probe.optodes(:,1)  [fidS2(:,2:end); fidD2(:,2:end)]; fidS; fidD];
     probe.optodes(ismember(probe.optodes.Name,''),:)=[];
@@ -268,12 +270,23 @@ else
 end
 
 
+
 if(registerprobe)
-    probe1020=nirs.util.registerprobe1020(probe);
+    lst=find(ismember(probe.optodes.Type,'FID-anchor') & ~ismember(probe.optodes.Name,fid_1020.Name));
+    if(isempty(lst))
+        probe1020=nirs.util.registerprobe1020(probe);
+    else
+        extrapts=probe.optodes(lst,:);
+        extrapts.X=XYZprobe3D(lst,1); extrapts.Y=XYZprobe3D(lst,2); extrapts.Z=XYZprobe3D(lst,3);
+        probe1020=nirs.util.registerprobe1020(probe,[],[],extrapts);
+    end
     
     if(isfield(probeInfo,'geom'))
         % old NIRx data format
-        
+         if(~isempty(lst))
+            probeInfo.geom.NIRxHead.ext1020sys.coords3d=[probeInfo.geom.NIRxHead.ext1020sys.coords3d; XYZprobe3D(lst,:)];
+            probeInfo.geom.NIRxHead.ext1020sys.labels={probeInfo.geom.NIRxHead.ext1020sys.labels{:} extrapts.Name{:}};
+        end
         BEM(1)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh.nodes(:,end-2:end),...
             probeInfo.geom.NIRxHead.mesh.belems(:,end-2:end),[]);
         %BEM(1)=reducemesh(BEM(1),.25);
@@ -321,7 +334,7 @@ if(registerprobe)
             probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF6'}))}='AFF6';
         end
         
-       if(~isfield(probeInfo.probes,'index_s'))
+       if(~isfield(probeInfo.probes,'index_s') || isempty(probeInfo.probes.index_s))
         index_s= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s))';
         index_d= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d))';
        else
