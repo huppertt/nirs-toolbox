@@ -16,13 +16,25 @@ lst=find(i~=j);
 pairs=[i(lst) j(lst)];
 
 for idx=1:size(pairs,1)
-    A=pos3D(pairs(idx,1),:);
-    B=pos3D(pairs(idx,2),:);
-    C=.5*(abs(A)+abs(B));
-    A=C.*sign(A);
-    B=C.*sign(B);
-    pos3D(pairs(idx,1),:)=A;
-    pos3D(pairs(idx,2),:)=B;   
+    for j=1:3
+        A=pos3D(pairs(idx,1),j);
+        B=pos3D(pairs(idx,2),j);
+        A1=pos2D(pairs(idx,1),j);
+        B1=pos2D(pairs(idx,2),j);
+        
+        if(sign(A1)==sign(B1));
+        C=.5*(A+B);
+        A=C;
+        B=C;
+        else
+        C=.5*(abs(A)+abs(B));
+                A=C.*sign(A);
+        B=C.*-sign(A);
+        end
+
+        pos3D(pairs(idx,1),j)=A;
+        pos3D(pairs(idx,2),j)=B;
+    end
 end
 
 % mesh=probe1020.getmesh;
