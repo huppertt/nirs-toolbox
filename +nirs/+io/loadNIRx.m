@@ -393,6 +393,7 @@ end
 end
 
 
+
 function info =parsehdr(file)
 % This sub-routine parses the NIRx header info
 
@@ -405,7 +406,7 @@ while(1)
         break
     end
     if(~isempty(strfind(line,'=')))
-        if(isempty(strfind(line,'#')))
+        if(isempty(strfind(line,'="#')))
             fld = line(1:strfind(line,'=')-1);
             val = line(strfind(line,'=')+1:end);
             if(isempty(strfind(val,'"')))
@@ -419,7 +420,7 @@ while(1)
             cnt=1; val=[];
             while(1)
                 line=fgetl(fid);
-                if(isempty(strfind(line,'#')))
+                if(isempty(strfind(line(1),'#')))
                     val(cnt,:)=str2num(line);
                     cnt=cnt+1;
                 else
