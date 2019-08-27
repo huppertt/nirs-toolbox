@@ -6,6 +6,7 @@ function headshape = getheadshape(mesh)
 % headsize('Iz-cz-nas')=373;
 % headsize('circumference')=523;
 
+if(isa(mesh,'nirs.core.Mesh'))
 
 if(~isempty(mesh.fiducials))
     tbl=mesh.fiducials;
@@ -21,6 +22,10 @@ else
     % k=dsearchn(BEM(1).nodes,Pos);
     % Pos=BEM(1).nodes(k,:);
     Pos = nirs.registration.projectsurface(Pos,mesh.nodes);
+end
+else
+    tbl=mesh;
+     Pos =[tbl.X tbl.Y tbl.Z];
 end
 
 % Find the default arc lengths

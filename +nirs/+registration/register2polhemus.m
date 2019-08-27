@@ -1,10 +1,14 @@
-function probe1020=register2polhemus(probe,polfile)
+function probe1020=register2polhemus(probe,polfile,rereg)
 % This function registers the probe to the polhemus text file
 
 % Read the polhemus file
 fid=fopen(polfile,'r');
 C=textscan(fid,'%s %f %f %f');
 fclose(fid);
+
+if(nargin<3)
+    rereg=true;
+end
 
 for i=1:length(C{1})
     C{1}{i}(strfind(C{1}{i},':'))=[];
@@ -33,6 +37,16 @@ for id=1:length(lst)
     Units{cnt}='mm';
     cnt=cnt+1;
 end
+fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
+    'VariableNames',{'Name','X','Y','Z','Type','Units'});
+
+
+headsize=nirs.registration.getheadshape(fid);
+probe1020 = nirs.core.Probe1020([],headsize);
+probe1020.optodes=probe.optodes;
+probe1020.optodes_registered=probe.optodes;
+
+probe1020.link=probe.link;
 
 % Now, add the src-det points
 lst=find(~ismember(lower(C{1}),lower(lab1020.Name)));
@@ -49,18 +63,25 @@ for i=1:length(lst)
     end
     if(~isempty(str))
         id=find(ismember(probe.optodes.Name,str));
-        probe.optodes.X(id)=C{2}(lst(i));
-        probe.optodes.Y(id)=C{3}(lst(i));
-        probe.optodes.Z(id)=C{4}(lst(i));
+        probe1020.optodes_registered.X(id)=C{2}(lst(i));
+        probe1020.optodes_registered.Y(id)=C{3}(lst(i));
+        probe1020.optodes_registered.Z(id)=C{4}(lst(i));
     end
+        
 end
-fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
-    'VariableNames',{'Name','X','Y','Z','Type','Units'});
 % and concatinate it to the probe
-probe.optodes=[probe.optodes; fid];
+probe1020.optodes_registered=[probe1020.optodes_registered; fid];
 
-probe=nirs.util.probe_remove_unconnected(probe);
-probe1020=nirs.util.registerprobe1020(probe);
+mesh=probe1020.getmesh;
+
+T = nirs.registration.cp2tform(fid,mesh(1).fiducials);
+ [xyz]=[probe1020.optodes_registered.X probe1020.optodes_registered.Y...
+     probe1020.optodes_registered.Z];
+xyz(:,4)=1;
+xyz=xyz*T;
+probe1020.optodes_registered.X=xyz(:,1);
+probe1020.optodes_registered.Y=xyz(:,2);
+probe1020.optodes_registered.Z=xyz(:,3);
 
 
 return
