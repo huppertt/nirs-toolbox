@@ -52,7 +52,7 @@ tbl=table(Name,X,Y,Z,Type,Units);
 %% Resize the 10-20 system to match the head size (if provided)
 if(nargin>1)
     % First, find the default size of our head
-    tbl = nirs.util.register_headsize(tbl,headsize);
+    tbl = nirs.util.register_headsize(headsize,tbl);
 end
 
 

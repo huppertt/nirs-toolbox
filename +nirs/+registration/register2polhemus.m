@@ -40,11 +40,13 @@ end
 fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
     'VariableNames',{'Name','X','Y','Z','Type','Units'});
 
+probe=nirs.util.probe_remove_unconnected(probe);
 
 headsize=nirs.registration.getheadshape(fid);
 probe1020 = nirs.core.Probe1020([],headsize);
 probe1020.optodes=probe.optodes;
 probe1020.optodes_registered=probe.optodes;
+probe1020.optodes_registered(~ismember(probe1020.optodes_registered.Type,{'Source','Detector'}),:)=[];
 
 probe1020.link=probe.link;
 
@@ -79,6 +81,7 @@ T = nirs.registration.cp2tform(fid,mesh(1).fiducials);
      probe1020.optodes_registered.Z];
 xyz(:,4)=1;
 xyz=xyz*T;
+
 probe1020.optodes_registered.X=xyz(:,1);
 probe1020.optodes_registered.Y=xyz(:,2);
 probe1020.optodes_registered.Z=xyz(:,3);

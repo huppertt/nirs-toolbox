@@ -28,6 +28,17 @@ else
      Pos =[tbl.X tbl.Y tbl.Z];
 end
 
+if(isempty(find(ismember(lower(tbl.Name),{'spmlpa','lpa'}))) |...
+        isempty(find(ismember(lower(tbl.Name),{'spmrpa','rpa'}))) | ...
+        isempty(find(ismember(lower(tbl.Name),'cz'))) |...
+        isempty(find(ismember(lower(tbl.Name),{'spmnas','nas'}))) | ...
+        isempty(find(ismember(lower(tbl.Name),'iz'))))
+    tbl2=nirs.util.list_1020pts('?');
+    [~,tbl]=nirs.registration.cp2tform(tbl2,tbl);
+    Pos =[tbl.X tbl.Y tbl.Z];
+end
+
+
 % Find the default arc lengths
 pt(1,:)=Pos(find(ismember(lower(tbl.Name),{'spmlpa','lpa'})),:);
 pt(2,:)=Pos(find(ismember(lower(tbl.Name),{'spmrpa','rpa'})),:);

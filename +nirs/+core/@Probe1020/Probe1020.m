@@ -298,6 +298,10 @@ classdef Probe1020 < nirs.core.Probe
             pt(2,:)=obj.pts1020(find(ismember(obj.labels,'Iz')),:);
             com=.5*sum(pt,1);
             
+            t1020=nirs.util.list_1020pts;
+            t1020b=nirs.util.list_1020pts('?',obj.get_headsize);
+            
+            
             fract=.2;
             mesh(1).nodes(:,1)=mesh(1).nodes(:,1)*obj.LR_distance/2+com(1);
             mesh(1).nodes(:,2)=mesh(1).nodes(:,2)*obj.AP_distance/2+com(2);
@@ -311,17 +315,30 @@ classdef Probe1020 < nirs.core.Probe
             mesh(3).nodes(:,2)=mesh(3).nodes(:,2)*(obj.AP_distance/2-obj.braindepth)+com(2);
             mesh(3).nodes(:,3)=mesh(3).nodes(:,3)*(obj.IS_distance-obj.braindepth)+com(3);
             
-            
-            [TR, TT] = icp(mesh(1).nodes',obj.pts1020');
-            mesh(1).nodes=(TR'*mesh(1).nodes'-TT*ones(1,size(mesh(1).nodes,1)))';
-            mesh(2).nodes=(TR'*mesh(2).nodes'-TT*ones(1,size(mesh(2).nodes,1)))';
-            mesh(3).nodes=(TR'*mesh(3).nodes'-TT*ones(1,size(mesh(3).nodes,1)))';
-            
             fidtbl=table(obj.labels,obj.pts1020(:,1),obj.pts1020(:,2),obj.pts1020(:,3),...
                 repmat({'10-20'},length(obj.labels),1),...
                 repmat({'mm'},length(obj.labels),1),...
                 repmat(true,length(obj.labels),1),...
                 'VariableNames',{'Name','X','Y','Z','Units','Type','Draw'});
+         
+%             [TR, TT] = icp(mesh(1).nodes',obj.pts1020');
+%             mesh(1).nodes=(TR'*mesh(1).nodes'-TT*ones(1,size(mesh(1).nodes,1)))';
+%             mesh(2).nodes=(TR'*mesh(2).nodes'-TT*ones(1,size(mesh(2).nodes,1)))';
+%             mesh(3).nodes=(TR'*mesh(3).nodes'-TT*ones(1,size(mesh(3).nodes,1)))';
+            
+            for iter=1:20
+            [k,d]=dsearchn(mesh(1).nodes,obj.pts1020);
+            a=mesh(1).nodes(k,:);
+            b=obj.pts1020;
+         
+            T=a\b;
+            for i=1:length(mesh)
+                n=mesh(i).nodes;
+                n=n*T;
+                mesh(i).nodes=n(:,1:3); 
+            end
+            end
+            
             mesh(1).fiducials=fidtbl;
             mesh(1).transparency=.2;
             mesh(2).transparency=.1;
