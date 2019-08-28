@@ -22,7 +22,7 @@ function varargout = StimUtil_GUI(varargin)
 
 % Edit the above text to modify the response to help StimUtil_GUI
 
-% Last Modified by GUIDE v2.5 01-Feb-2019 10:12:15
+% Last Modified by GUIDE v2.5 28-Aug-2019 12:37:32
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -377,6 +377,13 @@ idx=get(handles.listbox1,'Value');
 sv=nirs.design.StimulusEvents;
 C=get(handles.uitable1,'Data');
 
+if(isempty(C))
+    C=cell(1,4); 
+end
+
+d=eventdata.EditData;
+if(~isempty(str2num(d))) d=str2num(d); end;
+C{eventdata.Indices(1),eventdata.Indices(2)}=d;
 for i=1:size(C,1)
     if(~isempty(C{i,2}) & ...
             ~isempty(C{i,3}) & ~isempty(C{i,4}))
@@ -448,7 +455,7 @@ raw(selected).stimulus(stimnames{idx})=sv;
 
 set(handles.figure1,'UserData',raw);
 updateDraw(hObject, eventdata, handles);
-
+set(handles.uitable1,'Data',C);
 return
 
 
@@ -924,3 +931,19 @@ raw(selected).stimulus(stimnames{idx})=st;
    StimUtil_GUI('updateDraw');
 
 return
+
+
+% --------------------------------------------------------------------
+function addnew_Callback(hObject, eventdata, handles)
+% hObject    handle to addnew (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+
+raw=get(handles.figure1,'UserData');
+selected=get(handles.popupmenu1,'value');
+st=nirs.design.StimulusEvents;
+raw(selected).stimulus('New Event')=st;
+set(handles.figure1,'UserData',raw);
+StimUtil_GUI('updateDraw');
