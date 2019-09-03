@@ -172,9 +172,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
            
             for idx=1:size(X,2)
                 x=X(:,idx);
-                VarMDU(idx)=inv(x'*x+eps(1))/m^2;
+                VarMDU(idx)=pinv(x'*x+eps(1))/m^2;
             end
-           VarMDU=VarMDU*V';
+           VarMDU=abs(VarMDU*V');
            
               
             % The MDU is the variance at each voxel (still in the basis

@@ -43,7 +43,7 @@ if(isfield(info,'ShortDetectors') && ~isempty(info.ShortDetectors) && ...
 else
     useshortdistances=false;
 end
-% 
+%
 % info.S_D_Mask =[
 %     1     1     0     1
 %     1     1     1     0
@@ -58,7 +58,7 @@ end
 % I keep having issues with the NIRx measurements having a few weird
 % channel combinations that we think are not in the aquistion setup.  This
 % is a bit of a hack to fix this, since NIRx does save all data
-% 
+%
 % for sI=1:size(info.S_D_Mask,1)
 %     for dI=1:size(info.S_D_Mask,2)
 %         dist(sI,dI)=norm(probeInfo.probes.coords_s3(sI,:)-probeInfo.probes.coords_d3(dI,:));
@@ -67,7 +67,7 @@ end
 % d=median(dist(info.S_D_Mask==1))+std(dist(info.S_D_Mask==1));
 % if(any(any((dist<d)~=(info.S_D_Mask==1))))
 %     disp('Adding a few Src-Det pairs missing from NIRx file');
-%     info.S_D_Mask=(info.S_D_Mask==1 | dist<d); 
+%     info.S_D_Mask=(info.S_D_Mask==1 | dist<d);
 % end
 
 if(~isempty(dir(fullfile(folder,'*SDmask.mat'))))
@@ -76,7 +76,7 @@ if(~isempty(dir(fullfile(folder,'*SDmask.mat'))))
     disp('loading mask from file');
     info.S_D_Mask=SD_mask;
 end
-    
+
 
 [s,d]=find(info.S_D_Mask);
 
@@ -202,18 +202,41 @@ if(isfield(probeInfo,'geom'))
     fid_1020 = table(Name,X,Y,Z,Type,Units,Draw);
     
     % Add FID locations to the 2D probe
-    fidS=table(fid_1020.Name(probeInfo.probes.index_s(:,2)),...
+    for i=1:size(probeInfo.probes.index_s,1)
+        if(probeInfo.probes.index_s(i,2)>0)
+            name{i,1}=fid_1020.Name(probeInfo.probes.index_s(i,2));
+        else
+            name{i,1}=['MNI:[' num2str(probeInfo.probes.coords_s3(i,1)) ','...
+                num2str(probeInfo.probes.coords_s3(i,2)) ',',...
+                num2str(probeInfo.probes.coords_s3(i,3)) ']'];
+        end
+    end
+    
+    fidS=table(name,...
         probe.srcPos(probeInfo.probes.index_s(:,1),1),...
         probe.srcPos(probeInfo.probes.index_s(:,1),2),...
         probe.srcPos(probeInfo.probes.index_s(:,1),3),...
         repmat({'FID-anchor'},length(probeInfo.probes.index_s),1),repmat({'mm'},length(probeInfo.probes.index_s),1),...
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
-    fidD=table(fid_1020.Name(probeInfo.probes.index_d(:,1)),...
+    
+    for i=1:size(probeInfo.probes.index_d,1)
+        if(probeInfo.probes.index_d(i,2)>0)
+            name2{i,1}=fid_1020.Name(probeInfo.probes.index_d(i,2));
+        else
+            name2{i,1}=['MNI:[' num2str(probeInfo.probes.coords_d3(i,1)) ','...
+                num2str(probeInfo.probes.coords_d3(i,2)) ',',...
+                num2str(probeInfo.probes.coords_d3(i,3)) ']'];
+        end
+    end
+    
+    fidD=table(name2,...
         probe.detPos(probeInfo.probes.index_d(:,1),1),...
         probe.detPos(probeInfo.probes.index_d(:,1),2),...
         probe.detPos(probeInfo.probes.index_d(:,1),3),...
         repmat({'FID-anchor'},length(probeInfo.probes.index_d),1),repmat({'mm'},length(probeInfo.probes.index_d),1),...
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
+    
+    XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3];
     
     % and concatinate it to the probe
     probe.optodes=[probe.optodes; fidS; fidD];
@@ -258,7 +281,7 @@ else
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
     
     
-    XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3]*10;
+    XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3];
     
     % and concatinate it to the probe
     probe.optodes=[probe.optodes(:,1)  [fidS2(:,2:end); fidD2(:,2:end)]; fidS; fidD];
@@ -276,6 +299,12 @@ if(registerprobe)
     if(isempty(lst))
         probe1020=nirs.util.registerprobe1020(probe);
     else
+        
+        t1020=nirs.util.list_1020pts('?');
+        T=nirs.registration.cp2tform(fid_1020,t1020);
+        XYZprobe3D(:,4)=1;
+        XYZprobe3D=XYZprobe3D*T;
+        
         extrapts=probe.optodes(lst,:);
         extrapts.X=XYZprobe3D(lst,1); extrapts.Y=XYZprobe3D(lst,2); extrapts.Z=XYZprobe3D(lst,3);
         probe1020=nirs.util.registerprobe1020(probe,[],[],extrapts);
@@ -283,8 +312,8 @@ if(registerprobe)
     
     if(isfield(probeInfo,'geom'))
         % old NIRx data format
-         if(~isempty(lst))
-            probeInfo.geom.NIRxHead.ext1020sys.coords3d=[probeInfo.geom.NIRxHead.ext1020sys.coords3d; XYZprobe3D(lst,:)];
+        if(~isempty(lst))
+            probeInfo.geom.NIRxHead.ext1020sys.coords3d=[probeInfo.geom.NIRxHead.ext1020sys.coords3d; XYZprobe3D(lst,1:3)];
             probeInfo.geom.NIRxHead.ext1020sys.labels={probeInfo.geom.NIRxHead.ext1020sys.labels{:} extrapts.Name{:}};
         end
         BEM(1)=nirs.core.Mesh(probeInfo.geom.NIRxHead.mesh.nodes(:,end-2:end),...
@@ -304,10 +333,10 @@ if(registerprobe)
         BEM(3).transparency=1;
     else
         %new NIRx data format
-         C27=nirs.registration.Colin27.BEM;
+        C27=nirs.registration.Colin27.BEM;
         BEM=C27.mesh;
     end
-  
+    
     % This will allow NIRFAST to directly use the info for the BEM model
     lambda=unique(probe.link.type);
     prop{1} = nirs.media.tissues.skin(lambda);
@@ -334,17 +363,17 @@ if(registerprobe)
             probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF6'}))}='AFF6';
         end
         
-       if(~isfield(probeInfo.probes,'index_s') || isempty(probeInfo.probes.index_s))
-        index_s= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s))';
-        index_d= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d))';
-       else
-           index_s=probeInfo.probes.index_s;
-           index_d=probeInfo.probes.index_d;
-           if(length(index_d)~=info.Detectors)
-               index_d=[index_d(1:end-1); index_s];
-           end
-       end
-       
+        if(~isfield(probeInfo.probes,'index_s') || isempty(probeInfo.probes.index_s))
+            index_s= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s))';
+            index_d= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d))';
+        else
+            index_s=probeInfo.probes.index_s;
+            index_d=probeInfo.probes.index_d;
+            if(length(index_d)~=info.Detectors)
+                index_d=[index_d(1:end-1); index_s];
+            end
+        end
+        
         lst=[index_s; index_d;...
             index_s(1:info.ShortDetectors)];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
@@ -356,37 +385,50 @@ if(registerprobe)
         
     else
         lst=[probeInfo.probes.index_s(:); probeInfo.probes.index_d(:)];
-        labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
-        [~,lst2]=ismember(labels,fid_1020.Name);
-        if(length(lst)*2==info.Detectors+info.Sources)
-            lst2=[lst2 lst2];
+        if(~any(lst==0))
+            labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
+            [~,lst2]=ismember(labels,fid_1020.Name);
+            if(length(lst)*2==info.Detectors+info.Sources)
+                lst2=[lst2 lst2];
+            end
+        else
+            lst2=[];
         end
     end
     
     if(~probeInfo.newversion)
-        XYZ=[fid_1020.X(lst2) fid_1020.Y(lst2) fid_1020.Z(lst2)];
-        
-        %
-        %     SrcPos3D = probeInfo.probes.coords_s3;
-        %     DetPos3D = probeInfo.probes.coords_d3;
-        %     FID3D = [probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_s(:,2),:);...
-        %         probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_d(:,2),:)];
-        %
-        %     XYZ=[SrcPos3D; DetPos3D; FID3D];
-        %
-        %     fidPts=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Type,'FID-anchor'),:);
-        %     XYZ_reg=[fidPts.X fidPts.Y fidPts.Z];x
-        %     XYZ_reg(:,4)=1;
-        %     FID3D(:,4)=1;
-        %     XYZ(:,4)=1;
-        %     R=FID3D\XYZ_reg;
-        %
-        %     XYZ=XYZ*R;
-        
-        probe1020.optodes_registered=probe1020.optodes;
-        probe1020.optodes_registered.X(1:length(lst2))=XYZ(:,1);
-        probe1020.optodes_registered.Y(1:length(lst2))=XYZ(:,2);
-        probe1020.optodes_registered.Z(1:length(lst2))=XYZ(:,3);
+        if(~isempty(lst2))
+            XYZ=[fid_1020.X(lst2) fid_1020.Y(lst2) fid_1020.Z(lst2)];
+            
+            %
+            %     SrcPos3D = probeInfo.probes.coords_s3;
+            %     DetPos3D = probeInfo.probes.coords_d3;
+            %     FID3D = [probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_s(:,2),:);...
+            %         probeInfo.geom.NIRxHead.ext1020sys.coords3d(probeInfo.probes.index_d(:,2),:)];
+            %
+            %     XYZ=[SrcPos3D; DetPos3D; FID3D];
+            %
+            %     fidPts=probe1020.optodes_registered(ismember(probe1020.optodes_registered.Type,'FID-anchor'),:);
+            %     XYZ_reg=[fidPts.X fidPts.Y fidPts.Z];x
+            %     XYZ_reg(:,4)=1;
+            %     FID3D(:,4)=1;
+            %     XYZ(:,4)=1;
+            %     R=FID3D\XYZ_reg;
+            %
+            %     XYZ=XYZ*R;
+            
+            probe1020.optodes_registered=probe1020.optodes;
+            probe1020.optodes_registered.X(1:length(lst2))=XYZ(:,1);
+            probe1020.optodes_registered.Y(1:length(lst2))=XYZ(:,2);
+            probe1020.optodes_registered.Z(1:length(lst2))=XYZ(:,3);
+        else
+            % keep as is.
+            XYZ=XYZprobe3D;
+            probe1020.optodes_registered=probe1020.optodes;
+            probe1020.optodes_registered.X(1:length(XYZ))=XYZ(:,1);
+            probe1020.optodes_registered.Y(1:length(XYZ))=XYZ(:,2);
+            probe1020.optodes_registered.Z(1:length(XYZ))=XYZ(:,3);
+        end
     end
     probe1020.link=probe.link;
     probe1020.fixeddistances=probe.distances;
