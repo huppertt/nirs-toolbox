@@ -74,6 +74,31 @@ if(median(probe.distances)<20)
     probe = nirs.core.Probe( SD.SrcPos*sc, SD.DetPos*sc, link );
 end
 
+if(isfield(SD,'SrcPos3D'))
+    % this is a Rouge Research generated file
+     probe1020=nirs.core.Probe1020;
+     probe1020.link=probe.link;
+     probe1020.optodes=probe.optodes;
+           
+     p2=nirs.core.Probe( SD.SrcPos3D,SD.DetPos3D, link );
+     probe1020.optodes_registered=p2.optodes;
+     
+     
+     Tal2MNI =[ 0.9964    0.0178    0.0173   -0.0000
+   -0.0169    0.9957   -0.0444   -0.0000
+   -0.0151    0.0429    1.0215    0.0000
+   -0.4232  -17.5022   11.6967    1.0000];
+     
+ 
+     probe1020=probe1020.apply_tform_mesh(Tal2MNI);
+     colin=nirs.registration.Colin27.mesh;
+     probe1020=probe1020.register_mesh2probe(colin);
+     probe=probe1020;
+
+end
+
+
+
 %If anchor infomation is present, add it
 if(isfield(SD,'AnchorList') && ~isempty(SD.AnchorList))
     PosAll=[SD.SrcPos; SD.DetPos; SD.DummyPos];

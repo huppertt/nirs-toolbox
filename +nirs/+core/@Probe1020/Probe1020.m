@@ -68,6 +68,30 @@ classdef Probe1020 < nirs.core.Probe
             obj.defaultdrawfcn='draw1020';
         end
         
+        function obj = apply_tform_mesh(obj,tform)
+            m=obj.mesh;
+            for i=1:length(m)
+                n=m(i).nodes;
+                n(:,4)=1;
+                n=n*(tform);
+                m(i).nodes=n(:,1:3);
+                
+                if(~isempty(m(i).fiducials))
+                    n=[m(i).fiducials.X m(i).fiducials.Y m(i).fiducials.Z];
+                    n(:,4)=1;
+                    n=n*(tform);
+                    m(i).fiducials.X=n(:,1);
+                    m(i).fiducials.Y=n(:,2);
+                    m(i).fiducials.Z=n(:,3);
+                end
+            end
+            n=obj.pts1020;
+            n(:,4)=1;
+            n=n*(tform);
+            obj.pts1020=n(:,1:3);
+        end
+        
+        
         function obj = register_mesh2probe(obj,mesh,noreg)
             % This reshapes the mesh to fit the current probe
 

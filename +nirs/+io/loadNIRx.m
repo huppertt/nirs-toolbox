@@ -18,9 +18,17 @@ end
 
 
 file = dir(fullfile(folder,'*.hdr'));
-if(isempty(file)); raw=[]; return; end;
-info = parsehdr(fullfile(folder,file(1).name));
-
+if(isempty(file))
+    file = dir(fullfile(folder,'*_config.json'));  % new format
+    if(isempty(file))
+        raw=[]; 
+        return; 
+    else
+        info = parsehdrJSON(fullfile(folder,file(1).name));
+    end
+else
+    info = parsehdr(fullfile(folder,file(1).name));
+end
 
 %now read the probeInfo file and convert to a probe class
 file = dir(fullfile(folder,'*robeInfo.mat'));
@@ -91,14 +99,18 @@ link=table(repmat(s,length(info.Wavelengths),1),...
 
 probe = nirs.core.Probe(SrcPos,DetPos,link);
 
-if(length(info.ChanDis)>length(probe.distances))
-    info.ChanDis=info.ChanDis(1:length(probe.distances));
+if(isfield(info,'ChanDis'))
+    if(length(info.ChanDis)>length(probe.distances))
+        info.ChanDis=info.ChanDis(1:length(probe.distances));
+    end
+    
+    
+    % Not sure why the units on the 2D probe in the NIRx file are so off
+    scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
+    probe.fixeddistances=probe.distances*scale;
+else
+    scale=1;
 end
-
-
-% Not sure why the units on the 2D probe in the NIRx file are so off
-scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
-probe.fixeddistances=probe.distances*scale;
 
 if(useshortdistances && info.ShortDetectors>0)
     
@@ -127,12 +139,12 @@ probe.optodes.X=scale*probe.optodes.X;
 probe.optodes.Y=scale*probe.optodes.Y;
 probe.optodes.Z=scale*probe.optodes.Z;
 
-
+probe.link=sortrows(probe.link,{'type','source','detector'});
 
 %% Now, let's get the data
 raw = nirs.core.Data();
-
-lst=find(ismember(info.SDkey(:,2:3),[probe.link.source probe.link.detector],'rows'));
+kk=find(ismember(probe.link.type,probe.link.type(1)));
+lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
 for idx=1:length(info.Wavelengths)
     file = dir(fullfile(folder,['*.wl' num2str(idx)]));
     
@@ -156,7 +168,15 @@ raw.description=info.FileName;
 
 % Add the demographics info
 file = dir(fullfile(folder,'*.inf'));
-demoinfo = parsehdr(fullfile(folder,file(1).name));
+if(~isempty(file))
+    demoinfo = parsehdr(fullfile(folder,file(1).name));
+else
+    file = dir(fullfile(folder,'*_description.json'));
+    if(~isempty(file))
+        demoinfo = nirs.io.loadjson(fullfile(folder,file(1).name));
+    end
+end
+    
 demo=Dictionary;
 flds=fields(demoinfo);
 for idx=1:length(flds)
@@ -448,6 +468,38 @@ end
 end
 
 
+function info =parsehdrJSON(file)
+% This sub-routine parses the NIRx header info
+
+info=nirs.io.loadjson(file);
+
+info.S_D_Mask=[];
+for i=1:length(info.channel_mask)
+    for j=1:length(info.channel_mask{i});
+        info.S_D_Mask(i,j)=str2num(info.channel_mask{i}(j));
+    end
+end
+
+info.det_Mask=[];
+for i=1:length(info.det_split)
+    for j=1:length(info.det_split{i});
+        info.det_Mask(i,j)=str2num(info.det_split{i}(j));
+    end
+end
+lst=find(sum(info.det_Mask)==8);
+if(~isempty(lst))
+    info.ShortDetIndex=find(info.det_Mask(:,lst));
+    info.ShortDetectors=length(info.ShortDetIndex);
+else
+    info.ShortDetIndex=[];
+end
+info.Detectors=length(sum(info.det_Mask));
+info.Wavelengths=[780 850];
+info.Sources=length(info.drv_amplitudes);
+
+info.SDkey=[1:info.Sources*info.Detectors;repmat(1:info.Sources,1,info.Detectors); repmat(1:info.Detectors,1,info.Sources)]';
+
+end
 
 function info =parsehdr(file)
 % This sub-routine parses the NIRx header info

@@ -1,14 +1,26 @@
-function data = loadDotNirs( filenames )
+function data = loadDotNirs( filenames,force )
+
+if(nargin<2 || isempty(force))
+    force=false;
+end
 
     % if a single filename, put it in a cell
     if ischar( filenames )
         filenames = {filenames};
     end
     
+  
+    
     data = nirs.core.Data.empty;
     
     % iterate through cell array
     for iFile = 1:length(filenames)
+        
+        [p f]=fileparts(filenames{iFile});
+        if(~isempty(dir(fullfile(p,[f '.wl1']))) & ~force)
+            disp(['Skipping ' filenames{iFile} ': NIRx data found in same folder']);
+            continue;
+        end
         try
             % load data as a struct
             d = load( filenames{iFile}, '-mat' );
@@ -85,6 +97,17 @@ function data = loadDotNirs( filenames )
                 end
             end
          
+            if(isfield(d,'brainsight'))
+                a=d.brainsight.acquisition.auxData;
+                t=d.brainsight.acquisition.auxTime;
+                 for i=1:size(a,2)
+                    name{i,1}=['aux-' num2str(i)];
+                end
+                aux=nirs.core.GenericData(a,t,table(name,repmat({'aux'},length(name),1),'VariableNames',{'name','type'}));
+                thisFile.auxillary('aux')=aux;
+                thisFile.auxillary('brainsight')=d.brainsight;
+            end
+            
             if(isfield(d,'aux') || isfield(d,'aux10'))
                 if(isfield(d,'aux'))
                     a=d.aux;
