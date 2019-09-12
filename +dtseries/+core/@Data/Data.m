@@ -74,6 +74,17 @@ classdef Data
             end
         end
         
+        function out = getfulldata(obj)
+            Vall=sparse(size(obj.projectors,1),size(obj.data,2));
+            ii=unique(obj.mesh.link.type);
+            for i=1:length(ii)
+                Vall(:,ismember(obj.mesh.link.type,ii(i)))=obj.projectors;
+            end
+            
+            out = obj.data*Vall';
+            out(:,all(out==0,1))=NaN;
+        end
+        
         function out = sorted( obj, colsToSortBy )
             %% returns sorted channels of data by column in probe.link
             out = obj;
@@ -131,11 +142,11 @@ classdef Data
             Vall=sparse(size(obj.projectors,1),size(obj.data,2));
             ii=unique(obj.mesh.link.type);
             for i=1:length(ii)
-                Vall(ismember(obj.mesh.link.type,ii(i)),:)=obj.projectors;
+                Vall(:,ismember(obj.mesh.link.type,ii(i)))=obj.projectors;
             end
             
             t = obj.time;
-            d = obj.data*Vall(lstChannels,:)';
+            d = obj.data*Vall';
             
             % get stim vecs
             s = []; k = obj.stimulus.keys;
@@ -151,7 +162,7 @@ classdef Data
             dmax = max( real(d(:)) );
             dmin = min( real(d(:)) );
             dsize = (dmax-dmin);
-            
+            d(:,all(d==0,1))=NaN;
             % plot stim blocks if available
             if ~isempty(s) 
                 s=s./(ones(size(s,1),1)*mad(s));

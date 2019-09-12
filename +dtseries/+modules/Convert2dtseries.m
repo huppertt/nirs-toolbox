@@ -30,9 +30,27 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
         
         function G = runThis( obj,data )
             
-            if(isempty(obj.basis.nVox))
-                obj.basis.nVox=size(obj.mesh.nodes,1);
+            if(isempty(obj.mesh))
+                obj.mesh=data(1).probe.getmesh;
+                obj.mesh=obj.mesh(end);
             end
+            if(isempty(obj.basis))
+                obj.basis=nirs.inverse.basis.gaussian(obj.mesh,5);
+            end
+            
+            if(isempty(obj.jacobian))
+                
+                Slab = nirs.forward.ApproxSlab;
+                probe=data(1).probe;
+                lambda=unique(probe.link.type);
+                Slab.prop=nirs.media.tissues.brain(lambda,.7,50);
+                Slab.mesh=obj.mesh;
+                Slab.probe=probe;
+                Jac=Slab.jacobian('spectral');
+                obj.probe('default')=Slab.probe;
+                obj.jacobian('default')=Jac;
+            end
+            
             
             % Mask of the reconstruction volume
             if(~isempty(obj.mask))
@@ -110,15 +128,10 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
                 end
                 xx=[];
                 
-                xlocal=[];
-                for fIdx=1:length(flds)
-                    L=Lfwdmodels(key);
-                    x2=L.(flds{fIdx});
-                    
-                    xlocal=[xlocal x2];
-                end
+                xlocal=Lfwdmodels(key);
+                
                d=[d data(idx).data'];
-                %X=[X xlocal];
+               
             end
             [q,r]=qr(d,0);
             X=q'*xlocal;
@@ -154,7 +167,7 @@ classdef Convert2dtseries < nirs.modules.AbstractModule
 
             [lambda,Beta,Stats]=nirs.math.REML(d,X(:,lst2),Beta0(lst2),R,Q,30);
             
-            V=obj.basis.fwd*V(:,lst);
+            V=blkdiag(obj.basis.fwd,obj.basis.fwd)*V(:,lst);
             
            a=sum(abs(V),2);
            lst=zscore(a)<1;
