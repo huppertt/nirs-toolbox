@@ -14,16 +14,17 @@ for i=1:length(events)
 end
 
 for i=1:length( ChanneMat.Channel)
-    ml(i,1)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'S')+1:...
-        strfind(ChanneMat.Channel(i).Name,'D')-1));
-     ml(i,2)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'D')+1:...
-        strfind(ChanneMat.Channel(i).Name,'W')-1));
-     ml(i,4)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'WL')+2:end));
-     
-     SrcPos(ml(i,1),:)=ChanneMat.Channel(i).Loc(:,1)';
-     DetPos(ml(i,2),:)=ChanneMat.Channel(i).Loc(:,2)';
-     
-     
+    if strcmp(ChanneMat.Channel(i).Type, 'NIRS')
+        ml(i,1)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'S')+1:...
+            strfind(ChanneMat.Channel(i).Name,'D')-1));
+        ml(i,2)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'D')+1:...
+            strfind(ChanneMat.Channel(i).Name,'W')-1));
+        ml(i,4)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'WL')+2:end));
+        
+        SrcPos(ml(i,1),:)=ChanneMat.Channel(i).Loc(:,1)';
+        DetPos(ml(i,2),:)=ChanneMat.Channel(i).Loc(:,2)';
+    end
+    
 end
 SD.Lambda=ChanneMat.Nirs.Wavelengths';
 [~,ml(:,4)]=ismember(ml(:,4),SD.Lambda);

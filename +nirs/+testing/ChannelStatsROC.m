@@ -77,7 +77,7 @@ classdef ChannelStatsROC
     methods
         % constructor
         function obj = ChannelStatsROC( pipeline, simfunc )
-           if nargin < 1
+           if nargin < 1 || isempty(pipeline)
                p = nirs.modules.Resample();
                p = nirs.modules.OpticalDensity(p);
                p = nirs.modules.BeerLambertLaw(p);

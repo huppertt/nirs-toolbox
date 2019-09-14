@@ -22,7 +22,7 @@ if(~iscellstr(label) && ~isnumeric(label))
 end
 label=lower(label);
 
-aal=load(which('ROI_MNI_V5_Border_modified.mat'));
+aal=load('ROI_MNI_V5_Border_modified.mat');
 %aalLabels=load(which('ROI_MNI_V5_List.mat'));
 aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)*2-90;
 aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)*2-126;
@@ -68,7 +68,7 @@ if(nargin>1)
     tbl= nirs.util.register_headsize(headshape,tbl);
     Pos=[tbl.X tbl.Y tbl.Z];
     T=Pos2\Pos;
-    aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
+         aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
 else
     probe1020=nirs.core.Probe1020;
     tbl=nirs.util.list_1020pts('?');
@@ -162,7 +162,10 @@ if(nargout>0)
         
         %Add the link points too (since these are more useful in labels)
         ml=unique([probe1020.link.source probe1020.link.detector],'rows');
-        for id=1:size(ml)
+        len = size(ml, 1);
+        Name = cell(len, 1); Type = Name; Units = Name;
+        X = nan(len, 1); Y = X; Z = X;
+        for id=1:len
             sIdx=['0000' num2str(ml(id,1))];
             sIdx=sIdx(end-3:end);
             dIdx=['0000' num2str(ml(id,2))];
@@ -249,7 +252,7 @@ if(nargout>0)
         depth(lst,:)=[];
     
     end
-    depth=[depth; depth2];
+    %depth=[depth; depth2];
     
     varargout{1}=depth;
     return;

@@ -360,6 +360,7 @@ elseif(isa(data,'nirs.core.ChannelFStats'))
             df1roi     = c'*d1;
             df2roi     = c'*d2;
             p       =  fcdf( 1./froi, df2roi,df1roi);
+            %p       =  fcdf( 1./froi, df1roi,df2roi);
             
             tmp = cell2table({namesOld(floor((j-1)/length(types))+1),...
                 types(mod(j-1,length(types))+1), uconds{i},  froi, df1roi,df2roi,p});
@@ -381,7 +382,7 @@ elseif(isa(data,'nirs.core.ChannelFStats'))
     ROIstats.demographics=data.demographics;
     ROIstats.variables=vvs;
     
-    ROIstats.probe=nirs.core.ProbeROI(names2);
+    ROIstats.probe=nirs.core.ProbeROI(names);
     
     
     

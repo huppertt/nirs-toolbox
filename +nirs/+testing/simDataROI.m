@@ -1,17 +1,29 @@
 function [data,truth] = simDataROI(region, probe,noise, stim, basis, circum_mean, circum_std, reg_err, stimDur, stimSpace)
-if isempty(circum_mean)
+if exist('region') ~= 1 || isempty(region)
+    region = 'BA-46_L';
+end
+
+if exist('circum_mean') ~= 1 || isempty(circum_mean)
     circum_mean = 420;
 end
 
-if isempty(circum_std)
+if exist('circum_std') ~= 1 || isempty(circum_std) 
     circum_std = 50;
 end
 
-if isempty(reg_err)
+if exist('reg_err') ~= 1 || isempty(reg_err)
    reg_err = 8; 
 end
 
-if (isempty(noise) && ~isempty(probe))    
+if exist('stimDur') ~= 1 || isempty(stimDur)
+   stimDur = 2; 
+end
+
+if exist('stimSpace') ~= 1 || isempty(stimSpace)
+   stimSpace = 7; 
+end
+
+if ((exist('noise') ~= 1 || isempty(noise)) && (exist('noise') == 1 && ~isempty(probe)))
     if (isempty(intersect(probe.optodes.Type, [{'FID-anchor'}, {'FID-attractor'}])))
         Name{1}='FpZ';
         %xyz(1,:)=[0 0 0];
@@ -154,6 +166,7 @@ for i = 1:size(channels, 1)
     truth(lst) = tt(i);
 end
 
+truth = nirs.util.convertlabels2roi(probe, region);
 Y = exp( -bsxfun(@minus, Y, log(m)) );
 
 
