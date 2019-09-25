@@ -90,12 +90,12 @@ for idx=1:length(utypes)
     
     for j=1:length(lst)
         hold(a(j),'on');
-        s=ones(size(data.data,1),1)*real(data.data(1,lst(j)));
+    %    s=ones(size(data.data,1),1)*real(data.data(1,lst(j)));
         if(~isreal(data.data(:,lst(j))) & adderr)
-            h{idx}(lst(j))=errorbar(a(j),data.time,real(data.data(:,lst(j)))-s,...
+            h{idx}(lst(j))=errorbar(a(j),data.time,real(data.data(:,lst(j))),...
                 imag(data.data(:,lst(j))));
         else
-            h{idx}(lst(j))=plot(a(j),data.time,real(data.data(:,lst(j)))-s);
+            h{idx}(lst(j))=plot(a(j),data.time,real(data.data(:,lst(j))));
         end
         set(a(j),'xlim',[min(data.time) max(data.time)]);
         set(a(j),'ylim',[min(real(data.data(:))) max(real(data.data(:))) ]);

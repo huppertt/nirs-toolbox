@@ -142,29 +142,38 @@ probe.optodes.Z=scale*probe.optodes.Z;
 probe.link=sortrows(probe.link,{'type','source','detector'});
 
 %% Now, let's get the data
-raw = nirs.core.Data();
-kk=find(ismember(probe.link.type,probe.link.type(1)));
-lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
-for idx=1:length(info.Wavelengths)
-    file = dir(fullfile(folder,['*.wl' num2str(idx)]));
+file = dir(fullfile(folder,'*.nirs' ));
+if(~isempty(file))
+    raw=nirs.io.loadDotNirs(file(1).name,true);
+    XYZprobe3D=[raw.probe.optodes.X raw.probe.optodes.Y raw.probe.optodes.Z];
+    newVer=true;
+else
+     newVer=false;
+    % read the standard wl files
+    raw = nirs.core.Data();
     
-    if(file(1).bytes==0)
-        error('zero byte file');
+    
+    kk=find(ismember(probe.link.type,probe.link.type(1)));
+    lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
+    for idx=1:length(info.Wavelengths)
+        file = dir(fullfile(folder,['*.wl' num2str(idx)]));
+        
+        if(file(1).bytes==0)
+            error('zero byte file');
+        end
+        
+        d = dlmread(fullfile(folder,file(1).name));
+        raw.data=[raw.data d(:,lst)];
     end
     
-    d = dlmread(fullfile(folder,file(1).name));
-    raw.data=[raw.data d(:,lst)];
+    raw.time=[0:size(raw.data,1)-1]/info.SamplingRate;
 end
 
-
-
-
-
-
-
-raw.time=[0:size(raw.data,1)-1]/info.SamplingRate;
-
-raw.description=info.FileName;
+if(isfield(info,'FileName'))
+    raw.description=info.FileName;
+else
+    raw.description=folder;
+end
 
 % Add the demographics info
 file = dir(fullfile(folder,'*.inf'));
@@ -188,13 +197,15 @@ raw.demographics=demo;
 % going to exploit to add this info.  For hyperscanning files, the
 % info.S_D_Mask covers only 1 subject but the info.SD_Key field is the full
 % (both subjects) length.
-if(length(info.ChanDis)==length(s)*2)
-    raw.demographics('hyperscan')=info.FileName;
+if(isfield(info,'ChanDis'))
+    if(length(info.ChanDis)==length(s)*2)
+        raw.demographics('hyperscan')=info.FileName;
+    end
 end
 
 
 % Now add stimulus info
-if(~isempty(info.Events))
+if(isfield(info,'Events') && ~isempty(info.Events))
     stimName = unique(info.Events(:,2));
     stimulus=Dictionary();
     for idx=1:length(stimName)
@@ -301,7 +312,9 @@ else
         'VariableNames',{'Name','X','Y','Z','Type','Units'});
     
     
-    XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3];
+    if(~newVer)
+        XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3];
+    end
     
     % and concatinate it to the probe
     probe.optodes=[probe.optodes(:,1)  [fidS2(:,2:end); fidD2(:,2:end)]; fidS; fidD];
@@ -450,6 +463,14 @@ if(registerprobe)
             probe1020.optodes_registered.Z(1:length(XYZ))=XYZ(:,3);
         end
     end
+    if(newVer)
+         XYZ=XYZprobe3D;
+            probe1020.optodes_registered=probe1020.optodes;
+            probe1020.optodes_registered.X(1:length(XYZ))=XYZ(:,1);
+            probe1020.optodes_registered.Y(1:length(XYZ))=XYZ(:,2);
+            probe1020.optodes_registered.Z(1:length(XYZ))=XYZ(:,3);
+    end
+    
     probe1020.link=probe.link;
     probe1020.fixeddistances=probe.distances;
     raw.probe=probe1020;
