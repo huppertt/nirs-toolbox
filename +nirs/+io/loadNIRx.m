@@ -101,9 +101,11 @@ else
     scale=1;
 end
 
-if(isfield(info,'ShortDetIndex') && ~isempty(info.ShortDetIndex))
-     info.ShortDetectors=true;
-end
+% if(isfield(info,'ShortDetIndex') && ~isempty(info.ShortDetIndex))
+%      info.ShortDetectors=true;
+% end
+
+
 
 if(useshortdistances && info.ShortDetectors>0)
     
@@ -412,6 +414,14 @@ if(registerprobe)
             probeInfo.geom.NIRxHead.ext1020sys.labels{find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,{'FAF6'}))}='AFF6';
         end
         
+        if(size(probeInfo.probes.index_s,1)>size(probeInfo.probes.index_s,2))
+            probeInfo.probes.index_s=probeInfo.probes.index_s';
+        end
+         
+        if(size(probeInfo.probes.index_d,1)>size(probeInfo.probes.index_d,2))
+            probeInfo.probes.index_d=probeInfo.probes.index_d';
+        end
+        
         if(~isfield(probeInfo.probes,'index_s') || isempty(probeInfo.probes.index_s))
             index_s= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_s))';
             index_d= find(ismember(probeInfo.geom.NIRxHead.ext1020sys.labels,probeInfo.probes.labels_d))';
@@ -419,15 +429,15 @@ if(registerprobe)
             index_s=probeInfo.probes.index_s;
             index_d=probeInfo.probes.index_d;
             if(length(index_d)~=info.Detectors)
-                index_d=[index_d(1:end-1); index_s];
+                index_d=[index_d(1:end-1) index_s];
             end
         end
         
-        lst=[index_s; index_d;...
+        lst=[index_s index_d...
             index_s(1:info.ShortDetectors)];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst2]=ismember(labels,fid_1020.Name);
-        lst=[index_s; index_d];
+        lst=[index_s index_d];
         labels={probeInfo.geom.NIRxHead.ext1020sys.labels{lst}};
         [~,lst3]=ismember(labels,fid_1020.Name);
         lst2=[lst2 lst3];
