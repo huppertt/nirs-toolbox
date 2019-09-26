@@ -63,28 +63,17 @@ end
 %     0     0     0     1
 %     ];
 
-% I keep having issues with the NIRx measurements having a few weird
-% channel combinations that we think are not in the aquistion setup.  This
-% is a bit of a hack to fix this, since NIRx does save all data
-%
-% for sI=1:size(info.S_D_Mask,1)
-%     for dI=1:size(info.S_D_Mask,2)
-%         dist(sI,dI)=norm(probeInfo.probes.coords_s3(sI,:)-probeInfo.probes.coords_d3(dI,:));
-%     end
-% end
-% d=median(dist(info.S_D_Mask==1))+std(dist(info.S_D_Mask==1));
-% if(any(any((dist<d)~=(info.S_D_Mask==1))))
-%     disp('Adding a few Src-Det pairs missing from NIRx file');
-%     info.S_D_Mask=(info.S_D_Mask==1 | dist<d);
-% end
 
+%this is a hack that allowed me to fix a study where the NIRx aquistion had
+%been setup wrong and was missing some channels.  NIRx saves all data in
+%the wl files (even those not part of the probe).  Creating a SDmask.mat
+%file overwrites the info in the NIRx file
 if(~isempty(dir(fullfile(folder,'*SDmask.mat'))))
     fi=dir(fullfile(folder,'*SDmask.mat'));
     load(fullfile(folder,fi(1).name));
     disp('loading mask from file');
     info.S_D_Mask=SD_mask;
 end
-
 
 [s,d]=find(info.S_D_Mask);
 
@@ -110,6 +99,10 @@ if(isfield(info,'ChanDis'))
     probe.fixeddistances=probe.distances*scale;
 else
     scale=1;
+end
+
+if(isfield(info,'ShortDetIndex') && ~isempty(info.ShortDetIndex))
+     info.ShortDetectors=true;
 end
 
 if(useshortdistances && info.ShortDetectors>0)
@@ -142,7 +135,7 @@ probe.optodes.Z=scale*probe.optodes.Z;
 probe.link=sortrows(probe.link,{'type','source','detector'});
 
 %% Now, let's get the data
-file = dir(fullfile(folder,'*.nirs' ));
+file = rdir(fullfile(folder,'*.nirs' ));
 if(~isempty(file))
     raw=nirs.io.loadDotNirs(file(1).name,true);
     XYZprobe3D=[raw.probe.optodes.X raw.probe.optodes.Y raw.probe.optodes.Z];
@@ -260,6 +253,18 @@ if(isfield(probeInfo,'geom'))
         end
     end
     
+    for i=1:length(name2)
+        if(iscell(name2{i}))
+            name2{i}=name2{i}{1};
+        end
+    end
+        
+    for i=1:length(name)
+        if(iscell(name{i}))
+            name{i}=name{i}{1};
+        end
+    end
+    
     fidD=table(name2,...
         probe.detPos(probeInfo.probes.index_d(:,1),1),...
         probe.detPos(probeInfo.probes.index_d(:,1),2),...
@@ -315,19 +320,30 @@ else
     if(~newVer)
         XYZprobe3D = [probeInfo.probes.coords_s3; probeInfo.probes.coords_d3; probeInfo.probes.coords_s3; probeInfo.probes.coords_d3];
     end
-    
-    % and concatinate it to the probe
-    probe.optodes=[probe.optodes(:,1)  [fidS2(:,2:end); fidD2(:,2:end)]; fidS; fidD];
-    probe.optodes(ismember(probe.optodes.Name,''),:)=[];
-    [log,idx] = ismember(probeInfo.probes.labels_s,probeInfo.geom.NIRxHead.ext1020sys.labels);
-    probeInfo.probes.index_s = idx(log);
-    [log,idx] = ismember(probeInfo.probes.labels_d,probeInfo.geom.NIRxHead.ext1020sys.labels);
-    probeInfo.probes.index_d = idx(log);
+        
+        
+        
+        % and concatinate it to the probe
+        probe.optodes=[probe.optodes(:,1)  [fidS2(:,2:end); fidD2(:,2:end)]; fidS; fidD];
+        probe.optodes(ismember(probe.optodes.Name,''),:)=[];
+        [log,idx] = ismember(probeInfo.probes.labels_s,probeInfo.geom.NIRxHead.ext1020sys.labels);
+        probeInfo.probes.index_s = idx(log);
+        [log,idx] = ismember(probeInfo.probes.labels_d,probeInfo.geom.NIRxHead.ext1020sys.labels);
+        probeInfo.probes.index_d = idx(log);
+   
 end
 
 
 
 if(registerprobe)
+    
+    for i=1:height(probe.optodes)
+        if(iscell(probe.optodes.Name{i}))
+            probe.optodes.Name{i}=probe.optodes.Name{i}{1};
+        end
+    end
+    
+    
     lst=find(ismember(probe.optodes.Type,'FID-anchor') & ~ismember(probe.optodes.Name,fid_1020.Name));
     if(isempty(lst))
         probe1020=nirs.util.registerprobe1020(probe);
@@ -470,6 +486,15 @@ if(registerprobe)
             probe1020.optodes_registered.Y(1:length(XYZ))=XYZ(:,2);
             probe1020.optodes_registered.Z(1:length(XYZ))=XYZ(:,3);
     end
+    
+    ll=[];
+    for i=1:height(probe1020.optodes_registered)
+       
+        if(isempty(probe1020.optodes_registered.Name{i}))
+            ll=[ll i];
+        end
+    end
+    probe1020.optodes_registered(ll,:)=[];
     
     probe1020.link=probe.link;
     probe1020.fixeddistances=probe.distances;
