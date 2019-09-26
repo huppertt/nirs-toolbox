@@ -140,7 +140,34 @@ probe.link=sortrows(probe.link,{'type','source','detector'});
 file = rdir(fullfile(folder,'*.nirs' ));
 if(~isempty(file))
     raw=nirs.io.loadDotNirs(file(1).name,true);
+    XYZprobe3D=zeros(0,3);
+    if(exist(fullfile(fileparts(file(1).name),'digpts.txt')))
+        fil=fullfile(fileparts(file(1).name),'digpts.txt');
+        fid=fopen(fil,'r');
+        while(1)
+            line=fgetl(fid);
+            if(line==-1)
+                break
+            end
+            XYZprobe3D(end+1,:)=str2num(line(strfind(line,':')+1:end));
+        end
+    else
+    
+    com= [0 0 0];  %from HOMER-AtlasViewer
+    
     XYZprobe3D=[raw.probe.optodes.X raw.probe.optodes.Y raw.probe.optodes.Z];
+    
+    XYZprobe3D(:,2)=XYZprobe3D(:,2)-ones(size(XYZprobe3D,1),1)*(com(2)+45);
+    
+    XYZprobe3D(:,1)=XYZprobe3D(:,1)-ones(size(XYZprobe3D,1),1)*(com(1));
+    XYZprobe3D(:,2)=XYZprobe3D(:,2)-ones(size(XYZprobe3D,1),1)*(com(2));
+    XYZprobe3D(:,3)=XYZprobe3D(:,3)-ones(size(XYZprobe3D,1),1)*(com(3));
+    
+    XYZprobe3D(:,2)=-XYZprobe3D(:,2);
+    XYZprobe3D(:,[2 3])=XYZprobe3D(:,[3 2]);
+    
+     XYZprobe3D(:,1)=-XYZprobe3D(:,1);
+    end
     newVer=true;
 else
      newVer=false;
