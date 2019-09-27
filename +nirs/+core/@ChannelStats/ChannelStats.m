@@ -48,6 +48,9 @@ classdef ChannelStats
         
         q               % (dependent) q-values of beta (false discovery rate)
     end
+    properties (Hidden = true )
+         pvalue_fixed;
+    end
     
     
     
@@ -100,6 +103,12 @@ classdef ChannelStats
         end
         
         function p = get.p( obj )
+            
+            if(~isempty(obj.pvalue_fixed))
+                p=obj.pvalue_fixed;  % hack to allow reuse in the Conn Seed model
+                return
+            end
+            
             t = obj.tstat;
             
             if(strcmp(lower(obj.tail),'right') | strcmp(lower(obj.tail),'one-sided'))

@@ -215,6 +215,72 @@ classdef sFCStats
             end
         end
         
+        function seedGUI(obj)
+            % wrapper to call the seed based connectivity GUI
+        end
+        
+        function seed(obj,channel, vtype, vrange, thresh)
+            % draws the stats map of regions connected to a seed channel
+            
+            % allows R or Z
+            if(nargin<3 || isempty(vtype))
+                vtype='R';
+            end
+            
+            if(nargin < 5)
+                thresh='p<0.05';
+            end
+            if(nargin<4)
+                vrange=[];
+            end
+          
+            
+            if(strcmp(lower(vtype),'r'))
+                values=obj.R(channel,:)';
+            elseif(strcmp(lower(vtype),'z'))
+                 values=obj.Z(channel,:)';
+            else
+                warning('unknown type.  Must be R or Z');
+                return;
+            end
+                
+            
+            cond=repmat({['Channel_' num2str(channel)]},height(obj.probe.link),1);
+            
+            c=nirs.core.ChannelStats;
+            c.probe=obj.probe;
+            c.beta=values;
+            c.variables=[c.probe.link table(values,cond,'VariableNames',{'beta','cond'})];
+            c.pvalue_fixed=obj.p(channel,:)';
+            c.covb=eye(length(values));
+            hh=c.draw('beta', vrange, thresh);
+            
+            types=unique(obj.probe.link.type);
+            
+            
+            for i=1:length(hh)
+                
+                
+                if(obj.probe.link(channel,:).type==types(i))
+                    figure(hh(i));
+                hold on;
+                sI=obj.probe.link.source(channel);
+                 dI=obj.probe.link.detector(channel);
+                src=obj.probe.srcPos(sI,:);
+                det=obj.probe.detPos(dI,:);
+                ss(1)=scatter(src(1),src(2));
+                ss(2)=scatter(det(1),det(2));
+                 
+                set(ss,'SizeData',580);
+                set(ss,'MarkerFaceColor','k');
+                    h=line([src(1) det(1)],[src(2) det(2)],'Linewidth',10,'Color','k');
+                end
+                
+                hold off;
+            end
+        end
+        
+        
         function grph=graph(obj,vtype,thresh,flip)
             % converts to a graph type object
             
