@@ -25,6 +25,7 @@ data=data.sorted;
 % sort probe
 link = data(1).probe.link;
 
+link=link(:,ismember(link.Properties.VariableNames,{'type','source', 'detector'}));
 
 [link, ilink] = sortrows(link, {'type','source', 'detector'});
 
