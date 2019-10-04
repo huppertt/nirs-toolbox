@@ -266,11 +266,12 @@ classdef Dictionary
         
         function out = areUniqueKeys( keys )
             %% areUniqueKeys - returns true if the list of keys are unique
-            b = {};
-            for i = 1:length( keys )
-               b{i} = cast(getByteStreamFromArray(keys{i}),'char');
-            end
-            out = (length(b) == length(unique(b)));
+%             b = {};
+%             for i = 1:length( keys )
+%                b{i} = cast(getByteStreamFromArray(keys{i}),'uint32');
+%             end
+%             out = (length(b) == length(unique(b)));
+                out = (length(keys) == length(unique(keys)));
         end
     end
     

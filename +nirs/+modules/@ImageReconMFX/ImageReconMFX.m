@@ -172,7 +172,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
            
             for idx=1:size(X,2)
                 x=X(:,idx);
-                VarMDU(idx)=pinv(x'*x+eps(1))/m^2;
+                VarMDU(idx)=pinv(x'*x+eps(1));
             end
            VarMDU=abs(VarMDU*V');
            

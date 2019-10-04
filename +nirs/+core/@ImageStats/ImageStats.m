@@ -80,12 +80,12 @@ classdef ImageStats
             if(nargin<2)
                 s='p<0.05';
             end
-            
-            tcrit=obj.getCritT(s);
-            se=1/tcrit;
-            t=1./sqrt(se.^2+obj.typeII_StdE.^2);
-          
-            pwr = 2*tcdf(-abs(t), obj.dfe);
+            [~,pwr] = nirs.math.MDC(obj,.8,.05);
+%             tcrit=obj.getCritT(s);
+%             se=1/tcrit;
+%             t=1./sqrt(se.^2+obj.typeII_StdE.^2);
+%           
+%             pwr = 2*tcdf(-abs(t), obj.dfe);
         
         end
         
