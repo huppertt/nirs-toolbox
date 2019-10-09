@@ -140,6 +140,9 @@ probe.link=sortrows(probe.link,{'type','source','detector'});
 file = rdir(fullfile(folder,'*.nirs' ));
 if(~isempty(file))
     raw=nirs.io.loadDotNirs(file(1).name,true);
+    link=raw.probe.link;
+    probe.link=link;
+    probe.optodes=raw.probe.optodes;
     XYZprobe3D=zeros(0,3);
     if(exist(fullfile(fileparts(file(1).name),'digpts.txt')))
         fil=fullfile(fileparts(file(1).name),'digpts.txt');
@@ -152,21 +155,21 @@ if(~isempty(file))
             XYZprobe3D(end+1,:)=str2num(line(strfind(line,':')+1:end));
         end
     else
-    
-    com= [0 0 0];  %from HOMER-AtlasViewer
-    
-    XYZprobe3D=[raw.probe.optodes.X raw.probe.optodes.Y raw.probe.optodes.Z];
-    
-    XYZprobe3D(:,2)=XYZprobe3D(:,2)-ones(size(XYZprobe3D,1),1)*(com(2)+45);
-    
-    XYZprobe3D(:,1)=XYZprobe3D(:,1)-ones(size(XYZprobe3D,1),1)*(com(1));
-    XYZprobe3D(:,2)=XYZprobe3D(:,2)-ones(size(XYZprobe3D,1),1)*(com(2));
-    XYZprobe3D(:,3)=XYZprobe3D(:,3)-ones(size(XYZprobe3D,1),1)*(com(3));
-    
-    XYZprobe3D(:,2)=-XYZprobe3D(:,2);
-    XYZprobe3D(:,[2 3])=XYZprobe3D(:,[3 2]);
-    
-     XYZprobe3D(:,1)=-XYZprobe3D(:,1);
+        
+        com= [0 0 0];  %from HOMER-AtlasViewer
+        
+        XYZprobe3D=[raw.probe.optodes.X raw.probe.optodes.Y raw.probe.optodes.Z];
+        
+        XYZprobe3D(:,2)=XYZprobe3D(:,2)-ones(size(XYZprobe3D,1),1)*(com(2)+45);
+        
+        XYZprobe3D(:,1)=XYZprobe3D(:,1)-ones(size(XYZprobe3D,1),1)*(com(1));
+        XYZprobe3D(:,2)=XYZprobe3D(:,2)-ones(size(XYZprobe3D,1),1)*(com(2));
+        XYZprobe3D(:,3)=XYZprobe3D(:,3)-ones(size(XYZprobe3D,1),1)*(com(3));
+        
+        XYZprobe3D(:,2)=-XYZprobe3D(:,2);
+        XYZprobe3D(:,[2 3])=XYZprobe3D(:,[3 2]);
+        
+        XYZprobe3D(:,1)=-XYZprobe3D(:,1);
     end
     newVer=true;
 else
@@ -240,6 +243,9 @@ if(isfield(info,'Events') && ~isempty(info.Events))
     end
     raw.stimulus=stimulus;
 end
+
+
+if(~newVer)
 
 if(isfield(probeInfo,'geom'))
     
@@ -382,10 +388,14 @@ if(registerprobe)
         T=nirs.registration.cp2tform(fid_1020,t1020);
         XYZprobe3D(:,4)=1;
         XYZprobe3D=XYZprobe3D*T;
-        
-        extrapts=probe.optodes(lst,:);
-        extrapts.X=XYZprobe3D(lst,1); extrapts.Y=XYZprobe3D(lst,2); extrapts.Z=XYZprobe3D(lst,3);
-        probe1020=nirs.util.registerprobe1020(probe,[],[],extrapts);
+        try;
+            extrapts=probe.optodes(lst,:);
+            extrapts.X=XYZprobe3D(lst,1); extrapts.Y=XYZprobe3D(lst,2); extrapts.Z=XYZprobe3D(lst,3);
+            probe1020=nirs.util.registerprobe1020(probe,[],[],extrapts);
+        catch
+             probe1020=nirs.util.registerprobe1020(probe);
+            lst=[];
+        end
     end
     
     if(isfield(probeInfo,'geom'))
@@ -538,6 +548,49 @@ if(registerprobe)
     raw.probe=probe1020;
 else
     raw.probe=probe;
+end
+else
+    probe1020=nirs.core.Probe1020;
+    probe1020.link=probe.link;
+    probe1020.optodes_registered=probe.optodes;
+    probe1020.optodes=probe.optodes;
+    probe1020.optodes.Z(:)=0;
+    probe1020.optodes.X=[probeInfo.probes.coords_s2(:,1); probeInfo.probes.coords_d2(:,1)];
+    probe1020.optodes.Y=[probeInfo.probes.coords_s2(:,2); probeInfo.probes.coords_d2(:,2)];
+    s=raw.probe.distances\probe1020.distances;
+    probe1020.optodes.X=probe1020.optodes.X/s;
+    probe1020.optodes.Y=probe1020.optodes.Y/s;
+    probe1020.fixeddistances=raw.probe.distances;
+    
+    C27=nirs.registration.Colin27.BEM;
+    BEM=C27.mesh;
+    
+     X=10*[probeInfo.probes.coords_d3(:,1); probeInfo.probes.coords_s3(:,1)];
+    Y=10*[probeInfo.probes.coords_d3(:,2); probeInfo.probes.coords_s3(:,2)];
+    Z=10*[probeInfo.probes.coords_d3(:,3); probeInfo.probes.coords_s3(:,3)];
+    Name={probeInfo.probes.labels_d{:} probeInfo.probes.labels_s{:}}';
+    Units=repmat({'mm'},size(Name));
+    fid_1020=table(Name,X,Y,Z,Units);
+    t1020=nirs.util.list_1020pts('?');
+    T=nirs.registration.cp2tform(fid_1020,t1020);
+    BEM=nirs.registration.rotatemesh(BEM,T);
+    
+    % This will allow NIRFAST to directly use the info for the BEM model
+    lambda=unique(probe1020.link.type);
+    prop{1} = nirs.media.tissues.skin(lambda);
+    prop{2} = nirs.media.tissues.bone(lambda);
+    prop{3} = nirs.media.tissues.water(lambda);
+    prop{4} = nirs.media.tissues.brain(lambda,0.7, 50);
+    
+    fwdBEM=nirs.forward.NirfastBEM;
+    fwdBEM.mesh=BEM;
+    fwdBEM.prop  = prop;
+        
+    probe1020=probe1020.register_mesh2probe(fwdBEM.mesh,true);
+    probe1020.opticalproperties=prop;
+    
+    raw.probe=probe1020;
+    
 end
 
 if(exist(fullfile(folder,'stimulus.mat')))
