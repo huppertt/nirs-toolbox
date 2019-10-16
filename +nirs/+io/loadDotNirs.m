@@ -108,7 +108,7 @@ end
                 thisFile.auxillary('brainsight')=d.brainsight;
             end
             
-            if(isfield(d,'aux') || isfield(d,'aux10'))
+            if(isfield(d,'aux') || isfield(d,'aux10')) && (~isempty(d.aux))
                 if(isfield(d,'aux'))
                     a=d.aux;
                 else

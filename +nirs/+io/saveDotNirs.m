@@ -70,6 +70,7 @@ for i = 1:length(data)
     odata.ml = odata.SD.MeasList;
     odata.d = data(i).data;
     odata.t = data(i).time;
+    odata.aux=[];
     
     odata.s = false(size(odata.t));
     for c = 1:length(data(i).stimulus.keys)
