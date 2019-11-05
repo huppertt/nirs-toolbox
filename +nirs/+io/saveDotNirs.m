@@ -70,7 +70,7 @@ for i = 1:length(data)
     odata.ml = odata.SD.MeasList;
     odata.d = data(i).data;
     odata.t = data(i).time;
-    odata.aux=[];
+    
     
     odata.s = false(size(odata.t));
     for c = 1:length(data(i).stimulus.keys)
@@ -78,6 +78,8 @@ for i = 1:length(data)
         odata.s = odata.s | stim.getStimVector( odata.t );
     end
     
+    odata.s=1*odata.s;
+    odata.aux=odata.s;
     %% Write
     save(filenames{i},'-struct','odata','-MAT');
     

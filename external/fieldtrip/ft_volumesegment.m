@@ -229,7 +229,7 @@ end
 if numel(cfg.output) == 1 && strcmp('scalp', cfg.output)
   needtpm = 0; % not needed for (cummulative type) scalpmask
 else
-  needtpm = any(ismember(cfg.output, {'tpm' 'gray' 'white' 'csf' 'brain' 'skull' 'skullstrip'}));
+  needtpm = any(ismember(cfg.output, {'all','tpm' 'gray' 'white' 'csf' 'brain' 'skull' 'skullstrip'}));
 end
 
 if all(isfield(mri,{'gray', 'white', 'csf'}))
@@ -363,7 +363,7 @@ if dotpm
         end
       end
 
-    case 'spm8'
+    case {'spm8'  'spm12'}
       Va = ft_write_mri([cfg.name, '.img'], mri.anatomy, 'transform', mri.transform, 'spmversion', cfg.spmversion, 'dataformat', 'nifti_spm');
 
       fprintf('performing the segmentation on the specified volume\n');
@@ -471,7 +471,11 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % create the requested output fields
 
-remove = {'anatomy' 'csf' 'gray' 'white'};
+if(ismember('all',cfg.output))
+    remove = {}; 
+else
+    remove={'anatomy' 'csf' 'gray' 'white'};
+end
 
 % check if smoothing or thresholding is required
 

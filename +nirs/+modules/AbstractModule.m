@@ -65,11 +65,24 @@ classdef AbstractModule
             
             % if no prev job execute and return result
             if isempty( obj.prevJob )
+                if(iscell(inputs))
+                    for i=1:length(inputs)
+                          out{i} = obj.runThis( inputs{i} );
+                    end
+                else
                out = obj.runThis( inputs );
+                end
                 
             % else execute prev job first
             else
-                out = obj.runThis( obj.prevJob.run(inputs ) );
+                 if(iscell(inputs))
+                    for i=1:length(inputs)
+                           out{i} = obj.runThis( obj.prevJob.run(inputs{i} ) );
+                    end
+                else
+               out = obj.runThis( obj.prevJob.run(inputs ) );
+                end
+               
             end
         end
         

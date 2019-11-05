@@ -20,6 +20,6 @@ function sd = probe2sd( probe )
     sd.SrcPos = probe.srcPos;
     sd.DetPos = probe.detPos;
     sd.Lambda = unique(probe.link.type,'stable')';
-    
-end
+    sd.SpatialUnit=probe.optodes.Units{1};
+end 
 
