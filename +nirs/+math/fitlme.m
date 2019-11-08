@@ -244,7 +244,12 @@ if(nargout>1)
         sigma2 = r2/nT;
     end
     xr = rank(X);
-    invR1 = R1(1:xr,1:xr) \ eye(xr);
+    if(xr<size(R1,1))
+         invR1 = pinv(R1);
+    else
+        invR1 = R1(1:xr,1:xr) \ eye(xr);
+    end 
+   
     covb = sigma2*(invR1'*invR1);
     
 end

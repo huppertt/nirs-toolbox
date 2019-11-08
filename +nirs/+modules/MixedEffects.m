@@ -116,11 +116,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
             else
                 
-            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
-            
-            % list for first source
-            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-            sd.Properties.VariableNames = {'source', 'detector', 'type'};
+                [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
+                
+                % list for first source
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                sd.Properties.VariableNames = {'source', 'detector', 'type'};
             end
             
             
@@ -267,6 +267,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             lst=find(~ismember(1:size(X,1),unique(i)));
             if(rank(full(X(lst,:)))<size(X,2))
                 warning('Model is unstable');
+                
             end
             lstKeep=find(~all(X==0));
             
@@ -349,7 +350,27 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 %Create a diagnotistcs table of the adjusted data
                
                 vars=G.variables;
-                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                if(~ismember('source',vars.Properties.VariableNames) & ...
+                        ismember('ROI',vars.Properties.VariableNames))
+                    [vars, idx] = nirs.util.sortrows(vars, {'ROI', 'type'});
+                    
+                    % list for first source
+                    [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
+                    sd.Properties.VariableNames = {'ROI', 'type'};
+                    
+                    
+                    
+                else
+                    
+                    [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
+                    
+                    % list for first source
+                    [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                    sd.Properties.VariableNames = {'source', 'detector', 'type'};
+                end
+                
+                
+                
                 models=cell(height(G.variables),1);
                 for idx=1:max(lst)
                     ll=find(lst == idx);
