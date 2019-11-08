@@ -140,7 +140,7 @@ classdef Probe
         function d = get.distances( obj )
             %% distances - Calculates measurement distance for each channel.
         
-           if(isa(obj,'nirs.core.ProbeROI'))
+           if(~isempty(obj.fixeddistances))
                d=obj.fixeddistances;
                return
            end

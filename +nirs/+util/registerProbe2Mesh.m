@@ -30,7 +30,7 @@ ProbePos(lstCM,:)=ProbePos(lstCM,:)*10;
 sym=zeros(size(ProbePos,1));
 for i=1:size(ProbePos,1)
     for j=i:size(ProbePos,1)
-        if(norm(abs(ProbePos(i,:))-abs(ProbePos(j,:)))<5)
+        if(norm(ProbePos(i,:)+[-1 1 1].*ProbePos(j,:))<5)
         sym(i,j)=1;
         sym(j,i)=1;
         end

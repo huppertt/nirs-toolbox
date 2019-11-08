@@ -1,8 +1,10 @@
 function mesh = sMRI_segment(mfile)
 %mfile='HCP201_3T_T1w_MPR1.nii.gz';
 
+global defaults;
+spm_defaults;
 
-if(isstring(mfile))
+if(isa(mfile,'char'))
     mri=ft_read_mri(mfile);
 else
     mri=mfile;
@@ -66,11 +68,10 @@ for i=1:3
     n(:,4)=1;
     n=n*(mri.hdr.tkrvox2ras)';
     mesh(i).nodes=n(:,1:3);
-
 end
 
 tbl=nirs.util.list_1020pts('?');
-Pos =[tbl.Z tbl.X tbl.Y];
+Pos =[-tbl.Z tbl.X tbl.Y];
 
 [TR, TT] = icp(mesh(1).nodes',Pos');
 Pos=(TR*Pos'+TT*ones(1,size(Pos,1)))';

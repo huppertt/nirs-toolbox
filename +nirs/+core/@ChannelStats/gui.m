@@ -158,6 +158,7 @@ else
     warning('invalid contrast');
 end
 
+set(gcf,'userdata',handles);
 changetype(gcf);
 
 
