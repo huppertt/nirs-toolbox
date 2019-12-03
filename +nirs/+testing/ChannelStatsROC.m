@@ -110,12 +110,14 @@ classdef ChannelStatsROC
                end
                % pipeline stats
                
+               truth_save = truth;
+               
                T=[];
                P=[];
                Types={};
                
                for i=1:length(obj.pipeline)
-                   
+                   truth = truth_save;
                    if(iscell(obj.pipeline))
                        stats = obj.pipeline{i}.run(data);
                    else
@@ -135,7 +137,10 @@ classdef ChannelStatsROC
                    
                    % types
                    types = unique(stats.variables.type, 'stable');
-                  
+                   
+                   if (strcmp('RemoveShortSeperationRegressors', obj.pipeline(i).prevJob.name))
+                       truth = truth(~data(1).probe.link.ShortSeperation);
+                   end
                    
                    t = []; p = [];
                    for j = 1:length(types)
@@ -276,6 +281,11 @@ classdef ChannelStatsROC
             
         end
         
+        function obj = comb( obj, obj1)
+            obj.truth = [obj.truth; obj1.truth];
+            obj.pvals = [obj.pvals; obj1.pvals];
+            
+        end        
     end
     
 end
