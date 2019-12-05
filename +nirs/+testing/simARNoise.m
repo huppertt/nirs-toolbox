@@ -24,8 +24,8 @@ function data = simARNoise( probe, t, P, sigma, N_files )
     mu = zeros(nchan,1);
     S = toeplitz( [1 sigma*ones(1,nchan-1)] );
     
-    % e = mvnrnd( mu, S, length(t) );
-    e = mvnrnd( mu, eye(nchan), length(t) );
+    e = mvnrnd( mu, S, length(t) );
+    %e = mvnrnd( mu, eye(nchan), length(t) );
 
     % add temporal covariance
     for i = 1:size(e,2)
