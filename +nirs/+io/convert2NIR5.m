@@ -5,7 +5,7 @@ if(nargin<3)
 end
 
 if(~isa(filein,'nirs.core.Data'))
-    data = loadgeneric(file);
+    data = loadgeneric(filein);
 else
     data=filein;
     clear filein;

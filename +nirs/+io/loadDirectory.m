@@ -33,7 +33,7 @@ for i=1:length(fileExt)
         
         % load using load function
         try
-            disp(['loading: ' files(iFile).name]);
+%            disp(['loading: ' files(iFile).name]);
             tmp = loadFunc{i}( files(iFile).name );
         catch
             warning(['error reading file: ' files(iFile).name]);

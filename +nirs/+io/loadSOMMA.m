@@ -28,17 +28,28 @@ function [hdr,data] = readSOMMAheader(filename)
 fid=fopen(filename,'r');
 hdr=struct('start',NaN,'nrows',NaN,'line','','ncols',5,'marks',[]);
 cnt=0; data={};
+line=[];
+while(isempty(line))
+    line=fgetl(fid);
+end
+bypass=false;
+if(isempty(strfind(line,'<SYSTEM>')) & isempty(strfind(line,'<SCAN>')))
+   warning(['Header missing: ' filename]);
+   bypass=true; cnt=1;
+end
+
 while(~feof(fid))
     hdr(end+1)=struct('start',NaN,'nrows',NaN,'line','','ncols',5,'marks',[]);
     dd={};
-    while(1)
+    while(1 & ~bypass)
         line=fgetl(fid);
         cnt=cnt+1;
         if(~isempty(strfind(line,'<DATA>')))
             break;
         end
         hdr(end).line=strvcat(hdr(end).line,line);
-        if(feof(fid)); break; end
+        if(feof(fid)); break; end;       
+        
     end
     hdr(end).start=cnt;
     cnt2=cnt;
@@ -259,12 +270,13 @@ data.data(end,:)=[];
 data.time(1)=[];
 data.data(1,:)=[];
 
-data.demographics('subject')=hdr.info.SubjID;
-data.demographics('date')=hdr.info.Date;
-data.demographics('site')=hdr.info.Site;
-data.demographics('device')=hdr.info.DeviceID;
-data.demographics('session')=hdr.info.Session;
-data.auxillary('comments')=hdr.info.Comments;
-
+if(~isempty(hdr))
+    data.demographics('subject')=hdr.info.SubjID;
+    data.demographics('date')=hdr.info.Date;
+    data.demographics('site')=hdr.info.Site;
+    data.demographics('device')=hdr.info.DeviceID;
+    data.demographics('session')=hdr.info.Session;
+    data.auxillary('comments')=hdr.info.Comments;
+end
 end
 

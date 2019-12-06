@@ -8,7 +8,11 @@ isoffset = diff(delta)<-.5;
 
 stim_event = nirs.design.StimulusEvents();
 stim_event.onset = time(isonset);
-stim_event.dur = time(isoffset) - time(isonset);
+if(isempty(find(isoffset)))
+    stim_event.dur=mean(diff(time))*ones(size(stim_event.onset));
+else
+    stim_event.dur = time(isoffset) - time(isonset);
+end
 stim_event.amp = ones(size(stim_event.dur));
 if exist('name','var')
     stim_event.name = name;

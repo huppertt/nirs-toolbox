@@ -18,9 +18,10 @@ end
         
         [p f]=fileparts(filenames{iFile});
         if(~isempty(dir(fullfile(p,[f '.wl1']))) & ~force)
-            disp(['Skipping ' filenames{iFile} ': NIRx data found in same folder']);
+            %disp(['Skipping ' filenames{iFile} ': NIRx data found in same folder']);
             continue;
         end
+        disp(['Loading ' filenames{iFile}]);
         try
             % load data as a struct
             d = load( filenames{iFile}, '-mat' );

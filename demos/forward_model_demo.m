@@ -73,7 +73,7 @@ mesh.draw();
 % There are several predefined medias including brain, skull, csf  
 % This defines mua/mus for brain at 70% O2 and 50 uM HbT
 lambda=unique(probe.link.type)';  %List of wavelengths from the probe
-prop{1} = nirs.media.tissues.brain(0.7, 50,lambda);
+prop{1} = nirs.media.tissues.brain(lambda,0.7, 50);
 
 % each node is region 1
 mesh.regions = ones(size(mesh.nodes,1), 1);
