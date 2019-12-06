@@ -1,5 +1,5 @@
 function raw = loadShimadzu(filename,probe)
-% Do not put probe.mat in root directory
+% Put probe.mat file in root directory
 
 if (nargin<2)
     load probe
