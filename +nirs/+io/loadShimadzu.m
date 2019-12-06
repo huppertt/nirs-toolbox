@@ -1,5 +1,9 @@
 function raw = loadShimadzu(filename,probe)
-% This function reads a 
+% Do not put probe.mat in root directory
+
+if (nargin<2)
+    load probe
+end
 
 datatype='raw';
 fid = fopen(filename,'r');

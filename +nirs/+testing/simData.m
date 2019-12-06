@@ -29,6 +29,12 @@ if nargin < 2 || isempty(stim)
     stim = nirs.testing.randStimDesign(noise.time, 2, 7, 1);
 end
 
+  if(isa(stim,'function_handle'))
+      stim = stim(noise(1).time);
+  end
+    
+  
+
 if nargin < 3 || isempty(beta)
     beta = 7*ones( length(stim.keys), 1 );
 elseif(isstr(beta))
