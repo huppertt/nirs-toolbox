@@ -39,8 +39,7 @@ end
 
 
 
-%First deal with the NaN values;
-[ContVect,R,names,namesOld,types]=nirs.util.ROIhelper(data,R,names);
+
 
 %[link, ilink] = sortrows(link, {'type','source', 'detector'});
 % 
@@ -180,7 +179,11 @@ end
     
 
 if(isa(data,'nirs.core.Data'))
-    data=data.sorted({'type','source','detector'});
+    data=data.sorted({'source','detector','type'});
+
+    %First deal with the NaN values;
+    [ContVect,R,names,namesOld,types]=nirs.util.ROIhelper(data,R,names);
+
     if(~exist('ContVect'))
         for i = 1:length(R)
             ContVect{i} = 1/length(find(R{i}));
@@ -192,7 +195,7 @@ if(isa(data,'nirs.core.Data'))
         c = zeros(size(data.data,2),length(types));
         for i=1:length(types)
             c(R{idx+i-1},i) = ContVect{idx+i-1};
-           % c(:,i)=c(:,i)/sum(c(:,i));
+            c(:,i)=c(:,i)/length(find(c(:,i)~=0));
         end
         d(cnt)=nirs.core.Data;
         d(cnt).description=['ROI average' namesOld{floor((idx-1)/length(types))+1}];
@@ -203,19 +206,26 @@ if(isa(data,'nirs.core.Data'))
         d(cnt).stimulus=data.stimulus;
        d(cnt).demographics=data.demographics;
        d(cnt).auxillary=data.auxillary;
-        d(cnt).probe=nirs.core.ProbeROI({names{idx:idx+length(types)-1}});
+       d(cnt).probe=nirs.core.ProbeROI({names{idx:idx+length(types)-1}});
        
+       d(cnt).probe.fixeddistances=repmat(data.probe.distances(find(c(:,1)))/length(find(c(:,1))),size(c,2),1);
         cnt=cnt+1;
+        
+        
+        
     end
     
     if(~splitrois)
         %combine the time courses into a single object
         dd=d(1);
+      fixeddistances=d(1).probe.distances;
         for i=2:length(d)
             dd.data=[dd.data d(i).data];
             dd.probe.RegionNames={dd.probe.RegionNames{:} d(i).probe.RegionNames{:}}; 
+            fixeddistances=[fixeddistances; d(i).probe.distances];
         end
         dd.probe.RegionNames=names;
+        dd.probe.fixeddistances=fixeddistances;
         d=dd;
     end
     
@@ -224,14 +234,23 @@ if(isa(data,'nirs.core.Data'))
     
 elseif(isa(data,'nirs.core.sFCStats'))
      % loop over conditions
+    data=data.sorted({'source', 'detector', 'type'}); 
+     
+    %First deal with the NaN values;
+    [ContVect,R,names,namesOld,types]=nirs.util.ROIhelper(data,R,names);
+
+    
     varnames = {'ROI_To','ROI_From', 'Contrast', 'R','Z','SE', 'DF', 'T', 'p'};
     tbl = table;
 
+    Z = data.Z;
     
-    [vars, ivars] = sortrows(data.probe.link, {'source', 'detector', 'type'});
-    Z = data.Z(ivars,ivars,:);
+    vars=data.probe.link;
+    %[vars, ivars] = sortrows(data.probe.link, {'source', 'detector', 'type'});
+    %Z = data.Z(ivars,ivars,:);
     if(~isempty(data.ZstdErr))
-        covZ = data.ZstdErr(ivars, ivars,:).^2;
+        %covZ = data.ZstdErr(ivars, ivars,:).^2;
+        covZ = data.ZstdErr.^2;
     else
         covZ=[];
     end
@@ -279,6 +298,7 @@ elseif(isa(data,'nirs.core.sFCStats'))
                     c = zeros(size(b));
                     c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
                     %c=c/sum(c(:));
+                      
                     CC=diag(C(:));
                     CC(isnan(CC))=1E6;
                     c2=c-diag(diag(c));  %remove the self terms
@@ -319,10 +339,17 @@ elseif(isa(data,'nirs.core.sFCStats'))
     tbl(isnan(tbl.power),:)=[];
     
 elseif(isa(data,'nirs.core.ChannelFStats'))
-    [vars, ivars] = sortrows(data.variables, {'cond', 'source', 'detector', 'type'});
-    F = data.F(ivars);
-    df1 = data.df1(ivars);
-    df2 = data.df2(ivars);
+    data=data.sorted({'cond', 'source', 'detector', 'type'});
+    
+        %First deal with the NaN values;
+    [ContVect,R,names,namesOld,types]=nirs.util.ROIhelper(data,R,names);
+
+%    [vars, ivars] = sortrows(data.variables, {'cond', 'source', 'detector', 'type'});
+    vars=data.variables;
+ 
+    F = data.F; %(ivars);
+    df1 = data.df1; %(ivars);
+    df2 = data.df2; %(ivars);
     uconds = unique(vars.cond, 'stable');
    
   
@@ -389,11 +416,17 @@ elseif(isa(data,'nirs.core.ChannelFStats'))
 else
     
     % sort variables
-    [vars, ivars] = sortrows(data.variables, {'cond', 'source', 'detector', 'type'});
-    beta = data.beta(ivars);
-    covb = data.covb(ivars, ivars);
+    data=data.sorted({'cond', 'source', 'detector', 'type'});
     
-    % unique conditions
+        %First deal with the NaN values;
+    [ContVect,R,names,namesOld,types]=nirs.util.ROIhelper(data,R,names);
+
+    
+    beta = data.beta; %(ivars);
+    covb = data.covb; %(ivars, ivars);
+    vars=data.table;
+     % unique conditions
+    
     uconds = unique(vars.cond, 'stable');
     
     % loop over conditions
@@ -423,7 +456,6 @@ else
             % contrast vector
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
-            %c=c/sum(c);
             
             cc(lst,(i-1)*length(R)+j)=c;
             vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];

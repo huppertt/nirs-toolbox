@@ -144,6 +144,7 @@ xrank = sum(abs(diag(R)) > tol);
 
 E = X/R(1:xrank,1:xrank);
 h = min(.9999, sum(E.*E,2));
+
 adjfactor = 1 ./ sqrt(1-h./priorw);
 
 ep=1E-10;

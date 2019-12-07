@@ -109,8 +109,13 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                % determine number of wavelengths measured
                nWav = unique(p.link.type);
                
-               nchan = unique([p.link.source p.link.detector]);
                
+               if(~ismember('source',p.link.Properties.VariableNames) & ...
+                       ismember('ROI',p.link.Properties.VariableNames))
+                    nchan = unique([p.link.ROI]);
+               else
+                   nchan = unique([p.link.source p.link.detector]);
+               end
                
                % d_chr will store delta chromophore data (d conc)
                % initial size of d_chr will be t x 2 (hbo,hbr) x chan

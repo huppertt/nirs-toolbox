@@ -61,9 +61,16 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             b = [];
             vars = table();
+           
             for i = 1:length(S)
+                if(~ismember('source',S(i).probe.link) & ...
+                        ismember('ROI',S(i).probe.link))
+                    S(i)=S(i).sorted({'ROI', 'type'});
+                else
+                    
+                    S(i)=S(i).sorted({'ROI', 'type'});
+                end
                 
-               
                 
                 % coefs
                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))

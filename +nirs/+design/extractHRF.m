@@ -80,8 +80,15 @@ if(~iscellstr(tbl.type))
     tbl.type=arrayfun(@(x)cellstr(num2str(x)),tbl.type);
 end
 
-[tbl2,~,lst]=unique(table(tbl.source, tbl.detector, tbl.type,'VariableNames',{'source','detector','type'}));
-
+if(~ismember('source',Stats.probe.link.Properties.VariableNames) & ...
+        ismember('ROI',Stats.probe.link.Properties.VariableNames))
+    [tbl2,~,lst]=unique(table(tbl.ROI, tbl.type,'VariableNames',{'ROI','type'}));
+else
+    [tbl2,~,lst]=unique(table(tbl.source, tbl.detector, tbl.type,'VariableNames',{'source','detector','type'}));
+    
+end
+ 
+ 
 data=[]; var=table;
 for j=1:height(tbl2)
     t=tbl(lst==j,:);

@@ -78,6 +78,7 @@ classdef GLM < nirs.modules.AbstractGLM
         end
         
         function S = runThis( obj, data )
+       
             if (obj.AddShortSepRegressors)
                 
                 j=nirs.modules.AddShortSeperationRegressors();

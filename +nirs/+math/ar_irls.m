@@ -141,10 +141,10 @@ function stats = ar_irls( d,X,Pmax,tune )
         
         L = pinv(Xf'*Xf); % more stable
         Xfall{i}=wXf;
-        stats.covb(:,:,i) = 1.1265*L*S.mad_s^2;
+        stats.covb(:,:,i) = 1.1265*L*S.robust_s^2;
         stats.w(:,i) = S.w;
         stats.a{i} = a;
-        stats.sigma2(i)=1.1265*S.mad_s^2;
+        stats.sigma2(i)=1.1265*S.robust_s^2;
         
         stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(S.covb));
         stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
@@ -152,7 +152,12 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
 
         
-        resid(:,i)=S.rstud*S.s;
+        resid(:,i)=S.resid; %S.rstud*S.s;
+        
+%         subplot(1,2,1); plot(S.rstud*S.s)
+%         subplot(1,2,2); plot(S.resid)
+%         pause;
+        
         stats.filter{i}=f;
         stats.R2(i)=max(1-mad(yf-Xf*B)/mad(yf),0);
 %         yfiltered=[yfiltered; yf];
@@ -190,7 +195,7 @@ function stats = ar_irls( d,X,Pmax,tune )
 %     plot(log(d),'r--')
 %     pause;
     
-    stats.covb = covb;
+    stats.covb = real(covb);
 % 
 %     for i=1:size(stats.beta,2)
 %         stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(squeeze(stats.covb(:,:,i,i))));

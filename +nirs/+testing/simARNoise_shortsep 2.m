@@ -74,24 +74,9 @@ function data = simARNoise_shortsep(probe, t, P, sigma, N_files )
     e=(J.hbo(:,voxellist)*e')';
     e=e./(ones(length(t),1)*std(e,[],1));
     
-    nchan = size(probe.link,1);
-    mu = zeros(nchan,1);
-    S = toeplitz( [1 sigma*ones(1,nchan-1)] );
-    e2 = mvnrnd( mu, S, length(t) );
-    
-    
-    % add temporal covariance
-    for i = 1:size(e2,2)
-        a = randAR( P );
-        e2(:,i) = filter(1, [1; -a], e2(:,i));
-    end
-    
-    e2=e2./(ones(length(t),1)*std(e2,[],1));
-     
-    
     % output
     data = nirs.core.Data();
-    data.data   = 70 * exp( - e * 5e-3 )+30 * exp( - e2 * 5e-3 );
+    data.data   = 100 * exp( - e * 5e-3 );
     data.probe  = probe;
     data.time   = t;
   
