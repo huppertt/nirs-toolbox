@@ -72,7 +72,7 @@ function data = simARNoise_shortsep(probe, t, P, sigma, N_files )
     end
     J=fwdSlab.jacobian('spectral');
     e=(J.hbo(:,voxellist)*e')';
-    e=e./(ones(length(t),1)*std(e,[],1));
+    e=6*e./(ones(length(t),1)*std(e,[],1));
     
     nchan = size(probe.link,1);
     mu = zeros(nchan,1);
@@ -86,12 +86,13 @@ function data = simARNoise_shortsep(probe, t, P, sigma, N_files )
         e2(:,i) = filter(1, [1; -a], e2(:,i));
     end
     
-    e2=e2./(ones(length(t),1)*std(e2,[],1));
+    e2=6*e2./(ones(length(t),1)*std(e2,[],1));
      
     
     % output
     data = nirs.core.Data();
     data.data   = 70 * exp( - e * 5e-3 )+30 * exp( - e2 * 5e-3 );
+    data.data=data.data;
     data.probe  = probe;
     data.time   = t;
   

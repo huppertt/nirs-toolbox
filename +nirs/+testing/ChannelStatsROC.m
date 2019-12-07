@@ -81,7 +81,7 @@ classdef ChannelStatsROC
                p = nirs.modules.Resample();
                p = nirs.modules.OpticalDensity(p);
                p = nirs.modules.BeerLambertLaw(p);
-               p = nirs.modules.AR_IRLS(p);
+               p = nirs.modules.GLM(p);
                p.verbose = false;
                
                obj.pipeline = p;
@@ -106,7 +106,8 @@ classdef ChannelStatsROC
                else
                     [~,i]=sortrows(data(1).probe.link,{'type','source','detector'});
                     truth=truth(i);
-                     isimage=false;
+                    data=data.sorted({'type','source','detector'});
+                    isimage=false;
                end
                % pipeline stats
                
@@ -123,24 +124,29 @@ classdef ChannelStatsROC
                    else
                     stats = obj.pipeline(i).run(data);
                    end
-                   if(size(stats.beta,1)>length(truth) & ~isempty(find(isnan(truth))))
-                       truth(isnan(truth))=[];
-                   end
                    
                     if(length(truth)>height(data(1).probe.link))
                         stats=sorted(stats,{'cond','type','VoxID'});
                     else
                         stats=sorted(stats,{'type','source','detector'});
                     end
-                   % multivariate joint hypothesis testing
-                   fstats = stats.jointTest();
-                   
+                  
                    % types
                    types = unique(stats.variables.type, 'stable');
                    
-                   if (strcmp('RemoveShortSeperationRegressors', obj.pipeline(i).prevJob.name))
-                       truth = truth(~data(1).probe.link.ShortSeperation);
+                   if(ismember('ShortSeperation',data(1).probe.link.Properties.VariableNames))
+                       if(any(data(1).probe.link.ShortSeperation) & ~any(stats(1).probe.link.ShortSeperation))
+                           truth = truth(~data(1).probe.link.ShortSeperation);
+                       elseif(any(stats(1).probe.link.ShortSeperation))
+                           truth = truth(~data(1).probe.link.ShortSeperation);
+                           job=nirs.modules.RemoveShortSeperations;
+                           stats=job.run(stats);
+                       end
                    end
+                   
+                   
+                   % multivariate joint hypothesis testing
+                   fstats = stats.jointTest();
                    
                    t = []; p = [];
                    for j = 1:length(types)
@@ -153,7 +159,7 @@ classdef ChannelStatsROC
                    t(:, end+1) = sum(t, 2) > 0;
                    p(:, end+1) = fstats.p;
                    
-                    types=[types; {'joint'}];
+                   types=[types; {'joint'}];
                    
                    if(length(obj.pipeline)>1)
                        types=arrayfun(@(x){[x{1} '-' num2str(i)]},types);
@@ -249,6 +255,12 @@ classdef ChannelStatsROC
             for i = 1:length(obj.types)
                [tp{i}, fp{i}, phat{i}] = nirs.testing.roc(obj.truth(:, i),pvals(:, i));
             end
+        end
+        
+        function obj =clear(obj)
+            obj.truth=[];
+            obj.pvals=[];
+            obj.types={};
         end
         
         function out = sensitivity( obj, pval )
