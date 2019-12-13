@@ -54,7 +54,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G = nirs.core.ChannelStats();
             
             if(obj.weighted)
-                %% loop through files 
+                %% loop through files
                 W = sparse([]);
                 iW = sparse([]);
             end
@@ -63,12 +63,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
             vars = table();
            
             for i = 1:length(S)
-                if(~ismember('source',S(i).probe.link) & ...
-                         
-                    S(i)=S(i).sorted({'source','detector', 'type'});
+                if(~ismember('source',S(i).probe.link.Properties.VariableNames) & ...
+                        ismember('ROI',S(i).probe.link.Properties.VariableNames))
+                    S(i)=S(i).sorted({'ROI', 'type'});
                 else
                     
-                    S(i)=S(i).sorted({'ROI', 'type'});
+                    S(i)=S(i).sorted({'source','detector', 'type'});
                 end
                 
                 
