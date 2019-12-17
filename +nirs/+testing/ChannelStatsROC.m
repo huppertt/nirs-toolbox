@@ -125,14 +125,6 @@ classdef ChannelStatsROC
                     stats = obj.pipeline(i).run(data);
                    end
                    
-                    if(length(truth)>height(data(1).probe.link))
-                        stats=sorted(stats,{'cond','type','VoxID'});
-                    else
-                        stats=sorted(stats,{'type','source','detector'});
-                    end
-                  
-                   % types
-                   types = unique(stats.variables.type, 'stable');
                    
                    if(ismember('ShortSeperation',data(1).probe.link.Properties.VariableNames))
                        if(any(data(1).probe.link.ShortSeperation) & ~any(stats(1).probe.link.ShortSeperation))
@@ -143,6 +135,16 @@ classdef ChannelStatsROC
                            stats=job.run(stats);
                        end
                    end
+                   
+                   if(length(truth)>height(data(1).probe.link))
+                       stats=sorted(stats,{'cond','type','VoxID'});
+                   else
+                       stats=sorted(stats,{'type','source','detector'});
+                   end
+                   
+                   % types
+                   types = unique(stats.variables.type, 'stable');
+                  
                    
                    
                    % multivariate joint hypothesis testing

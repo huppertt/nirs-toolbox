@@ -14,9 +14,11 @@ classdef TDDR < nirs.modules.AbstractModule
         function data = runThis( obj, data )
             
             for i = 1:numel(data)
-            
-                data(i).data = nirs.math.tddr( data(i).data , data(i).Fs );
-
+                try
+                    data(i).data = nirs.math.tddr( data(i).data , data(i).Fs );
+                catch
+                    disp(['Error in file ' num2str(i) ' ' lasterr]);
+                end
             end
             
         end

@@ -86,11 +86,15 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         nirs.util.flushstdout(1);
                         fprintf( 'preparing covariance model %4i of %4i.\n', i, length(S) )
                     end
-                    [u, s, ~] = svd(S(i).covb, 'econ');
-                    %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
-                    W = blkdiag(W, pinv(s).^.5 * u');
                     
-                    iW = blkdiag(iW, u*sqrt(s) );
+                    L = chol(S(i).covb,'upper');
+                    W = blkdiag(W,pinv(L));
+                 
+%                     [u, s, ~] = svd(S(i).covb, 'econ');
+%                     %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+%                     W = blkdiag(W, pinv(s).^.5 * u');
+%                     
+%                     iW = blkdiag(iW, u*sqrt(s) );
                 end
                 
                 
@@ -324,6 +328,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{end} = 'cond';
+            
+            if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))
+                ShortSeperation=S(1).variables.ShortSeperation;
+                ShortSeperation=repmat(ShortSeperation, [length(unique(cnames)) 1]);
+                G.variables = [G.variables table(ShortSeperation)];
+            end
             G.description = ['Mixed Effects Model: ' obj.formula];
             
             n={}; b={}; cnt=1;

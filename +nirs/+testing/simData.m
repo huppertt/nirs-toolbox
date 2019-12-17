@@ -17,13 +17,13 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
 %
 %     [data, truth] = simData( noise, stim, beta, channels )
 
-if nargin < 1 || isempty(noise) 
-    
+if nargin < 1 || isempty(noise)  
     noise = nirs.testing.simARNoise();
 end
 if strcmp(class(noise),'double')
     noise = nirs.testing.simARNoise(noise);
 end
+
 
 if nargin < 2 || isempty(stim)
     stim = nirs.testing.randStimDesign(noise.time, 2, 7, 1);
@@ -55,6 +55,8 @@ if nargin < 5 || isempty(basis)
 end
 lstSS=[];
 
+
+
 if nargin < 4 || isempty(channels)
     % default to first half of channels
     sd = [noise.probe.link.source noise.probe.link.detector];
@@ -67,21 +69,31 @@ if nargin < 4 || isempty(channels)
         lstSS=[];
     end
     sd=unique(sd,'rows');
+    sd=sd(randperm(size(sd,1)),:);
     channels = sd(1:round(end/2),:);
+else
+    if(ismember('ShortSeperation',noise.probe.link.Properties.VariableNames))
+        lstSS=find(noise.probe.link.ShortSeperation);
+    else
+        lstSS=[];
+    end
 end
 
+    
 if(istable(channels))
     channels=[channels.source channels.detector];
 end
-    
 
 
 % loop through and add
-data = noise.sorted();
+data = noise; %.sorted();
 
 link = data.probe.link;
 Y    = data.data;
 truth = zeros(size(Y,2), 1);
+ 
+% scal=median(var(Y));
+% Y=sqrt(scal)*Y./(ones(size(Y,1),1)*sqrt(var(Y)));
 
 if(~(iscellstr(link.type) && any(ismember(link.type,{'hbo','hbr'}))))
     % optical density
@@ -124,8 +136,8 @@ else
             & link.detector == channels(i,2) & ismember(link.type,'hbr'));
         Xhbo = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbo' );
         Xhbr = nirs.design.createDesignMatrix( stim, data.time, basis, 'hbr' );
-        Y(:,lstHbO)=Y(:,lstHbO)+Xhbo*b(1);
-        Y(:,lstHbR)=Y(:,lstHbR)+Xhbr*b(2);
+        Y(:,lstHbO)=Y(:,lstHbO)+Xhbo*b(1)*10;
+        Y(:,lstHbR)=Y(:,lstHbR)+Xhbr*b(2)*10;
         truth(lstHbO) = 1;
         truth(lstHbR) = 1;
     end

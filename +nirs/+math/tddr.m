@@ -26,6 +26,9 @@ if nch>1
     return
 end
 
+DC=median(signal);
+signal=signal-DC;
+
 %% Preprocess: Separate high and low frequencies
 filter_cutoff = .5;
 filter_order = 3;
@@ -89,5 +92,7 @@ signal_low_corrected = signal_low_corrected - mean(signal_low_corrected);
 
 %% Postprocess: Merge back with uncorrected high frequency component
 signal_corrected = signal_low_corrected + signal_high;
+
+signal_corrected=signal_corrected+DC;
 
 end

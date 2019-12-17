@@ -19,7 +19,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, te
         id=noise; clear noise;
          for i = 1:id
             noise(i,1) = nirs.testing.simARNoise();
-        end
+         end
     end
     
     if nargin < 2 || isempty(ngroup)
@@ -36,19 +36,27 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, te
         
         s = stimFunc(noise(1).time);
     end
+    
+    
     if nargin < 4 || isempty(beta)
         beta = 7*ones( length(s.keys), ngroup )/sqrt(length(noise));
+    elseif(isstr(beta))
+        snr = str2num(beta(strfind(beta,'SNR:')+4:end));
+        beta=snr*sqrt(var(noise(1).data(:)))*ones( length(s.keys), ngroup )/sqrt(length(noise));
     end
+
     
     if size(beta,1) == length(s.keys)
         % oxy; deoxy
-        b = [beta; -beta/3];
+        b = [beta; -beta/2];
     end
         
     if nargin < 5 || isempty(channels)
         sd = unique([noise(1).probe.link.source noise(1).probe.link.detector], 'rows');
+        sd=sd(randperm(size(sd,1)),:);
         channels = sd(1:round(end/2),:);
     end
+
     
     if nargin < 6 || isempty(testingfcn)
         testingfcn=@nirs.testing.simData;
