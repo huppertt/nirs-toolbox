@@ -207,7 +207,7 @@ if (nargout>1)
                sqrt((ols_s^2 * xrank^2 + robust_s^2 * n) / (xrank^2 + n)));
 
    % Get coefficient standard errors and related quantities
-   tempC = inv(C' * C'+speye(size(C,1),size(C,1))*ep) * sigma^2;
+   tempC = inv(C' * C+speye(size(C,1),size(C,1))*ep) * sigma^2;
    tempse = sqrt(max(eps(class(tempC)),diag(tempC)));
    C = NaN(p,p);
    covb = zeros(p,p);

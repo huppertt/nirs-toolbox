@@ -9,6 +9,7 @@ data = nirs.core.Data.empty;
 cnt=1;
 % iterate through cell array
 for iFile = 1:length(filenames)
+    disp(['Loading ' filenames{iFile}]);
     try
         [hdr,d]=readSOMMAheader(filenames{iFile});
         for i=1:length(d)
@@ -128,7 +129,7 @@ for i=1:size(hdr.line)
         info.Site=hdr.line(i+1,:);
         info.Site=strtrim(info.Site);
     end
-    if(~isempty(strfind(hdr.line(i,:),'deviceid>')))
+    if(~isempty(strfind(hdr.line(i,:),'<deviceid>')))
         info.DeviceID=hdr.line(i+1,:);
         info.DeviceID=strtrim(info.DeviceID);
     end
@@ -248,7 +249,7 @@ detPos=[0 25.7 0;
     0 45.5 0];
 source=ones(8,1);
 detector=[1:4 1:4]';
-type=[850 850 850 850 690 690 690 690 ]';
+type=[850 850 850 850 660 660 660 660 ]';
 link=table(source,detector,type);
 
 data.probe=nirs.core.Probe( srcPos, detPos, link );

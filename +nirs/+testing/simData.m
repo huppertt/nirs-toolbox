@@ -56,7 +56,6 @@ end
 lstSS=[];
 
 
-
 if nargin < 4 || isempty(channels)
     % default to first half of channels
     sd = [noise.probe.link.source noise.probe.link.detector];

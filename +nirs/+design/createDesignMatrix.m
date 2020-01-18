@@ -16,7 +16,9 @@ function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
             basis = Dictionary({'default'}, {nirs.design.basis.Canonical()});     
     end
 
-    
+    if(isstr(basis))
+        basis=Dictionary({'default'},{basis});
+    end
    
     offset=0;
    
@@ -68,6 +70,30 @@ function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
                     basisObj = basis( 'default' );
                 end
             end
+            
+            if(isstr(basisObj)) 
+                    f=dir(fullfile(fileparts(which('nirs.design.change_stimulus_duration')),'+basis'));
+                    for ii=1:length(f);
+                        [~,ff{ii}]=fileparts(f(ii).name);
+                        ff2{ii}=lower(ff{ii});
+                    end
+                    basisObj=ff{ismember(ff2,lower(basisObj))};
+                    
+                    basisObj=['basisObj=nirs.design.basis.' basisObj ';'];
+                try                  
+                    eval(basisObj);
+                catch
+                    warning(['Basis type: ' basisObj ' not found']);
+                    disp(['Options are:']);
+  
+                    disp(strvcat(ff));
+                    error('Exiting: bad basis');
+                end
+            end
+                        
+                    
+            
+            
             % apply basis to stim vector
             x = basisObj.convert( stimVector, t );
         end
