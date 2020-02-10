@@ -139,10 +139,16 @@ else
     % Precompute the svd of Q, since it doesn't change between iterations
     usqrts = cell(length(Q),1);
     for i = 1:length(Q)
-        cnt = fprintf('ReML precalculations (%i/%i)...',i,length(Q));
-        [u,s]=nirs.math.mysvd(Q{i});
-        usqrts{i} = sparse(u*sqrt(s));
-        fprintf(repmat('\b',1,cnt));
+       
+        if(nnz(Q{i}-diag(diag(Q{i})))==0)
+            usqrts{i}=sparse(sqrt(Q{i}));
+        else
+            cnt = fprintf('ReML precalculations (%i/%i)...',i,length(Q));
+            [u,s]=nirs.math.mysvd(Q{i});
+            usqrts{i} = sparse(u*sqrt(s));
+            fprintf(repmat('\b',1,cnt));
+        end
+        
     end
     cnt = 0;
     

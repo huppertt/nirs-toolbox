@@ -57,6 +57,8 @@ classdef  WKM_dynamic < nirs.vascular.models.AbstractVascularModel
             obj.parameters(9).range= [1 4];
             
             obj.outputNames={'CMRO2','CBF'};
+           
+            obj.model=model(obj);
             
         end
         

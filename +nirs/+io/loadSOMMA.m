@@ -15,6 +15,8 @@ for iFile = 1:length(filenames)
         for i=1:length(d)
             data(cnt,1)=parseData(hdr(i),d{i});
             data(cnt,1).description=filenames{iFile};
+            
+            
             cnt=cnt+1;
         end
     end
@@ -272,12 +274,20 @@ data.time(1)=[];
 data.data(1,:)=[];
 
 if(~isempty(hdr))
-    data.demographics('subject')=hdr.info.SubjID;
-    data.demographics('date')=hdr.info.Date;
-    data.demographics('site')=hdr.info.Site;
-    data.demographics('device')=hdr.info.DeviceID;
-    data.demographics('session')=hdr.info.Session;
-    data.auxillary('comments')=hdr.info.Comments;
+    flds=fields(hdr.info);
+            for j=1:length(flds)
+                data.demographics(flds{j})=hdr.info.(flds{j});
+            end
+            
+%     
+%     
+%     data.demographics('subject')=hdr.info.SubjID;
+%     data.demographics('date')=hdr.info.Date;
+%     data.demographics('site')=hdr.info.Site;
+%     data.demographics('device')=hdr.info.DeviceID;
+%     data.demographics('session')=hdr.info.Session;
+%     data.auxillary('comments')=hdr.info.Comments;
+
 end
 end
 

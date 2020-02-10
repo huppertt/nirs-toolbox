@@ -7,6 +7,30 @@ function tbl = createDemographicsTable( data )
 % Returns:
 %     tbl  - a table containing demographics variables per item in data
     
+
+keys=[]; 
+for i=1:length(data)
+    keys=[keys(:); data(i).demographics.keys(:)]; 
+end;
+keys=unique(keys);
+
+    for j=1:length(keys)
+        for i=1:length(data)
+             if(ismember(keys(j),data(i).demographics.keys))
+                 a=data(i).demographics(keys(j));
+             end
+        end
+        if(isnumeric(a)); a=NaN; end;
+        if(iscellstr(a)); a={''}; end;
+            
+     for i=1:length(data)
+            
+        if(~ismember(keys(j),data(i).demographics.keys))
+            data(i).demographics(keys(j))=a;
+        end
+    end
+end
+
     tbl=struct;    
     % loop over data files
     for i = 1:length(data)
