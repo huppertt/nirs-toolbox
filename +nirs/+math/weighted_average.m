@@ -33,6 +33,9 @@ for i=1:size(Y,2)
     x=ones(size(y));
     wy=ww.*y;
     wx=ww.*x;
+    lst=find(isnan(wy) | isnan(wx));
+    wy(lst)=[];
+    wx(lst)=[];
     if(robustflag)
         [b,stats]=nirs.math.robustfit(wx,wy,[],[],'off');
     else
