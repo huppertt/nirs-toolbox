@@ -16,7 +16,7 @@ if(0) %exist('MMC_Collins_Atlas_Mesh_Version_2L.mat')~=2)
 end
         
  % If I already have this file, then just load it
- a=which('nirs.registration.Colin27_v2.BEM');
+ a=which('nirs.registration.Colin27.BEM');
  folder=fileparts(a); 
  
 if(exist(fullfile(folder,'ColinBEM_v2.mat'))==2 && ~force)

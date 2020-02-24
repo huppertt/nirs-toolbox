@@ -28,7 +28,12 @@ classdef NirfastBEM
                 obj.probe=[];
                 return;
             end
-            if(~isa(probe,'nirs.core.Probe1020'))
+            if(isa(probe,'struct'))
+                obj.probe=probe;
+                return
+            end
+            
+            if(isa(probe,'nirs.core.Probe1020'))
                 warning('probe must be a 3D registered probe');
                 obj.probe=probe;
                 return

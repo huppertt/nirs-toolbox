@@ -10,9 +10,9 @@ classdef MMCLab
         directory = [getenv('TMPDIR') filesep 'tmp'...
             filesep num2str(randi(2^32-1))];
 
-        Fm = 100;
+        Fm = 110;
         
-        nPhotons = 1e7;
+        nPhotons = 1e8;
         nTimeGates = 40;
         timeStep = 1/100e6/300;
         nRepetitions = 1;

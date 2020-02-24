@@ -1,7 +1,7 @@
 function [R,p,dfe]=ar_partialcorr(data,modelorder,robust_flag)
 
 if(nargin<3)
-    robust_flag=true;
+    robust_flag=false;
 end
 
 if(nargin<2 || isempty(modelorder))
@@ -36,8 +36,12 @@ for ch = 1:size(yfilt,2)
     yfilt(1:length(f{ch})) = nan;
 end
 
+[i,j]=find(isnan(yfilt));
+yfilt(:,unique(j))=[];
+
 if(robust_flag)
-    [R,p]=nirs.math.robust_corrcoef(yfilt);
+    
+    [R,p]=nirs.math.robust_partialcorr(yfilt);
 else
     [R,p]=partialcorr(yfilt);
 end

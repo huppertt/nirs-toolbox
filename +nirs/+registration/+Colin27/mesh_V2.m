@@ -3,9 +3,8 @@ function m = mesh_V2
 % more generic and 
         
 % If I already have this file, then just load it
-a=which('nirs.registration.Colin27_v2.BEM');
+a=which('nirs.registration.Colin27.BEM');
 folder=fileparts(a);
-
 load(fullfile(folder,'ColinBEM_v2.mat'));
 m=fwdBEM.mesh;
 return
