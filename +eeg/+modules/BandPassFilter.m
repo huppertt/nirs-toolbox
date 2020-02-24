@@ -26,7 +26,9 @@ classdef BandPassFilter < nirs.modules.AbstractModule
         function data = runThis( obj, data )
             for i = 1:length(data)
                 
-                if(isempty(obj.lowpass))
+                if(isempty(obj.lowpass) & isempty(obj.highpass))
+                    return;
+                elseif(isempty(obj.lowpass))
                     [fa,fb]=butter(4,[obj.highpass]*2/data(i).Fs,'high');
                 elseif(isempty(obj.highpass))
                      [fa,fb]=butter(4,[obj.lowpass]*2/data(i).Fs,'low');
