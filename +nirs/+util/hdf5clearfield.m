@@ -4,8 +4,8 @@ if(isunix & strcmp(filename(1),'~'))
     filename = [getenv('HOME') filename(2:end)];
 end
 
-[p,filename,e]=fileparts(filename);
-filename=fullfile(p,[filename '.nir5']);
+% [p,filename,e]=fileparts(filename);
+% filename=fullfile(p,[filename '.nir5']);
 
 names=nirs.util.hdf5getnames(filename);
 

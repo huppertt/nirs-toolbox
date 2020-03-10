@@ -142,6 +142,14 @@ classdef Probe
         
            if(~isempty(obj.fixeddistances))
                d=obj.fixeddistances;
+               if(length(d)<height(obj.link))
+                    dd=zeros(height(obj.link),1);
+                    t=unique(obj.link.type);
+                    for i=1:length(t)
+                        dd(ismember(obj.link.type,t(i)))=d;
+                    end
+                    d=dd;
+               end
                return
            end
             

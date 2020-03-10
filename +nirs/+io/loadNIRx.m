@@ -92,7 +92,9 @@ if(isfield(info,'ChanDis'))
     if(length(info.ChanDis)>length(probe.distances))
         info.ChanDis=info.ChanDis(1:length(probe.distances));
     end
-    
+    if(length(info.ChanDis)<length(probe.distances))
+        info.ChanDis=reshape(repmat(info.ChanDis,1,length(info.Wavelengths)),[],1);
+    end
     
     % Not sure why the units on the 2D probe in the NIRx file are so off
     scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
