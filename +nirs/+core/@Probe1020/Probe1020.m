@@ -89,6 +89,18 @@ classdef Probe1020 < nirs.core.Probe
             n(:,4)=1;
             n=n*(tform);
             obj.pts1020=n(:,1:3);
+            obj.mesh=m;
+            
+                         % Find the default arc lengths
+            pt(1,:)=obj.pts1020(find(ismember(lower(obj.labels),'lpa')),:);
+            pt(2,:)=obj.pts1020(find(ismember(lower(obj.labels),'rpa')),:);
+            pt(3,:)=obj.pts1020(find(ismember(lower(obj.labels),'cz')),:);
+            pt(4,:)=obj.pts1020(find(ismember(lower(obj.labels),'nas')),:);
+            pt(5,:)=obj.pts1020(find(ismember(lower(obj.labels),'iz')),:);
+            
+            obj.AP_distance=norm(pt(4,:)-pt(5,:));
+            obj.LR_distance=norm(pt(1,:)-pt(2,:));
+            obj.IS_distance=norm(pt(3,:)-.5*(pt(1,:)-pt(2,:)));
         end
         
         

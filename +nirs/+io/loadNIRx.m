@@ -88,20 +88,7 @@ link=table(repmat(s,length(info.Wavelengths),1),...
 
 probe = nirs.core.Probe(SrcPos,DetPos,link);
 
-if(isfield(info,'ChanDis'))
-    if(length(info.ChanDis)>length(probe.distances))
-        info.ChanDis=info.ChanDis(1:length(probe.distances));
-    end
-    if(length(info.ChanDis)<length(probe.distances))
-        info.ChanDis=reshape(repmat(info.ChanDis,1,length(info.Wavelengths)),[],1);
-    end
-    
-    % Not sure why the units on the 2D probe in the NIRx file are so off
-    scale=mean(info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:))));
-    probe.fixeddistances=info.ChanDis(:);
-else
-    scale=1;
-end
+
 
 % if(isfield(info,'ShortDetIndex') && ~isempty(info.ShortDetIndex))
 %      info.ShortDetectors=true;
@@ -129,6 +116,34 @@ if(useshortdistances && info.ShortDetectors>0)
     
     probe = nirs.core.Probe(SrcPos,[DetPos;ShortDetPos],[probe.link; Shortlink]);
     
+end
+
+lst2=[];
+for j=1:length(probe.types)
+    
+    kk=find(ismember(probe.link.type,probe.types(j)));
+    lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
+    [~,i]=ismember(info.SDkey(lst,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows');
+    lst2=[lst2; kk(i)];
+end
+probe.link=probe.link(lst2,:);
+
+
+if(isfield(info,'ChanDis'))
+    if(length(info.ChanDis)>length(probe.distances))
+        info.ChanDis=info.ChanDis(1:length(probe.distances));
+    end
+    if(length(info.ChanDis)<length(probe.distances))
+        info.ChanDis=reshape(repmat(info.ChanDis,1,length(info.Wavelengths)),[],1);
+    end
+    
+    % Not sure why the units on the 2D probe in the NIRx file are so off
+    l=info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:)));
+    l(l==Inf)=[];  % remove the short distance ones
+    scale=mean(l);
+    probe.fixeddistances=info.ChanDis(:);
+else
+    scale=1;
 end
 
 

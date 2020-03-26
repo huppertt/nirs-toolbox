@@ -20,6 +20,11 @@ if nargin < 2
     folderHierarchy = {};
 end
 
+if(~iscellstr(folderHierarchy))
+    folderHierarchy={folderHierarchy};
+end
+
+
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
 for i=1:length(fileExt)

@@ -329,12 +329,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{end} = 'cond';
             
-%             if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))
-%                 ShortSeperation=S(1).variables.ShortSeperation;
-%                 ShortSeperation=repmat(ShortSeperation, [length(unique(cnames)) 1]);
-%                 G.variables = [G.variables table(ShortSeperation)];
-%             end
-%             G.description = ['Mixed Effects Model: ' obj.formula];
+            if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))                
+                ShortSeperation=S(1).variables.ShortSeperation(ismember(S(1).variables.cond,S(1).variables.cond{1})) ;
+                ShortSeperation=reshape(repmat(ShortSeperation, [1 length(unique(cnames))])',[],1);
+                G.variables = [G.variables table(ShortSeperation)];
+            end
+            G.description = ['Mixed Effects Model: ' obj.formula];
             
             n={}; b={}; cnt=1;
             for i=1:length(S)
