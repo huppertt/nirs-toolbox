@@ -1,0 +1,818 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Sparse Tensors</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="A2_sptensor_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Sparse Tensors</h1>
+         <introduction>
+            <p>MATLAB has no native ability to store sparse multidimensional arrays, only sparse matrices. Moreover, the compressed sparse
+               column storage format for MATLAB sparse matrices is not readily adaptable to sparse tensors. Instead, the <tt>sptensor</tt> class stores the data in coordinate format.
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Creating a sptensor</a></li>
+               <li><a href="#4">Specifying the accumulation method for the constructor</a></li>
+               <li><a href="#6">Creating a one-dimensional sptensor.</a></li>
+               <li><a href="#8">Creating an all-zero sptensor</a></li>
+               <li><a href="#10">Constituent parts of a sptensor</a></li>
+               <li><a href="#13">Creating a sparse tensor from its constituent parts</a></li>
+               <li><a href="#14">Creating an empty sptensor</a></li>
+               <li><a href="#15">Use sptenrand to create a random sptensor</a></li>
+               <li><a href="#17">Use squeeze to remove singleton dimensions from a sptensor</a></li>
+               <li><a href="#18">Use full or tensor to convert a sptensor to a (dense) tensor</a></li>
+               <li><a href="#20">Use sptensor to convert a (dense) tensor to a sptensor</a></li>
+               <li><a href="#21">Use double to convert a sptensor to a (dense) multidimensional array</a></li>
+               <li><a href="#22">Use find to extract nonzeros from a tensor and then create a sptensor</a></li>
+               <li><a href="#23">Use ndims and size to get the size of a sptensor</a></li>
+               <li><a href="#26">Use nnz to get the number of nonzeros of a sptensor</a></li>
+               <li><a href="#27">Subscripted reference for a sptensor</a></li>
+               <li><a href="#37">Subscripted assignment for a sptensor</a></li>
+               <li><a href="#43">Use end as the last index.</a></li>
+               <li><a href="#44">Use elemfun to manipulate the nonzeros of a sptensor</a></li>
+               <li><a href="#49">Basic operations (plus, minus, times, etc.) on a sptensor</a></li>
+               <li><a href="#59">Use permute to reorder the modes of a sptensor</a></li>
+               <li><a href="#63">Displaying a tensor</a></li>
+            </ul>
+         </div>
+         <h2>Creating a sptensor<a name="1"></a></h2>
+         <p>A sparse tensor can be created by passing in a list of subscripts and values. For example, here we pass in three subscripts
+            and a scalar value. The resuling sparse tensor has three nonzero entries, and the size is the size of the largest subscript
+            in each dimension.
+         </p><pre class="codeinput">rand(<span class="string">'state'</span>,0); <span class="comment">%&lt;-- Setup for the script</span>
+subs = [1,1,1;1,2,1;3,4,2]; <span class="comment">%&lt;-- Subscripts of the nonzeros.</span>
+vals = [1; 2; 3]; <span class="comment">%&lt;-- The values of the nonzeros.</span>
+X = sptensor(subs,vals) <span class="comment">%&lt;-- Create a sparse tensor with 3 nonzeros.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 3 x 4 x 2 with 3 nonzeros
+	(1,1,1)	1
+	(1,2,1)	2
+	(3,4,2)	3
+</pre><pre class="codeinput">X = sptensor(subs,vals,[3 5 2]) <span class="comment">%&lt;-- Or, specify the size explicitly.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 3 x 5 x 2 with 3 nonzeros
+	(1,1,1)	1
+	(1,2,1)	2
+	(3,4,2)	3
+</pre><p>Values corresponding to repeated subscripts are summed. Also note that we can use a scalar as the second argument.</p><pre class="codeinput">subs = [1 1 1; 1 1 3; 2 2 2; 4 4 4; 1 1 1; 1 1 1]; <span class="comment">%&lt;-- (1,1,1) is repeated.</span>
+X = sptensor(subs,2) <span class="comment">%&lt;-- Equivalent to X = sptensor(subs,2*ones(6,1)).</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 4 x 4 x 4 with 4 nonzeros
+	(1,1,1)	6
+	(1,1,3)	2
+	(2,2,2)	2
+	(4,4,4)	2
+</pre><h2>Specifying the accumulation method for the constructor<a name="4"></a></h2>
+         <p>By default, values corresponding to repeated elements are summed. However, it is possible to specify other actions to be taken.</p><pre class="codeinput">X = sptensor(subs,2*ones(6,1),[4 4 4],@max) <span class="comment">%&lt;-- Maximum element.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 4 x 4 x 4 with 4 nonzeros
+	(1,1,1)	2
+	(1,1,3)	2
+	(2,2,2)	2
+	(4,4,4)	2
+</pre><pre class="codeinput">myfun = @(x) sum(x) / 3; <span class="comment">%&lt;-- Total sum divided by three.</span>
+X = sptensor(subs,2*ones(6,1),[4 4 4],myfun) <span class="comment">%&lt;-- Custom accumulation function.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 4 x 4 x 4 with 4 nonzeros
+	(1,1,1)	2
+	(1,1,3)	0.666667
+	(2,2,2)	0.666667
+	(4,4,4)	0.666667
+</pre><h2>Creating a one-dimensional sptensor.<a name="6"></a></h2><pre class="codeinput">X = sptensor([1;3;5],1,10) <span class="comment">%&lt;-- Same as X = sptensor([1;3;5],[1;1;1],1,10).</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 10 with 3 nonzeros
+	(1)	1
+	(3)	1
+	(5)	1
+</pre><pre class="codeinput">X = sptenrand(50,5) <span class="comment">%&lt;-- A random, sparse, order-1 tensor with 5 nonzeros.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 50 with 5 nonzeros
+	(12)	0.762097
+	(25)	0.456468
+	(31)	0.0185036
+	(45)	0.821407
+	(48)	0.444703
+</pre><h2>Creating an all-zero sptensor<a name="8"></a></h2><pre class="codeinput">X = sptensor([],[],[10 10 10]) <span class="comment">%&lt;-- Creates an all-zero tensor.</span>
+</pre><pre class="codeoutput">X is an all-zero sparse tensor of size 10 x 10 x 10
+</pre><pre class="codeinput">X = sptensor([10 10 10]) <span class="comment">%&lt;-- Same as above.</span>
+</pre><pre class="codeoutput">X is an all-zero sparse tensor of size 10 x 10 x 10
+</pre><h2>Constituent parts of a sptensor<a name="10"></a></h2><pre class="codeinput">X = sptenrand([40 30 20],5); <span class="comment">%&lt;-- Create data.</span>
+X.subs <span class="comment">%&lt;-- Subscripts of nonzeros.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     8    27     3
+    25    13     2
+    30    13     1
+    32    29     8
+    37    28    17
+
+</pre><pre class="codeinput">X.vals <span class="comment">%&lt;-- Corresponding nonzero values.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.2028
+    0.1987
+    0.6038
+    0.2722
+    0.1988
+
+</pre><pre class="codeinput">X.size <span class="comment">%&lt;-- The size.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    40    30    20
+
+</pre><h2>Creating a sparse tensor from its constituent parts<a name="13"></a></h2><pre class="codeinput">Y = sptensor(X.subs,X.vals,X.size) <span class="comment">%&lt;-- Copies X.</span>
+</pre><pre class="codeoutput">Y is a sparse tensor of size 40 x 30 x 20 with 5 nonzeros
+	( 8,27, 3)	0.202765
+	(25,13, 2)	0.198722
+	(30,13, 1)	0.603792
+	(32,29, 8)	0.272188
+	(37,28,17)	0.198814
+</pre><h2>Creating an empty sptensor<a name="14"></a></h2>
+         <p>An empty constructor exists, primarily to support loads of previously saved data.</p><pre class="codeinput">Y = sptensor <span class="comment">%&lt;-- Create an empty sptensor.</span>
+</pre><pre class="codeoutput">Y is an all-zero sparse tensor of size [empty tensor]
+</pre><h2>Use sptenrand to create a random sptensor<a name="15"></a></h2><pre class="codeinput">X = sptenrand([10 10 10],0.01) <span class="comment">%&lt;-- Create a tensor with 1% nonzeroes.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 10 x 10 x 10 with 10 nonzeros
+	( 1,9,2)	0.496552
+	( 3,4,9)	0.899769
+	( 5,6,7)	0.821629
+	( 5,7,4)	0.64491
+	( 5,9,2)	0.817974
+	( 6,5,9)	0.660228
+	( 7,2,6)	0.341971
+	( 8,1,7)	0.289726
+	( 9,8,4)	0.341194
+	(10,4,6)	0.534079
+</pre><p>It is also posible to specify the precise number of nonzeros rather than a percentage.</p><pre class="codeinput">X = sptenrand([10 10 10],10) <span class="comment">%&lt;-- Create a tensor with 10 nonzeros.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 10 x 10 x 10 with 10 nonzeros
+	(4, 2, 3)	0.582792
+	(4,10, 1)	0.423496
+	(5, 3, 5)	0.515512
+	(6, 3, 3)	0.333951
+	(6, 9, 2)	0.432907
+	(7, 8,10)	0.22595
+	(7, 9, 1)	0.579807
+	(8, 8, 2)	0.760365
+	(8,10, 7)	0.529823
+	(9, 6, 9)	0.640526
+</pre><h2>Use squeeze to remove singleton dimensions from a sptensor<a name="17"></a></h2><pre class="codeinput">Y = sptensor([1 1 1; 2 1 1], 1, [2 1 1]) <span class="comment">%&lt;-- Create a sparse tensor.</span>
+squeeze(Y) <span class="comment">%&lt;-- Remove singleton dimensions.</span>
+</pre><pre class="codeoutput">Y is a sparse tensor of size 2 x 1 x 1 with 2 nonzeros
+	(1,1,1)	1
+	(2,1,1)	1
+
+idx =
+
+     1
+
+ans is a sparse tensor of size 2 with 2 nonzeros
+	(1)	1
+	(2)	1
+</pre><h2>Use full or tensor to convert a sptensor to a (dense) tensor<a name="18"></a></h2><pre class="codeinput">X = sptensor([1 1 1; 2 2 2], [1; 1]); <span class="comment">%&lt;-- Create a sparse tensor.</span>
+Y = full(X) <span class="comment">%&lt;-- Convert it to a (dense) tensor.</span>
+</pre><pre class="codeoutput">Y is a tensor of size 2 x 2 x 2
+	Y(:,:,1) = 
+	     1     0
+	     0     0
+	Y(:,:,2) = 
+	     0     0
+	     0     1
+</pre><pre class="codeinput">Y = tensor(X) <span class="comment">%&lt;-- Same as above.</span>
+</pre><pre class="codeoutput">Y is a tensor of size 2 x 2 x 2
+	Y(:,:,1) = 
+	     1     0
+	     0     0
+	Y(:,:,2) = 
+	     0     0
+	     0     1
+</pre><h2>Use sptensor to convert a (dense) tensor to a sptensor<a name="20"></a></h2><pre class="codeinput">Z = sptensor(Y) <span class="comment">%&lt;-- Convert a tensor to a sptensor.</span>
+</pre><pre class="codeoutput">Z is a sparse tensor of size 2 x 2 x 2 with 2 nonzeros
+	(1,1,1)	1
+	(2,2,2)	1
+</pre><h2>Use double to convert a sptensor to a (dense) multidimensional array<a name="21"></a></h2><pre class="codeinput">Y = double(X) <span class="comment">%&lt;-- Creates a MATLAB array.</span>
+</pre><pre class="codeoutput">
+Y(:,:,1) =
+
+     1     0
+     0     0
+
+
+Y(:,:,2) =
+
+     0     0
+     0     1
+
+</pre><h2>Use find to extract nonzeros from a tensor and then create a sptensor<a name="22"></a></h2>
+         <p>The <tt>find</tt> command can be used to extract specific elements and then convert those into a sptensor.
+         </p><pre class="codeinput">X = tensor(rand(5,4,2),[5 4 2]) <span class="comment">%&lt;-- Create a tensor.</span>
+S = find(X &gt; 0.9) <span class="comment">%&lt;-- Extract subscipts of values greater than 0.9.</span>
+V = X(S) <span class="comment">%&lt;-- Extract the corresponding values.</span>
+Y = sptensor(S,V,[5 4 2]) <span class="comment">%&lt;-- Create a new tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 5 x 4 x 2
+	X(:,:,1) = 
+	    0.2091    0.5678    0.4154    0.9708
+	    0.3798    0.7942    0.3050    0.9901
+	    0.7833    0.0592    0.8744    0.7889
+	    0.6808    0.6029    0.0150    0.4387
+	    0.4611    0.0503    0.7680    0.4983
+	X(:,:,2) = 
+	    0.2140    0.4120    0.6833    0.2071
+	    0.6435    0.7446    0.2126    0.6072
+	    0.3200    0.2679    0.8392    0.6299
+	    0.9601    0.4399    0.6288    0.3705
+	    0.7266    0.9334    0.1338    0.5751
+
+S =
+
+     1     4     1
+     2     4     1
+     4     1     2
+     5     2     2
+
+
+V =
+
+    0.9708
+    0.9901
+    0.9601
+    0.9334
+
+Y is a sparse tensor of size 5 x 4 x 2 with 4 nonzeros
+	(1,4,1)	0.970845
+	(2,4,1)	0.990083
+	(4,1,2)	0.960099
+	(5,2,2)	0.93338
+</pre><h2>Use ndims and size to get the size of a sptensor<a name="23"></a></h2><pre class="codeinput">ndims(Y) <span class="comment">%&lt;-- Number of dimensions or modes.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3
+
+</pre><pre class="codeinput">size(Y) <span class="comment">%&lt;-- Size of Y.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     5     4     2
+
+</pre><pre class="codeinput">size(Y,3) <span class="comment">%&lt;-- Size of mode 3 of Y.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     2
+
+</pre><h2>Use nnz to get the number of nonzeros of a sptensor<a name="26"></a></h2><pre class="codeinput">nnz(Y) <span class="comment">%&lt;-- Number of nonzeros in Y.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     4
+
+</pre><h2>Subscripted reference for a sptensor<a name="27"></a></h2><pre class="codeinput">X = sptensor([4,4,4;2,2,1;2,3,2],[3;5;1],[4 4 4]) <span class="comment">%&lt;-- Create a sptensor.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 4 x 4 x 4 with 3 nonzeros
+	(2,2,1)	5
+	(2,3,2)	1
+	(4,4,4)	3
+</pre><pre class="codeinput">X(1,2,1) <span class="comment">%&lt;-- Extract the (1,2,1) element, which is zero.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     0
+
+</pre><pre class="codeinput">X(4,4,4) <span class="comment">%&lt;-- Extract the (4,4,4) element, which is nonzero.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3
+
+</pre><pre class="codeinput">X(1:2,2:4,:) <span class="comment">%&lt;-- Extract a 2 x 3 x 4 subtensor.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 3 x 4 with 2 nonzeros
+	(2,1,1)	5
+	(2,2,2)	1
+</pre><pre class="codeinput">X([1 1 1; 2 2 1]) <span class="comment">%&lt;-- Extract elements by subscript.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     0
+     5
+
+</pre><pre class="codeinput">X([1;6]) <span class="comment">%&lt;-- Same as above but with linear indices.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     0
+     5
+
+</pre><p>As with a tensor, subscriped reference may be ambiguous for one-dimensional tensors.</p><pre class="codeinput">X = sptensor([1;3;5],1,7) <span class="comment">%&lt;-- Create a sparse tensor.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 7 with 3 nonzeros
+	(1)	1
+	(3)	1
+	(5)	1
+</pre><pre class="codeinput">X(3) <span class="comment">%&lt;-- Fully specified, single elements are always returned as scalars.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     1
+
+</pre><pre class="codeinput">X([3;6]) <span class="comment">%&lt;-- Returns a subtensor.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 with 1 nonzeros
+	(1)	1
+</pre><pre class="codeinput">X([3;6],<span class="string">'extract'</span>) <span class="comment">%&lt;-- Same as above *but* returns an array.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     1
+     0
+
+</pre><h2>Subscripted assignment for a sptensor<a name="37"></a></h2><pre class="codeinput">X = sptensor([30 40 20]) <span class="comment">%&lt;-- Create an emtpy 30 x 40 x 20 sptensor.</span>
+</pre><pre class="codeoutput">X is an all-zero sparse tensor of size 30 x 40 x 20
+</pre><pre class="codeinput">X(30,40,20) = 7 <span class="comment">%&lt;-- Assign a single element.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 30 x 40 x 20 with 1 nonzeros
+	(30,40,20)	7
+</pre><pre class="codeinput">X([1,1,1;2,2,2]) = [1;1] <span class="comment">%&lt;-- Assign a list of elements.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 30 x 40 x 20 with 3 nonzeros
+	(30,40,20)	7
+	( 1, 1, 1)	1
+	( 2, 2, 2)	1
+</pre><pre class="codeinput">X(11:20,11:20,11:20) = sptenrand([10,10,10],10) <span class="comment">%&lt;-- Assign a subtensor.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 30 x 40 x 20 with 13 nonzeros
+	(30,40,20)	7
+	( 1, 1, 1)	1
+	( 2, 2, 2)	1
+	(12,13,15)	0.934237
+	(13,12,11)	0.264449
+	(13,12,16)	0.1603
+	(13,17,14)	0.872855
+	(15,13,14)	0.23788
+	(18,11,14)	0.645831
+	(19,11,14)	0.966887
+	(19,12,15)	0.664931
+	(19,19,12)	0.870381
+	(20,20,19)	0.0099273
+</pre><pre class="codeinput">X(31,41,21) = 4 <span class="comment">%&lt;-- Grows the size of the sptensor.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 31 x 41 x 21 with 14 nonzeros
+	(30,40,20)	7
+	( 1, 1, 1)	1
+	( 2, 2, 2)	1
+	(12,13,15)	0.934237
+	(13,12,11)	0.264449
+	(13,12,16)	0.1603
+	(13,17,14)	0.872855
+	(15,13,14)	0.23788
+	(18,11,14)	0.645831
+	(19,11,14)	0.966887
+	(19,12,15)	0.664931
+	(19,19,12)	0.870381
+	(20,20,19)	0.0099273
+	(31,41,21)	4
+</pre><pre class="codeinput">X(111:120,111:120,111:120) = sptenrand([10,10,10],10) <span class="comment">%&lt;-- Grow more.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 120 x 120 x 120 with 24 nonzeros
+	( 30, 40, 20)	7
+	(  1,  1,  1)	1
+	(  2,  2,  2)	1
+	( 12, 13, 15)	0.934237
+	( 13, 12, 11)	0.264449
+	( 13, 12, 16)	0.1603
+	( 13, 17, 14)	0.872855
+	( 15, 13, 14)	0.23788
+	( 18, 11, 14)	0.645831
+	( 19, 11, 14)	0.966887
+	( 19, 12, 15)	0.664931
+	( 19, 19, 12)	0.870381
+	( 20, 20, 19)	0.0099273
+	( 31, 41, 21)	4
+	(112,111,118)	0.375885
+	(112,115,112)	0.00987646
+	(112,115,113)	0.419858
+	(112,120,117)	0.75367
+	(114,115,115)	0.793872
+	(115,115,117)	0.919957
+	(117,115,116)	0.844722
+	(118,115,120)	0.367753
+	(119,119,111)	0.620801
+	(119,119,117)	0.731277
+</pre><h2>Use end as the last index.<a name="43"></a></h2><pre class="codeinput">X(end-10:end,end-10:end,end-5:end)  <span class="comment">%&lt;-- Same as X(108:118,110:120,115:120)</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 11 x 11 x 6 with 7 nonzeros
+	( 3, 2, 4)	0.375885
+	( 3,11, 3)	0.75367
+	( 5, 6, 1)	0.793872
+	( 6, 6, 3)	0.919957
+	( 8, 6, 2)	0.844722
+	( 9, 6, 6)	0.367753
+	(10,10, 3)	0.731277
+</pre><h2>Use elemfun to manipulate the nonzeros of a sptensor<a name="44"></a></h2>
+         <p>The function <tt>elemfun</tt> is similar to <tt>spfun</tt> for sparse matrices.
+         </p><pre class="codeinput">X = sptenrand([10,10,10],3) <span class="comment">%&lt;-- Create some data.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 10 x 10 x 10 with 3 nonzeros
+	( 2,7,10)	0.391904
+	( 6,6,7)	0.627315
+	(10,3,4)	0.69908
+</pre><pre class="codeinput">Z = elemfun(X, @sqrt) <span class="comment">%&lt;-- Square root of every nonzero.</span>
+</pre><pre class="codeoutput">Z is a sparse tensor of size 10 x 10 x 10 with 3 nonzeros
+	( 2,7,10)	0.626023
+	( 6,6,7)	0.792032
+	(10,3,4)	0.83611
+</pre><pre class="codeinput">Z = elemfun(X, @(x) x+1) <span class="comment">%&lt;-- Use a custom function.</span>
+</pre><pre class="codeoutput">Z is a sparse tensor of size 10 x 10 x 10 with 3 nonzeros
+	( 2,7,10)	1.3919
+	( 6,6,7)	1.62731
+	(10,3,4)	1.69908
+</pre><pre class="codeinput">Z = elemfun(X, @(x) x~=0) <span class="comment">%&lt;-- Set every nonzero to one.</span>
+</pre><pre class="codeoutput">Z is a sparse tensor of size 10 x 10 x 10 with 3 nonzeros
+	( 2,7,10)	1
+	( 6,6,7)	1
+	(10,3,4)	1
+</pre><pre class="codeinput">Z = ones(X) <span class="comment">%&lt;-- An easier way to change every nonzero to one.</span>
+</pre><pre class="codeoutput">Z is a sparse tensor of size 10 x 10 x 10 with 3 nonzeros
+	( 2,7,10)	1
+	( 6,6,7)	1
+	(10,3,4)	1
+</pre><h2>Basic operations (plus, minus, times, etc.) on a sptensor<a name="49"></a></h2><pre class="codeinput">A = sptensor(tensor(floor(5*rand(2,2,2)))) <span class="comment">%&lt;-- Create data.</span>
+B = sptensor(tensor(floor(5*rand(2,2,2)))) <span class="comment">%&lt;-- Create more data.</span>
+</pre><pre class="codeoutput">A is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	1
+	(2,1,1)	2
+	(1,2,1)	3
+	(2,2,1)	4
+	(1,1,2)	1
+	(2,1,2)	2
+	(1,2,2)	2
+	(2,2,2)	2
+B is a sparse tensor of size 2 x 2 x 2 with 7 nonzeros
+	(1,1,1)	3
+	(2,1,1)	2
+	(1,2,1)	3
+	(2,2,1)	2
+	(2,1,2)	3
+	(1,2,2)	4
+	(2,2,2)	4
+</pre><pre class="codeinput">+A <span class="comment">%&lt;-- Calls uplus.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	1
+	(2,1,1)	2
+	(1,2,1)	3
+	(2,2,1)	4
+	(1,1,2)	1
+	(2,1,2)	2
+	(1,2,2)	2
+	(2,2,2)	2
+</pre><pre class="codeinput">-A <span class="comment">%&lt;-- Calls uminus.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	-1
+	(2,1,1)	-2
+	(1,2,1)	-3
+	(2,2,1)	-4
+	(1,1,2)	-1
+	(2,1,2)	-2
+	(1,2,2)	-2
+	(2,2,2)	-2
+</pre><pre class="codeinput">A+B <span class="comment">%&lt;-- Calls plus.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	4
+	(1,1,2)	1
+	(1,2,1)	6
+	(1,2,2)	6
+	(2,1,1)	4
+	(2,1,2)	5
+	(2,2,1)	6
+	(2,2,2)	6
+</pre><pre class="codeinput">A-B <span class="comment">%&lt;-- Calls minus.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 6 nonzeros
+	(1,1,1)	-2
+	(1,1,2)	1
+	(1,2,2)	-2
+	(2,1,2)	-1
+	(2,2,1)	2
+	(2,2,2)	-2
+</pre><pre class="codeinput">A.*B <span class="comment">%&lt;-- Calls times.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 7 nonzeros
+	(1,1,1)	3
+	(1,2,1)	9
+	(1,2,2)	8
+	(2,1,1)	4
+	(2,1,2)	6
+	(2,2,1)	8
+	(2,2,2)	8
+</pre><pre class="codeinput">5*A <span class="comment">%&lt;-- Calls mtimes.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	5
+	(1,1,2)	5
+	(1,2,1)	15
+	(1,2,2)	10
+	(2,1,1)	10
+	(2,1,2)	10
+	(2,2,1)	20
+	(2,2,2)	10
+</pre><pre class="codeinput">A./2 <span class="comment">%&lt;-- Calls rdivide.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	0.5
+	(2,1,1)	1
+	(1,2,1)	1.5
+	(2,2,1)	2
+	(1,1,2)	0.5
+	(2,1,2)	1
+	(1,2,2)	1
+	(2,2,2)	1
+</pre><p>Elementwise divsion by another sptensor is allowed, but if the sparsity pattern of the denominator should be a superset of
+            the numerator.
+         </p><pre class="codeinput">A./(A+B) <span class="comment">%&lt;-- Calls rdivide.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	0.25
+	(1,1,2)	1
+	(1,2,1)	0.5
+	(1,2,2)	0.333333
+	(2,1,1)	0.5
+	(2,1,2)	0.4
+	(2,2,1)	0.666667
+	(2,2,2)	0.333333
+</pre><pre class="codeinput">A./B <span class="comment">%&lt;-- Uh-oh. Getting a divide by zero.</span>
+</pre><pre class="codeoutput">Warning: Divide by zero.
+ans is a sparse tensor of size 2 x 2 x 2 with 8 nonzeros
+	(1,1,1)	0.333333
+	(1,1,2)	Inf
+	(1,2,1)	1
+	(1,2,2)	0.5
+	(2,1,1)	1
+	(2,1,2)	0.666667
+	(2,2,1)	2
+	(2,2,2)	0.5
+</pre><h2>Use permute to reorder the modes of a sptensor<a name="59"></a></h2><pre class="codeinput">A = sptenrand([30 40 20 1], 5) <span class="comment">%&lt;-- Create data.</span>
+</pre><pre class="codeoutput">A is a sparse tensor of size 30 x 40 x 20 x 1 with 5 nonzeros
+	( 4,33, 8, 1)	0.750518
+	(11,40, 6, 1)	0.739993
+	(15,23, 2, 1)	0.431873
+	(20,27,11, 1)	0.634266
+	(22, 6,20, 1)	0.803026
+</pre><pre class="codeinput">permute(A,[4 3 2 1]) <span class="comment">%&lt;-- Reorder the modes.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 1 x 20 x 40 x 30 with 5 nonzeros
+	(1, 8,33, 4)	0.750518
+	(1, 6,40,11)	0.739993
+	(1, 2,23,15)	0.431873
+	(1,11,27,20)	0.634266
+	(1,20, 6,22)	0.803026
+</pre><p>Permute works correctly for a 1-dimensional sptensor.</p><pre class="codeinput">X = sptenrand(40,4) <span class="comment">%&lt;-- Create data.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 40 with 4 nonzeros
+	( 4)	0.253561
+	(25)	0.873451
+	(37)	0.513401
+	(38)	0.732651
+</pre><pre class="codeinput">permute(X,1) <span class="comment">%&lt;-- Permute.</span>
+</pre><pre class="codeoutput">ans is a sparse tensor of size 40 with 4 nonzeros
+	( 4)	0.253561
+	(25)	0.873451
+	(37)	0.513401
+	(38)	0.732651
+</pre><h2>Displaying a tensor<a name="63"></a></h2>
+         <p>The function <tt>disp</tt> handles small and large elements appropriately, as well as aligning the indices.
+         </p><pre class="codeinput">X = sptensor([1 1 1]); <span class="comment">%&lt;-- Create an empty sptensor.</span>
+X(1,1,1) = rand(1)*1e15; <span class="comment">%&lt;-- Insert a very big element.</span>
+X(4,3,2) = rand(1)*1e-15; <span class="comment">%&lt;-- Insert a very small element.</span>
+X(2,2,2) = rand(1); <span class="comment">%&lt;-- Insert a 'normal' element.</span>
+disp(X)
+</pre><pre class="codeoutput">ans is a sparse tensor of size 4 x 3 x 2 with 3 nonzeros
+	(1,1,1)	4.22227e+014
+	(4,3,2)	9.6137e-016
+	(2,2,2)	0.0720592
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Sparse Tensors
+% MATLAB has no native ability to store sparse multidimensional arrays,
+% only sparse matrices. Moreover, the compressed sparse column storage
+% format for MATLAB sparse matrices is not readily adaptable to sparse
+% tensors. Instead, the |sptensor| class stores the data in coordinate
+% format.
+%% Creating a sptensor 
+% A sparse tensor can be created by passing in a list of subscripts and
+% values. For example, here we pass in three subscripts and a scalar value.
+% The resuling sparse tensor has three nonzero entries, and the size is the
+% size of the largest subscript in each dimension.
+rand('state',0); %<REPLACE_WITH_DASH_DASH Setup for the script
+subs = [1,1,1;1,2,1;3,4,2]; %<REPLACE_WITH_DASH_DASH Subscripts of the nonzeros.
+vals = [1; 2; 3]; %<REPLACE_WITH_DASH_DASH The values of the nonzeros.
+X = sptensor(subs,vals) %<REPLACE_WITH_DASH_DASH Create a sparse tensor with 3 nonzeros.
+%%
+X = sptensor(subs,vals,[3 5 2]) %<REPLACE_WITH_DASH_DASH Or, specify the size explicitly.
+%%
+% Values corresponding to repeated subscripts are summed. Also note that we
+% can use a scalar as the second argument.
+subs = [1 1 1; 1 1 3; 2 2 2; 4 4 4; 1 1 1; 1 1 1]; %<REPLACE_WITH_DASH_DASH (1,1,1) is repeated.
+X = sptensor(subs,2) %<REPLACE_WITH_DASH_DASH Equivalent to X = sptensor(subs,2*ones(6,1)).
+%% Specifying the accumulation method for the constructor
+% By default, values corresponding to repeated elements are summed.
+% However, it is possible to specify other actions to be taken.
+X = sptensor(subs,2*ones(6,1),[4 4 4],@max) %<REPLACE_WITH_DASH_DASH Maximum element.
+%%
+myfun = @(x) sum(x) / 3; %<REPLACE_WITH_DASH_DASH Total sum divided by three.
+X = sptensor(subs,2*ones(6,1),[4 4 4],myfun) %<REPLACE_WITH_DASH_DASH Custom accumulation function.
+%% Creating a one-dimensional sptensor.
+X = sptensor([1;3;5],1,10) %<REPLACE_WITH_DASH_DASH Same as X = sptensor([1;3;5],[1;1;1],1,10).
+%%
+X = sptenrand(50,5) %<REPLACE_WITH_DASH_DASH A random, sparse, order-1 tensor with 5 nonzeros.
+%% Creating an all-zero sptensor 
+X = sptensor([],[],[10 10 10]) %<REPLACE_WITH_DASH_DASH Creates an all-zero tensor.
+%%
+X = sptensor([10 10 10]) %<REPLACE_WITH_DASH_DASH Same as above.
+%% Constituent parts of a sptensor
+X = sptenrand([40 30 20],5); %<REPLACE_WITH_DASH_DASH Create data.
+X.subs %<REPLACE_WITH_DASH_DASH Subscripts of nonzeros.
+%%
+X.vals %<REPLACE_WITH_DASH_DASH Corresponding nonzero values.
+%%
+X.size %<REPLACE_WITH_DASH_DASH The size.
+%% Creating a sparse tensor from its constituent parts
+Y = sptensor(X.subs,X.vals,X.size) %<REPLACE_WITH_DASH_DASH Copies X.
+%% Creating an empty sptensor
+% An empty constructor exists, primarily to support loads of previously 
+% saved data.
+Y = sptensor %<REPLACE_WITH_DASH_DASH Create an empty sptensor.
+%% Use sptenrand to create a random sptensor
+X = sptenrand([10 10 10],0.01) %<REPLACE_WITH_DASH_DASH Create a tensor with 1% nonzeroes.
+%%
+% It is also posible to specify the precise number of nonzeros rather than
+% a percentage.
+X = sptenrand([10 10 10],10) %<REPLACE_WITH_DASH_DASH Create a tensor with 10 nonzeros.
+%% Use squeeze to remove singleton dimensions from a sptensor
+Y = sptensor([1 1 1; 2 1 1], 1, [2 1 1]) %<REPLACE_WITH_DASH_DASH Create a sparse tensor.
+squeeze(Y) %<REPLACE_WITH_DASH_DASH Remove singleton dimensions.
+%% Use full or tensor to convert a sptensor to a (dense) tensor
+X = sptensor([1 1 1; 2 2 2], [1; 1]); %<REPLACE_WITH_DASH_DASH Create a sparse tensor.
+Y = full(X) %<REPLACE_WITH_DASH_DASH Convert it to a (dense) tensor.
+%%
+Y = tensor(X) %<REPLACE_WITH_DASH_DASH Same as above.
+%% Use sptensor to convert a (dense) tensor to a sptensor
+Z = sptensor(Y) %<REPLACE_WITH_DASH_DASH Convert a tensor to a sptensor.
+%% Use double to convert a sptensor to a (dense) multidimensional array
+Y = double(X) %<REPLACE_WITH_DASH_DASH Creates a MATLAB array.
+%% Use find to extract nonzeros from a tensor and then create a sptensor
+% The |find| command can be used to extract specific elements and then
+% convert those into a sptensor.
+X = tensor(rand(5,4,2),[5 4 2]) %<REPLACE_WITH_DASH_DASH Create a tensor.
+S = find(X > 0.9) %<REPLACE_WITH_DASH_DASH Extract subscipts of values greater than 0.9.
+V = X(S) %<REPLACE_WITH_DASH_DASH Extract the corresponding values.
+Y = sptensor(S,V,[5 4 2]) %<REPLACE_WITH_DASH_DASH Create a new tensor.
+%% Use ndims and size to get the size of a sptensor
+ndims(Y) %<REPLACE_WITH_DASH_DASH Number of dimensions or modes.
+%%
+size(Y) %<REPLACE_WITH_DASH_DASH Size of Y.
+%% 
+size(Y,3) %<REPLACE_WITH_DASH_DASH Size of mode 3 of Y.
+%% Use nnz to get the number of nonzeros of a sptensor
+nnz(Y) %<REPLACE_WITH_DASH_DASH Number of nonzeros in Y.
+%% Subscripted reference for a sptensor
+X = sptensor([4,4,4;2,2,1;2,3,2],[3;5;1],[4 4 4]) %<REPLACE_WITH_DASH_DASH Create a sptensor.
+%% 
+X(1,2,1) %<REPLACE_WITH_DASH_DASH Extract the (1,2,1) element, which is zero.
+%%
+X(4,4,4) %<REPLACE_WITH_DASH_DASH Extract the (4,4,4) element, which is nonzero.
+%% 
+X(1:2,2:4,:) %<REPLACE_WITH_DASH_DASH Extract a 2 x 3 x 4 subtensor.
+%%
+X([1 1 1; 2 2 1]) %<REPLACE_WITH_DASH_DASH Extract elements by subscript.
+%%
+X([1;6]) %<REPLACE_WITH_DASH_DASH Same as above but with linear indices.
+%%
+% As with a tensor, subscriped reference may be ambiguous for
+% one-dimensional tensors. 
+X = sptensor([1;3;5],1,7) %<REPLACE_WITH_DASH_DASH Create a sparse tensor.
+%%
+X(3) %<REPLACE_WITH_DASH_DASH Fully specified, single elements are always returned as scalars.
+%%
+X([3;6]) %<REPLACE_WITH_DASH_DASH Returns a subtensor.
+%%
+X([3;6],'extract') %<REPLACE_WITH_DASH_DASH Same as above *but* returns an array.
+%% Subscripted assignment for a sptensor
+X = sptensor([30 40 20]) %<REPLACE_WITH_DASH_DASH Create an emtpy 30 x 40 x 20 sptensor.
+%% 
+X(30,40,20) = 7 %<REPLACE_WITH_DASH_DASH Assign a single element.
+%%
+X([1,1,1;2,2,2]) = [1;1] %<REPLACE_WITH_DASH_DASH Assign a list of elements.
+%%
+X(11:20,11:20,11:20) = sptenrand([10,10,10],10) %<REPLACE_WITH_DASH_DASH Assign a subtensor.
+%%
+X(31,41,21) = 4 %<REPLACE_WITH_DASH_DASH Grows the size of the sptensor.
+%%
+X(111:120,111:120,111:120) = sptenrand([10,10,10],10) %<REPLACE_WITH_DASH_DASH Grow more.
+%% Use end as the last index.
+X(end-10:end,end-10:end,end-5:end)  %<REPLACE_WITH_DASH_DASH Same as X(108:118,110:120,115:120)
+%% Use elemfun to manipulate the nonzeros of a sptensor
+% The function |elemfun| is similar to |spfun| for sparse matrices.
+X = sptenrand([10,10,10],3) %<REPLACE_WITH_DASH_DASH Create some data.
+%%
+Z = elemfun(X, @sqrt) %<REPLACE_WITH_DASH_DASH Square root of every nonzero.
+%%
+Z = elemfun(X, @(x) x+1) %<REPLACE_WITH_DASH_DASH Use a custom function.
+%%
+Z = elemfun(X, @(x) x~=0) %<REPLACE_WITH_DASH_DASH Set every nonzero to one.
+%%
+Z = ones(X) %<REPLACE_WITH_DASH_DASH An easier way to change every nonzero to one.
+%% Basic operations (plus, minus, times, etc.) on a sptensor
+A = sptensor(tensor(floor(5*rand(2,2,2)))) %<REPLACE_WITH_DASH_DASH Create data.
+B = sptensor(tensor(floor(5*rand(2,2,2)))) %<REPLACE_WITH_DASH_DASH Create more data.
+%%
++A %<REPLACE_WITH_DASH_DASH Calls uplus.
+%%
+-A %<REPLACE_WITH_DASH_DASH Calls uminus.
+%%
+A+B %<REPLACE_WITH_DASH_DASH Calls plus.
+%%
+A-B %<REPLACE_WITH_DASH_DASH Calls minus.
+%%
+A.*B %<REPLACE_WITH_DASH_DASH Calls times.
+%%
+5*A %<REPLACE_WITH_DASH_DASH Calls mtimes.
+%%
+A./2 %<REPLACE_WITH_DASH_DASH Calls rdivide.
+%%
+% Elementwise divsion by another sptensor is allowed, but 
+% if the sparsity pattern of the denominator should be a
+% superset of the numerator.
+A./(A+B) %<REPLACE_WITH_DASH_DASH Calls rdivide.
+%%
+A./B %<REPLACE_WITH_DASH_DASH Uh-oh. Getting a divide by zero.
+%% Use permute to reorder the modes of a sptensor
+A = sptenrand([30 40 20 1], 5) %<REPLACE_WITH_DASH_DASH Create data.
+%%
+permute(A,[4 3 2 1]) %<REPLACE_WITH_DASH_DASH Reorder the modes.
+%%
+% Permute works correctly for a 1-dimensional sptensor.
+X = sptenrand(40,4) %<REPLACE_WITH_DASH_DASH Create data.
+%%
+permute(X,1) %<REPLACE_WITH_DASH_DASH Permute.
+%% Displaying a tensor
+% The function |disp| handles small and large elements appropriately, as
+% well as aligning the indices.
+X = sptensor([1 1 1]); %<REPLACE_WITH_DASH_DASH Create an empty sptensor. 
+X(1,1,1) = rand(1)*1e15; %<REPLACE_WITH_DASH_DASH Insert a very big element.
+X(4,3,2) = rand(1)*1e-15; %<REPLACE_WITH_DASH_DASH Insert a very small element.
+X(2,2,2) = rand(1); %<REPLACE_WITH_DASH_DASH Insert a 'normal' element.
+disp(X)
+
+##### SOURCE END #####
+-->
+   </body>
+</html>

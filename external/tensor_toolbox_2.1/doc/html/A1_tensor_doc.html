@@ -1,0 +1,987 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Tensors</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="A1_tensor_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Tensors</h1>
+         <introduction>
+            <p>Tensors are extensions of multidimensional arrays with additional operations defined on them. Here we explain the basics of
+               creating and working with tensors.
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Creating a tensor from an array</a></li>
+               <li><a href="#3">Creating a one-dimensional tensor</a></li>
+               <li><a href="#5">Specifying trailing singleton dimensions in a tensor</a></li>
+               <li><a href="#8">The constituent parts of a tensor</a></li>
+               <li><a href="#10">Creating a tensor from its constituent parts</a></li>
+               <li><a href="#11">Creating an empty tensor</a></li>
+               <li><a href="#12">Use tenone to create a tensor of all ones</a></li>
+               <li><a href="#13">Use tenzeros to create a tensor of all zeros</a></li>
+               <li><a href="#14">Use tenrand to create a random tensor</a></li>
+               <li><a href="#15">Use squeeze to remove singleton dimensions from a tensor</a></li>
+               <li><a href="#16">Use double to convert a tensor to a (multidimensional) array</a></li>
+               <li><a href="#18">Use ndims and size to get the size of a tensor</a></li>
+               <li><a href="#21">Subscripted reference for a tensor</a></li>
+               <li><a href="#29">Subscripted assignment for a tensor</a></li>
+               <li><a href="#34">Using end for the last array index.</a></li>
+               <li><a href="#37">Use find for subscripts of nonzero elements of a tensor</a></li>
+               <li><a href="#41">Basic operations (plus, minus, and, or, etc.) on a tensor</a></li>
+               <li><a href="#63">Using tenfun for elementwise operations on one or more tensors</a></li>
+               <li><a href="#66">Use permute to reorder the modes of a tensor</a></li>
+               <li><a href="#69">Displaying a tensor</a></li>
+            </ul>
+         </div>
+         <h2>Creating a tensor from an array<a name="1"></a></h2>
+         <p>The <tt>tensor</tt> command converts a (multidimensional) array to a tensor object.
+         </p><pre class="codeinput">M = ones(4,3,2); <span class="comment">%&lt;-- A 4 x 3 x 2 array.</span>
+X = tensor(M) <span class="comment">%&lt;-- Convert to a tensor object.</span>
+</pre><pre class="codeoutput">X is a tensor of size 4 x 3 x 2
+	X(:,:,1) = 
+	     1     1     1
+	     1     1     1
+	     1     1     1
+	     1     1     1
+	X(:,:,2) = 
+	     1     1     1
+	     1     1     1
+	     1     1     1
+	     1     1     1
+</pre><p>Optionally, you can specify a different shape for the tensor, so long as the input array has the right number of elements.</p><pre class="codeinput">X = tensor(M,[2 3 4]) <span class="comment">%&lt;-- M has 24 elements.</span>
+</pre><pre class="codeoutput">X is a tensor of size 2 x 3 x 4
+	X(:,:,1) = 
+	     1     1     1
+	     1     1     1
+	X(:,:,2) = 
+	     1     1     1
+	     1     1     1
+	X(:,:,3) = 
+	     1     1     1
+	     1     1     1
+	X(:,:,4) = 
+	     1     1     1
+	     1     1     1
+</pre><h2>Creating a one-dimensional tensor<a name="3"></a></h2>
+         <p>The tensor class explicitly supports order-one tensors as well as trailing singleton dimensions, but the size must be explicit
+            in the constructor. By default, a column array produces a 2-way tensor.
+         </p><pre class="codeinput">X = tensor(rand(5,1)) <span class="comment">%&lt;-- Creates a 2-way tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 5 x 1
+	X(:,:) = 
+	    0.9473
+	    0.8133
+	    0.9238
+	    0.1990
+	    0.6743
+</pre><p>This is fixed by specifying the size explicitly.</p><pre class="codeinput">X = tensor(rand(5,1),5) <span class="comment">%&lt;-- Creates a 1-way tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 5
+	X(:) = 
+	    0.9271
+	    0.3438
+	    0.5945
+	    0.6155
+	    0.0034
+</pre><h2>Specifying trailing singleton dimensions in a tensor<a name="5"></a></h2>
+         <p>Likewise, trailing singleton dimensions must be explictly specified.</p><pre class="codeinput">Y = tensor(rand(4,3,1)) <span class="comment">%&lt;-- Creates a 2-way tensor.</span>
+</pre><pre class="codeoutput">Y is a tensor of size 4 x 3
+	Y(:,:) = 
+	    0.9820    0.7010    0.1121
+	    0.8995    0.6097    0.2916
+	    0.6928    0.2999    0.0974
+	    0.4397    0.8560    0.3974
+</pre><pre class="codeinput">Y = tensor(rand(4,3,1),[4 3 1]) <span class="comment">%&lt;-- Creates a 3-way tensor.</span>
+</pre><pre class="codeoutput">Y is a tensor of size 4 x 3 x 1
+	Y(:,:,1) = 
+	    0.3333    0.0429    0.8068
+	    0.9442    0.0059    0.6376
+	    0.8386    0.5744    0.2513
+	    0.2584    0.7439    0.1443
+</pre><p>Unfortunately, the <tt>whos</tt> command does not report the size of 1D objects correctly (last checked for MATLAB 2006a).
+         </p><pre class="codeinput">whos <span class="string">X</span> <span class="string">Y</span> <span class="comment">%&lt;-- Doesn't report the right size for X!</span>
+</pre><pre class="codeoutput">  Name      Size                           Bytes  Class
+
+  X         1x1                              296  tensor object
+  Y         4x3x1                            368  tensor object
+
+Grand total is 25 elements using 664 bytes
+
+</pre><h2>The constituent parts of a tensor<a name="8"></a></h2><pre class="codeinput">X = tenrand([4 3 2]); <span class="comment">%&lt;-- Create data.</span>
+X.data <span class="comment">%&lt;-- The array.</span>
+</pre><pre class="codeoutput">
+ans(:,:,1) =
+
+    0.6516    0.3099    0.2110
+    0.9461    0.2688    0.2168
+    0.8159    0.5365    0.6518
+    0.9302    0.1633    0.0528
+
+
+ans(:,:,2) =
+
+    0.2293    0.7207    0.1252
+    0.6674    0.9544    0.1662
+    0.3109    0.1311    0.9114
+    0.3066    0.0683    0.1363
+
+</pre><pre class="codeinput">X.size <span class="comment">%&lt;-- The size.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     4     3     2
+
+</pre><h2>Creating a tensor from its constituent parts<a name="10"></a></h2><pre class="codeinput">Y = tensor(X.data,X.size) <span class="comment">%&lt;-- Copies X.</span>
+</pre><pre class="codeoutput">Y is a tensor of size 4 x 3 x 2
+	Y(:,:,1) = 
+	    0.6516    0.3099    0.2110
+	    0.9461    0.2688    0.2168
+	    0.8159    0.5365    0.6518
+	    0.9302    0.1633    0.0528
+	Y(:,:,2) = 
+	    0.2293    0.7207    0.1252
+	    0.6674    0.9544    0.1662
+	    0.3109    0.1311    0.9114
+	    0.3066    0.0683    0.1363
+</pre><h2>Creating an empty tensor<a name="11"></a></h2>
+         <p>An empty constructor exists, primarily to support loading previously saved data in MAT-files.</p><pre class="codeinput">X = tensor <span class="comment">%&lt;-- Creates an empty tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size [empty tensor]
+	X = []
+</pre><h2>Use tenone to create a tensor of all ones<a name="12"></a></h2><pre class="codeinput">X = tenones([3 4 2]) <span class="comment">%&lt;-- Creates a 3 x 4 x 2 tensor of ones.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 2
+	X(:,:,1) = 
+	     1     1     1     1
+	     1     1     1     1
+	     1     1     1     1
+	X(:,:,2) = 
+	     1     1     1     1
+	     1     1     1     1
+	     1     1     1     1
+</pre><h2>Use tenzeros to create a tensor of all zeros<a name="13"></a></h2><pre class="codeinput">X = tenzeros([1 4 2]) <span class="comment">%&lt;-- Creates a 1 x 4 x 2 tensor of zeros.</span>
+</pre><pre class="codeoutput">X is a tensor of size 1 x 4 x 2
+	X(:,:,1) = 
+	     0     0     0     0
+	X(:,:,2) = 
+	     0     0     0     0
+</pre><h2>Use tenrand to create a random tensor<a name="14"></a></h2><pre class="codeinput">X = tenrand([5 4 2]) <span class="comment">%&lt;-- Creates a random 5 x 4 x 2 tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 5 x 4 x 2
+	X(:,:,1) = 
+	    0.6170    0.9413    0.8802    0.9562
+	    0.2690    0.3299    0.7496    0.1962
+	    0.2207    0.7045    0.3796    0.7762
+	    0.7129    0.9434    0.7256    0.6133
+	    0.5490    0.5816    0.1628    0.1623
+	X(:,:,2) = 
+	    0.0311    0.9585    0.2154    0.0178
+	    0.2886    0.6799    0.1824    0.8779
+	    0.9711    0.0550    0.0768    0.3525
+	    0.9505    0.5998    0.0074    0.7221
+	    0.2280    0.3931    0.7888    0.9685
+</pre><h2>Use squeeze to remove singleton dimensions from a tensor<a name="15"></a></h2><pre class="codeinput">squeeze(Y) <span class="comment">%&lt;-- Removes singleton dimensions.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 4 x 3 x 2
+	ans(:,:,1) = 
+	    0.6516    0.3099    0.2110
+	    0.9461    0.2688    0.2168
+	    0.8159    0.5365    0.6518
+	    0.9302    0.1633    0.0528
+	ans(:,:,2) = 
+	    0.2293    0.7207    0.1252
+	    0.6674    0.9544    0.1662
+	    0.3109    0.1311    0.9114
+	    0.3066    0.0683    0.1363
+</pre><h2>Use double to convert a tensor to a (multidimensional) array<a name="16"></a></h2><pre class="codeinput">double(Y) <span class="comment">%&lt;-- Converts Y to a standard MATLAB array.</span>
+</pre><pre class="codeoutput">
+ans(:,:,1) =
+
+    0.6516    0.3099    0.2110
+    0.9461    0.2688    0.2168
+    0.8159    0.5365    0.6518
+    0.9302    0.1633    0.0528
+
+
+ans(:,:,2) =
+
+    0.2293    0.7207    0.1252
+    0.6674    0.9544    0.1662
+    0.3109    0.1311    0.9114
+    0.3066    0.0683    0.1363
+
+</pre><pre class="codeinput">Y.data <span class="comment">%&lt;-- Same thing.</span>
+</pre><pre class="codeoutput">
+ans(:,:,1) =
+
+    0.6516    0.3099    0.2110
+    0.9461    0.2688    0.2168
+    0.8159    0.5365    0.6518
+    0.9302    0.1633    0.0528
+
+
+ans(:,:,2) =
+
+    0.2293    0.7207    0.1252
+    0.6674    0.9544    0.1662
+    0.3109    0.1311    0.9114
+    0.3066    0.0683    0.1363
+
+</pre><h2>Use ndims and size to get the size of a tensor<a name="18"></a></h2><pre class="codeinput">ndims(Y) <span class="comment">%&lt;-- Number of dimensions (or ways).</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3
+
+</pre><pre class="codeinput">size(Y) <span class="comment">%&lt;-- Row vector with the sizes of all dimension.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     4     3     2
+
+</pre><pre class="codeinput">size(Y,3) <span class="comment">%&lt;-- Size of a single dimension.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     2
+
+</pre><h2>Subscripted reference for a tensor<a name="21"></a></h2><pre class="codeinput">X = tenrand([3 4 2 1]); <span class="comment">%&lt;-- Create a 3 x 4 x 2 x 1 random tensor.</span>
+X(1,1,1,1) <span class="comment">%&lt;-- Extract a single element.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.1557
+
+</pre><p>It is possible to extract a subtensor that contains a single element. Observe that singleton dimensions are <b>not</b> dropped unless they are specifically specified, e.g., as above.
+         </p><pre class="codeinput">X(1,1,1,:) <span class="comment">%&lt;-- Produces a tensor of order 1 and size 1.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 1
+	ans(:) = 
+	    0.1557
+</pre><p>In general, specified dimensions are dropped from the result. Here we specify the second and third dimension.</p><pre class="codeinput">X(:,1,1,:) <span class="comment">%&lt;-- Produces a tensor of size 3 x 1.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 3 x 1
+	ans(:,:) = 
+	    0.1557
+	    0.1630
+	    0.3134
+</pre><p>Moreover, the subtensor is automatically renumbered/resized in the same way that MATLAB works for arrays except that singleton
+            dimensions are handled explicitly.
+         </p><pre class="codeinput">X(1:2,[2 4],1,:) <span class="comment">%&lt;-- Produces a tensor of size 2 x 2 x 1.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 2 x 1
+	ans(:,:,1) = 
+	    0.0294    0.6226
+	    0.3576    0.1326
+</pre><p>It's also possible to extract a list of elements by passing in an array of subscripts or a column array of linear indices.</p><pre class="codeinput">subs = [1,1,1,1; 3,4,2,1]; X(subs) <span class="comment">%&lt;-- Extract 2 values by subscript.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.1557
+    0.8445
+
+</pre><pre class="codeinput">inds = [1; 24]; X(inds) <span class="comment">%&lt;-- Same thing with linear indices.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.1557
+    0.8445
+
+</pre><p>The difference between extracting a subtensor and a list of linear indices is ambiguous for 1-dimensional tensors. We can
+            specify 'extract' as a second argument whenever we are using a list of subscripts.
+         </p><pre class="codeinput">X = tenrand(10); <span class="comment">%&lt;-- Create a random tensor.</span>
+X([1:6]') <span class="comment">%&lt;-- Extract a subtensor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 6
+	ans(:) = 
+	    0.8792
+	    0.1870
+	    0.9913
+	    0.7120
+	    0.8714
+	    0.4796
+</pre><pre class="codeinput">X([1:6]',<span class="string">'extract'</span>) <span class="comment">%&lt;-- Same thing *but* result is a vector.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.8792
+    0.1870
+    0.9913
+    0.7120
+    0.8714
+    0.4796
+
+</pre><h2>Subscripted assignment for a tensor<a name="29"></a></h2>
+         <p>We can assign a single element, an entire subtensor, or a list of values for a tensor.</p><pre class="codeinput">X = tenrand([3,4,2]); <span class="comment">%&lt;-- Create some data.</span>
+X(1,1,1) = 0 <span class="comment">%&lt;-- Replaces the (1,1,1) element.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 2
+	X(:,:,1) = 
+	         0    0.0134    0.8893    0.3167
+	    0.9171    0.3697    0.5938    0.2334
+	    0.1233    0.6986    0.1567    0.0084
+	X(:,:,2) = 
+	    0.3969    0.7688    0.7820    0.2632
+	    0.6499    0.9697    0.2376    0.7138
+	    0.0850    0.7148    0.1957    0.9776
+</pre><pre class="codeinput">X(1:2,1:2,1) = ones(2,2) <span class="comment">%&lt;-- Replaces a 2 x 2 subtensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 2
+	X(:,:,1) = 
+	    1.0000    1.0000    0.8893    0.3167
+	    1.0000    1.0000    0.5938    0.2334
+	    0.1233    0.6986    0.1567    0.0084
+	X(:,:,2) = 
+	    0.3969    0.7688    0.7820    0.2632
+	    0.6499    0.9697    0.2376    0.7138
+	    0.0850    0.7148    0.1957    0.9776
+</pre><pre class="codeinput">X([1 1 1;1 1 2]) = [5;7] <span class="comment">%&lt;-- Replaces the (1,1,1) and (1,1,2) elements.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 2
+	X(:,:,1) = 
+	    5.0000    1.0000    0.8893    0.3167
+	    1.0000    1.0000    0.5938    0.2334
+	    0.1233    0.6986    0.1567    0.0084
+	X(:,:,2) = 
+	    7.0000    0.7688    0.7820    0.2632
+	    0.6499    0.9697    0.2376    0.7138
+	    0.0850    0.7148    0.1957    0.9776
+</pre><pre class="codeinput">X([1;13]) = [5;7] <span class="comment">%&lt;-- Same as above using linear indices.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 2
+	X(:,:,1) = 
+	    5.0000    1.0000    0.8893    0.3167
+	    1.0000    1.0000    0.5938    0.2334
+	    0.1233    0.6986    0.1567    0.0084
+	X(:,:,2) = 
+	    7.0000    0.7688    0.7820    0.2632
+	    0.6499    0.9697    0.2376    0.7138
+	    0.0850    0.7148    0.1957    0.9776
+</pre><p>It is possible to <b>grow</b> the tensor automatically by assigning elements outside the original range of the tensor.
+         </p><pre class="codeinput">X(1,1,3) = 1 <span class="comment">%&lt;-- Grows the size of the tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 3
+	X(:,:,1) = 
+	    5.0000    1.0000    0.8893    0.3167
+	    1.0000    1.0000    0.5938    0.2334
+	    0.1233    0.6986    0.1567    0.0084
+	X(:,:,2) = 
+	    7.0000    0.7688    0.7820    0.2632
+	    0.6499    0.9697    0.2376    0.7138
+	    0.0850    0.7148    0.1957    0.9776
+	X(:,:,3) = 
+	     1     0     0     0
+	     0     0     0     0
+	     0     0     0     0
+</pre><h2>Using end for the last array index.<a name="34"></a></h2><pre class="codeinput">X(end,end,end)  <span class="comment">%&lt;-- Same as X(3,4,3).</span>
+</pre><pre class="codeoutput">
+ans =
+
+     0
+
+</pre><pre class="codeinput">X(1,1,1:end-1)  <span class="comment">%&lt;-- Same as X(1,1,1:2).</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2
+	ans(:) = 
+	     5
+	     7
+</pre><p>It is also possible to use <tt>end</tt> to index past the end of an array.
+         </p><pre class="codeinput">X(1,1,end+1) = 5 <span class="comment">%&lt;-- Same as X(1,1,4).</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 4
+	X(:,:,1) = 
+	    5.0000    1.0000    0.8893    0.3167
+	    1.0000    1.0000    0.5938    0.2334
+	    0.1233    0.6986    0.1567    0.0084
+	X(:,:,2) = 
+	    7.0000    0.7688    0.7820    0.2632
+	    0.6499    0.9697    0.2376    0.7138
+	    0.0850    0.7148    0.1957    0.9776
+	X(:,:,3) = 
+	     1     0     0     0
+	     0     0     0     0
+	     0     0     0     0
+	X(:,:,4) = 
+	     5     0     0     0
+	     0     0     0     0
+	     0     0     0     0
+</pre><h2>Use find for subscripts of nonzero elements of a tensor<a name="37"></a></h2>
+         <p>The <tt>find</tt> function returns a list of nonzero <b>subscripts</b> for a tensor. Note that differs from the standard version, which returns linear indices.
+         </p><pre class="codeinput">X = tensor(floor(3*rand(2,2,2))) <span class="comment">%&lt;-- Generate some data.</span>
+</pre><pre class="codeoutput">X is a tensor of size 2 x 2 x 2
+	X(:,:,1) = 
+	     1     2
+	     1     2
+	X(:,:,2) = 
+	     2     2
+	     2     2
+</pre><pre class="codeinput">[S,V] = find(X) <span class="comment">%&lt;-- Find all the nonzero subscripts and values.</span>
+</pre><pre class="codeoutput">
+S =
+
+     1     1     1
+     2     1     1
+     1     2     1
+     2     2     1
+     1     1     2
+     2     1     2
+     1     2     2
+     2     2     2
+
+
+V =
+
+     1
+     1
+     2
+     2
+     2
+     2
+     2
+     2
+
+</pre><pre class="codeinput">S = find(X &gt;= 2) <span class="comment">%&lt;-- Find subscripts of values &gt;= 2.</span>
+</pre><pre class="codeoutput">
+S =
+
+     1     2     1
+     2     2     1
+     1     1     2
+     2     1     2
+     1     2     2
+     2     2     2
+
+</pre><pre class="codeinput">V = X(S) <span class="comment">%&lt;-- Extract the corresponding values from X.</span>
+</pre><pre class="codeoutput">
+V =
+
+     2
+     2
+     2
+     2
+     2
+     2
+
+</pre><h2>Basic operations (plus, minus, and, or, etc.) on a tensor<a name="41"></a></h2>
+         <p>The tensor object supports many basic operations, illustrated here.</p><pre class="codeinput">A = tensor(floor(3*rand(2,3,2)))
+B = tensor(floor(3*rand(2,3,2)))
+</pre><pre class="codeoutput">A is a tensor of size 2 x 3 x 2
+	A(:,:,1) = 
+	     1     1     1
+	     2     0     1
+	A(:,:,2) = 
+	     2     0     1
+	     1     2     0
+B is a tensor of size 2 x 3 x 2
+	B(:,:,1) = 
+	     2     2     0
+	     0     0     1
+	B(:,:,2) = 
+	     0     0     0
+	     1     0     1
+</pre><pre class="codeinput">A &amp; B <span class="comment">%&lt;-- Calls and.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     0
+	     0     0     1
+	ans(:,:,2) = 
+	     0     0     0
+	     1     0     0
+</pre><pre class="codeinput">A | B <span class="comment">%&lt;-- Calls or.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     1
+	     1     0     1
+	ans(:,:,2) = 
+	     1     0     1
+	     1     1     1
+</pre><pre class="codeinput">xor(A,B) <span class="comment">%&lt;-- Calls xor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     0     0     1
+	     1     0     0
+	ans(:,:,2) = 
+	     1     0     1
+	     0     1     1
+</pre><pre class="codeinput">A==B <span class="comment">%&lt;-- Calls eq.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     0     0     0
+	     0     1     1
+	ans(:,:,2) = 
+	     0     1     0
+	     1     0     0
+</pre><pre class="codeinput">A~=B <span class="comment">%&lt;-- Calls neq.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     1
+	     1     0     0
+	ans(:,:,2) = 
+	     1     0     1
+	     0     1     1
+</pre><pre class="codeinput">A&gt;B <span class="comment">%&lt;-- Calls gt.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     0     0     1
+	     1     0     0
+	ans(:,:,2) = 
+	     1     0     1
+	     0     1     0
+</pre><pre class="codeinput">A&gt;=B <span class="comment">%&lt;-- Calls ge.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     0     0     1
+	     1     1     1
+	ans(:,:,2) = 
+	     1     1     1
+	     1     1     0
+</pre><pre class="codeinput">A&lt;B <span class="comment">%&lt;-- Calls lt.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     0
+	     0     0     0
+	ans(:,:,2) = 
+	     0     0     0
+	     0     0     1
+</pre><pre class="codeinput">A&lt;=B <span class="comment">%&lt;-- Calls le.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     0
+	     0     1     1
+	ans(:,:,2) = 
+	     0     1     0
+	     1     0     1
+</pre><pre class="codeinput">~A <span class="comment">%&lt;-- Calls not.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     0     0     0
+	     0     1     0
+	ans(:,:,2) = 
+	     0     1     0
+	     0     0     1
+</pre><pre class="codeinput">+A <span class="comment">%&lt;-- Calls uplus.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     1
+	     2     0     1
+	ans(:,:,2) = 
+	     2     0     1
+	     1     2     0
+</pre><pre class="codeinput">-A <span class="comment">%&lt;-- Calls uminus.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	    -1    -1    -1
+	    -2     0    -1
+	ans(:,:,2) = 
+	    -2     0    -1
+	    -1    -2     0
+</pre><pre class="codeinput">A+B <span class="comment">%&lt;-- Calls plus.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     3     3     1
+	     2     0     2
+	ans(:,:,2) = 
+	     2     0     1
+	     2     2     1
+</pre><pre class="codeinput">A-B <span class="comment">%&lt;-- Calls minus.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	    -1    -1     1
+	     2     0     0
+	ans(:,:,2) = 
+	     2     0     1
+	     0     2    -1
+</pre><pre class="codeinput">A.*B <span class="comment">%&lt;-- Calls times.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     2     2     0
+	     0     0     1
+	ans(:,:,2) = 
+	     0     0     0
+	     1     0     0
+</pre><pre class="codeinput">5*A <span class="comment">%&lt;-- Calls mtimes.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     5     5     5
+	    10     0     5
+	ans(:,:,2) = 
+	    10     0     5
+	     5    10     0
+</pre><pre class="codeinput">A.^B <span class="comment">%&lt;-- Calls power.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     1
+	     1     1     1
+	ans(:,:,2) = 
+	     1     1     1
+	     1     1     0
+</pre><pre class="codeinput">A.^2 <span class="comment">%&lt;-- Calls power.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     1
+	     4     0     1
+	ans(:,:,2) = 
+	     4     0     1
+	     1     4     0
+</pre><pre class="codeinput">A.\B <span class="comment">%&lt;-- Calls ldivide.</span>
+</pre><pre class="codeoutput">Warning: Divide by zero.
+ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     2     2     0
+	     0   NaN     1
+	ans(:,:,2) = 
+	     0   NaN     0
+	     1     0   Inf
+</pre><pre class="codeinput">A./2 <span class="comment">%&lt;-- Calls rdivide.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	    0.5000    0.5000    0.5000
+	    1.0000         0    0.5000
+	ans(:,:,2) = 
+	    1.0000         0    0.5000
+	    0.5000    1.0000         0
+</pre><pre class="codeinput">A./B <span class="comment">%&lt;-- Calls rdivide (but beware divides by zero!)</span>
+</pre><pre class="codeoutput">Warning: Divide by zero.
+ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	    0.5000    0.5000       Inf
+	       Inf       NaN    1.0000
+	ans(:,:,2) = 
+	   Inf   NaN   Inf
+	     1   Inf     0
+</pre><h2>Using tenfun for elementwise operations on one or more tensors<a name="63"></a></h2>
+         <p>The function <tt>tenfun</tt> applies a specified function to a number of tensors. This can be used for any function that is not predefined for tensors.
+         </p><pre class="codeinput">tenfun(@(x)+1,A) <span class="comment">%&lt;-- Increment every element of A by one.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     1     1     1
+	     1     1     1
+	ans(:,:,2) = 
+	     1     1     1
+	     1     1     1
+</pre><pre class="codeinput">tenfun(@max,A,B) <span class="comment">%&lt;-- Max of A and B, elementwise.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     2     2     1
+	     2     0     1
+	ans(:,:,2) = 
+	     2     0     1
+	     1     2     1
+</pre><pre class="codeinput">C = tensor(floor(5*rand(2,3,2))) <span class="comment">%&lt;-- Create another tensor.</span>
+tenfun(@median,A,B,C) <span class="comment">%&lt;-- Elementwise means for A, B, and C.</span>
+</pre><pre class="codeoutput">C is a tensor of size 2 x 3 x 2
+	C(:,:,1) = 
+	     4     0     4
+	     4     3     3
+	C(:,:,2) = 
+	     4     3     4
+	     3     1     1
+ans is a tensor of size 2 x 3 x 2
+	ans(:,:,1) = 
+	     2     1     1
+	     2     0     1
+	ans(:,:,2) = 
+	     2     0     1
+	     1     1     1
+</pre><h2>Use permute to reorder the modes of a tensor<a name="66"></a></h2><pre class="codeinput">X = tensor(1:24,[3 4 2]) <span class="comment">%&lt;-- Create a tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 4 x 2
+	X(:,:,1) = 
+	     1     4     7    10
+	     2     5     8    11
+	     3     6     9    12
+	X(:,:,2) = 
+	    13    16    19    22
+	    14    17    20    23
+	    15    18    21    24
+</pre><pre class="codeinput">permute(X,[3 2 1]) <span class="comment">%&lt;-- Reverse the modes.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 4 x 3
+	ans(:,:,1) = 
+	     1     4     7    10
+	    13    16    19    22
+	ans(:,:,2) = 
+	     2     5     8    11
+	    14    17    20    23
+	ans(:,:,3) = 
+	     3     6     9    12
+	    15    18    21    24
+</pre><p>Permuting a 1-dimensional tensor works correctly.</p><pre class="codeinput">X = tensor(1:4,4); <span class="comment">%&lt;-- Create a 1-way tensor.</span>
+permute(X,1) <span class="comment">%&lt;-- Call permute with *only* one dimension.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 4
+	ans(:) = 
+	     1
+	     2
+	     3
+	     4
+</pre><h2>Displaying a tensor<a name="69"></a></h2>
+         <p>The function <tt>disp</tt> can be used to display a tensor and correctly displays very small and large elements.
+         </p><pre class="codeinput">X = tensor(1:24,[3 4 2]); <span class="comment">%&lt;-- Create a 3 x 4 x 2 tensor.</span>
+X(:,:,1) = X(:,:,1) * 1e15; <span class="comment">%&lt;-- Make the first slice very large.</span>
+X(:,:,2) = X(:,:,2) * 1e-15; <span class="comment">%&lt;-- Make the second slice very small.</span>
+disp(X)
+</pre><pre class="codeoutput">ans is a tensor of size 3 x 4 x 2
+	ans(:,:,1) = 
+	  1.0e+016 *
+	    0.1000    0.4000    0.7000    1.0000
+	    0.2000    0.5000    0.8000    1.1000
+	    0.3000    0.6000    0.9000    1.2000
+	ans(:,:,2) = 
+	  1.0e-013 *
+	    0.1300    0.1600    0.1900    0.2200
+	    0.1400    0.1700    0.2000    0.2300
+	    0.1500    0.1800    0.2100    0.2400
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Tensors
+% Tensors are extensions of multidimensional arrays with additional
+% operations defined on them. Here we explain the basics of creating and
+% working with tensors.
+%% Creating a tensor from an array
+% The |tensor| command converts a (multidimensional) array to a tensor
+% object. 
+M = ones(4,3,2); %<REPLACE_WITH_DASH_DASH A 4 x 3 x 2 array.
+X = tensor(M) %<REPLACE_WITH_DASH_DASH Convert to a tensor object.
+%%
+% Optionally, you can specify a different shape for the tensor, so long as
+% the input array has the right number of elements.
+X = tensor(M,[2 3 4]) %<REPLACE_WITH_DASH_DASH M has 24 elements.
+%% Creating a one-dimensional tensor
+% The tensor class explicitly supports order-one tensors as well as
+% trailing singleton dimensions, but the size must be explicit in the
+% constructor. By default, a column array produces a 2-way tensor. 
+X = tensor(rand(5,1)) %<REPLACE_WITH_DASH_DASH Creates a 2-way tensor.
+%% 
+% This is fixed by specifying the size explicitly.
+X = tensor(rand(5,1),5) %<REPLACE_WITH_DASH_DASH Creates a 1-way tensor.
+%% Specifying trailing singleton dimensions in a tensor
+% Likewise, trailing singleton dimensions must be explictly specified.
+Y = tensor(rand(4,3,1)) %<REPLACE_WITH_DASH_DASH Creates a 2-way tensor.
+%%
+Y = tensor(rand(4,3,1),[4 3 1]) %<REPLACE_WITH_DASH_DASH Creates a 3-way tensor.
+%%
+% Unfortunately, the |whos| command does not report the size of 1D 
+% objects correctly (last checked for MATLAB 2006a).
+whos X Y %<REPLACE_WITH_DASH_DASH Doesn't report the right size for X!
+%% The constituent parts of a tensor
+X = tenrand([4 3 2]); %<REPLACE_WITH_DASH_DASH Create data.
+X.data %<REPLACE_WITH_DASH_DASH The array.
+%%
+X.size %<REPLACE_WITH_DASH_DASH The size.
+%% Creating a tensor from its constituent parts
+Y = tensor(X.data,X.size) %<REPLACE_WITH_DASH_DASH Copies X.
+%% Creating an empty tensor
+% An empty constructor exists, primarily to support loading previously 
+% saved data in MAT-files.
+X = tensor %<REPLACE_WITH_DASH_DASH Creates an empty tensor.
+%% Use tenone to create a tensor of all ones
+X = tenones([3 4 2]) %<REPLACE_WITH_DASH_DASH Creates a 3 x 4 x 2 tensor of ones.
+%% Use tenzeros to create a tensor of all zeros
+X = tenzeros([1 4 2]) %<REPLACE_WITH_DASH_DASH Creates a 1 x 4 x 2 tensor of zeros.
+%% Use tenrand to create a random tensor
+X = tenrand([5 4 2]) %<REPLACE_WITH_DASH_DASH Creates a random 5 x 4 x 2 tensor.
+%% Use squeeze to remove singleton dimensions from a tensor
+squeeze(Y) %<REPLACE_WITH_DASH_DASH Removes singleton dimensions.
+%% Use double to convert a tensor to a (multidimensional) array
+double(Y) %<REPLACE_WITH_DASH_DASH Converts Y to a standard MATLAB array.
+%%
+Y.data %<REPLACE_WITH_DASH_DASH Same thing.
+%% Use ndims and size to get the size of a tensor
+ndims(Y) %<REPLACE_WITH_DASH_DASH Number of dimensions (or ways).
+%%
+size(Y) %<REPLACE_WITH_DASH_DASH Row vector with the sizes of all dimension. 
+%%
+size(Y,3) %<REPLACE_WITH_DASH_DASH Size of a single dimension.
+%% Subscripted reference for a tensor
+X = tenrand([3 4 2 1]); %<REPLACE_WITH_DASH_DASH Create a 3 x 4 x 2 x 1 random tensor.
+X(1,1,1,1) %<REPLACE_WITH_DASH_DASH Extract a single element.
+%%
+% It is possible to extract a subtensor that contains a single element.
+% Observe that singleton dimensions are *not* dropped unless they are
+% specifically specified, e.g., as above.
+X(1,1,1,:) %<REPLACE_WITH_DASH_DASH Produces a tensor of order 1 and size 1.
+%%
+% In general, specified dimensions are dropped from the result. Here we
+% specify the second and third dimension.
+X(:,1,1,:) %<REPLACE_WITH_DASH_DASH Produces a tensor of size 3 x 1.
+%%
+% Moreover, the subtensor is automatically renumbered/resized in the same
+% way that MATLAB works for arrays except that singleton dimensions are
+% handled explicitly. 
+X(1:2,[2 4],1,:) %<REPLACE_WITH_DASH_DASH Produces a tensor of size 2 x 2 x 1.
+%%
+% It's also possible to extract a list of elements by passing in an array
+% of subscripts or a column array of linear indices.
+subs = [1,1,1,1; 3,4,2,1]; X(subs) %<REPLACE_WITH_DASH_DASH Extract 2 values by subscript.
+%%
+inds = [1; 24]; X(inds) %<REPLACE_WITH_DASH_DASH Same thing with linear indices.
+%%
+% The difference between extracting a subtensor and a list of linear
+% indices is ambiguous for 1-dimensional tensors. We can specify 'extract'
+% as a second argument whenever we are using a list of subscripts. 
+X = tenrand(10); %<REPLACE_WITH_DASH_DASH Create a random tensor.
+X([1:6]') %<REPLACE_WITH_DASH_DASH Extract a subtensor.
+%%
+X([1:6]','extract') %<REPLACE_WITH_DASH_DASH Same thing *but* result is a vector.
+%% Subscripted assignment for a tensor 
+% We can assign a single element, an entire subtensor, or a list of values
+% for a tensor.
+X = tenrand([3,4,2]); %<REPLACE_WITH_DASH_DASH Create some data.
+X(1,1,1) = 0 %<REPLACE_WITH_DASH_DASH Replaces the (1,1,1) element.
+%% 
+X(1:2,1:2,1) = ones(2,2) %<REPLACE_WITH_DASH_DASH Replaces a 2 x 2 subtensor.
+%% 
+X([1 1 1;1 1 2]) = [5;7] %<REPLACE_WITH_DASH_DASH Replaces the (1,1,1) and (1,1,2) elements.
+%%
+X([1;13]) = [5;7] %<REPLACE_WITH_DASH_DASH Same as above using linear indices.
+%%
+% It is possible to *grow* the tensor automatically by assigning elements
+% outside the original range of the tensor.
+X(1,1,3) = 1 %<REPLACE_WITH_DASH_DASH Grows the size of the tensor.
+%% Using end for the last array index.
+X(end,end,end)  %<REPLACE_WITH_DASH_DASH Same as X(3,4,3).
+%%
+X(1,1,1:end-1)  %<REPLACE_WITH_DASH_DASH Same as X(1,1,1:2).
+%%
+% It is also possible to use |end| to index past the end of an array.
+X(1,1,end+1) = 5 %<REPLACE_WITH_DASH_DASH Same as X(1,1,4).
+%% Use find for subscripts of nonzero elements of a tensor
+% The |find| function returns a list of nonzero *subscripts* for a tensor.
+% Note that differs from the standard version, which returns linear
+% indices.  
+X = tensor(floor(3*rand(2,2,2))) %<REPLACE_WITH_DASH_DASH Generate some data.
+%%
+[S,V] = find(X) %<REPLACE_WITH_DASH_DASH Find all the nonzero subscripts and values.
+%%
+S = find(X >= 2) %<REPLACE_WITH_DASH_DASH Find subscripts of values >= 2.
+%%
+V = X(S) %<REPLACE_WITH_DASH_DASH Extract the corresponding values from X.
+%% Basic operations (plus, minus, and, or, etc.) on a tensor
+% The tensor object supports many basic operations, illustrated here.
+A = tensor(floor(3*rand(2,3,2)))
+B = tensor(floor(3*rand(2,3,2)))
+%%
+A & B %<REPLACE_WITH_DASH_DASH Calls and.
+%% 
+A | B %<REPLACE_WITH_DASH_DASH Calls or.
+%%
+xor(A,B) %<REPLACE_WITH_DASH_DASH Calls xor.
+%%
+A==B %<REPLACE_WITH_DASH_DASH Calls eq.
+%% 
+A~=B %<REPLACE_WITH_DASH_DASH Calls neq.
+%% 
+A>B %<REPLACE_WITH_DASH_DASH Calls gt.
+%%
+A>=B %<REPLACE_WITH_DASH_DASH Calls ge.
+%%
+A<B %<REPLACE_WITH_DASH_DASH Calls lt.
+%%
+A<=B %<REPLACE_WITH_DASH_DASH Calls le.
+%%
+~A %<REPLACE_WITH_DASH_DASH Calls not.
+%%
++A %<REPLACE_WITH_DASH_DASH Calls uplus.
+%%
+-A %<REPLACE_WITH_DASH_DASH Calls uminus.
+%%
+A+B %<REPLACE_WITH_DASH_DASH Calls plus.
+%%
+A-B %<REPLACE_WITH_DASH_DASH Calls minus.
+%%
+A.*B %<REPLACE_WITH_DASH_DASH Calls times.
+%%
+5*A %<REPLACE_WITH_DASH_DASH Calls mtimes.
+%%
+A.^B %<REPLACE_WITH_DASH_DASH Calls power.
+%%
+A.^2 %<REPLACE_WITH_DASH_DASH Calls power.
+%%
+A.\B %<REPLACE_WITH_DASH_DASH Calls ldivide.
+%%
+A./2 %<REPLACE_WITH_DASH_DASH Calls rdivide.
+%%
+A./B %<REPLACE_WITH_DASH_DASH Calls rdivide (but beware divides by zero!)
+%% Using tenfun for elementwise operations on one or more tensors
+% The function |tenfun| applies a specified function to a number of
+% tensors. This can be used for any function that is not predefined for
+% tensors.
+tenfun(@(x)+1,A) %<REPLACE_WITH_DASH_DASH Increment every element of A by one.
+%%
+tenfun(@max,A,B) %<REPLACE_WITH_DASH_DASH Max of A and B, elementwise.
+%%
+C = tensor(floor(5*rand(2,3,2))) %<REPLACE_WITH_DASH_DASH Create another tensor.
+tenfun(@median,A,B,C) %<REPLACE_WITH_DASH_DASH Elementwise means for A, B, and C.
+%% Use permute to reorder the modes of a tensor
+X = tensor(1:24,[3 4 2]) %<REPLACE_WITH_DASH_DASH Create a tensor.
+%%
+permute(X,[3 2 1]) %<REPLACE_WITH_DASH_DASH Reverse the modes.
+%%
+% Permuting a 1-dimensional tensor works correctly.
+X = tensor(1:4,4); %<REPLACE_WITH_DASH_DASH Create a 1-way tensor.
+permute(X,1) %<REPLACE_WITH_DASH_DASH Call permute with *only* one dimension.
+%% Displaying a tensor
+% The function |disp| can be used to display a tensor and correctly
+% displays very small and large elements.
+X = tensor(1:24,[3 4 2]); %<REPLACE_WITH_DASH_DASH Create a 3 x 4 x 2 tensor.
+X(:,:,1) = X(:,:,1) * 1e15; %<REPLACE_WITH_DASH_DASH Make the first slice very large.
+X(:,:,2) = X(:,:,2) * 1e-15; %<REPLACE_WITH_DASH_DASH Make the second slice very small.
+disp(X)
+
+##### SOURCE END #####
+-->
+   </body>
+</html>

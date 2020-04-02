@@ -1,0 +1,26 @@
+
+StimulusWizardDM
+m-file list
+
+SD
+aux
+d
+ml
+s
+stiminfo
+t
+
+name
+Include
+StimTitle
+StimDesign
+  onset
+  dur
+  amp
+  cond
+Condition
+AuxiliaryFile
+AuxiliaryPath
+FastScanFile
+FastScanPath
+Comments

@@ -1,0 +1,468 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Converting a tensor to a matrix and vice versa</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="B1_tenmat_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Converting a tensor to a matrix and vice versa</h1>
+         <introduction>
+            <p>We show how to convert a tensor to a matrix stored with extra information so that it can be converted back to a tensor. Converting
+               to a matrix requies an ordered mapping of the tensor indices to the rows and the columns of the matrix.
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Creating a tenmat (tensor as matrix) object</a></li>
+               <li><a href="#5">Creating a tenmat by specifying the dimensions mapped to the rows</a></li>
+               <li><a href="#6">Creating a tenmat by specifying the dimensions mapped to the columns</a></li>
+               <li><a href="#7">Vectorize via tenmat</a></li>
+               <li><a href="#8">Alternative ordering for the columns for mode-n matricization</a></li>
+               <li><a href="#12">Constituent parts of a tenmat</a></li>
+               <li><a href="#16">Creating a tenmat from its constituent parts</a></li>
+               <li><a href="#17">Creating an empty tenmat</a></li>
+               <li><a href="#18">Use double to convert a tenmat to a MATLAB matrix</a></li>
+               <li><a href="#19">Use tensor to convert a tenmat to a tensor</a></li>
+               <li><a href="#20">Use size and tsize for the dimensions of a tenmat</a></li>
+               <li><a href="#21">Subscripted reference for a tenmat</a></li>
+               <li><a href="#22">Subscripted assignment for a tenmat</a></li>
+               <li><a href="#23">Use end for the last index</a></li>
+               <li><a href="#24">Basic operations for tenmat</a></li>
+               <li><a href="#30">Multiplying two tenmats</a></li>
+               <li><a href="#32">Displaying a tenmat</a></li>
+            </ul>
+         </div>
+         <h2>Creating a tenmat (tensor as matrix) object<a name="1"></a></h2><pre class="codeinput">X = tensor(1:24,[3 2 2 2]) <span class="comment">%&lt;-- Create a tensor.</span>
+</pre><pre class="codeoutput">X is a tensor of size 3 x 2 x 2 x 2
+	X(:,:,1,1) = 
+	     1     4
+	     2     5
+	     3     6
+	X(:,:,2,1) = 
+	     7    10
+	     8    11
+	     9    12
+	X(:,:,1,2) = 
+	    13    16
+	    14    17
+	    15    18
+	X(:,:,2,2) = 
+	    19    22
+	    20    23
+	    21    24
+</pre><pre class="codeinput">A = tenmat(X,[1 2],[3 4]) <span class="comment">%&lt;-- Dims [1 2] map to rows, [3 4] to columns.</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 1  2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 3  4 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     7    13    19
+		     2     8    14    20
+		     3     9    15    21
+		     4    10    16    22
+		     5    11    17    23
+		     6    12    18    24
+</pre><pre class="codeinput">B = tenmat(X,[2 1],[3 4]) <span class="comment">%&lt;-- Order matters!</span>
+</pre><pre class="codeoutput">B is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	B.rindices = [ 2  1 ] (modes of tensor corresponding to rows)
+	B.cindices = [ 3  4 ] (modes of tensor corresponding to columns)
+	B.data = 
+		     1     7    13    19
+		     4    10    16    22
+		     2     8    14    20
+		     5    11    17    23
+		     3     9    15    21
+		     6    12    18    24
+</pre><pre class="codeinput">C = tenmat(X,[1 2],[4 3]) <span class="comment">%&lt;-- Order matters!</span>
+</pre><pre class="codeoutput">C is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	C.rindices = [ 1  2 ] (modes of tensor corresponding to rows)
+	C.cindices = [ 4  3 ] (modes of tensor corresponding to columns)
+	C.data = 
+		     1    13     7    19
+		     2    14     8    20
+		     3    15     9    21
+		     4    16    10    22
+		     5    17    11    23
+		     6    18    12    24
+</pre><h2>Creating a tenmat by specifying the dimensions mapped to the rows<a name="5"></a></h2>
+         <p>If just the row indices are specified, then the columns are arranged in increasing order.</p><pre class="codeinput">A = tenmat(X,1) <span class="comment">%&lt;-- Same as A = tenmat(X,1,2:4)</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     4     7    10    13    16    19    22
+		     2     5     8    11    14    17    20    23
+		     3     6     9    12    15    18    21    24
+</pre><h2>Creating a tenmat by specifying the dimensions mapped to the columns<a name="6"></a></h2>
+         <p>Likewise, just the columns can be specified if the 3rd argument is a 't'. The rows are arranged in increasing order.</p><pre class="codeinput">A = tenmat(X, [2 3], <span class="string">'t'</span>) <span class="comment">%&lt;-- Same as A = tenmat(X,[1 4],[2 3]).</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 1  4 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 2  3 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     4     7    10
+		     2     5     8    11
+		     3     6     9    12
+		    13    16    19    22
+		    14    17    20    23
+		    15    18    21    24
+</pre><h2>Vectorize via tenmat<a name="7"></a></h2>
+         <p>All the dimensions can be mapped to the rows or the columnns.</p><pre class="codeinput">A = tenmat(X,1:4,<span class="string">'t'</span>) <span class="comment">%&lt;-- Map all the dimensions to the columns</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [  ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  2  3  4 ] (modes of tensor corresponding to columns)
+	A.data = 
+		  Columns 1 through 22 
+		     1     2     3     4     5     6     7     8     9    10    11    12    13    14    15    16    17    18    19    20    21    22
+		  Columns 23 through 24 
+		    23    24
+</pre><h2>Alternative ordering for the columns for mode-n matricization<a name="8"></a></h2>
+         <p>Mode-n matricization means that only mode n is mapped to the rows. Different column orderings are available.</p><pre class="codeinput">A = tenmat(X,2) <span class="comment">%&lt;-- By default, columns are ordered as [1 3 4].</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  3  4 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     2     3     7     8     9    13    14    15    19    20    21
+		     4     5     6    10    11    12    16    17    18    22    23    24
+</pre><pre class="codeinput">A = tenmat(X,2,[3 1 4]) <span class="comment">%&lt;-- Explicit specification.</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 3  1  4 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     7     2     8     3     9    13    19    14    20    15    21
+		     4    10     5    11     6    12    16    22    17    23    18    24
+</pre><pre class="codeinput">A = tenmat(X,2,<span class="string">'fc'</span>) <span class="comment">%&lt;-- Forward cyclic, i.e., [3 4 1].</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 3  4  1 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     7    13    19     2     8    14    20     3     9    15    21
+		     4    10    16    22     5    11    17    23     6    12    18    24
+</pre><pre class="codeinput">A = tenmat(X,2,<span class="string">'bc'</span>) <span class="comment">%&lt;-- Backward cyclic, i.e., [1 4 3].</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     2     3    13    14    15     7     8     9    19    20    21
+		     4     5     6    16    17    18    10    11    12    22    23    24
+</pre><h2>Constituent parts of a tenmat<a name="12"></a></h2><pre class="codeinput">A.data <span class="comment">%&lt;-- The matrix itself.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     1     2     3    13    14    15     7     8     9    19    20    21
+     4     5     6    16    17    18    10    11    12    22    23    24
+
+</pre><pre class="codeinput">A.tsize <span class="comment">%&lt;-- Size of the original tensor.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3     2     2     2
+
+</pre><pre class="codeinput">A.rdims <span class="comment">%&lt;-- Dimensions that were mapped to the rows.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     2
+
+</pre><pre class="codeinput">A.cdims <span class="comment">%&lt;-- Dimensions that were mapped to the columns.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     1     4     3
+
+</pre><h2>Creating a tenmat from its constituent parts<a name="16"></a></h2><pre class="codeinput">B = tenmat(A.data,A.rdims,A.cdims,A.tsize) <span class="comment">%&lt;-- Recreates A</span>
+</pre><pre class="codeoutput">B is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	B.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	B.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	B.data = 
+		     1     2     3    13    14    15     7     8     9    19    20    21
+		     4     5     6    16    17    18    10    11    12    22    23    24
+</pre><h2>Creating an empty tenmat<a name="17"></a></h2><pre class="codeinput">B = tenmat <span class="comment">%&lt;-- Empty tenmat.</span>
+</pre><pre class="codeoutput">B is a matrix corresponding to a tensor of size [empty tensor]
+	B.rindices = [  ] (modes of tensor corresponding to rows)
+	B.cindices = [  ] (modes of tensor corresponding to columns)
+	B.data = []
+</pre><h2>Use double to convert a tenmat to a MATLAB matrix<a name="18"></a></h2><pre class="codeinput">double(A) <span class="comment">%&lt;-- converts A to a standard matrix</span>
+</pre><pre class="codeoutput">
+ans =
+
+     1     2     3    13    14    15     7     8     9    19    20    21
+     4     5     6    16    17    18    10    11    12    22    23    24
+
+</pre><h2>Use tensor to convert a tenmat to a tensor<a name="19"></a></h2><pre class="codeinput">Y = tensor(A)
+</pre><pre class="codeoutput">Y is a tensor of size 3 x 2 x 2 x 2
+	Y(:,:,1,1) = 
+	     1     4
+	     2     5
+	     3     6
+	Y(:,:,2,1) = 
+	     7    10
+	     8    11
+	     9    12
+	Y(:,:,1,2) = 
+	    13    16
+	    14    17
+	    15    18
+	Y(:,:,2,2) = 
+	    19    22
+	    20    23
+	    21    24
+</pre><h2>Use size and tsize for the dimensions of a tenmat<a name="20"></a></h2><pre class="codeinput">size(A) <span class="comment">%&lt;-- Matrix size</span>
+tsize(A) <span class="comment">%&lt;-- Corresponding tensor size</span>
+</pre><pre class="codeoutput">
+ans =
+
+     2    12
+
+
+ans =
+
+     3     2     2     2
+
+</pre><h2>Subscripted reference for a tenmat<a name="21"></a></h2><pre class="codeinput">A(2,1) <span class="comment">%&lt;-- returns the (2,1) element of the matrix.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     4
+
+</pre><h2>Subscripted assignment for a tenmat<a name="22"></a></h2><pre class="codeinput">A(1:2,1:2) = ones(2) <span class="comment">%&lt;-- Replace part of the matrix.</span>
+</pre><pre class="codeoutput">A is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	A.data = 
+		     1     1     3    13    14    15     7     8     9    19    20    21
+		     1     1     6    16    17    18    10    11    12    22    23    24
+</pre><h2>Use end for the last index<a name="23"></a></h2><pre class="codeinput">A(end,end) <span class="comment">%&lt;-- Same as X(2,12)</span>
+</pre><pre class="codeoutput">
+ans =
+
+    24
+
+</pre><h2>Basic operations for tenmat<a name="24"></a></h2><pre class="codeinput">norm(A) <span class="comment">%&lt;-- Norm of the matrix.</span>
+</pre><pre class="codeoutput">
+ans =
+
+   69.6994
+
+</pre><pre class="codeinput">A' <span class="comment">%&lt;-- Calls ctranspose (also swaps mapped dimensions).</span>
+</pre><pre class="codeoutput">ans is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	ans.rindices = [ 1  4  3 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 2 ] (modes of tensor corresponding to columns)
+	ans.data = 
+		     1     1
+		     1     1
+		     3     6
+		    13    16
+		    14    17
+		    15    18
+		     7    10
+		     8    11
+		     9    12
+		    19    22
+		    20    23
+		    21    24
+</pre><pre class="codeinput">+A <span class="comment">%&lt;-- Calls uplus.</span>
+</pre><pre class="codeoutput">ans is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	ans.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	ans.data = 
+		     1     1     3    13    14    15     7     8     9    19    20    21
+		     1     1     6    16    17    18    10    11    12    22    23    24
+</pre><pre class="codeinput">-A <span class="comment">%&lt;-- Calls uminus.</span>
+</pre><pre class="codeoutput">ans is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	ans.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	ans.data = 
+		    -1    -1    -3   -13   -14   -15    -7    -8    -9   -19   -20   -21
+		    -1    -1    -6   -16   -17   -18   -10   -11   -12   -22   -23   -24
+</pre><pre class="codeinput">A+A <span class="comment">%&lt;-- Calls plus.</span>
+</pre><pre class="codeoutput">ans is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	ans.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	ans.data = 
+		     2     2     6    26    28    30    14    16    18    38    40    42
+		     2     2    12    32    34    36    20    22    24    44    46    48
+</pre><pre class="codeinput">A-A <span class="comment">%&lt;-- Calls minus.</span>
+</pre><pre class="codeoutput">ans is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	ans.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	ans.data = 
+		     0     0     0     0     0     0     0     0     0     0     0     0
+		     0     0     0     0     0     0     0     0     0     0     0     0
+</pre><h2>Multiplying two tenmats<a name="30"></a></h2>
+         <p>It is possible to compute the product of two tenmats and have a result that can be converted into a tensor.</p><pre class="codeinput">B = A * A' <span class="comment">%&lt;-- Tenmat that is the product of two tenmats.</span>
+</pre><pre class="codeoutput">B is a matrix corresponding to a tensor of size 2 x 2
+	B.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	B.cindices = [ 2 ] (modes of tensor corresponding to columns)
+	B.data = 
+		        1997        2384
+		        2384        2861
+</pre><pre class="codeinput">tensor(B) <span class="comment">%&lt;-- Corresponding tensor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 2 x 2
+	ans(:,:) = 
+	        1997        2384
+	        2384        2861
+</pre><h2>Displaying a tenmat<a name="32"></a></h2>
+         <p>Shows the original tensor dimensions, the modes mapped to rows, the modes mapped to columns, and the matrix.</p><pre class="codeinput">disp(A)
+</pre><pre class="codeoutput">ans is a matrix corresponding to a tensor of size 3 x 2 x 2 x 2
+	ans.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	ans.data = 
+		     1     1     3    13    14    15     7     8     9    19    20    21
+		     1     1     6    16    17    18    10    11    12    22    23    24
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Converting a tensor to a matrix and vice versa
+% We show how to convert a tensor to a matrix stored with extra information
+% so that it can be converted back to a tensor. Converting to a matrix
+% requies an ordered mapping of the tensor indices to the rows and the
+% columns of the matrix. 
+%% Creating a tenmat (tensor as matrix) object
+X = tensor(1:24,[3 2 2 2]) %<REPLACE_WITH_DASH_DASH Create a tensor.
+%%
+A = tenmat(X,[1 2],[3 4]) %<REPLACE_WITH_DASH_DASH Dims [1 2] map to rows, [3 4] to columns.
+%%
+B = tenmat(X,[2 1],[3 4]) %<REPLACE_WITH_DASH_DASH Order matters!
+%%
+C = tenmat(X,[1 2],[4 3]) %<REPLACE_WITH_DASH_DASH Order matters!
+%% Creating a tenmat by specifying the dimensions mapped to the rows
+% If just the row indices are specified, then the columns are arranged in
+% increasing order.
+A = tenmat(X,1) %<REPLACE_WITH_DASH_DASH Same as A = tenmat(X,1,2:4)
+%% Creating a tenmat by specifying the dimensions mapped to the columns
+% Likewise, just the columns can be specified if the 3rd argument is a 't'.
+% The rows are arranged in increasing order.
+A = tenmat(X, [2 3], 't') %<REPLACE_WITH_DASH_DASH Same as A = tenmat(X,[1 4],[2 3]).
+%% Vectorize via tenmat
+% All the dimensions can be mapped to the rows or the columnns.
+A = tenmat(X,1:4,'t') %<REPLACE_WITH_DASH_DASH Map all the dimensions to the columns
+%% Alternative ordering for the columns for mode-n matricization
+% Mode-n matricization means that only mode n is mapped to the rows. 
+% Different column orderings are available.
+A = tenmat(X,2) %<REPLACE_WITH_DASH_DASH By default, columns are ordered as [1 3 4].
+%% 
+A = tenmat(X,2,[3 1 4]) %<REPLACE_WITH_DASH_DASH Explicit specification.
+%%
+A = tenmat(X,2,'fc') %<REPLACE_WITH_DASH_DASH Forward cyclic, i.e., [3 4 1].
+%%
+A = tenmat(X,2,'bc') %<REPLACE_WITH_DASH_DASH Backward cyclic, i.e., [1 4 3].
+%% Constituent parts of a tenmat
+A.data %<REPLACE_WITH_DASH_DASH The matrix itself.
+%%
+A.tsize %<REPLACE_WITH_DASH_DASH Size of the original tensor.
+%%
+A.rdims %<REPLACE_WITH_DASH_DASH Dimensions that were mapped to the rows.
+%%
+A.cdims %<REPLACE_WITH_DASH_DASH Dimensions that were mapped to the columns.
+%% Creating a tenmat from its constituent parts
+B = tenmat(A.data,A.rdims,A.cdims,A.tsize) %<REPLACE_WITH_DASH_DASH Recreates A
+%% Creating an empty tenmat
+B = tenmat %<REPLACE_WITH_DASH_DASH Empty tenmat.
+%% Use double to convert a tenmat to a MATLAB matrix
+double(A) %<REPLACE_WITH_DASH_DASH converts A to a standard matrix
+%% Use tensor to convert a tenmat to a tensor
+Y = tensor(A)
+%% Use size and tsize for the dimensions of a tenmat
+size(A) %<REPLACE_WITH_DASH_DASH Matrix size
+tsize(A) %<REPLACE_WITH_DASH_DASH Corresponding tensor size
+%% Subscripted reference for a tenmat
+A(2,1) %<REPLACE_WITH_DASH_DASH returns the (2,1) element of the matrix.
+%% Subscripted assignment for a tenmat
+A(1:2,1:2) = ones(2) %<REPLACE_WITH_DASH_DASH Replace part of the matrix.
+%% Use end for the last index
+A(end,end) %<REPLACE_WITH_DASH_DASH Same as X(2,12)
+%% Basic operations for tenmat
+norm(A) %<REPLACE_WITH_DASH_DASH Norm of the matrix.
+%%
+A' %<REPLACE_WITH_DASH_DASH Calls ctranspose (also swaps mapped dimensions).
+%%
++A %<REPLACE_WITH_DASH_DASH Calls uplus.
+%%
+-A %<REPLACE_WITH_DASH_DASH Calls uminus.
+%%
+A+A %<REPLACE_WITH_DASH_DASH Calls plus.
+%%
+A-A %<REPLACE_WITH_DASH_DASH Calls minus.
+%% Multiplying two tenmats
+% It is possible to compute the product of two tenmats and have a result
+% that can be converted into a tensor.
+B = A * A' %<REPLACE_WITH_DASH_DASH Tenmat that is the product of two tenmats.
+%%
+tensor(B) %<REPLACE_WITH_DASH_DASH Corresponding tensor.
+%% Displaying a tenmat
+% Shows the original tensor dimensions, the modes mapped to rows, the modes
+% mapped to columns, and the matrix.
+disp(A) 
+
+##### SOURCE END #####
+-->
+   </body>
+</html>
