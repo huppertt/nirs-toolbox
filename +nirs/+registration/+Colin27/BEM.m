@@ -22,8 +22,16 @@ end
 if(exist(fullfile(folder,'ColinBEM.mat'))==2 && ~force)
     try
         load(fullfile(folder,'ColinBEM.mat'));
+        load(fullfile(folder,'ColinBEM_preK1.mat'));
+        fwdBEM.preK{1}=preK;
+        load(fullfile(folder,'ColinBEM_preK2.mat'));
+        fwdBEM.preK{2}=preK;
     catch
-        load('ColinBEM.mat')
+        load('ColinBEM.mat');
+        load('ColinBEM_preK1.mat');
+        fwdBEM.preK{1}=preK;
+        load('ColinBEM_preK2.mat');
+        fwdBEM.preK{2}=preK;
     end
     
     if(nargin>0)

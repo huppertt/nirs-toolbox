@@ -33,8 +33,9 @@ for id=1:size(snirf,1)
         fprintf( 'Adding: %s\n',snirf{id,1});
         
     end
-    nirs.util.hdf5clearfield(filename,snirf{id,1});
-    hdf5write(filename,snirf{id,1},snirf{id,2},'WriteMode', 'append');
+    nirs.util.hdf5write(filename,snirf{id,1},snirf{id,2});
+%     nirs.util.hdf5clearfield(filename,snirf{id,1});
+%     hdf5write(filename,snirf{id,1},snirf{id,2},'WriteMode', 'append');
 end
 
 

@@ -48,7 +48,11 @@ for i=1:size(array,1)
               if(~isfield(snirf,n))
                 snirf=setfield(snirf,n,{});
               end
-              snirf.(n){idx}=array{i,2};
+              if(idx==0)
+                  snirf=setfield(snirf,array{i,1},array{i,2});
+              else
+                snirf.(n){idx}=array{i,2};
+              end
         else
             snirf=setfield(snirf,array{i,1},array{i,2});
         end
@@ -73,8 +77,11 @@ for i=1:length(id)
         if(~isfield(snirf,n))
             snirf=setfield(snirf,n,s);
         end
+        if(idx==0)
+            snirf=setfield(snirf,id{i},s);
+        else
         snirf.(n)(idx,1)=s;
-        
+        end
     else
         snirf=setfield(snirf,id{i},s);
     end

@@ -13,6 +13,14 @@ for i=1:length(snirf.nirs)
         data(i).probe=nirs.core.Probe;
     end
     
+    if(ischar(snirf.nirs.probe.sourceLabels))
+        snirf.nirs.probe.sourceLabels={snirf.nirs.probe.sourceLabels};
+    end
+    if(ischar(snirf.nirs.probe.detectorLabels))
+        snirf.nirs.probe.detectorLabels={snirf.nirs.probe.detectorLabels};
+    end
+    
+    
     %make the optodes
     Type={}; X=[]; Y=[]; Z=[]; Units={}; Name={};
     for j=1:length(snirf.nirs.probe.sourceLabels)
@@ -92,12 +100,12 @@ for i=1:length(snirf.nirs)
     end
     data(i).probe.link=table(source,detector,type);
     
-    for j=1:length(snirf.nirs(i).data.stim)
+    for j=1:length(snirf.nirs(i).stim)
         st=nirs.design.StimulusEvents;
-        st.name=snirf.nirs.data.stim.name;
-        st.onset=snirf.nirs.data.stim.data(:,1);
-        st.dur=snirf.nirs.data.stim.data(:,2);
-        st.amp=snirf.nirs.data.stim.data(:,3);
+        st.name=snirf.nirs.stim(j).name;
+        st.onset=snirf.nirs.stim(j).data(:,1);
+        st.dur=snirf.nirs.stim(j).data(:,2);
+        st.amp=snirf.nirs.stim(j).data(:,3);
         data(i).stimulus(st.name)=st;
     end
     

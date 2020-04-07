@@ -32,7 +32,7 @@ for i=1:length(data)
         snirf.nirs(i).data(1).measurementList(k).detectorIndex=data(i).probe.link.detector(k);
         snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=find(ismember(wavelengths,data(i).probe.link.type(k)));
         
-        snirf.nirs(i).data(1).measurementList(k).dataType = '001';
+        snirf.nirs(i).data(1).measurementList(k).dataTypeIndex = '001';
         snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw';
         
         %        snirf.nirs(i).data(1).measurementList(k).sourcePower
@@ -43,8 +43,8 @@ for i=1:length(data)
     
     for k=1:data(i).stimulus.count
         st=data(i).stimulus(data(i).stimulus.keys{k});
-        snirf.nirs(i).data(1).stim(k).name=st.name;
-        snirf.nirs(i).data(1).stim(k).data =[st.onset st.dur st.amp];
+        snirf.nirs(i).stim(k).name=st.name;
+        snirf.nirs(i).stim(k).data =[st.onset st.dur st.amp];
     end
     
     snirf.nirs(i).probe.wavelengths =wavelengths;
@@ -124,6 +124,23 @@ end
 
 function array = makearray(snirf,array,str)
 
+if(isfield(snirf,'nirs'))
+    for i=1:length(snirf.nirs)
+        snirf.nirs(i).data1=snirf.nirs(i).data;
+        a(i)=rmfield(snirf.nirs(i),'data');
+    end
+    snirf.nirs=a;
+    clear a;
+end
+   
+
+if(isfield(snirf,'stim'))
+    if(length(snirf.stim)==1)
+        snirf.stim1=snirf.stim;
+        snirf=rmfield(snirf,'stim');
+    end
+end
+
 if(nargin<2)
     array=struct;
 end
@@ -148,7 +165,7 @@ for i=1:length(snirf)
                 array = setfield(array,ff{k},a.(ff{k}));
             end
             
-        elseif(iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1)
+        elseif((iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1));
             for k=1:length(snirf(i).(flds{j}))
                 array = setfield(array,[str s2 '__' flds{j} num2str(k)],snirf(i).(flds{j}){k});
             end
