@@ -1,5 +1,5 @@
 function DataSet2BIDS(data,folder,name)
-BIDSver='???';
+BIDSver='pre-release 0.1';
 
 if(~exist(folder,'dir'))
     mkdir(folder);
@@ -63,8 +63,9 @@ demo2= [table(participant_id) demo2];
 writetable(demo2,fullfile(folder,'participants.tsv'),'FileType','text','Delimiter','\t');
 
 for i=1:height(demo2)
-    folder2=fullfile(folder,demo2.participant_id{i});
+    folder2=fullfile(folder,demo2.participant_id{i},'nirs');
     if(~exist(folder2,'dir'))
+        mkdir(fullfile(folder,demo2.participant_id{i}));
         mkdir(folder2);
     end
     Data2BIDS(data(find(lst==i)),folder2,demo2.participant_id{i});

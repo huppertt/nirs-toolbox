@@ -135,6 +135,9 @@ if(isfield(info,'ChanDis'))
     if(length(info.ChanDis)<length(probe.distances))
         info.ChanDis=reshape(repmat(info.ChanDis,1,length(info.Wavelengths)),[],1);
     end
+    if(length(probe.distances)<length(info.ChanDis))
+    info.ChanDis=info.ChanDis(1:probe.distances);
+    end
     
     % Not sure why the units on the 2D probe in the NIRx file are so off
     l=info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:)));

@@ -23,7 +23,7 @@ classdef OpticalDensity < nirs.modules.AbstractModule
                 %d = bsxfun( @plus, -log(d), log(m) );
                 
                 if(~isreal(d))
-                    disp('Warning: negative intensities encountered');
+                   % disp('Warning: negative intensities encountered');
                    % d= abs(d);
                    % d=max(d,eps(1));
                 end
