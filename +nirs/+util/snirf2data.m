@@ -13,17 +13,17 @@ for i=1:length(snirf.nirs)
         data(i).probe=nirs.core.Probe;
     end
     
-    if(ischar(snirf.nirs.probe.sourceLabels))
-        snirf.nirs.probe.sourceLabels={snirf.nirs.probe.sourceLabels};
+    if(ischar(snirf.nirs(i).probe.sourceLabels))
+        snirf.nirs(i).probe.sourceLabels={snirf.nirs(i).probe.sourceLabels};
     end
-    if(ischar(snirf.nirs.probe.detectorLabels))
-        snirf.nirs.probe.detectorLabels={snirf.nirs.probe.detectorLabels};
+    if(ischar(snirf.nirs(i).probe.detectorLabels))
+        snirf.nirs(i).probe.detectorLabels={snirf.nirs(i).probe.detectorLabels};
     end
     
     
     %make the optodes
     Type={}; X=[]; Y=[]; Z=[]; Units={}; Name={};
-    for j=1:length(snirf.nirs.probe.sourceLabels)
+    for j=1:length(snirf.nirs(i).probe.sourceLabels)
         Type{end+1,1}='Source';
         Name{end+1,1}=snirf.nirs(i).probe.sourceLabels{j};
         Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
@@ -87,28 +87,42 @@ for i=1:length(snirf.nirs)
     
     fds=fields(snirf.nirs(i).metaDataTags);
     for f=1:length(fds)
-        data(i).demographics(fds{f})=snirf.nirs(i).metaDataTags.(fds{f});
+        a=snirf.nirs(i).metaDataTags.(fds{f});
+        if(~isempty(a))
+            data(i).demographics(fds{f})=a;
+        end
     end
     
     
     % now the link table
     source=[]; detector=[]; type=[];
     for j=1:length(snirf.nirs(i).data.measurementList)
-        source(j,1)=snirf.nirs.data.measurementList(j).sourceIndex;
-        detector(j,1)=snirf.nirs.data.measurementList(j).detectorIndex;
-        type(j,1)=snirf.nirs.probe.wavelengths(snirf.nirs.data.measurementList(j).wavelengthIndex);
+        source(j,1)=snirf.nirs(i).data.measurementList(j).sourceIndex;
+        detector(j,1)=snirf.nirs(i).data.measurementList(j).detectorIndex;
+        type(j,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data.measurementList(j).wavelengthIndex);
     end
     data(i).probe.link=table(source,detector,type);
     
-    for j=1:length(snirf.nirs(i).stim)
-        st=nirs.design.StimulusEvents;
-        st.name=snirf.nirs.stim(j).name;
-        st.onset=snirf.nirs.stim(j).data(:,1);
-        st.dur=snirf.nirs.stim(j).data(:,2);
-        st.amp=snirf.nirs.stim(j).data(:,3);
-        data(i).stimulus(st.name)=st;
+    if(isfield(snirf.nirs(i),'stim'))
+        for j=1:length(snirf.nirs(i).stim)
+            st=nirs.design.StimulusEvents;
+            st.name=snirf.nirs.stim(j).name;
+            st.onset=snirf.nirs.stim(j).data(:,1);
+            st.dur=snirf.nirs.stim(j).data(:,2);
+            st.amp=snirf.nirs.stim(j).data(:,3);
+            data(i).stimulus(st.name)=st;
+        end
     end
     
+     if(isfield(snirf.nirs(i),'aux'))
+        for j=1:length(snirf.nirs(i).aux)
+            st=nirs.core.GenericData;
+           st.data=snirf.nirs(i).aux(j).dataTimeSeries;
+           st.time=snirf.nirs(i).aux(j).time;
+           
+            data(i).auxillary(snirf.nirs(i).aux(j).name)=st;
+        end
+    end
     
     
 end

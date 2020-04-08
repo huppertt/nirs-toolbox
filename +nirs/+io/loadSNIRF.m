@@ -11,6 +11,7 @@ array=cell(length(names),2);
 for i=1:length(names)
     array{i,1}=names{i};
     array{i,2}=hdf5read(filename,names{i});
+    array{i,3}=class(array{i,2});
     if(isa(array{i,2},'hdf5.h5string'))
         array{i,2}=array{i,2}.Data;
     end
