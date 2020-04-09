@@ -19,6 +19,7 @@ classdef FIR
             if(~obj.isIRF)
                 on = diff([0; s]) > 0;
                 on=kron(on,ones(obj.binwidth,1));
+                on(length(s)+1:end)=[];
             else
                 on = s;
             end
