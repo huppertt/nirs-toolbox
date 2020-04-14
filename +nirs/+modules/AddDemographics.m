@@ -48,7 +48,11 @@ classdef AddDemographics < nirs.modules.AbstractModule
                     % Make this case-insensitive
                     varToMatchA=obj.demoTable.Properties.VariableNames{find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch)))};
                      % row idx of demo table
+                     if(isstr(data(i).demographics(obj.varToMatch)) | iscellstr(data(i).demographics(obj.varToMatch)))
                     idx = find( strcmpi( obj.demoTable.(varToMatchA), data(i).demographics(obj.varToMatch) ) );
+                     else
+                         idx=find(obj.demoTable.(varToMatchA)==data(i).demographics(obj.varToMatch) );
+                     end
                 else
                     varToMatchA=obj.demoTable.Properties.VariableNames(find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch))));
                     % row idx of demo table
