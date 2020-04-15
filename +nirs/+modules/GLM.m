@@ -114,15 +114,31 @@ classdef GLM < nirs.modules.AbstractGLM
                     j.(flds{i})=obj.options.(flds{i});
                 end
             end
-            
+            S=j.run(data);
+             
+             
             if (obj.AddShortSepRegressors)
                 Stim=unique(nirs.getStimNames(data));
-                j=nirs.modules.KeepStims(j);
-                j.listOfStims=Stim;
+                StimNew=unique(nirs.getStimNames(S));
+                
+                SS={};
+                for i=1:length(StimNew)
+                    for j=1:length(Stim)
+                        if(~isempty(strfind(StimNew{i},Stim{j})))
+                            SS{end+1}=StimNew{i};
+                        end
+                    end
+                end
+                SS=unique(SS);
+                
+                
+                j=nirs.modules.KeepStims;
+                j.listOfStims=SS;
+                S=j.run(S);
             end
             
                    
-            S=j.run(data);
+           
                     
                     
             
