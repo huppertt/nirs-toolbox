@@ -19,6 +19,10 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
 
 if nargin < 1 || isempty(noise)  
     noise = nirs.testing.simARNoise();
+else
+    if(length(noise)>1)
+        noise=noise(randi(length(noise)));
+    end
 end
 if strcmp(class(noise),'double')
     noise = nirs.testing.simARNoise(noise);

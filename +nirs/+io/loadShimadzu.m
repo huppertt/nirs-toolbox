@@ -1,7 +1,8 @@
 function raw = loadShimadzu(filename,probe)
 % Put probe.mat file in root directory
 
-if(~isempty(strfind(lower(filename),'config.txt')))
+if(~isempty(strfind(lower(filename),'config.txt')) |...
+    ~isempty(strfind(lower(filename),'digpts.txt')))
     raw=[];
     return
 end

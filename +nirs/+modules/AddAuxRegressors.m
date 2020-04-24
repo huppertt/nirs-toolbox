@@ -63,6 +63,7 @@ classdef AddAuxRegressors < nirs.modules.AbstractModule
                     dd=orth(dd);
                     for j=1:size(dd,2)
                         st=nirs.design.StimulusVector;
+                        st.regressor_no_interest=true;
                         st.name=['AuxPCA' num2str(j)];
                         st.time=data(i).time;
                         st.vector=dd(:,j);
@@ -83,6 +84,7 @@ classdef AddAuxRegressors < nirs.modules.AbstractModule
                         dd=orth(dd);
                         for k=1:size(dd,2)
                             st=nirs.design.StimulusVector;
+                            st.regressor_no_interest=true;
                             st.name=[data(i).auxillary.keys{idx(j)} num2str(k)];
                             st.time=data(i).time;
                             st.vector=dd(:,k);

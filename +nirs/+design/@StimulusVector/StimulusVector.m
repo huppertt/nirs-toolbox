@@ -6,13 +6,12 @@ classdef StimulusVector
         name
         vector
         time
+        regressor_no_interest=false;
     end
     
     methods
         function vec = getStimVector( obj, time )
-            
-            vec = interp1( obj.time, obj.vector, time );
-
+        vec = interp1( obj.time, obj.vector, time );
         end
         
         function draw(obj)

@@ -4,7 +4,9 @@ classdef StimulusEvents
         onset
         dur
         amp
+        regressor_no_interest=false;
         metadata=table;
+        
     end
     
     methods

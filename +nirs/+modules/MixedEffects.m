@@ -164,9 +164,18 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     % do this.
                     X = lm1.designMatrix('Fixed');
                     if(all(sum(X,2)==1))
+                        cnt=1;
                         for i=1:length(S)
+                           
                             job=nirs.modules.RenameStims;
-                            job.listOfChanges={S(i).conditions{1} lm1.CoefficientNames{i}};
+                            for j=1:length(S(i).conditions)
+                                job.listOfChanges{j,1}=S(i).conditions{j};
+                                job.listOfChanges{j,2}=lm1.CoefficientNames{cnt};
+                                
+                                job.listOfChanges{j,2}=fixstr(job.listOfChanges{j,2});
+                                
+                                cnt=cnt+1;
+                            end
                             S(i)=job.run(S(i));
                         end
                         G=nirs.math.combineStats(S);
@@ -441,8 +450,27 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
             end
             
-            
+            job=nirs.modules.RenameStims;
+            cnt=1;
+            for i=1:length(G.conditions)
+                str=fixstr(G.conditions{i});
+                if(~strcmp(str,G.conditions{i}))
+                    job.listOfChanges{cnt,1}=G.conditions{i};
+                    job.listOfChanges{cnt,1}=str;
+                    cnt=cnt+1;
+                end
+            end
+            if(cnt>1)
+                G=job.run(G);
+            end
         end
     end
     
+end
+
+
+
+function str =fixstr(str)
+
+str(([find(isspace(str(:))); find(ismember(str(:),{'-','+'}))]))='_';
 end
