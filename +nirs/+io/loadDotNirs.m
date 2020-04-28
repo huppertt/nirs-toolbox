@@ -115,7 +115,11 @@ end
                 else
                     a=d.aux10;
                 end
+<<<<<<< HEAD
                 
+=======
+                a=reshape(a,size(a,1),[]);
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                 for i=1:size(a,2)
                     name{i,1}=['aux-' num2str(i)];
                 end

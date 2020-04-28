@@ -89,7 +89,10 @@ link=table(repmat(s,length(info.Wavelengths),1),...
 probe = nirs.core.Probe(SrcPos,DetPos,link);
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 % if(isfield(info,'ShortDetIndex') && ~isempty(info.ShortDetIndex))
 %      info.ShortDetectors=true;
 % end
@@ -136,6 +139,12 @@ if(isfield(info,'ChanDis'))
     if(length(info.ChanDis)<length(probe.distances))
         info.ChanDis=reshape(repmat(info.ChanDis,1,length(info.Wavelengths)),[],1);
     end
+<<<<<<< HEAD
+=======
+    if(length(probe.distances)<length(info.ChanDis))
+    info.ChanDis=info.ChanDis(1:probe.distances);
+    end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     
     % Not sure why the units on the 2D probe in the NIRx file are so off
     l=info.ChanDis(:)./probe.distances(1:length(info.ChanDis(:)));
@@ -714,7 +723,11 @@ else
     info.ShortDetIndex=[];
 end
 info.Detectors=length(sum(info.det_Mask));
+<<<<<<< HEAD
 info.Wavelengths=[780 850];
+=======
+info.Wavelengths=[760 850];
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 info.Sources=length(info.drv_amplitudes);
 
 info.SDkey=[1:info.Sources*info.Detectors;repmat(1:info.Sources,1,info.Detectors); repmat(1:info.Detectors,1,info.Sources)]';

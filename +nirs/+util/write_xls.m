@@ -1,5 +1,21 @@
 function write_xls(filename,Data,sheetname)
 
+<<<<<<< HEAD
+=======
+
+if(length(Data.Properties.VariableNames)>200)
+    cnt=1;
+    for i=1:200:length(Data.Properties.VariableNames)
+        n=min(i+199,length(Data.Properties.VariableNames));
+        D=Data(:,unique([1 i:n]));
+        nirs.util.write_xls(filename,D,[sheetname '_part' num2str(cnt)]);
+        cnt=cnt+1;
+    end
+   return; 
+end
+
+
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 root=fileparts(which('nirs.util.write_xls'));
 
 %% Initialisation of POI Libs

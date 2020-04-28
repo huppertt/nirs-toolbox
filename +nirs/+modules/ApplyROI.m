@@ -1,4 +1,5 @@
 classdef ApplyROI < nirs.modules.AbstractModule
+<<<<<<< HEAD
 %% ApplyROI - Performs ROI averaging
 % Usage:
 % job = nirs.modules.ApplyROI();
@@ -16,17 +17,39 @@ classdef ApplyROI < nirs.modules.AbstractModule
     properties
         listOfROIs = table({},{},{},'VariableNames',{'source','detector','name'});
         weighted = false;
+=======
+    %% ApplyROI - Performs ROI averaging
+    % Usage:
+    % job = nirs.modules.ApplyROI();
+    % job.listOfROIs(1,:) = array2table({[2 2],[1 2],'left lPFC'});
+    % job.listOfROIs(2,:) = array2table({[2 2],[1 2],'left aPFC'});
+    % job.listOfROIs(3,:) = array2table({[3 3],[4 5],'right aPFC'});
+    % job.listOfROIs(4,:) = array2table({[3 4],[6 6],'right lPFC'});
+    % dataROI = job.run( dataChannel );
+    %
+    % Options:
+    %     listOfROIs - [#ROI x 3] table of ROIs (source, detector, name)
+    
+    
+    properties
+        listOfROIs = table({},{},{},'VariableNames',{'source','detector','Name'});
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     methods
         function obj = ApplyROI( prevJob )
+<<<<<<< HEAD
          	if nargin > 0, obj.prevJob = prevJob; end
+=======
+            if nargin > 0, obj.prevJob = prevJob; end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             obj.name = 'Apply ROI';
         end
         
         % Apply ROI averaging to data and update probe
         function dataROI = runThis( obj , dataChannel )
             
+<<<<<<< HEAD
             oldprobe = dataChannel(1).probe;
             for i = 1:length(dataChannel)
                 if ~isequal(oldprobe,dataChannel(i).probe)
@@ -226,6 +249,26 @@ classdef ApplyROI < nirs.modules.AbstractModule
                     mapping(inds,i) = 1;
                 end
             end
+=======
+            
+            
+            
+            
+            for i=1:length(dataChannel)
+                if(~istable(obj.listOfROIs))
+                    
+                    listOfROIs=nirs.util.convertlabels2roi(dataChannel(i).probe,obj.listOfROIs);
+                else
+                    listOfROIs=obj.listOfROIs;
+                end
+                if(isa(dataChannel(i),'nirs.core.Data'))
+                    dataROI(i,1)=nirs.util.roiAverage(dataChannel(i),listOfROIs);
+                else
+                    [~,dataROI(i,1)]=nirs.util.roiAverage(dataChannel(i),listOfROIs);
+                end
+            end
+            
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         end
         
     end

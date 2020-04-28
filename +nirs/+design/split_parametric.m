@@ -26,7 +26,11 @@ if(length(d)>1)
 end
 
 flag=1*centervariables;
+<<<<<<< HEAD
     
+=======
+    formula(isspace(formula))=[];
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 
 cond = formula(1:min(strfind(formula,'*'))-1);
 if(isempty(cond))
@@ -75,6 +79,11 @@ if(isa(stim,'nirs.design.StimulusEvents'))
     while(1)
         cnt=0;
         
+<<<<<<< HEAD
+=======
+               
+        
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         if(isempty(eqn))
             newstim{end+1}=stim;
             newstim{end}.name = stim.name;
@@ -90,7 +99,11 @@ if(isa(stim,'nirs.design.StimulusEvents'))
             cnt=cnt+1;
         end
         
+<<<<<<< HEAD
         if(~isempty(strfind(lower(eqn),'amp^')))
+=======
+        if(~isempty(strfind(lower(eqn),'+amp^')))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             exp = str2num(eqn(strfind(lower(eqn),'amp^')+4));
             newstim{end+1}=stim;
             newstim{end}.name = [stim.name ':amp^' num2str(exp)];
@@ -98,17 +111,42 @@ if(isa(stim,'nirs.design.StimulusEvents'))
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
             eqn(strfind(lower(eqn),'amp^')+[0:4])=[];
             cnt=cnt+1;
+<<<<<<< HEAD
             
         elseif(~isempty(strfind(lower(eqn),'amp')))
+=======
+        elseif(~isempty(strfind(lower(eqn),'-amp^')))
+            exp = str2num(eqn(strfind(lower(eqn),'amp^')+4));
+            newstim{end+1}=stim;
+            newstim{end}.name = [stim.name ':amp^' num2str(exp)];
+            newstim{end}.amp = (stim.amp.^exp-flag*mean(stim.amp.^exp));
+            newstim{end}.amp=-newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'amp^')+[0:4])=[];
+            cnt=cnt+1;
+        elseif(~isempty(strfind(lower(eqn),'+amp')))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             newstim{end+1}=stim;
             newstim{end}.name = [stim.name ':amp'];
             newstim{end}.amp = (stim.amp-flag*mean(stim.amp));
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
             eqn(strfind(lower(eqn),'amp')+[0:2])=[];
             cnt=cnt+1;
+<<<<<<< HEAD
         end
         
         if(~isempty(strfind(lower(eqn),'dur^')))
+=======
+                    elseif(~isempty(strfind(lower(eqn),'-amp')))
+            newstim{end+1}=stim;
+            newstim{end}.name = [stim.name ':amp'];
+            newstim{end}.amp = (stim.amp-flag*mean(stim.amp));
+            newstim{end}.amp=-newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'amp')+[0:2])=[];
+            cnt=cnt+1;
+        end
+        
+        if(~isempty(strfind(lower(eqn),'+dur^')))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             exp = str2num(eqn(strfind(lower(eqn),'dur^')+4));
             newstim{end+1}=stim;
             newstim{end}.name = [stim.name ':dur^' num2str(exp)];
@@ -116,31 +154,82 @@ if(isa(stim,'nirs.design.StimulusEvents'))
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
             eqn(strfind(lower(eqn),'dur')+[0:4])=[];
             cnt=cnt+1;
+<<<<<<< HEAD
         elseif(~isempty(strfind(lower(eqn),'dur')))
+=======
+        elseif(~isempty(strfind(lower(eqn),'-dur^')))
+            exp = str2num(eqn(strfind(lower(eqn),'dur^')+4));
+            newstim{end+1}=stim;
+            newstim{end}.name = [stim.name ':dur^' num2str(exp)];
+            newstim{end}.amp = ones(size(stim.amp)).*(stim.dur.^exp-flag*mean(stim.dur.^exp));
+            newstim{end}.amp=-newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'dur')+[0:4])=[];
+            cnt=cnt+1;
+        elseif(~isempty(strfind(lower(eqn),'+dur')))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             newstim{end+1}=stim;
             newstim{end}.name = [stim.name ':dur'];
             newstim{end}.amp = ones(size(stim.amp)).*(stim.dur-flag*mean(stim.dur));
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
             eqn(strfind(lower(eqn),'dur')+[0:2])=[];
             cnt=cnt+1;
+<<<<<<< HEAD
         end
         
         
         if(~isempty(strfind(lower(eqn),'time^')))
+=======
+             elseif(~isempty(strfind(lower(eqn),'-dur')))
+            newstim{end+1}=stim;
+            newstim{end}.name = [stim.name ':dur'];
+            newstim{end}.amp = ones(size(stim.amp)).*(stim.dur-flag*mean(stim.dur));
+            newstim{end}.amp=-newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'dur')+[0:2])=[];
+            cnt=cnt+1;
+        end
+        
+        
+        if(~isempty(strfind(lower(eqn),'+time^')))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             exp = str2num(eqn(strfind(lower(eqn),'time^')+5));
             newstim{end+1}=stim;
             newstim{end}.name = [stim.name ':time^' num2str(exp)];
             newstim{end}.amp = ones(size(stim.amp)).*(stim.onset.^exp-flag*mean(stim.onset.^exp));
+<<<<<<< HEAD
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
             eqn(strfind(lower(eqn),'time^')+[0:5])=[];
             cnt=cnt+1;
         elseif(~isempty(strfind(lower(eqn),'time')))
+=======
+            newstim{end}.amp=sign*newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'time^')+[0:5])=[];
+            cnt=cnt+1;
+        elseif(~isempty(strfind(lower(eqn),'-time^')))
+            exp = str2num(eqn(strfind(lower(eqn),'time^')+5));
+            newstim{end+1}=stim;
+            newstim{end}.name = [stim.name ':time^' num2str(exp)];
+            newstim{end}.amp = ones(size(stim.amp)).*(stim.onset.^exp-flag*mean(stim.onset.^exp));
+            newstim{end}.amp=-newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'time^')+[0:5])=[];
+            cnt=cnt+1;
+        elseif(~isempty(strfind(lower(eqn),'+time')))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             newstim{end+1}=stim;
             newstim{end}.name = [stim.name ':time'];
             newstim{end}.amp = ones(size(stim.amp)).*(stim.onset-flag*mean(stim.onset));
             newstim{end}.amp=newstim{end}.amp./max(abs(newstim{end}.amp));
             eqn(strfind(lower(eqn),'time')+[0:3])=[];
             cnt=cnt+1;
+<<<<<<< HEAD
+=======
+            elseif(~isempty(strfind(lower(eqn),'-time')))
+            newstim{end+1}=stim;
+            newstim{end}.name = [stim.name ':time'];
+            newstim{end}.amp = ones(size(stim.amp)).*(stim.onset-flag*mean(stim.onset));
+            newstim{end}.amp=-newstim{end}.amp./max(abs(newstim{end}.amp));
+            eqn(strfind(lower(eqn),'time')+[0:3])=[];
+            cnt=cnt+1;
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         end
         
         if(cnt==0)

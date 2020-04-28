@@ -24,7 +24,10 @@ if(~iscellstr(folderHierarchy))
     folderHierarchy={folderHierarchy};
 end
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
 for i=1:length(fileExt)

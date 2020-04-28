@@ -6,13 +6,21 @@ classdef StimulusVector
         name
         vector
         time
+<<<<<<< HEAD
+=======
+        regressor_no_interest=false;
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     methods
         function vec = getStimVector( obj, time )
+<<<<<<< HEAD
             
             vec = interp1( obj.time, obj.vector, time );
 
+=======
+        vec = interp1( obj.time, obj.vector, time );
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         end
         
         function draw(obj)

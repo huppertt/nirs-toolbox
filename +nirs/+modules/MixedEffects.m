@@ -154,12 +154,53 @@ classdef MixedEffects < nirs.modules.AbstractModule
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
             try
+<<<<<<< HEAD
                 lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
                     obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
                 
                 X = lm1.designMatrix('Fixed');
                 Z = lm1.designMatrix('Random');
                  cnames = lm1.CoefficientNames(:);
+=======
+                lastwarn('');
+                warning('off','stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit');
+                lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
+                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                [a,err]=lastwarn;
+                if(~isempty(err) && strcmp(err,'stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit'))
+                    % There is at least one condition that will not let us
+                    % do this.
+                    X = lm1.designMatrix('Fixed');
+                    if(all(sum(X,2)==1))
+                        cnt=1;
+                        for i=1:length(S)
+                           
+                            job=nirs.modules.RenameStims;
+                            for j=1:length(S(i).conditions)
+                                job.listOfChanges{j,1}=S(i).conditions{j};
+                                job.listOfChanges{j,2}=lm1.CoefficientNames{cnt};
+                                
+                                job.listOfChanges{j,2}=fixstr(job.listOfChanges{j,2});
+                                
+                                cnt=cnt+1;
+                            end
+                            S(i)=job.run(S(i));
+                        end
+                        G=nirs.math.combineStats(S);
+                        return
+                        % for now
+                    else
+                       warning('Some conditions cannot be solved for');
+                       disp(strvcat(lm1.CoefficientNames(find(sum(X,2)==1))))
+                       error('fitlme cannot proceed');
+                    end
+                
+                end
+                
+                X = lm1.designMatrix('Fixed');
+                Z = lm1.designMatrix('Random');
+                cnames = lm1.CoefficientNames(:);
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             catch
                 % This was added to handle the case where (e.g.) one subject group has tasks that are not in the other group. 
                 
@@ -329,7 +370,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{end} = 'cond';
             
+<<<<<<< HEAD
             if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))                
+=======
+            if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                 ShortSeperation=S(1).variables.ShortSeperation(ismember(S(1).variables.cond,S(1).variables.cond{1})) ;
                 ShortSeperation=reshape(repmat(ShortSeperation, [1 length(unique(cnames))])',[],1);
                 G.variables = [G.variables table(ShortSeperation)];
@@ -418,8 +463,34 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
             end
             
+<<<<<<< HEAD
             
+=======
+            job=nirs.modules.RenameStims;
+            cnt=1;
+            for i=1:length(G.conditions)
+                str=fixstr(G.conditions{i});
+                if(~strcmp(str,G.conditions{i}))
+                    job.listOfChanges{cnt,1}=G.conditions{i};
+                    job.listOfChanges{cnt,1}=str;
+                    cnt=cnt+1;
+                end
+            end
+            if(cnt>1)
+                G=job.run(G);
+            end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         end
     end
     
 end
+<<<<<<< HEAD
+=======
+
+
+
+function str =fixstr(str)
+
+str(([find(isspace(str(:))); find(ismember(str(:),{'-','+'}))]))='_';
+end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f

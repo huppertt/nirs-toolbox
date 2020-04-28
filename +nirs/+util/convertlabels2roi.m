@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 function [R, d] = convertlabels2roi(probe1020,label,type)
+=======
+function R = convertlabels2roi(probe1020,label,type)
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 % This function uses the registration of a probe to define the set of
 % region labels and the weight for each label
 
@@ -54,6 +58,7 @@ K = sqrt(V .* prop.mua ./ D);
 dist=probe1020.distances(idx);
 [n_link, n_region] = size(depth);
 W = nan(n_link, n_region);
+<<<<<<< HEAD
 u_dist = unique(dist);
 n_u = length(u_dist);
 
@@ -79,6 +84,27 @@ for i = 1:n_u
 end
 
 % W=exp(-K * depth) ./ depth;
+=======
+for idr = 1:n_region
+    for id = 1:n_link
+        xlim = dist(id) + 30; ylim = 30; zlim = 30;
+        srcpos=[-dist(id)/2 0 0]; detpos=[dist(id)/2 0 0];
+        [x,y,z]=meshgrid([-xlim:.5:xlim],[-ylim:.5:ylim],[0:-.5:-zlim]);
+        
+        dist2src = sqrt((x-srcpos(1)).^2+(y-srcpos(2)).^2+(z-srcpos(3)).^2);
+        dist2det = sqrt((x-detpos(1)).^2+(y-detpos(2)).^2+(z-detpos(3)).^2);
+        
+        
+        PhiS = exp(-K*dist2src)./dist2src;
+        PhiD = exp(-K*dist2det)./dist2det;
+        
+        Greens3pt = PhiS.*PhiD;
+        W(id, idr) = sum(reshape(Greens3pt(z<=-depth(id, idr)),[],1));
+    end
+end
+
+%W=exp(-K * depth) ./ depth;
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 
 W=W./(ones(size(depth,1),1)*sum(W,1));
 

@@ -45,6 +45,10 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
                         
                 for j=1:size(dd,2)
                     st=nirs.design.StimulusVector;
+<<<<<<< HEAD
+=======
+                    st.regressor_no_interest=true;
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                     st.name=['SS_PCA' num2str(j)];
                     st.time=data(i).time;
                     st.vector=dd(:,j);

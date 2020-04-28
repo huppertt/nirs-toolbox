@@ -15,13 +15,18 @@ for i=1:length(data)
     %     snirf.nirs(i).metaDataTags.UnixTime =
     
     for j=1:data(i).demographics.count
+<<<<<<< HEAD
         snirf.nirs(i).metaDataTags=setfield(snirf.nirs(i).metaDataTags,data(i).demographics.keys{i},data(i).demographics(data(i).demographics.keys{i}));
+=======
+        snirf.nirs(i).metaDataTags=setfield(snirf.nirs(i).metaDataTags,data(i).demographics.keys{j},data(i).demographics(data(i).demographics.keys{j}));
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     snirf.nirs(i).metaDataTags.filedescription=data(i).description;
     snirf.nirs(i).metaDataTags.SNIRF_createDate=datestr(now,'yyyy-mm-dd');
     snirf.nirs(i).metaDataTags.SNIRF_createTime=[datestr(now,'hh:mm:ss') 'Z'];
     
+<<<<<<< HEAD
     snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
     snirf.nirs(i).data(1).time=data(i).time;
     
@@ -48,6 +53,99 @@ for i=1:length(data)
     end
     
     snirf.nirs(i).probe.wavelengths =wavelengths;
+=======
+    if(data(i).Fm==0)
+        %CW-NIRS
+        snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
+        snirf.nirs(i).data(1).time=data(i).time;
+        
+        wavelengths=unique(data(i).probe.link.type);
+        
+        for k=1:height(data(i).probe.link);
+            snirf.nirs(i).data(1).measurementList(k).sourceIndex=data(i).probe.link.source(k);
+            snirf.nirs(i).data(1).measurementList(k).detectorIndex=data(i).probe.link.detector(k);
+            snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=find(ismember(wavelengths,data(i).probe.link.type(k)));
+            
+            snirf.nirs(i).data(1).measurementList(k).dataType = 1;
+            snirf.nirs(i).data(1).measurementList(k).dataTypeIndex = 1;
+            if(isnumeric(data(i).probe.link.type(k)))
+                snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw';
+            else
+                snirf.nirs(i).data(1).measurementList(k).dataTypeLabel=data(i).probe.link.type(k);
+                if(strcmp(lower(snirf.nirs(i).data(1).measurementList(k).dataTypeLabel),'hbo'))
+                    snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='HbO';
+                end
+                if(strcmp(lower(snirf.nirs(i).data(1).measurementList(k).dataTypeLabel),'hbr'))
+                    snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='HbR';
+                end
+            end
+            
+            %        snirf.nirs(i).data(1).measurementList(k).sourcePower
+            %        snirf.nirs(i).data(1).measurementList(k).detectorGain
+            %       snirf.nirs(i).data(1).measurementList(k).moduleIndex
+        end
+    else
+        % FD-NIRS
+        ModFreq=unique(data(i).probe.link.ModFreq);
+        lst=find(data(i).probe.link.ModFreq~=0);
+        phase=angle(data(i).data(:,lst));
+        data(i).data=abs(data(i).data);
+        data(i).data=[data(i).data phase];
+        l=data(i).probe.link(lst,:);
+        l.ModFreq=-l.ModFreq;
+        data(i).probe.link=[data(i).probe.link; l];
+        
+        snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
+        snirf.nirs(i).data(1).time=data(i).time;
+        
+        wavelengths=unique(data(i).probe.link.type);
+        
+        for k=1:height(data(i).probe.link);
+            snirf.nirs(i).data(1).measurementList(k).sourceIndex=data(i).probe.link.source(k);
+            snirf.nirs(i).data(1).measurementList(k).detectorIndex=data(i).probe.link.detector(k);
+            snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=find(ismember(wavelengths,data(i).probe.link.type(k)));
+            
+            if(data(i).probe.link.ModFreq(k)==0)
+                snirf.nirs(i).data(1).measurementList(k).dataType = 1;  % DC-CW
+                snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw-DC';
+            elseif(data(i).probe.link.ModFreq(k)>0)
+                 snirf.nirs(i).data(1).measurementList(k).dataType = 101;  % FD-Amp
+                 snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw-AC';
+            else
+                 snirf.nirs(i).data(1).measurementList(k).dataType = 102;  % FD-Phase
+                 snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw-Phase';
+            end
+            snirf.nirs(i).data(1).measurementList(k).dataTypeIndex = 1;
+           
+            
+            %        snirf.nirs(i).data(1).measurementList(k).sourcePower
+            %        snirf.nirs(i).data(1).measurementList(k).detectorGain
+            snirf.nirs(i).data(1).measurementList(k).moduleIndex=find(ismember(ModFreq,abs(data(i).probe.link.ModFreq(k))));
+        end
+        snirf.nirs(i).probe.frequencies=ModFreq;
+    end
+    
+    
+    
+    cnt=1;
+    for k=1:data(i).stimulus.count
+        st=data(i).stimulus(data(i).stimulus.keys{k});
+        if(isa(st,'nirs.design.StimulusVector'))
+            a=nirs.core.GenericData;
+            a.data=st.vector; 
+            a.time=st.time;
+            data(i).auxillary(data(i).stimulus.keys{k})=a;
+        else
+            snirf.nirs(i).stim(cnt).name=st.name;
+            snirf.nirs(i).stim(cnt).data =[st.onset st.dur st.amp];
+            cnt=cnt+1;
+        end
+    end
+    
+    if(isnumeric(wavelengths))
+        snirf.nirs(i).probe.wavelengths =wavelengths;
+    end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     
     %snirf.nirs(i).probe.wavelengthsEmission
     
@@ -65,7 +163,11 @@ for i=1:length(data)
     
     
     
+<<<<<<< HEAD
     %    snirf.nirs(i).probe.frequencies
+=======
+    
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     %    snirf.nirs(i).probe.timeDelays
     %    snirf.nirs(i).probe.timeDelayWidths
     %    snirf.nirs(i).probe.momentOrders
@@ -87,12 +189,27 @@ for i=1:length(data)
     
     snirf.nirs(i).probe.useLocalIndex=1;
     
+<<<<<<< HEAD
     if(ismember(data(i).auxillary.keys,'aux'))
         error('not implemented yet');
         %        snirf.nirs(i).aux(j).name
         %         snirf.nirs(i).aux(j).dataTimeSeries
         %         snirf.nirs(i).aux(j).time
         %         snirf.nirs(i).aux(j).timeOffset
+=======
+    if(data(i).auxillary.count>0)
+        cnt=1;
+        for j=1:data(i).auxillary.count
+            st=data(i).auxillary(data(i).auxillary.keys{j});
+            if(isa(st,'nirs.core.GenericData'))
+                snirf.nirs(i).aux(cnt).name=data(i).auxillary.keys{j};
+                snirf.nirs(i).aux(cnt).dataTimeSeries=st.data;
+                snirf.nirs(i).aux(cnt).time=st.time;
+                snirf.nirs(i).aux(cnt).timeOffset=0;
+                cnt=cnt+1;
+            end
+        end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     
@@ -124,6 +241,41 @@ end
 
 function array = makearray(snirf,array,str)
 
+<<<<<<< HEAD
+=======
+if(isfield(snirf,'nirs'))
+    for i=1:length(snirf.nirs)
+        snirf.nirs(i).data1=snirf.nirs(i).data;
+        a(i)=rmfield(snirf.nirs(i),'data');
+    end
+    snirf.nirs=a;
+    clear a;
+end
+
+if(isfield(snirf,'nirs'))
+    for i=1:length(snirf.nirs)
+        if(isfield(snirf.nirs(i),'aux'))
+            if(length(snirf.nirs(i).aux)==1)
+                snirf.nirs(i).aux1=snirf.nirs(i).aux;
+                a(i)=rmfield(snirf.nirs(i),'aux');
+            else
+                a(i)=snirf.nirs(i);
+            end
+        end
+    end
+    snirf.nirs=a;
+    clear a;
+end
+   
+
+if(isfield(snirf,'stim'))
+    if(length(snirf.stim)==1)
+        snirf.stim1=snirf.stim;
+        snirf=rmfield(snirf,'stim');
+    end
+end
+
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 if(nargin<2)
     array=struct;
 end
@@ -148,7 +300,11 @@ for i=1:length(snirf)
                 array = setfield(array,ff{k},a.(ff{k}));
             end
             
+<<<<<<< HEAD
         elseif(iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1)
+=======
+        elseif((iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1));
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             for k=1:length(snirf(i).(flds{j}))
                 array = setfield(array,[str s2 '__' flds{j} num2str(k)],snirf(i).(flds{j}){k});
             end

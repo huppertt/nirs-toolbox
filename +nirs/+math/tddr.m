@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 function signal_corrected = tddr( signal , sample_rate )
+=======
+function signal_corrected = tddr( signal , sample_rate,splitPosNeg )
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 % Perform Temporal Derivative Distribution Repair (TDDR) motion correction
 %
 % Usage:
@@ -16,12 +20,24 @@ function signal_corrected = tddr( signal , sample_rate )
 %   method for fNIRS. NeuroImage, 184, 171-179.
 %   https://doi.org/10.1016/j.neuroimage.2018.09.025
 
+<<<<<<< HEAD
+=======
+
+if(nargin<3)
+    splitPosNeg=false;
+end
+
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 %% Iterate over each channel
 nch = size(signal,2);
 if nch>1
     signal_corrected = zeros(size(signal));
     for ch = 1:nch
+<<<<<<< HEAD
         signal_corrected(:,ch) = nirs.math.tddr( signal(:,ch) , sample_rate );
+=======
+        signal_corrected(:,ch) = nirs.math.tddr( signal(:,ch) , sample_rate,splitPosNeg );
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     return
 end
@@ -62,8 +78,15 @@ while iter < 50
     % Step 3a. Estimate weighted mean
     mu = sum( w .* deriv ) / sum( w );
     
+<<<<<<< HEAD
     % Step 3b. Calculate absolute residuals of estimate
     dev = abs(deriv - mu);
+=======
+    if(splitPosNeg)
+    lst=find((deriv - mu)>0);
+    % Step 3b. Calculate absolute residuals of estimate
+    dev = abs(deriv(lst) - mu);
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 
     % Step 3c. Robust estimate of standard deviation of the residuals
     sigma = 1.4826 * median(dev);
@@ -72,7 +95,38 @@ while iter < 50
     r = dev / (sigma * tune);
     
     % Step 3e. Calculate new weights accoring to Tukey's biweight function
+<<<<<<< HEAD
     w = ((1 - r.^2) .* (r < 1)) .^ 2;
+=======
+    w(lst) = ((1 - r.^2) .* (r < 1)) .^ 2;
+    
+    lst=find((deriv - mu)<=0);
+    % Step 3b. Calculate absolute residuals of estimate
+    dev = abs(deriv(lst) - mu);
+
+    % Step 3c. Robust estimate of standard deviation of the residuals
+    sigma = 1.4826 * median(dev);
+
+    % Step 3d. Scale deviations by standard deviation and tuning parameter
+    r = dev / (sigma * tune);
+    
+    % Step 3e. Calculate new weights accoring to Tukey's biweight function
+    w(lst) = ((1 - r.^2) .* (r < 1)) .^ 2;
+    
+    else
+        % Step 3b. Calculate absolute residuals of estimate
+        dev = abs(deriv - mu);
+        
+        % Step 3c. Robust estimate of standard deviation of the residuals
+        sigma = 1.4826 * median(dev);
+        
+        % Step 3d. Scale deviations by standard deviation and tuning parameter
+        r = dev / (sigma * tune);
+        
+        % Step 3e. Calculate new weights accoring to Tukey's biweight function
+    w = ((1 - r.^2) .* (r < 1)) .^ 2;
+    end
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 
     % Step 3f. Terminate if new estimate is within machine-precision of old estimate
     if abs(mu-mu0) < D*max(abs(mu),abs(mu0))

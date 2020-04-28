@@ -114,6 +114,7 @@ classdef GLM < nirs.modules.AbstractGLM
                     j.(flds{i})=obj.options.(flds{i});
                 end
             end
+<<<<<<< HEAD
             
             if (obj.AddShortSepRegressors)
                 Stim=unique(nirs.getStimNames(data));
@@ -123,6 +124,51 @@ classdef GLM < nirs.modules.AbstractGLM
             
                    
             S=j.run(data);
+=======
+            S=j.run(data);
+             
+            
+            for idx=1:length(S)
+                [~,Stim]=nirs.design.createDesignMatrix(data(idx).stimulus,data(idx).time,obj.basis);
+                StimNew=unique(nirs.getStimNames(S(idx)));
+                
+                lst=[]; lst2=[];
+                for j=1:length(Stim)
+                    st=data(idx).stimulus(Stim{j});
+                    if(~ismember('regressor_no_interest',fields(st)))
+                        lst=[lst j];
+                    else
+                        if(~st.regressor_no_interest)
+                            
+                            lst=[lst j];
+                        else
+                            lst2=[lst2 j];
+                        end
+                    end
+                end
+                StimRm={Stim{lst2}};
+                Stim={Stim{lst}};
+                
+                SS={};
+                for i=1:length(StimNew)
+                    for j=1:length(Stim)
+                        if(~isempty(ismember(StimNew{i},Stim{j},'rows')) & ...
+                                isempty(strfind(StimNew{i},'SS_PCA')) & ...
+                                ~ismember(StimNew{i},StimRm))
+                            SS{end+1}=StimNew{i};
+                        end
+                    end
+                end
+                SS=unique(SS);
+                
+                j=nirs.modules.KeepStims;
+                j.listOfStims=SS;
+                S(idx)=j.run(S(idx));
+        end
+            
+                   
+           
+>>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                     
                     
             
