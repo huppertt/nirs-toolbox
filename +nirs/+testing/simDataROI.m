@@ -1,4 +1,4 @@
-function [data,truth] = simDataROI(region, probe,noise, stim, basis, circum_mean, circum_std, reg_err, stimDur, stimSpace)
+function [data, truth, depth] = simDataROI(region, probe,noise, stim, basis, circum_mean, circum_std, reg_err, stimDur, stimSpace)
 if exist('region') ~= 1 || isempty(region)
     region = 'BA-46_L';
 end
@@ -121,7 +121,7 @@ noise.probe=probe;
 
 noise.demographics('headsize')=probe.get_headsize;
 
-d=nirs.util.convertlabels2roi(noise.probe,region);
+[d, depth]=nirs.util.convertlabels2roi(noise.probe,region);
 
 w=d.weight;
 w=w/max(w);
@@ -166,7 +166,7 @@ for i = 1:size(channels, 1)
     truth(lst) = tt(i);
 end
 
-truth = nirs.util.convertlabels2roi(probe, region);
+truth = d;
 Y = exp( -bsxfun(@minus, Y, log(m)) );
 
 
