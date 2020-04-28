@@ -716,7 +716,7 @@ else
     info.ShortDetIndex=[];
 end
 info.Detectors=length(sum(info.det_Mask));
-info.Wavelengths=[780 850];
+info.Wavelengths=[760 850];
 info.Sources=length(info.drv_amplitudes);
 
 info.SDkey=[1:info.Sources*info.Detectors;repmat(1:info.Sources,1,info.Detectors); repmat(1:info.Detectors,1,info.Sources)]';

@@ -19,7 +19,9 @@ function tbl = createStimlusTable( data )
             for j = 1:length(stim.keys)
                 str=strtrim(stim.keys{j});
                 str(find(double(str)<48 | double(str)>122))=[];
-                tbl(i).(str) = stim.values{j};
+                if(~isempty(stim.values{j}))
+                    tbl(i).(str) = stim.values{j};
+                end
             end
             
         end
