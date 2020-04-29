@@ -1,8 +1,8 @@
-function [tbl,ROIstats] = roiAverage( data, R, names ,splitrois)
+function [tbl,ROIstats] = roiAverage( data, R, names ,splitrois,weighted)
 
 if(~iscell(R)); R={R}; end;
 
-if(nargin<3 && ~exist('names'))
+if(nargin<3 || isempty(names))
     for i=1:length(R)
         names{i}=num2str(i);
     end
@@ -11,13 +11,17 @@ if ischar( names )
     names = {names};
 end
 
-if(nargin<4)
+if(nargin<4 || isempty(splitrois))
     % put all roi time courses in a single object or split
     splitrois=false;
 end
 
+if(nargin<5 || isempty(weighted))
+    weighted=false;
+end
+
 if(length(data)>1)
-    [tbl,ROIstats]=nirs.util.roiAverage(  data(1), R, names ,splitrois);
+    [tbl,ROIstats]=nirs.util.roiAverage(  data(1), R, names ,splitrois,weighted);
     
     if(isa(tbl,'table'))
         
@@ -197,6 +201,14 @@ if(isa(data,'nirs.core.Data'))
             c(R{idx+i-1},i) = ContVect{idx+i-1};
             c(:,i)=c(:,i)/length(find(c(:,i)~=0));
         end
+        if(weighted)
+            W=diag(1./std(data.data,[],2));
+            c=W*c;
+            for i=1:size(c,2)
+                 c(:,i)=c(:,i)/length(find(c(:,i)~=0));
+            end
+        end
+        
         d(cnt)=nirs.core.Data;
         d(cnt).description=['ROI average' namesOld{floor((idx-1)/length(types))+1}];
         d(cnt).probe=nirs.core.Probe(NaN(1,3),NaN(1,3),table(repmat(1,length(types),1),...
@@ -456,6 +468,14 @@ else
             % contrast vector
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
+        
+            if(weighted)
+                W=diag(1./diag(data.covb));
+                c=W*c;
+                c=c./sum(c);
+            end
+        
+            
             
             cc(lst,(i-1)*length(R)+j)=c;
             vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];

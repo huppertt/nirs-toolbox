@@ -62,8 +62,8 @@ classdef TestROI < matlab.unittest.TestCase
             true_covb(2,2) = mean(reshape(obj.data1.covb(hbr_inds,hbr_inds),[],1));
             
             % Compare
-            obj.verifyEqual(res.beta,true_betas);
-            obj.verifyEqual(res.covb,true_covb);
+            obj.verifyEqual(res.beta,true_betas,'RelTol',1E-5);
+            obj.verifyEqual(res.covb,true_covb,'RelTol',1E-5);
             
         end
         
@@ -88,8 +88,8 @@ classdef TestROI < matlab.unittest.TestCase
             true_covb(2,2) = sum(sum(weights2(hbr_inds,hbr_inds) .* obj.data1.covb(hbr_inds,hbr_inds))) / sum(sum(weights2(hbr_inds,hbr_inds)));
                                     
             % Compare
-            obj.verifyEqual(res.beta,true_betas);
-            obj.verifyLessThan(sum(res.covb(:)-true_covb(:)),10^-12);
+            obj.verifyEqual(res.beta,true_betas,'RelTol',1E-5);
+            obj.verifyLessThan(sum(res.covb(:)-true_covb(:)),10^-10);
             
         end
 

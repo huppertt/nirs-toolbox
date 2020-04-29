@@ -39,16 +39,11 @@ classdef ApplyROI < nirs.modules.AbstractModule
                     listOfROIs=obj.listOfROIs;
                 end
                 if(isa(dataChannel(i),'nirs.core.Data'))
-                    if(obj.weighted)
-                        W=1./diag(1./std(dataChannel(i).data,[],2));
-                        dataChannel(i).data=dataChannel(i).data*W;
-                    end
-                    dataROI(i,1)=nirs.util.roiAverage(dataChannel(i),listOfROIs);
+                   
+                    dataROI(i,1)=nirs.util.roiAverage(dataChannel(i),listOfROIs,[],[],obj.weighted);
                 else
-                    W=diag(1./diag(sqrt(dataChannel.covb)));
-                    dataChannel.beta=W*dataChannel.beta;                    
-                    
-                    [~,dataROI(i,1)]=nirs.util.roiAverage(dataChannel(i),listOfROIs);
+
+                    [~,dataROI(i,1)]=nirs.util.roiAverage(dataChannel(i),listOfROIs,[],[],obj.weighted);
                 end
             end
             
