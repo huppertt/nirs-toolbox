@@ -114,7 +114,7 @@ classdef GLM < nirs.modules.AbstractGLM
                     j.(flds{i})=obj.options.(flds{i});
                 end
             end
-<<<<<<< HEAD
+
             
             if (obj.AddShortSepRegressors)
                 Stim=unique(nirs.getStimNames(data));
@@ -124,8 +124,6 @@ classdef GLM < nirs.modules.AbstractGLM
             
                    
             S=j.run(data);
-=======
-            S=j.run(data);
              
             
             for idx=1:length(S)
@@ -134,7 +132,12 @@ classdef GLM < nirs.modules.AbstractGLM
                 
                 lst=[]; lst2=[];
                 for j=1:length(Stim)
-                    st=data(idx).stimulus(Stim{j});
+                    ss=Stim{j};
+                    if(~isempty(strfind(ss,':')))
+                        ss(strfind(ss,':'):end)=[];
+                    end
+                        
+                    st=data(idx).stimulus(ss);
                     if(~ismember('regressor_no_interest',fields(st)))
                         lst=[lst j];
                     else
@@ -168,8 +171,7 @@ classdef GLM < nirs.modules.AbstractGLM
             
                    
            
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
-                    
+                   
                     
             
         end

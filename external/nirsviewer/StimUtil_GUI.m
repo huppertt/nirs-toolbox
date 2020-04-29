@@ -68,8 +68,6 @@ else
     raw(:)=[];
 end
 
-<<<<<<< HEAD
-=======
 if(nargin>4)
     showdata=varargin{2};
     if(showdata)
@@ -82,7 +80,6 @@ else
 end
 
 
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 Filenames={};
 for i=1:length(raw)
     if(~isempty(raw(i).description) && exist(raw(i).description,'file')==2)

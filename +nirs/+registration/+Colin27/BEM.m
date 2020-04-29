@@ -19,13 +19,7 @@ end
  a=which('nirs.registration.Colin27.BEM');
  folder=fileparts(a); 
  
-<<<<<<< HEAD
-if(exist(fullfile(folder,'ColinBEM.mat'))==2 && ~force)
-    try
-        load(fullfile(folder,'ColinBEM.mat'));
-    catch
-        load('ColinBEM.mat')
-=======
+
 if(exist(fullfile(folder,'ColinBEM_v2.mat'))==2 && ~force)
     try
         load(fullfile(folder,'ColinBEM.mat'));
@@ -40,7 +34,6 @@ if(exist(fullfile(folder,'ColinBEM_v2.mat'))==2 && ~force)
 %         fwdBEM.preK{1}=preK;
 %         load('ColinBEM_preK2.mat');
 %         fwdBEM.preK{2}=preK;
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     if(nargin>0)

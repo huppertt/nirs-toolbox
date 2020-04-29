@@ -17,12 +17,6 @@ classdef FIR
             
             
             if(~obj.isIRF)
-<<<<<<< HEAD
-                on = diff([0; s]) > 0; 
-            else
-                on = s;
-            end
-=======
                 on = diff([0; s]) > 0;
                 on=kron(on,ones(obj.binwidth,1));
                 on(length(s)+1:end)=[];
@@ -30,7 +24,6 @@ classdef FIR
                 on = s;
             end
             
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             on = [on( floor(obj.binwidth/2)+1:end ); zeros(floor(obj.binwidth/2),1)];
             
             if(isstr(obj.nbins))

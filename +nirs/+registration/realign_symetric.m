@@ -4,10 +4,7 @@ function probe1020=realign_symetric(probe1020)
 optodes=probe1020.optodes_registered;
 optodes2D=probe1020.optodes;
 
-<<<<<<< HEAD
-=======
 optodes2D(ismember(optodes2D.Type,{'FID-anchor' 'FID-attractor'}),:)=[];
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 pos3D=[optodes.X optodes.Y optodes.Z];
 pos2D=[optodes2D.X optodes2D.Y optodes2D.Z];
 

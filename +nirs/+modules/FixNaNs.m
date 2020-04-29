@@ -9,10 +9,7 @@ classdef FixNaNs < nirs.modules.AbstractModule
 
     properties
         ifFailReplaceWith = 1; % value to replace NaNs with if interpolation fails
-<<<<<<< HEAD
-=======
         type='linear';
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     methods
@@ -41,11 +38,7 @@ classdef FixNaNs < nirs.modules.AbstractModule
                             elseif any(lst(:,j))
                                 % interpolation
                                 l = lst(:,j);
-<<<<<<< HEAD
-                                d(l,j) = interp1(t(~l), d(~l,j), t(l),'linear','extrap');
-=======
                                 d(l,j) = interp1(t(~l), d(~l,j), t(l),obj.type);
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                                 data(i).data = d;
                             end
                         end
@@ -56,8 +49,6 @@ classdef FixNaNs < nirs.modules.AbstractModule
                     end
 
                 end
-<<<<<<< HEAD
-=======
                 
                 % repeat to get the edges using nearest
                 lst = isnan(d);
@@ -82,7 +73,7 @@ classdef FixNaNs < nirs.modules.AbstractModule
 
                 end
                 
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
+
                 data(i).data=d;
             end
         end

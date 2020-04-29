@@ -15,45 +15,13 @@ for i=1:length(data)
     %     snirf.nirs(i).metaDataTags.UnixTime =
     
     for j=1:data(i).demographics.count
-<<<<<<< HEAD
-        snirf.nirs(i).metaDataTags=setfield(snirf.nirs(i).metaDataTags,data(i).demographics.keys{i},data(i).demographics(data(i).demographics.keys{i}));
-=======
         snirf.nirs(i).metaDataTags=setfield(snirf.nirs(i).metaDataTags,data(i).demographics.keys{j},data(i).demographics(data(i).demographics.keys{j}));
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     end
     
     snirf.nirs(i).metaDataTags.filedescription=data(i).description;
     snirf.nirs(i).metaDataTags.SNIRF_createDate=datestr(now,'yyyy-mm-dd');
     snirf.nirs(i).metaDataTags.SNIRF_createTime=[datestr(now,'hh:mm:ss') 'Z'];
     
-<<<<<<< HEAD
-    snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
-    snirf.nirs(i).data(1).time=data(i).time;
-    
-    wavelengths=unique(data(i).probe.link.type);
-    
-    for k=1:height(data(i).probe.link);
-        snirf.nirs(i).data(1).measurementList(k).sourceIndex=data(i).probe.link.source(k);
-        snirf.nirs(i).data(1).measurementList(k).detectorIndex=data(i).probe.link.detector(k);
-        snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=find(ismember(wavelengths,data(i).probe.link.type(k)));
-        
-        snirf.nirs(i).data(1).measurementList(k).dataType = '001';
-        snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw';
-        
-        %        snirf.nirs(i).data(1).measurementList(k).sourcePower
-        %        snirf.nirs(i).data(1).measurementList(k).detectorGain
-        %       snirf.nirs(i).data(1).measurementList(k).moduleIndex
-    end
-    
-    
-    for k=1:data(i).stimulus.count
-        st=data(i).stimulus(data(i).stimulus.keys{k});
-        snirf.nirs(i).data(1).stim(k).name=st.name;
-        snirf.nirs(i).data(1).stim(k).data =[st.onset st.dur st.amp];
-    end
-    
-    snirf.nirs(i).probe.wavelengths =wavelengths;
-=======
     if(data(i).Fm==0)
         %CW-NIRS
         snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
@@ -145,8 +113,6 @@ for i=1:length(data)
     if(isnumeric(wavelengths))
         snirf.nirs(i).probe.wavelengths =wavelengths;
     end
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
-    
     %snirf.nirs(i).probe.wavelengthsEmission
     
     
@@ -162,12 +128,6 @@ for i=1:length(data)
     end
     
     
-    
-<<<<<<< HEAD
-    %    snirf.nirs(i).probe.frequencies
-=======
-    
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     %    snirf.nirs(i).probe.timeDelays
     %    snirf.nirs(i).probe.timeDelayWidths
     %    snirf.nirs(i).probe.momentOrders
@@ -189,14 +149,7 @@ for i=1:length(data)
     
     snirf.nirs(i).probe.useLocalIndex=1;
     
-<<<<<<< HEAD
-    if(ismember(data(i).auxillary.keys,'aux'))
-        error('not implemented yet');
-        %        snirf.nirs(i).aux(j).name
-        %         snirf.nirs(i).aux(j).dataTimeSeries
-        %         snirf.nirs(i).aux(j).time
-        %         snirf.nirs(i).aux(j).timeOffset
-=======
+
     if(data(i).auxillary.count>0)
         cnt=1;
         for j=1:data(i).auxillary.count
@@ -208,9 +161,7 @@ for i=1:length(data)
                 snirf.nirs(i).aux(cnt).timeOffset=0;
                 cnt=cnt+1;
             end
-        end
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
-    end
+        end    end
     
     
     
@@ -241,8 +192,6 @@ end
 
 function array = makearray(snirf,array,str)
 
-<<<<<<< HEAD
-=======
 if(isfield(snirf,'nirs'))
     for i=1:length(snirf.nirs)
         snirf.nirs(i).data1=snirf.nirs(i).data;
@@ -275,7 +224,6 @@ if(isfield(snirf,'stim'))
     end
 end
 
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 if(nargin<2)
     array=struct;
 end
@@ -300,11 +248,8 @@ for i=1:length(snirf)
                 array = setfield(array,ff{k},a.(ff{k}));
             end
             
-<<<<<<< HEAD
-        elseif(iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1)
-=======
+
         elseif((iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1));
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             for k=1:length(snirf(i).(flds{j}))
                 array = setfield(array,[str s2 '__' flds{j} num2str(k)],snirf(i).(flds{j}){k});
             end

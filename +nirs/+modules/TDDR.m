@@ -1,14 +1,11 @@
 classdef TDDR < nirs.modules.AbstractModule
 %% Temporal Derivative Distribution Repair - Corrects motion artifacts by downweighting outlier fluctuations
-<<<<<<< HEAD
-    methods
-=======
+
 properties    
     usePCA = false;  % Do correction on the PrinComp of the data instead of channel space
     split_PosNeg=false;  % Process pos and negative derivatives seperately
 end
 methods
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         function obj = TDDR( prevJob )
            obj.name = 'Temporal Derivative Distribution Repair';
            obj.citation=['Fishburn, Frank A., Ludlum, Ruth S., Vaidya, Chandan J., and Medvedev, Andrei V. '...
@@ -23,9 +20,7 @@ methods
             
             for i = 1:numel(data)
                 try
-<<<<<<< HEAD
-                    data(i).data = nirs.math.tddr( data(i).data , data(i).Fs );
-=======
+
                     if(obj.usePCA)
                         [U,S,V]=nirs.math.mysvd(data(i).data);
                          U=nirs.math.tddr( U , data(i).Fs,obj.split_PosNeg );
@@ -34,7 +29,6 @@ methods
                     else
                         data(i).data = nirs.math.tddr( data(i).data , data(i).Fs ,obj.split_PosNeg);
                     end
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                 catch
                     disp(['Error in file ' num2str(i) ' ' lasterr]);
                 end

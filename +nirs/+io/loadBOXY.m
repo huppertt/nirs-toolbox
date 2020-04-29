@@ -93,12 +93,9 @@ lambda=[676 690 750 788 800 808 830 788.1];
             ISSdata.Data.Phase=phase_unwrap(ISSdata.Data.Phase,ISSdata.Distances',data(iFile).Fm);
             d=ISSdata.Data.AC.*(cos(ISSdata.Data.Phase)+1i*sin(ISSdata.Data.Phase));
             data(iFile).data=d';
-<<<<<<< HEAD
-=======
             data(iFile).data=[data(iFile).data ISSdata.Data.DC'];
             
             probe.link=[probe.link; probe.link];
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             
             %aux data
                 a=ISSdata.Data.Aux';
@@ -118,23 +115,17 @@ lambda=[676 690 750 788 800 808 830 788.1];
                end
                 WF.Term(lst)=[];
                 WF.Factor(lst)=[];
-<<<<<<< HEAD
-=======
                 
                 WF.Term=[WF.Term; WF.Term];
                 WF.Factor=[WF.Factor; WF.Factor];
-                
-                
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
+                               
                 data(iFile).auxillary('calibration')=WF;
                 
                 data(iFile).auxillary('ISS Aquistion Info')=ISSdata.ACQinfo;
                 
                 ModFreq=ones(height(probe.link),1)*110;  % hardcoded 110Hz for ISS Boxy
-<<<<<<< HEAD
-=======
+
                 ModFreq(end/2+1:end)=0;
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
                 probe.link=[probe.link table(ModFreq)];                
                 
                 

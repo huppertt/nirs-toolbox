@@ -154,6 +154,7 @@ for idx2=1:length(R)
         
         if(exist('ContVect'))
             ContVectNew{cnt}=ContVect{idx2};
+             ContVectNew{cnt}=ContVectNew{cnt}/sum(ContVectNew{cnt});
         end
         cnt=cnt+1;
     end

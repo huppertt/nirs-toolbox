@@ -11,10 +11,8 @@ array=cell(length(names),2);
 for i=1:length(names)
     array{i,1}=names{i};
     array{i,2}=hdf5read(filename,names{i});
-<<<<<<< HEAD
-=======
+
     array{i,3}=class(array{i,2});
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     if(isa(array{i,2},'hdf5.h5string'))
         array{i,2}=array{i,2}.Data;
     end
@@ -52,15 +50,11 @@ for i=1:size(array,1)
               if(~isfield(snirf,n))
                 snirf=setfield(snirf,n,{});
               end
-<<<<<<< HEAD
-              snirf.(n){idx}=array{i,2};
-=======
               if(idx==0)
                   snirf=setfield(snirf,array{i,1},array{i,2});
               else
                 snirf.(n){idx}=array{i,2};
               end
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
         else
             snirf=setfield(snirf,array{i,1},array{i,2});
         end
@@ -85,16 +79,12 @@ for i=1:length(id)
         if(~isfield(snirf,n))
             snirf=setfield(snirf,n,s);
         end
-<<<<<<< HEAD
-        snirf.(n)(idx,1)=s;
-        
-=======
+
         if(idx==0)
             snirf=setfield(snirf,id{i},s);
         else
         snirf.(n)(idx,1)=s;
         end
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
     else
         snirf=setfield(snirf,id{i},s);
     end
