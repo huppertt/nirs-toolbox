@@ -84,10 +84,7 @@ classdef Probe1020 < nirs.core.Probe
                     m(i).fiducials.Y=n(:,2);
                     m(i).fiducials.Z=n(:,3);
                 end
-<<<<<<< HEAD
-=======
 
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
             end
             n=obj.pts1020;
             n(:,4)=1;

@@ -1,23 +1,17 @@
 function raw = loadShimadzu(filename,probe)
 % Put probe.mat file in root directory
 
-<<<<<<< HEAD
-=======
+
 if(~isempty(strfind(lower(filename),'config.txt')) |...
     ~isempty(strfind(lower(filename),'digpts.txt')))
     raw=[];
     return
 end
 
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 if (nargin<2)
     load probe
 end
 
-<<<<<<< HEAD
-=======
-
->>>>>>> e5f3a84a411a47d49ab3f360371dbfa4180f0a9f
 datatype='raw';
 fid = fopen(filename,'r');
 line='test';
