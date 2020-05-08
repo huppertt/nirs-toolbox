@@ -61,16 +61,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             b = [];
             vars = table();
-           
             for i = 1:length(S)
-                if(~ismember('source',S(i).probe.link.Properties.VariableNames) & ...
-                        ismember('ROI',S(i).probe.link.Properties.VariableNames))
-                    S(i)=S(i).sorted({'ROI', 'type'});
-                else
-                    
-                    S(i)=S(i).sorted({'source','detector', 'type'});
-                end
                 
+               
                 
                 % coefs
                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
@@ -86,15 +79,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         nirs.util.flushstdout(1);
                         fprintf( 'preparing covariance model %4i of %4i.\n', i, length(S) )
                     end
+                    [u, s, ~] = svd(S(i).covb, 'econ');
+                    %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
+                    W = blkdiag(W, pinv(s).^.5 * u');
                     
-                    L = chol(S(i).covb,'upper');
-                    W = blkdiag(W,pinv(L));
-                 
-%                     [u, s, ~] = svd(S(i).covb, 'econ');
-%                     %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
-%                     W = blkdiag(W, pinv(s).^.5 * u');
-%                     
-%                     iW = blkdiag(iW, u*sqrt(s) );
+                    iW = blkdiag(iW, u*sqrt(s) );
                 end
                 
                 
@@ -127,11 +116,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
             else
                 
-                [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
-                
-                % list for first source
-                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-                sd.Properties.VariableNames = {'source', 'detector', 'type'};
+            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
+            
+            % list for first source
+            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+            sd.Properties.VariableNames = {'source', 'detector', 'type'};
             end
             
             
@@ -154,46 +143,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
             try
-
-                lastwarn('');
-                warning('off','stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit');
                 lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
                     obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
-                [a,err]=lastwarn;
-                if(~isempty(err) && strcmp(err,'stats:classreg:regr:lmeutils:StandardLinearMixedModel:Message_PerfectFit'))
-                    % There is at least one condition that will not let us
-                    % do this.
-                    X = lm1.designMatrix('Fixed');
-                    if(all(sum(X,2)==1))
-                        cnt=1;
-                        for i=1:length(S)
-                           
-                            job=nirs.modules.RenameStims;
-                            for j=1:length(S(i).conditions)
-                                job.listOfChanges{j,1}=S(i).conditions{j};
-                                job.listOfChanges{j,2}=lm1.CoefficientNames{cnt};
-                                
-                                job.listOfChanges{j,2}=fixstr(job.listOfChanges{j,2});
-                                
-                                cnt=cnt+1;
-                            end
-                            S(i)=job.run(S(i));
-                        end
-                        G=nirs.math.combineStats(S);
-                        return
-                        % for now
-                    else
-                       warning('Some conditions cannot be solved for');
-                       disp(strvcat(lm1.CoefficientNames(find(sum(X,2)==1))))
-                       error('fitlme cannot proceed');
-                    end
-                
-                end
                 
                 X = lm1.designMatrix('Fixed');
                 Z = lm1.designMatrix('Random');
-                cnames = lm1.CoefficientNames(:);
-
+                 cnames = lm1.CoefficientNames(:);
             catch
                 % This was added to handle the case where (e.g.) one subject group has tasks that are not in the other group. 
                 
@@ -312,7 +267,6 @@ classdef MixedEffects < nirs.modules.AbstractModule
             lst=find(~ismember(1:size(X,1),unique(i)));
             if(rank(full(X(lst,:)))<size(X,2))
                 warning('Model is unstable');
-                
             end
             lstKeep=find(~all(X==0));
             
@@ -362,12 +316,6 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{end} = 'cond';
-            
-            if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))
-                ShortSeperation=S(1).variables.ShortSeperation(ismember(S(1).variables.cond,S(1).variables.cond{1})) ;
-                ShortSeperation=reshape(repmat(ShortSeperation, [1 length(unique(cnames))])',[],1);
-                G.variables = [G.variables table(ShortSeperation)];
-            end
             G.description = ['Mixed Effects Model: ' obj.formula];
             
             n={}; b={}; cnt=1;
@@ -401,27 +349,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 %Create a diagnotistcs table of the adjusted data
                
                 vars=G.variables;
-                if(~ismember('source',vars.Properties.VariableNames) & ...
-                        ismember('ROI',vars.Properties.VariableNames))
-                    [vars, idx] = nirs.util.sortrows(vars, {'ROI', 'type'});
-                    
-                    % list for first source
-                    [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
-                    sd.Properties.VariableNames = {'ROI', 'type'};
-                    
-                    
-                    
-                else
-                    
-                    [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
-                    
-                    % list for first source
-                    [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-                    sd.Properties.VariableNames = {'source', 'detector', 'type'};
-                end
-                
-                
-                
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
                 models=cell(height(G.variables),1);
                 for idx=1:max(lst)
                     ll=find(lst == idx);
@@ -452,29 +380,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
             end
             
-
-            job=nirs.modules.RenameStims;
-            cnt=1;
-            for i=1:length(G.conditions)
-                str=fixstr(G.conditions{i});
-                if(~strcmp(str,G.conditions{i}))
-                    job.listOfChanges{cnt,1}=G.conditions{i};
-                    job.listOfChanges{cnt,2}=str;
-                    cnt=cnt+1;
-                end
-            end
-            if(cnt>1)
-                G=job.run(G);
-            end
+            
         end
     end
     
-end
-
-
-
-
-function str =fixstr(str)
-
-str(([find(isspace(str(:))); find(ismember(str(:),{'-','+'}))]))='_';
 end
