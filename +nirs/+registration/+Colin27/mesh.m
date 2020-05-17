@@ -6,10 +6,10 @@ function m = mesh
 a=which('nirs.registration.Colin27.BEM');
 folder=fileparts(a);
 try
-load(fullfile(folder,'ColinBEM.mat'));
+    load(fullfile(folder,'ColinBEM.mat'));
 catch
-    
-load('ColinBEM.mat');
+     load(fullfile(folder,'ColinBEM_v2.mat'))
 end
+
 m=fwdBEM.mesh;
 return

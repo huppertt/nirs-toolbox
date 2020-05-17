@@ -257,6 +257,7 @@ elseif(isa(data,'nirs.core.sFCStats'))
 
     Z = data.Z;
     
+    
     vars=data.probe.link;
     %[vars, ivars] = sortrows(data.probe.link, {'source', 'detector', 'type'});
     %Z = data.Z(ivars,ivars,:);
@@ -283,13 +284,8 @@ elseif(isa(data,'nirs.core.sFCStats'))
     end
     
     typ=zeros(length(names),1);
-    for i=1:length(names)
-        for j=1:length(types)
-            if(~isempty(strfind(names{i},types{j})))
-                typ(i)=j;
-            end
-        end
-    end
+   
+    
     
     for i = 1:length(uconds)
         
@@ -299,47 +295,50 @@ elseif(isa(data,'nirs.core.sFCStats'))
         else
             C=covZ(:,:,i);
         end
-       
+        
         
         for j = 1:length(R)
             for j2=1:length(R)
-                
-                if(typ(j)==typ(j2))
-                    
-                    % contrast vector
-                    c = zeros(size(b));
-                    c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
-                    %c=c/sum(c(:));
-                      
-                    CC=diag(C(:));
-                    CC(isnan(CC))=1E6;
-                    c2=c-diag(diag(c));  %remove the self terms
-                    c2= c2.*(triu(ones(size(c2))));
-                    b(isnan(b))=0;
-                    broi    = c2(:)'*b(:)/sum(c2(:));
-                    rroi=tanh(broi);
-                    df  =data.dfe;
-                    
-                    if(~isempty(covZ))
-                        se = sqrt(c2(:)'*CC*c2(:));
-                    else
-                        se = sqrt(1 - rroi.^2./(df-2));
-                    end
+                if(1) %j~=j2)
+                    if(typ(j)==typ(j2))
                         
-                    t       = broi ./ se;
-                    
-                    p       = 2*tcdf(-abs(t),df);
-                    
-                    tmp = cell2table({names{j},names{j2} uconds{i}, rroi,broi, se, df, t, p});
-                    tmp.Properties.VariableNames = varnames;
-                    
-                    
-                    tbl = [tbl; tmp];
+                        % contrast vector
+                        c = zeros(size(b));
+                        c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
+                        %c=c/sum(c(:));
+                        
+                        CC=diag(C);
+                        CC(isnan(CC))=1E6;
+                        %c2=c-diag(diag(c));  %remove the self terms
+                        % c2= c2.*(triu(ones(size(c2))));
+                        b(isnan(b))=0;
+                        broi    = c(:)'*b(:)/sum(c(:));
+                        rroi=tanh(broi);
+                        df  =data.dfe;
+                        
+                        if(~isempty(covZ))
+                            se = sqrt(c2(:)'*CC*c2(:));
+                        else
+                            se = sqrt(1 - rroi.^2./(df-2));
+                        end
+                        
+                        t       = broi ./ se;
+                        
+                        
+                        
+                        
+                        p       = 2*tcdf(-abs(t),df);
+                        
+                        tmp = cell2table({names{j},names{j2} uconds{i}, rroi,broi, se, df, t, p});
+                        tmp.Properties.VariableNames = varnames;
+                        
+                        
+                        tbl = [tbl; tmp];
+                    end
                 end
             end
         end
     end
-    
     q   = nirs.math.fdr( tbl.p );
     [~,power] = nirs.math.MDC(tbl,.8,.05);
     tbl = [tbl table(q) table(power)];

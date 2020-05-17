@@ -34,6 +34,13 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
                 ptype = '-djpeg';
             elseif strcmp(ext, 'png')
                 ptype = '-dpng';
+            elseif strcmp(ext, 'fig')
+                fname = [obj.conditions{i} '_' utypes{j} '.' ext];
+                fname = [folder filesep strjoin(strsplit(fname, ':'), '__')];
+                savefig(f, fname)
+                
+                close(f);
+                continue
             else
                 error('File extension not recognized.')
             end

@@ -12,19 +12,207 @@ for iFile = 1:length(filenames)
     disp(['Loading ' filenames{iFile}]);
     try
         [hdr,d]=readSOMMAheader(filenames{iFile});
-        for i=1:length(d)
-            data(cnt,1)=parseData(hdr(i),d{i});
-            data(cnt,1).description=filenames{iFile};
-            
-            
-            cnt=cnt+1;
+        try
+            for i=1:length(d)
+                data(cnt,1)=parseData(hdr(i),d{i});
+                data(cnt).time=data(cnt).time-data(cnt).time(1);
+                data(cnt,1).description=filenames{iFile};
+                
+                
+                data(cnt,1).demographics('scan')=i;
+                type=filenames{iFile}(max(strfind(filenames{iFile},'_'))+1:end);
+                type=strtok(type,'.');
+                
+                if(isempty(data(cnt,1).demographics('Session')))
+                    data(cnt,1).demographics('Session')=type;
+                end
+                if(isempty(data(cnt,1).demographics('SubjID')))
+                    [~,subjid]=fileparts(filenames{iFile});
+                    subjid=subjid(1:strfind(subjid,'_')-1);
+                    data(cnt,1).demographics('SubjID')=subjid;
+                end
+                
+                s= data(cnt,1).demographics('SubjID');
+                if(strcmp(s(1),'2'));
+                    data(cnt,1).demographics('Site')='Wake';
+                else
+                    data(cnt,1).demographics('Site')='Pitt';
+                end
+                
+                j=nirs.modules.TDDR;
+                j.usePCA=true;
+                data(cnt,1)=j.run( data(cnt,1));
+                
+                data(cnt,1)=SOMMA_ApplyCal(data(cnt,1));
+                
+                
+                
+                
+                cnt=cnt+1;
+            end
         end
+        data=AddStim(data);
+        
     end
 end
 
 
 end
 
+
+function hb = AddStim(hb)
+
+
+lst=find(ismember(nirs.createDemographicsTable(hb).Session,{'F0' 'C0'}));
+for i=1:length(lst)
+    
+    a=mean(abs(hb(lst(i)).data),2);
+    a=(a-mean(a(1:50)))/std(a(1:50));
+    a=-a*sign(a(find(abs(a)==max(abs(a)))));
+    [fa,fb]=butter(4,.1*2/hb(lst(i)).Fs);
+    a=filter(fa,fb,a);
+    
+    onset=(min(find(a<max(-1.5,min(a)/2))))/hb(i).Fs;
+    
+    if(onset>(hb(lst(i)).time(end)-hb(lst(i)).time(1))/3)
+        onset=30;
+    end
+    if(onset<5)
+        onset=20;
+    end
+    
+    
+    onset=hb(lst(i)).time(1)+onset;
+    
+    st=nirs.design.StimulusEvents;
+    st.name='Baseline';
+    st.onset=hb(lst(i)).time(1);
+    st.dur=onset-st.onset;
+    st.amp=1;
+    hb(lst(i)).stimulus('Baseline')=st;
+end
+
+
+
+
+
+end
+
+
+
+function hb = SOMMA_ApplyCal(raw,cal)
+
+%% Apply calibration
+mus=[4.9 4.2];
+
+
+if(nargin<2 || isempty(cal))
+    cal =[0.0402
+        0.0160
+        0.0112
+        0.0097
+        0.0344
+        0.0189
+        0.0129
+        0.0065];
+    
+    % cal=[
+    %     0.0156
+    %     0.0050
+    %     0.0029
+    %     0.0021
+    %     0.0134
+    %     0.0059
+    %     0.0033
+    %     0.0014];
+    
+end
+
+
+if(isstr(cal))
+    device={'SOMMA_1'
+        'SOMMA_2'
+        'SOMMA_3'
+        'SOMMA_4'
+        'SOMMA_5'
+        'SOMMA_6'
+        'SOMMA_7'
+        'SOMMA_8'};
+    
+    C=[     0.0366    0.0390    0.0407    0.0417    0.0396    0.0396    0.0389    0.0456
+        0.0129    0.0152    0.0168    0.0171    0.0162    0.0154    0.0152    0.0174
+        0.0046    0.0097    0.0168    0.0156    0.0094    0.0069    0.0128    0.0207
+        0.0031    0.0097    0.0113    0.0099    0.0095    0.0095    0.0097    0.0127
+        0.0269    0.0365    0.0350    0.0312    0.0485    0.0332    0.0350    0.0437
+        0.0094    0.0300    0.0243    0.0145    0.0234    0.0197    0.0203    0.0480
+        0.0047    0.0131    0.0140    0.0116    0.0136    0.0132    0.0132    0.0168
+        0.0050    0.0064    0.0075    0.0059    0.0067    0.0066    0.0064    0.0088];
+    
+    cal=C(:,find(ismember(device,cal)));
+    
+    if(isempty(cal))
+        cal =[0.0402
+            0.0160
+            0.0112
+            0.0097
+            0.0344
+            0.0189
+            0.0129
+            0.0065];
+    end
+    
+end
+
+
+% log(r*Udc) = -r *sqrt(mua/D) + log(S/(4*pi*v*D))
+% S = -sqrt(mua/D)
+% D = 1/(3mua+3*mus)
+% 1/(1/(-S)^2/3-1) = mua/mus
+
+if(size(cal,2)==1)
+    cal=cal*ones(1,length(raw));
+end
+
+for j=1:length(raw);
+    clear A;
+    types=raw(j).probe.types;
+    for i=1:length(types)
+        lst = find(raw(j).probe.link.type==types(i));
+        Y=raw(j).data(:,lst)'.*(cal(lst,j)*ones(1,size(raw(j).data,1)));
+        
+        r = raw(j).probe.distances(lst)/10;
+        Y = log(Y.*(r*ones(1,size(Y,2))));
+        X(:,1)=r;
+        X(:,2)=1;
+        beta = inv(X'*X)*X'*Y;
+        %    beta=nirs.math.kalman_rts(Y,X,diag([100 0]));
+        S=-beta(1,:)';
+        % Sl^2 = A*(3*A+3*S); Sl^2/3 = A^2 +A*S
+        a =3;
+        b = 3*mus(i);
+        c = S.^2;
+        % A =
+        A(:,i) = (sqrt(4*a*c+b^2)-b)./(2*a);
+    end
+    A=nirs.math.kalman_rts(A'/10,[],diag([1 1]))';
+    %types=[660 850];
+    E = nirs.media.getspectra(types);
+    E=E(:,1:2);
+    h=abs(inv(E'*E)*E'*A')'*1E6;
+    if(mean(h(:,1))<mean(h(:,2)))
+        h=h(:,[2 1]);
+    end
+    hb(j,1)=raw(j);
+    hb(j).data=h;
+    hb(j).probe.link=table([1 1]',[1 1]',{'hbo','hbr'}','VariableNames',{'source','detector','type'});
+    
+    hb(j).probe.link(3,:)=table(1,1,{'StO2'},'VariableNames',{'source','detector','type'});
+    hb(j).probe.link(4,:)=table(1,1,{'HbT'},'VariableNames',{'source','detector','type'});
+    hb(j).data(:,3)=hb(j).data(:,1)./(hb(j).data(:,1)+hb(j).data(:,2))*100;
+    hb(j).data(:,4)=hb(j).data(:,1)+hb(j).data(:,2);
+    
+end
+end
 
 function [hdr,data] = readSOMMAheader(filename)
 
@@ -151,7 +339,7 @@ function data=parseData(hdr,d)
 data = nirs.core.Data;
 
 t=d(:,1);
-t=(t-t(1))/1000;
+t=t/1000;
 
 lst1=find(d(:,2)==0);
 lst2=find(d(:,2)==1);

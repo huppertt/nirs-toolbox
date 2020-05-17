@@ -161,7 +161,8 @@ for i=1:length(data)
                 snirf.nirs(i).aux(cnt).timeOffset=0;
                 cnt=cnt+1;
             end
-        end    end
+        end    
+    end
     
     
     

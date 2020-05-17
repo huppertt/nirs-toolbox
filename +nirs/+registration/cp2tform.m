@@ -19,8 +19,32 @@ Pos1(:,4)=1;
 Pos2(:,4)=1;
 
 if(rigid)
-  
-else 
+    
+    
+
+    p=Pos1(find(i),1:3)';
+    q=Pos2(j(find(i)),1:3)';
+    m = size(p,2);
+    n = size(q,2);
+    % find data centroid and deviations from centroid
+    q_bar = mean(q,2);
+    q_mark = q - repmat(q_bar, 1, n);
+    
+    
+    % find data centroid and deviations from centroid
+    p_bar = mean(p,2);
+    p_mark = p - repmat(p_bar, 1, m);
+    
+    N = p_mark*transpose(q_mark); % taking points of q in matched order
+    
+    [U,~,V] = svd(N); % singular value decomposition
+    
+    R = V*diag([1 1 det(U*V')])*transpose(U);
+    
+    T = q_bar - R*p_bar;
+    
+    T=[R T; [0 0 0 1]]';
+else
     T = Pos1(find(i),:)\Pos2(j(find(i)),:);
 end
 

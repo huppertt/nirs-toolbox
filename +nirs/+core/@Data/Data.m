@@ -173,6 +173,7 @@ classdef Data
             
 
             % plots
+            nextplot=get(axis_handle,'NextPlot');
             hold(axis_handle,'on');
             
             % data min/max/size
@@ -235,6 +236,8 @@ classdef Data
             else
                 ylim(axis_handle, [pmin pmax] );
             end
+            
+            set(axis_handle,'NextPlot',nextplot);
             
             if(~showplot)
                 set(h,'visible','off');

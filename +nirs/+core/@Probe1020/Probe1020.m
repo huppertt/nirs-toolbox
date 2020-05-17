@@ -154,6 +154,63 @@ classdef Probe1020 < nirs.core.Probe
         end
         
         
+        function obj=RealignMesh(obj)
+            
+            pt(1,:)=obj.pts1020(find(ismember(lower(obj.labels),'lpa')),:);
+            pt(2,:)=obj.pts1020(find(ismember(lower(obj.labels),'rpa')),:);
+            pt(3,:)=obj.pts1020(find(ismember(lower(obj.labels),'cz')),:);
+            pt(4,:)=obj.pts1020(find(ismember(lower(obj.labels),'nas')),:);
+            pt(5,:)=obj.pts1020(find(ismember(lower(obj.labels),'iz')),:);
+            
+            a=obj.LR_distance/2;
+            b=obj.IS_distance;
+            c=obj.AP_distance/2;
+            
+            d=mean(pt([1 2 4 5],3));
+            
+            R = [-a 0 (pt(2,3)+pt(1,3))/2
+                a 0 (pt(2,3)+pt(1,3))/2
+                0 0 pt(3,3)
+                0 c pt(4,3)
+                0 -c pt(5,3)];
+            R(:,4)=1;
+            pt(:,4)=1;
+            RR=pt\R;
+            
+            for i=1:length(obj.mesh)
+                n=obj.mesh(i).nodes;
+                n(:,4)=1;
+                n=n*RR;
+                obj.mesh(i).nodes=n(:,1:3);
+                
+                if(~isempty(obj.mesh(i).fiducials))
+                    n=[obj.mesh(i).fiducials.X obj.mesh(i).fiducials.Y obj.mesh(i).fiducials.Z];
+                    n(:,4)=1;
+                    n=n*RR;
+                    obj.mesh(i).fiducials.X=n(:,1);
+                    obj.mesh(i).fiducials.Y=n(:,2);
+                    obj.mesh(i).fiducials.Z=n(:,3);
+                    
+                end
+            end
+            
+            
+            n=[obj.optodes_registered.X obj.optodes_registered.Y obj.optodes_registered.Z];
+            n(:,4)=1;
+            n=n*RR;
+            obj.optodes_registered.X=n(:,1);
+            obj.optodes_registered.Y=n(:,2);
+            obj.optodes_registered.Z=n(:,3);
+            
+            
+            n=obj.pts1020;
+            n(:,4)=1;
+            n=n*RR;
+            obj.pts1020=n(:,1:3);
+            
+        end
+            
+        
         
         
         function headsize=get_headsize(obj)
