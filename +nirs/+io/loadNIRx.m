@@ -29,6 +29,18 @@ if(~isempty(dir(fullfile(folder,'*SDmask.mat'))))
     load(fullfile(folder,fi(1).name));
     disp('loading mask from file');
     info.S_D_Mask=SD_mask;
+    
+    
+    [s,d]=find(info.S_D_Mask);
+    
+    
+    %% Fix added based on bug from Guilherme A. Zimeo Morais created an issue 2016-08-24
+    [s,a]=sort(s); d=d(a);
+    
+    link=table(s,d,...
+        'VariableNames',{'source','detector'});
+    probe.link=link;
+    
 end
 
 
@@ -89,26 +101,12 @@ if(~isempty(file))
     
 else
     
+    probe.link=[[probe.link; probe.link] ...
+        table(reshape(repmat(info.Wavelengths(:)',...
+        height(probe.link),1),[],1),'VariableNames',{'type'})];
     
-    [s,d]=find(info.S_D_Mask);
     
-    
-    %% Fix added based on bug from Guilherme A. Zimeo Morais created an issue 2016-08-24
-    [s,a]=sort(s); d=d(a);
-    
-    link=table(repmat(s,length(info.Wavelengths),1),...
-        repmat(d,length(info.Wavelengths),1),...
-        reshape(repmat(info.Wavelengths(:)',length(s),1),[],1),...
-        'VariableNames',{'source','detector','type'});
-    probe.link=link;
-    lst2=[];
-    for j=1:length(probe.types)
-        kk=find(ismember(probe.link.type,probe.types(j)));
-        lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
-        [~,i]=ismember(info.SDkey(lst,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows');
-        lst2=[lst2; kk(i)];
-    end
-    probe.link=probe.link(lst2,:);
+
     
     
     % read the standard wl files
@@ -175,7 +173,7 @@ raw.demographics=demo;
 % info.S_D_Mask covers only 1 subject but the info.SD_Key field is the full
 % (both subjects) length.
 if(isfield(info,'ChanDis'))
-    if(length(info.ChanDis)==length(s)*2)
+    if(length(info.ChanDis)==height(probe.link))
         raw.demographics('hyperscan')=info.FileName;
     end
 end
