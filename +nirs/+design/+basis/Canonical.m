@@ -52,7 +52,7 @@ classdef Canonical
                 % orthogonalize
                 out(:,2) = out(:,2) - out(:,1) * (out(:,1)\out(:,2)); % Regress canonical from temporal
                 out(:,3) = out(:,3) - out(:,1:2) * (out(:,1:2)\out(:,3)); % Regress canonical+temporal from dispersion
-                
+       
             end
             
         end

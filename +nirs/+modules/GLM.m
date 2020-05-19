@@ -118,7 +118,12 @@ classdef GLM < nirs.modules.AbstractGLM
             
             if (obj.AddShortSepRegressors)
                 Stim=unique(nirs.getStimNames(data));
+                for ii=1:length(Stim)
+                    Stim{ii}=[Stim{ii} '*'];
+                end
+                
                 j=nirs.modules.KeepStims(j);
+                j.regex=true;
                 j.listOfStims=Stim;
             end
             
@@ -163,9 +168,13 @@ classdef GLM < nirs.modules.AbstractGLM
                     end
                 end
                 SS=unique(SS);
+                for ii=1:length(SS)
+                    SS{ii}=[SS{ii} '*'];
+                end
                 
                 j=nirs.modules.KeepStims;
                 j.listOfStims=SS;
+                j.regex=true;
                 S(idx)=j.run(S(idx));
         end
             

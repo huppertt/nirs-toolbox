@@ -64,6 +64,11 @@ else
     SD.SpatialUnit='cm';
 end
 
+if(prod(size(SD.SrcPos))==1)
+    SD.SrcPos=nan(SD.nSrcs,3);
+    SD.DetPos=nan(SD.nDets,3);
+end
+
 probe = nirs.core.Probe( SD.SrcPos*sc, SD.DetPos*sc, link );
 
 % If the distances are all less the 20, then the probe was probably in cm

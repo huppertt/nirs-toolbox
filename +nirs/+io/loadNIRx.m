@@ -100,6 +100,14 @@ if(~isempty(file))
     raw.probe=probe;
     
 else
+    [s,d]=find(info.S_D_Mask);
+    [s,a]=sort(s); d=d(a);
+    
+    link=table(s,d,...
+        'VariableNames',{'source','detector'});
+    if(height(probe.link)<height(link))
+        probe.link=link;
+    end
     
     probe.link=[[probe.link; probe.link] ...
         table(reshape(repmat(info.Wavelengths(:)',...
