@@ -99,10 +99,13 @@ end
 varargout=cell(1,max(1,nargout));
 [varargout{:}] = statrobustfit(X,y,wfun,tune,[],doconst,priorw,dowarn);
 
+
+
+
 function [b,stats] = statrobustfit(X,y,wfun,tune,wasnan,addconst,priorw,dowarn)
 %STATROBUSTFIT Calculation function for ROBUSTFIT
 
-% Copyright 1993-2011 The MathWorks, Inc.
+% Copyright 1993-2015 The MathWorks, Inc.
 
 
 % Must check for valid function in this scope
@@ -130,41 +133,53 @@ else
     sw = 1;
 end
 
-[R,C]=qr(sparse(X),y,0);
-tol = abs(R(1)) * max(n,p) * eps(class(R));
-xtx=C'*C;
-xtxi=inv(xtx);
-b=C'*R;
-
+% Find the least squares solution.
+[Q,R,perm] = qr(X,0);
+if isempty(R) % can only happen if p=0 as we know n>p>=0
+    tol = 1;
+else
+    tol = abs(R(1)) * max(n,p) * eps(class(R));
+end
+xrank = sum(abs(diag(R)) > tol);
+if xrank==p
+    b(perm,:) = R \ (Q'*y);
+else
+    % Use only the non-degenerate parts of R and Q, but don't reduce
+    % R because it is returned in stats and is expected to be of
+    % full size.
+    if dowarn
+        warning(message('stats:robustfit:RankDeficient', xrank));
+    end
+    b(perm,:) = [R(1:xrank,1:xrank) \ (Q(:,1:xrank)'*y); zeros(p-xrank,1)];
+    perm = perm(1:xrank);
+end
 b0 = zeros(size(b));
 
-dfe = length(y)-size(X,2);
-ols_s = norm((y-X*b)./sw) / sqrt(dfe);
-xrank = sum(abs(diag(R)) > tol);
-
-E = X/R(1:xrank,1:xrank);
+% Adjust residuals using leverage, as advised by DuMouchel & O'Brien
+E = X(:,perm)/R(1:xrank,1:xrank);
 h = min(.9999, sum(E.*E,2));
+adjfactor = 1 ./ sqrt(1-h);
 
-adjfactor = 1 ./ sqrt(1-h./priorw);
+dfe = n-xrank;
+ols_s = norm((y-X*b)./sw) / sqrt(dfe);
 
-ep=1E-10;
-
-
+% If we get a perfect or near perfect fit, the whole idea of finding
+% outliers by comparing them to the residual standard deviation becomes
+% difficult.  We'll deal with that by never allowing our estimate of the
+% standard deviation of the error term to get below a value that is a small
+% fraction of the standard deviation of the raw response values.
 tiny_s = 1e-6 * std(y);
 if tiny_s==0
     tiny_s = 1;
 end
 
-% Perform iteratively reweighted least squares to get coefficient estimates
+% Perform iteratively re-weighted least squares to get coefficient estimates
 D = sqrt(eps(class(X)));
 iter = 0;
-iterlim = 20;
-xrank = size(X,2);    % rank of weighted version of x
+iterlim = 50;
+wxrank = xrank;    % rank of weighted version of x
 while((iter==0) || any(abs(b-b0) > D*max(abs(b),abs(b0))))
    iter = iter+1;
-   
-  % disp(['Interation: ' num2str(iter) ' (delta=' num2str(norm(b-b0)) ')']);
-   
    if (iter>iterlim)
       warning(message('stats:statrobustfit:IterationLimit'));
       break;
@@ -172,34 +187,29 @@ while((iter==0) || any(abs(b-b0) > D*max(abs(b),abs(b0))))
    
    % Compute residuals from previous fit, then compute scale estimate
    r = y - X*b;
-   radj = r .*adjfactor./ sw;
-   s = madsigma(radj,xrank);
+   radj = r .* adjfactor ./ sw;
+   s = madsigma(radj,wxrank);
    
    % Compute new weights from these residuals, then re-fit
-  w = feval(wfun, radj/(max(s,tiny_s)*tune));
+   w = feval(wfun, radj/(max(s,tiny_s)*tune));
    b0 = b;
-   w=sqrt(w);
-   [R,C]=qr(sparse((w*ones(1,size(X,2))).*X),w.*y,0);
-   xtx=C'*C;
-   xtxi=inv(xtx+speye(size(C,1),size(C,1))*ep);
-   b=xtxi*C'*R;
-  
+   [b(perm),wxrank] = wfit(y,X(:,perm),w);
 end
 
 if (nargout>1)
    r = y - X*b;
-    radj = r .* adjfactor ./ sw;
+   radj = r .* adjfactor ./ sw;
    mad_s = madsigma(radj,xrank);
    
-%    % Compute a robust estimate of s
-%    if all(w<D | w>1-D)
-%        % All weights 0 or 1, this amounts to ols using a subset of the data
-%        included = (w>1-D);
-        robust_s = norm(r) / sqrt(length(y) - xrank); 
-%    else
-%        % Compute robust mse according to DuMouchel & O'Brien (1989)
-%        robust_s = statrobustsigma(wfun, radj, xrank, max(mad_s,tiny_s), tune, h);
-%    end
+   % Compute a robust estimate of s
+   if all(w<D | w>1-D)
+       % All weights 0 or 1, this amounts to ols using a subset of the data
+       included = (w>1-D);
+       robust_s = norm(r(included)) / sqrt(sum(included) - xrank); 
+   else
+       % Compute robust mse according to DuMouchel & O'Brien (1989)
+       robust_s = statrobustsigma(wfun, radj, xrank, max(mad_s,tiny_s), tune, h);
+   end
 
    % Shrink robust value toward ols value if the robust version is
    % smaller, but never decrease it if it's larger than the ols value
@@ -207,18 +217,19 @@ if (nargout>1)
                sqrt((ols_s^2 * xrank^2 + robust_s^2 * n) / (xrank^2 + n)));
 
    % Get coefficient standard errors and related quantities
-   tempC = inv(C' * C+speye(size(C,1),size(C,1))*ep) * sigma^2;
+   RI = R(1:xrank,1:xrank)\eye(xrank);
+   tempC = (RI * RI') * sigma^2;
    tempse = sqrt(max(eps(class(tempC)),diag(tempC)));
    C = NaN(p,p);
    covb = zeros(p,p);
    se = zeros(p,1);
-   covb = tempC;
-   C = tempC ./ (tempse * tempse');
-   se = tempse;
+   covb(perm,perm) = tempC;
+   C(perm,perm) = tempC ./ (tempse * tempse');
+   se(perm) = tempse;
 
- 
+   
    % Save everything
-  % stats.ols_s = ols_s;
+   stats.ols_s = ols_s;
    stats.robust_s = robust_s;
    stats.mad_s = mad_s;
    stats.s = sigma;
@@ -226,20 +237,42 @@ if (nargout>1)
    stats.rstud = r .* adjfactor / sigma;
    stats.se = se;
    stats.covb = covb;
+   stats.coeffcorr = C;
    stats.t = NaN(size(b));
    stats.t(se>0) = b(se>0) ./ se(se>0);
    stats.p = 2 * tcdf(-abs(stats.t), dfe);
    stats.w = w;
+   RR = zeros(p);
+   RR(perm,perm) = R(1:xrank,1:xrank);
+   Qy = zeros(p,1);
+   Qy(perm) = Q(:,1:xrank)'*y;
+   stats.Qy = Qy;
+   stats.R = RR;
    stats.dfe = dfe;
-  
+   stats.h = h;
+   stats.Rtol = tol;
 end
 
+% -----------------------------
+function [b,r] = wfit(y,x,w)
+%WFIT    weighted least squares fit
+
+% Create weighted x and y
+n = size(x,2);
+sw = sqrt(w);
+yw = y .* sw;
+xw = x .* sw(:,ones(1,n));
+
+% Computed weighted least squares results
+[b,r] = linsolve(xw,yw,struct('RECT',true));
 
 % -----------------------------
 function s = madsigma(r,p)
 %MADSIGMA    Compute sigma estimate using MAD of residuals from 0
 rs = sort(abs(r));
 s = median(rs(max(1,p):end)) / 0.6745;
+
+
 
 
 
@@ -327,3 +360,67 @@ w = 1 * (abs(r)<1);
 function w = welsch(r)
 w = exp(-(r.^2));
 
+
+
+function s = statrobustsigma(wfun,r,p,s,t,h)
+%STATROBUSTSIGMA Compute robust sigma estimate for robust regression
+%   Used by robustfit and nlinfit.
+
+% This function computes an s value so that s^2 * inv(X'*X) is a reasonable
+% covariance estimate for robust regression coefficient estimates.  It is
+% based on the references below.  The expressions in these references do
+% not appear to be the same, but we have attempted to reconcile them in a
+% reasonable way.
+%
+% Before calling this function, the caller should have computed s as the
+% MAD of the residuals omitting the p-1 smallest in absolute value, as
+% recommended by O'Brien and in the material below eq. 8 of Street.  The
+% residuals should be adjusted by their leverage according to the
+% recommendation of O'Brien.
+
+%   DuMouchel, W.H., and F.L. O'Brien (1989), "Integrating a robust
+%     option into a multiple regression computing environment,"
+%     Computer Science and Statistics:  Proceedings of the 21st
+%     Symposium on the Interface, American Statistical Association.
+%   Holland, P.W., and R.E. Welsch (1977), "Robust regression using
+%     iteratively reweighted least-squares," Communications in
+%     Statistics - Theory and Methods, v. A6, pp. 813-827.
+%   Huber, P.J. (1981), Robust Statistics, New York: Wiley.
+%   Street, J.O., R.J. Carroll, and D. Ruppert (1988), "A note on
+%     computing robust regression estimates via iteratively
+%     reweighted least squares," The American Statistician, v. 42,
+%     pp. 152-154.
+
+
+% Copyright 2005 The MathWorks, Inc. 
+
+
+% Include tuning constant in sigma value
+st = s*t;
+
+% Get standardized residuals
+n = length(r);
+u = r ./ st;
+
+% Compute derivative of phi function
+phi = u .* feval(wfun,u);
+delta = 0.0001;
+u1 = u - delta;
+phi0 = u1 .* feval(wfun,u1);
+u1 = u + delta;
+phi1 = u1 .* feval(wfun,u1);
+dphi = (phi1 - phi0) ./ (2*delta);
+
+% Compute means of dphi and phi^2; called a and b by Street.  Note that we
+% are including the leverage value here as recommended by O'Brien.
+m1 = mean(dphi);
+m2 = sum((1-h).*phi.^2)/(n-p);
+
+% Compute factor that is called K by Huber and O'Brien, and lambda by
+% Street.  Note that O'Brien uses a different expression, but we are using
+% the expression that both other sources use.
+K = 1 + (p/n) * (1-m1) / m1;
+
+% Compute final sigma estimate.  Note that Street uses sqrt(K) in place of
+% K, and that some Huber expressions do not show the st term here.
+s = K*sqrt(m2) * st /(m1);

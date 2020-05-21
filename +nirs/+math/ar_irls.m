@@ -119,7 +119,7 @@ function stats = ar_irls( d,X,Pmax,tune )
             iter = iter + 1;
         end
         fprintf(1,'.');
-        %  Satterthwaite estimate of model DOF
+        
         
         % the model gets huge for EEG data.
         wXf=Xf;
@@ -133,7 +133,12 @@ function stats = ar_irls( d,X,Pmax,tune )
        % stats.dfe = length(yf)-sum(U(:).*U(:));
         stats.dfe = sum(S.w)-sum(U(:).*U(:));
         
-        %stats.dfe = length(yf)-trace(H'*H)^2/trace(H'*H*H*H');
+        %  Satterthwaite estimate of model DOF
+        H=diag(S.w)-wXf*inv(wXf'*wXf)*wXf';
+        % note trace(A*B) = sum(reshape(A,[],1).*reshape(B',[],1)); 
+        HtH=H'*H;
+        stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);
+        %stats.dfe = trace(H'*H)^2/trace(H'*H*H*H');  % same result but 4-6x slower
         
         % moco data & statistics
         stats.beta(:,i) = B;
@@ -141,28 +146,20 @@ function stats = ar_irls( d,X,Pmax,tune )
         
         L = pinv(Xf'*Xf); % more stable
         Xfall{i}=wXf;
-        stats.covb(:,:,i) = 1.1265*L*S.robust_s^2;
+        stats.covb(:,:,i) = L*S.robust_s^2;  
         stats.w(:,i) = S.w;
         stats.a{i} = a;
-        stats.sigma2(i)=1.1265*S.robust_s^2;
+        stats.sigma2(i)=S.robust_s^2;  
         
         stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(S.covb));
         stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
 
-        
-        resid(:,i)=S.resid; %S.rstud*S.s;
-        
-%         subplot(1,2,1); plot(S.rstud*S.s)
-%         subplot(1,2,2); plot(S.resid)
-%         pause;
+        resid(:,i)=S.resid.*S.w; 
         
         stats.filter{i}=f;
         stats.R2(i)=max(1-mad(yf-Xf*B)/mad(yf),0);
-%         yfiltered=[yfiltered; yf];
-%         weights=[weights; S.w];
-%         Xfiltered=sparse(blkdiag(Xfiltered,Xf));
         
     end   
    
@@ -174,7 +171,7 @@ function stats = ar_irls( d,X,Pmax,tune )
             a=resid(:,i)-median(resid(:,i));
             b=resid(:,j)-median(resid(:,j));
             
-            C(i,j)=1.1265*(median(a.*b));
+            C(i,j)=1.4810*median(a.*b);  % var(x) = 1.4810 * MAD(x,1)
         end
     end
     C=C*(mean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
