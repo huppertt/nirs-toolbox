@@ -194,6 +194,7 @@ end
 function array = makearray(snirf,array,str)
 
 if(isfield(snirf,'nirs'))
+   
     for i=1:length(snirf.nirs)
         snirf.nirs(i).data1=snirf.nirs(i).data;
         a(i)=rmfield(snirf.nirs(i),'data');
@@ -207,14 +208,16 @@ if(isfield(snirf,'nirs'))
         if(isfield(snirf.nirs(i),'aux'))
             if(length(snirf.nirs(i).aux)==1)
                 snirf.nirs(i).aux1=snirf.nirs(i).aux;
-                a(i)=rmfield(snirf.nirs(i),'aux');
+                ab(i)=rmfield(snirf.nirs(i),'aux');
             else
-                a(i)=snirf.nirs(i);
+                ab(i)=snirf.nirs(i);
             end
+        else
+             ab(i)=snirf.nirs(i);
         end
     end
-    snirf.nirs=a;
-    clear a;
+    snirf.nirs=ab;
+    clear ab;
 end
    
 

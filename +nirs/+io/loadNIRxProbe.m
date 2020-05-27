@@ -135,7 +135,13 @@ else
     BEM = nirs.registration.NIRxGeom.mesh;
 end
 
-[T,optodes3D]=nirs.registration.cp2tform(optodes3D,BEM(1).fiducials,true);
+
+if(~isempty(find(ismember(lower(optodes3D.Name),lower(BEM(1).fiducials.Name)))))
+    [T,optodes3D]=nirs.registration.cp2tform(optodes3D,BEM(1).fiducials,true);
+else
+    T=eye(4);
+end
+
 
 
 probe=nirs.core.Probe1020;

@@ -20,7 +20,39 @@ for i=1:length(snirf.nirs)
         snirf.nirs(i).probe.detectorLabels={snirf.nirs(i).probe.detectorLabels};
     end
     
+    if(~isfield(snirf.nirs(i).probe,'sourcePos') & isfield(snirf.nirs(i).probe,'sourcePos2D'))
+        snirf.nirs(i).probe.sourcePos=snirf.nirs(i).probe.sourcePos2D;
+    end
+     if(~isfield(snirf.nirs(i).probe,'detectorPos') & isfield(snirf.nirs(i).probe,'detectorPos2D'))
+        snirf.nirs(i).probe.detectorPos=snirf.nirs(i).probe.detectorPos2D;
+     end
     
+     if(~isfield(snirf.nirs(i).probe,'landmarkPos') & isfield(snirf.nirs(i).probe,'landmarkPos2D'))
+        snirf.nirs(i).probe.landmarkPos=snirf.nirs(i).probe.landmarkPos2D;
+     end
+     
+     if(size(snirf.nirs(i).probe.sourcePos,1)==3)
+         snirf.nirs(i).probe.sourcePos=snirf.nirs(i).probe.sourcePos';
+     end
+     if(size(snirf.nirs(i).probe.detectorPos,1)==3)
+         snirf.nirs(i).probe.detectorPos=snirf.nirs(i).probe.detectorPos';
+         
+     end
+     
+     if(isfield(snirf.nirs(i).probe,'sourcePos3D') && size(snirf.nirs(i).probe.sourcePos3D,1)==3)
+         snirf.nirs(i).probe.sourcePos3D=snirf.nirs(i).probe.sourcePos3D';
+     end
+     if(isfield(snirf.nirs(i).probe,'detectorPos3D') && size(snirf.nirs(i).probe.detectorPos3D,1)==3)
+         snirf.nirs(i).probe.detectorPos3D=snirf.nirs(i).probe.detectorPos3D';
+     end
+     if(isfield(snirf.nirs(i).probe,'landmarkPos') && size(snirf.nirs(i).probe.landmarkPos,1)==3)
+         snirf.nirs(i).probe.landmarkPos=snirf.nirs(i).probe.landmarkPos';
+     end
+     if(isfield(snirf.nirs(i).probe,'landmarkPos3D') && size(snirf.nirs(i).probe.landmarkPos3D,1)==3)
+         snirf.nirs(i).probe.landmarkPos3D=snirf.nirs(i).probe.landmarkPos3D';
+     end
+     
+     
     %make the optodes
     Type={}; X=[]; Y=[]; Z=[]; Units={}; Name={};
     for j=1:length(snirf.nirs(i).probe.sourceLabels)
@@ -105,6 +137,11 @@ for i=1:length(snirf.nirs)
     
     if(isfield(snirf.nirs(i),'stim'))
         for j=1:length(snirf.nirs(i).stim)
+            
+            if(size(snirf.nirs.stim(j).data,1)==3)
+                snirf.nirs.stim(j).data=snirf.nirs.stim(j).data';
+            end
+            
             st=nirs.design.StimulusEvents;
             st.name=snirf.nirs.stim(j).name;
             st.onset=snirf.nirs.stim(j).data(:,1);

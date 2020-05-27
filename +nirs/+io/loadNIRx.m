@@ -8,6 +8,7 @@ function raw = loadNIRx(folder,registerprobe)
 % <subjid>_probeInfo.mat - probe file
 % <subjid>.tpl -topology file  (data taken from config file)
 
+
 if(~isdir(folder))
     folder=fileparts(folder);
 end
@@ -86,9 +87,6 @@ if(isfield(info,'ShortDetectors') & info.Detectors>size(probe.detPos,1))
     
         
 end
-
-
-
 
 
 
