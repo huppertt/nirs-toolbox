@@ -494,7 +494,7 @@ else
                 tmp.model={model};
                 t=model.Coefficients;
                 str=model.PredictorNames{1};
-                l=find(ismember(t.Properties.RowNames,[str '_' tmp.Contrast{1}]));
+                l=find(ismember(t.Properties.RowNames,str));
                 
                 % Use the values from the table instead
                 tmp.Beta=t.Estimate(l);

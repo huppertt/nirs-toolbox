@@ -96,7 +96,9 @@ classdef Data
             end
             t = obj.time;
             conds = obj.stimulus.keys;
-            X = zeros(length(t),length(conds));
+           % X = zeros(length(t),length(conds));  %This is less efficient
+           % but allows X to keep the class of the stim vector which allows
+           % comidations for ordinal and catagorcial vectors
             for i = 1:length(conds)
                 stim = obj.stimulus(conds{i});
                 X(:,i) = stim.getStimVector(t);

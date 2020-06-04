@@ -360,7 +360,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     yproj = W *yproj;
                     s={};
                     for i=1:length(ll)
-                        s{i}=vars.cond{ll(i)};
+                        s{i}=matlab.lang.makeValidName(vars.cond{ll(i)});
                     end
 %                     for i=1:length(nll)
 %                         s{i+length(ll)}=['x' num2str(nll(i))];

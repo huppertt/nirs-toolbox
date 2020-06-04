@@ -24,7 +24,7 @@ for i=1:length(data)
     
     if(data(i).Fm==0)
         %CW-NIRS
-        snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
+        snirf.nirs(i).data(1).dataTimeSeries=data(i).data';
         snirf.nirs(i).data(1).time=data(i).time;
         
         wavelengths=unique(data(i).probe.link.type);
@@ -63,49 +63,54 @@ for i=1:length(data)
         l.ModFreq=-l.ModFreq;
         data(i).probe.link=[data(i).probe.link; l];
         
-        snirf.nirs(i).data(1).dataTimeSeries=data(i).data;
-        snirf.nirs(i).data(1).time=data(i).time;
+        
         
         wavelengths=unique(data(i).probe.link.type);
         
-        for k=1:height(data(i).probe.link);
-            snirf.nirs(i).data(1).measurementList(k).sourceIndex=data(i).probe.link.source(k);
-            snirf.nirs(i).data(1).measurementList(k).detectorIndex=data(i).probe.link.detector(k);
-            snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=find(ismember(wavelengths,data(i).probe.link.type(k)));
+        ii=1;
+        snirf.nirs(i).data(ii).time=data(i).time;
+        link=data(i).probe.link;
+        snirf.nirs(i).data(ii).dataTimeSeries=data(i).data';
+        
+        
+        for k=1:height(link);
+            snirf.nirs(i).data(ii).measurementList(k).sourceIndex=link.source(k);
+            snirf.nirs(i).data(ii).measurementList(k).detectorIndex=link.detector(k);
+            snirf.nirs(i).data(ii).measurementList(k).wavelengthIndex=find(ismember(wavelengths,link.type(k)));
             
             if(data(i).probe.link.ModFreq(k)==0)
-                snirf.nirs(i).data(1).measurementList(k).dataType = 1;  % DC-CW
-                snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw-DC';
+                snirf.nirs(i).data(ii).measurementList(k).dataType = 1;  % DC-CW
+                snirf.nirs(i).data(ii).measurementList(k).dataTypeLabel='raw-DC';
             elseif(data(i).probe.link.ModFreq(k)>0)
-                 snirf.nirs(i).data(1).measurementList(k).dataType = 101;  % FD-Amp
-                 snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw-AC';
+                snirf.nirs(i).data(ii).measurementList(k).dataType = 101;  % FD-Amp
+                snirf.nirs(i).data(ii).measurementList(k).dataTypeLabel='raw-AC';
             else
-                 snirf.nirs(i).data(1).measurementList(k).dataType = 102;  % FD-Phase
-                 snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw-Phase';
+                snirf.nirs(i).data(ii).measurementList(k).dataType = 102;  % FD-Phase
+                snirf.nirs(i).data(ii).measurementList(k).dataTypeLabel='raw-Phase';
             end
-            snirf.nirs(i).data(1).measurementList(k).dataTypeIndex = 1;
-           
+            snirf.nirs(i).data(ii).measurementList(k).dataTypeIndex = 1;
+            
             
             %        snirf.nirs(i).data(1).measurementList(k).sourcePower
             %        snirf.nirs(i).data(1).measurementList(k).detectorGain
-            snirf.nirs(i).data(1).measurementList(k).moduleIndex=find(ismember(ModFreq,abs(data(i).probe.link.ModFreq(k))));
+            snirf.nirs(i).data(ii).measurementList(k).moduleIndex=find(ismember(ModFreq,abs(link.ModFreq(k))));
         end
         snirf.nirs(i).probe.frequencies=ModFreq;
+        
+        
     end
-    
-    
     
     cnt=1;
     for k=1:data(i).stimulus.count
         st=data(i).stimulus(data(i).stimulus.keys{k});
         if(isa(st,'nirs.design.StimulusVector'))
             a=nirs.core.GenericData;
-            a.data=st.vector; 
+            a.data=st.vector;
             a.time=st.time;
             data(i).auxillary(data(i).stimulus.keys{k})=a;
         else
             snirf.nirs(i).stim(cnt).name=st.name;
-            snirf.nirs(i).stim(cnt).data =[st.onset st.dur st.amp];
+            snirf.nirs(i).stim(cnt).data =[st.onset st.dur st.amp]';
             cnt=cnt+1;
         end
     end
@@ -116,15 +121,15 @@ for i=1:length(data)
     %snirf.nirs(i).probe.wavelengthsEmission
     
     
-    snirf.nirs(i).probe.sourcePos = data(i).probe.srcPos;
+    snirf.nirs(i).probe.sourcePos2D = data(i).probe.srcPos(:,1:2)';
     snirf.nirs(i).probe.sourceLabels = {data(i).probe.optodes(ismember(data(i).probe.optodes.Type,'Source'),:).Name{:}}';
-    snirf.nirs(i).probe.detectorPos = data(i).probe.detPos;
+    snirf.nirs(i).probe.detectorPos2D = data(i).probe.detPos(:,1:2)';
     snirf.nirs(i).probe.detectorLabels = {data(i).probe.optodes(ismember(data(i).probe.optodes.Type,'Detector'),:).Name{:}}';
     
     if(isa( data(i).probe,'nirs.core.Probe1020'))
         p=data(i).probe.swap_reg;
-        snirf.nirs(i).probe.sourcePos3D=p.srcPos;
-        snirf.nirs(i).probe.detectorPos3D=p.detPos;
+        snirf.nirs(i).probe.sourcePos3D=p.srcPos';
+        snirf.nirs(i).probe.detectorPos3D=p.detPos';
     end
     
     
@@ -136,11 +141,10 @@ for i=1:length(data)
     
     lst=find(ismember(data(i).probe.optodes.Type,{'FID-anchor','FID-attractor'}));
     if(~isempty(lst))
-        snirf.nirs(i).probe.landmarkPos=[data(i).probe.optodes.X(lst) data(i).probe.optodes.Y(lst) ...
-            data(i).probe.optodes.Z(lst)];
+        snirf.nirs(i).probe.landmarkPos2D=[data(i).probe.optodes.X(lst) data(i).probe.optodes.Y(lst)]';
         if(isa( data(i).probe,'nirs.core.Probe1020'))
             snirf.nirs(i).probe.landmarkPos3D=[data(i).probe.optodes_registered.X(lst) ...
-                data(i).probe.optodes_registered.Y(lst) data(i).probe.optodes_registered.Z(lst)];
+                data(i).probe.optodes_registered.Y(lst) data(i).probe.optodes_registered.Z(lst)]';
             
         end
         snirf.nirs(i).probe.landmarkLabels=strcat({data.probe.optodes.Name{lst}},...
@@ -149,7 +153,7 @@ for i=1:length(data)
     
     snirf.nirs(i).probe.useLocalIndex=1;
     
-
+    
     if(data(i).auxillary.count>0)
         cnt=1;
         for j=1:data(i).auxillary.count
@@ -161,12 +165,8 @@ for i=1:length(data)
                 snirf.nirs(i).aux(cnt).timeOffset=0;
                 cnt=cnt+1;
             end
-        end    
+        end
     end
-    
-    
-    
-    
     
     
     
@@ -188,16 +188,19 @@ if(nargout==2)
     end
     
 end
-
 end
 
 function array = makearray(snirf,array,str)
 
 if(isfield(snirf,'nirs'))
-   
+    
     for i=1:length(snirf.nirs)
-        snirf.nirs(i).data1=snirf.nirs(i).data;
-        a(i)=rmfield(snirf.nirs(i),'data');
+        if(length(snirf.nirs(i).data)==1)
+            snirf.nirs(i).data1=snirf.nirs(i).data;
+            a(i)=rmfield(snirf.nirs(i),'data');
+        else
+            a=snirf.nirs;
+        end
     end
     snirf.nirs=a;
     clear a;
@@ -213,13 +216,13 @@ if(isfield(snirf,'nirs'))
                 ab(i)=snirf.nirs(i);
             end
         else
-             ab(i)=snirf.nirs(i);
+            ab(i)=snirf.nirs(i);
         end
     end
     snirf.nirs=ab;
     clear ab;
 end
-   
+
 
 if(isfield(snirf,'stim'))
     if(length(snirf.stim)==1)
@@ -252,18 +255,20 @@ for i=1:length(snirf)
                 array = setfield(array,ff{k},a.(ff{k}));
             end
             
-
+            
         elseif((iscell(snirf(i).(flds{j})) & length(snirf(i).(flds{j}))>1));
+            if(~isempty(strfind(flds{j},'Labels')))
+                 array = setfield(array,[str s2 '__' flds{j}],snirf(i).(flds{j}));
+            else
             for k=1:length(snirf(i).(flds{j}))
                 array = setfield(array,[str s2 '__' flds{j} num2str(k)],snirf(i).(flds{j}){k});
+            end
             end
         else
             array = setfield(array,[str s2 '__' flds{j}],snirf(i).(flds{j}));
         end
     end
 end
-
-
 end
 
 

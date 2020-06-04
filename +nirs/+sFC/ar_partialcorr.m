@@ -40,7 +40,6 @@ end
 yfilt(:,unique(j))=[];
 
 if(robust_flag)
-    
     [R,p]=nirs.math.robust_partialcorr(yfilt);
 else
     [R,p]=partialcorr(yfilt);

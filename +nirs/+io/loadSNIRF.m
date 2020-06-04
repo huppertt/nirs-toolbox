@@ -14,7 +14,12 @@ for i=1:length(names)
 
     array{i,3}=class(array{i,2});
     if(isa(array{i,2},'hdf5.h5string'))
+        if(length(array{i,2})>1)
+             array{i,2}={array{i,2}.Data};
+        else
+            
         array{i,2}=array{i,2}.Data;
+        end
     end
 end
 

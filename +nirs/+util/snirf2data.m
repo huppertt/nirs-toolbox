@@ -2,15 +2,20 @@ function data=snirf2data(snirf)
 
 data=nirs.core.Data;
 data(:)=[];
+cnt=1;
 for i=1:length(snirf.nirs)
-    data(i)=nirs.core.Data;
-    data(i).data=snirf.nirs(i).data.dataTimeSeries;
-    data(i).time=snirf.nirs(i).data.time;
+    tmpdata=nirs.core.Data;
+    tmpdata(:)=[];
+    for ii=1:length(snirf.nirs(i).data)
+    tmpdata(ii).data=snirf.nirs(i).data(ii).dataTimeSeries;
+    tmpdata(ii).time=snirf.nirs(i).data(ii).time;
+    
+    
     
     if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
-        data(i).probe=nirs.core.Probe1020;
+        tmpdata(ii).probe=nirs.core.Probe1020;
     else
-        data(i).probe=nirs.core.Probe;
+        tmpdata(ii).probe=nirs.core.Probe;
     end
     
     if(ischar(snirf.nirs(i).probe.sourceLabels))
@@ -31,10 +36,10 @@ for i=1:length(snirf.nirs)
         snirf.nirs(i).probe.landmarkPos=snirf.nirs(i).probe.landmarkPos2D;
      end
      
-     if(size(snirf.nirs(i).probe.sourcePos,1)==3)
+     if(size(snirf.nirs(i).probe.sourcePos,1)==2)
          snirf.nirs(i).probe.sourcePos=snirf.nirs(i).probe.sourcePos';
      end
-     if(size(snirf.nirs(i).probe.detectorPos,1)==3)
+     if(size(snirf.nirs(i).probe.detectorPos,1)==2)
          snirf.nirs(i).probe.detectorPos=snirf.nirs(i).probe.detectorPos';
          
      end
@@ -45,7 +50,7 @@ for i=1:length(snirf.nirs)
      if(isfield(snirf.nirs(i).probe,'detectorPos3D') && size(snirf.nirs(i).probe.detectorPos3D,1)==3)
          snirf.nirs(i).probe.detectorPos3D=snirf.nirs(i).probe.detectorPos3D';
      end
-     if(isfield(snirf.nirs(i).probe,'landmarkPos') && size(snirf.nirs(i).probe.landmarkPos,1)==3)
+     if(isfield(snirf.nirs(i).probe,'landmarkPos') && size(snirf.nirs(i).probe.landmarkPos,1)==2)
          snirf.nirs(i).probe.landmarkPos=snirf.nirs(i).probe.landmarkPos';
      end
      if(isfield(snirf.nirs(i).probe,'landmarkPos3D') && size(snirf.nirs(i).probe.landmarkPos3D,1)==3)
@@ -61,7 +66,7 @@ for i=1:length(snirf.nirs)
         Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
         X(end+1,1)=snirf.nirs(i).probe.sourcePos(j,1);
         Y(end+1,1)=snirf.nirs(i).probe.sourcePos(j,2);
-        Z(end+1,1)=snirf.nirs(i).probe.sourcePos(j,3);
+        Z(end+1,1)=0;
     end
     for j=1:length(snirf.nirs(i).probe.detectorLabels)
         Type{end+1,1}='Detector';
@@ -69,7 +74,7 @@ for i=1:length(snirf.nirs)
         Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
         X(end+1,1)=snirf.nirs(i).probe.detectorPos(j,1);
         Y(end+1,1)=snirf.nirs(i).probe.detectorPos(j,2);
-        Z(end+1,1)=snirf.nirs(i).probe.detectorPos(j,3);
+        Z(end+1,1)=0;
     end
     % add landmarks
     if(isfield(snirf.nirs(i).probe,'landmarkLabels'));
@@ -79,11 +84,11 @@ for i=1:length(snirf.nirs)
             Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
             X(end+1,1)=snirf.nirs(i).probe.landmarkPos(j,1);
             Y(end+1,1)=snirf.nirs(i).probe.landmarkPos(j,2);
-            Z(end+1,1)=snirf.nirs(i).probe.landmarkPos(j,3);
+            Z(end+1,1)=0;
         end
     end
     
-    data(i).probe.optodes=table(Name,X,Y,Z,Type,Units);
+    tmpdata(ii).probe.optodes=table(Name,X,Y,Z,Type,Units);
     if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
         %make the optodes_registered
         Type={}; X=[]; Y=[]; Z=[]; Units={}; Name={};
@@ -114,26 +119,36 @@ for i=1:length(snirf.nirs)
                 Z(end+1,1)=snirf.nirs(i).probe.landmarkPos3D(j,3);
             end
         end
-        data(i).probe.optodes_registered=table(Name,X,Y,Z,Type,Units);
+        tmpdata(ii).probe.optodes_registered=table(Name,X,Y,Z,Type,Units);
     end
     
     fds=fields(snirf.nirs(i).metaDataTags);
     for f=1:length(fds)
         a=snirf.nirs(i).metaDataTags.(fds{f});
         if(~isempty(a))
-            data(i).demographics(fds{f})=a;
+            tmpdata(ii).demographics(fds{f})=a;
         end
     end
     
     
     % now the link table
-    source=[]; detector=[]; type=[];
-    for j=1:length(snirf.nirs(i).data.measurementList)
-        source(j,1)=snirf.nirs(i).data.measurementList(j).sourceIndex;
-        detector(j,1)=snirf.nirs(i).data.measurementList(j).detectorIndex;
-        type(j,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data.measurementList(j).wavelengthIndex);
+    source=[]; detector=[]; 
+    if(isfield(snirf.nirs(i).probe,'wavelengths'))
+        type=[];
+    else
+        type={};
     end
-    data(i).probe.link=table(source,detector,type);
+    for j=1:length(snirf.nirs(i).data(ii).measurementList)
+        source(j,1)=snirf.nirs(i).data(ii).measurementList(j).sourceIndex;
+        detector(j,1)=snirf.nirs(i).data(ii).measurementList(j).detectorIndex;
+        
+        if(isfield(snirf.nirs(i).probe,'wavelengths'))
+            type(j,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex);
+        else
+            type{j,1}=snirf.nirs(i).data(ii).measurementList(j).dataTypeLabel;
+        end
+    end
+    tmpdata(ii).probe.link=table(source,detector,type);
     
     if(isfield(snirf.nirs(i),'stim'))
         for j=1:length(snirf.nirs(i).stim)
@@ -147,7 +162,7 @@ for i=1:length(snirf.nirs)
             st.onset=snirf.nirs.stim(j).data(:,1);
             st.dur=snirf.nirs.stim(j).data(:,2);
             st.amp=snirf.nirs.stim(j).data(:,3);
-            data(i).stimulus(st.name)=st;
+            tmpdata(ii).stimulus(st.name)=st;
         end
     end
     
@@ -157,13 +172,31 @@ for i=1:length(snirf.nirs)
            st.data=snirf.nirs(i).aux(j).dataTimeSeries;
            st.time=snirf.nirs(i).aux(j).time;
            
-            data(i).auxillary(snirf.nirs(i).aux(j).name)=st;
+            tmpdata(ii).auxillary(snirf.nirs(i).aux(j).name)=st;
         end
+     end
+     if(isfield(snirf.nirs(i).probe,'frequencies'))
+     tmpdata(ii).Fm=snirf.nirs(i).probe.frequencies(end);
+     end
+    label{ii,1}=snirf.nirs(i).data(ii).measurementList(1).dataTypeLabel;
     end
-    
-    
+    data(i)=combinedata(tmpdata,label);
 end
 
 
 
 return
+
+
+function data = combinedata(tmpdata,label)
+data=tmpdata(1);
+
+
+
+
+% phase=angle(data(i).data(:,lst));
+%         data(i).data=abs(data(i).data);
+%         data(i).data=[data(i).data phase];
+
+return
+
