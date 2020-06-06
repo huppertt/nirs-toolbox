@@ -92,6 +92,19 @@ classdef TestROI < matlab.unittest.TestCase
             obj.verifyLessThan(sum(res.covb(:)-true_covb(:)),10^-10);
             
         end
+        
+        function testROI_multiple( obj )
+            % Verify that ROI calculation can be applied to multiple
+            % regions
+
+            % Module calculation
+            job = nirs.modules.ApplyROI();
+            job.listOfROIs(1,:) = array2table({[1 1],[1 2],'First'});
+            job.listOfROIs(2,:) = array2table({[1 1],[1 2],'Second'});
+            job.weighted = true;          
+            res = job.run( obj.data1 );
+        
+        end
 
     end
     
