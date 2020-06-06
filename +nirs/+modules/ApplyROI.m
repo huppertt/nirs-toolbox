@@ -42,8 +42,19 @@ classdef ApplyROI < nirs.modules.AbstractModule
                    
                     dataROI(i,1)=nirs.util.roiAverage(dataChannel(i),listOfROIs,[],[],obj.weighted);
                 else
-
-                    [~,dataROI(i,1)]=nirs.util.roiAverage(dataChannel(i),listOfROIs,[],[],obj.weighted);
+                    if size(listOfROIs,1) == 1
+                        [~,dataROI(i,1)]=nirs.util.roiAverage(dataChannel(i),listOfROIs,[],[],obj.weighted);
+                    else
+                        ROIS = {};
+                        Names = {};
+                        for ROI_idx = 1:size(listOfROIs,1)
+                            source = listOfROIs(ROI_idx,:).source{1}';
+                            detector = listOfROIs(ROI_idx,:).detector{1}';
+                            ROIS{ROI_idx} = table(source, detector);
+                            Names{ROI_idx} = listOfROIs(ROI_idx,:).Name{1};
+                        end
+                        [~,dataROI(i,1)]=nirs.util.roiAverage(dataChannel(i),ROIS,Names,[],obj.weighted);
+                    end
                 end
             end
             
