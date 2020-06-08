@@ -307,17 +307,18 @@ elseif(isa(data,'nirs.core.sFCStats'))
                         c(R{j},R{j2}) = ContVect{j}*ContVect{j2}';
                         %c=c/sum(c(:));
                         
-                        CC=diag(C);
+                        CC=C;
                         CC(isnan(CC))=1E6;
-                        %c2=c-diag(diag(c));  %remove the self terms
-                        % c2= c2.*(triu(ones(size(c2))));
-                        b(isnan(b))=0;
+%                          c2=c-diag(diag(c));  %remove the self terms
+%                          c2= c2.*(triu(ones(size(c2))));
+                        b(isnan(b))=1E6;
                         broi    = c(:)'*b(:)/sum(c(:));
                         rroi=tanh(broi);
                         df  =data.dfe;
                         
                         if(~isempty(covZ))
-                            se = sqrt(c2(:)'*CC*c2(:));
+                            se = sqrt(c(:)'*diag(CC(:))*c(:));
+                           % se = sqrt(1 - rroi.^2./(df-2));
                         else
                             se = sqrt(1 - rroi.^2./(df-2));
                         end
@@ -457,23 +458,26 @@ else
     
     cc=zeros(size(beta,1),length(R)*length(uconds));
     vvs =table;
-    for i = 1:length(uconds)
-        lst = strcmp(vars.cond, uconds{i});
-        b = beta(lst);
-        C = covb(lst,lst);
-        
-        
-        for j = 1:length(R)
+    models={};
+    for j = 1:length(R)
+        for i = 1:length(uconds)
+            lst = strcmp(vars.cond, uconds{i});
+            b = beta(lst);
+            C = covb(lst,lst);
+            
+            
+            
             % contrast vector
             c = zeros(size(b));
             c(R{j}) = ContVect{j};
-        
+            
             if(weighted)
-                W=diag(1./diag(data.covb));
+                W=diag(1./diag(data.covb(lst,lst)));
+                
                 c=W*c;
                 c=c./sum(c);
             end
-        
+            
             
             
             cc(lst,(i-1)*length(R)+j)=c;
@@ -488,30 +492,38 @@ else
                 types(mod(j-1,length(types))+1), uconds{i},  broi, se, df, t, p});
             tmp.Properties.VariableNames = varnames;
             
-            if(ismember('model',vars.Properties.VariableNames))
-                % include the LinearModel (diagnotics) in the ROI
-                model = combineLinearModels(c,vars.model(lst));
-                tmp.model={model};
-                t=model.Coefficients;
-                str=model.PredictorNames{1};
-                l=find(ismember(t.Properties.RowNames,str));
-                
-                % Use the values from the table instead
-                tmp.Beta=t.Estimate(l);
-                tmp.SE=t.SE(l);
-                tmp.T=t.tStat(l);
-                tmp.p=t.pValue(l);
-                tmp.DF=model.DFE;
-                
-            end
+          
             
             tbl = [tbl; tmp];
         end
+        
+        if(ismember('model',vars.Properties.VariableNames))
+            % include the LinearModel (diagnotics) in the ROI
+            model = combineLinearModels(repmat(c,length(uconds),1),vars.model,data.WhiteningW);
+            tmp.model={model};
+            t=model.Coefficients;
+            str=matlab.lang.makeValidName(uconds);
+            [~,l]=ismember(t.Properties.RowNames,str);
+            
+            lst2=find(ismember(tbl.ROI,tmp.ROI) & ismember(tbl.type,tmp.type));
+            
+            % Use the values from the table instead
+            tbl(lst2,:).Beta=t.Estimate(l);
+            tbl(lst2,:).SE=t.SE(l);
+            tbl(lst2,:).T=t.tStat(l);
+            tbl(lst2,:).p=t.pValue(l);
+            tbl(lst2,:).DF=model.DFE*ones(length(l),1);
+            for i=1:length(uconds)
+                models{end+1,1}=model;
+            end
+        end
+        
     end
     
     q   = nirs.math.fdr( tbl.p );
     [~,power] = nirs.math.MDC(tbl,.8,.05);
     tbl = [tbl table(q) table(power)];
+    
     
     ROIstats=nirs.core.ChannelStats;
     ROIstats.description='region of interest stats';
@@ -520,6 +532,17 @@ else
     ROIstats.covb=cc'*covb*cc;
     ROIstats.demographics=data.demographics;
     ROIstats.basis=data.basis;
+    
+    if(ismember('model',vars.Properties.VariableNames))
+        tbl=[tbl table(models,'VariableName',{'model'})];
+    end
+   
+    
+    if(ismember('model',vars.Properties.VariableNames))
+        ROIstats.categoricalvariableInfo=data.categoricalvariableInfo;
+        vvs=[vvs table(tbl.model,'VariableName',{'model'})];
+    end
+    
     ROIstats.variables=vvs;
     
     ROIstats.probe=nirs.core.ProbeROI(names);
@@ -532,20 +555,46 @@ end
 
 
 
-function mdl = combineLinearModels(c,models)
+function mdl = combineLinearModels(c,models,WhiteningW)
 
 tbl=table();
 w=[];
 %c=c/rms(c);
 
+if(~isempty(WhiteningW))
+     iW=inv(WhiteningW);
+else
+    WhiteningW=eye(height(thistbl));
+    iW=1;
+end
 for idx=1:length(models);
+    
+    
     if(c(idx)~=0)
         thistbl=models{idx}.Variables;
-        thistbl.beta=thistbl.beta*c(idx);
+        flds=thistbl.Properties.VariableNames;
+        for j=1:length(flds)
+            thistbl.(flds{j})=iW*thistbl.(flds{j})*c(idx);
+        end
+       %thistbl.beta=thistbl.beta*c(idx);
+
         tbl=[tbl; thistbl];
         w=[w; models{idx}.ObservationInfo.Weights];
     end
 end
+
+flds=tbl.Properties.VariableNames;
+mask=zeros(height(tbl),1);
+for i=1:length(flds)
+    if(~strcmp(flds{i},models{1}.ResponseName))
+        mask=max(mask,abs(tbl.(flds{i})));
+    end
+end
+
+lst=find(mask<1E-9);
+tbl(lst,:)=[];
+w(lst)=[];
+
 mdl=fitlm(tbl,models{1}.Formula,'weights',max(w,eps(1)),'dummyVarCoding','full');
 
 

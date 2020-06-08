@@ -3,41 +3,44 @@
 % Note- this example is incomplete and will not run as is.  It is ment to
 % copy/paste into your own analysis script
 
-% Assume that we have data loaded and have run the subject level Stats
-% models
+% Generate some data to use for the demo
+raw=nirs.testing.simDataSet(5);
+for i=1:length(raw); 
+    raw(i).demographics('age')=20+randn(1)*10; 
+end;
 
-
-
-
-j = nirs.modules.AR_IRLS();
-SubjStats = j.run( hb );
+job=nirs.modules.default_modules.single_subject;
+SubjStats = job.run(raw);
 
 
 
 %% group level
 j = nirs.modules.MixedEffects( );
-j.formula = 'beta ~ -1 + cond + age:cond + (1|subject) + (1|gender)';
-j.dummyCoding = 'full';
+j.formula = 'beta ~ -1 + cond + age:cond';
 j.include_diagnostics=true;  % This flag will cause the code to compute the 
 % additional LME model info that we can use for diagntstics  
 GroupStats = j.run( SubjStats );
 
 % We can see that the variables table has an additional column holding the
 % linear model object
-
-%     source    detector    type            cond                   model      
-%     ______    ________    ____    _____________________    _________________
 % 
-%     1         1           808     'Digit_Symbol'           [1x1 LinearModel]
-%     1         1           808     'Stroop1'                [1x1 LinearModel]
-%     1         1           808     'Stroop2'                [1x1 LinearModel]
-%     1         1           808     'Stroop3'                [1x1 LinearModel]
-%     1         1           808     'Shift_Attention'        [1x1 LinearModel]
-%     1         1           808     'Stroop3-Stroop1'        [1x1 LinearModel]
-%     1         1           808     'Stroop2-Stroop1'        [1x1 LinearModel]
-%     1         1           808     'Digit_Symbol:age'       [1x1 LinearModel]
-%     1         1           808     'Stroop1:age'            [1x1 LinearModel]
-%     1         1           808     'Stroop2:age'            [1x1 LinearModel]
+% >> GroupStats.variables
+% ans =
+%   64×5 table
+%     source    detector    type      cond            model      
+%     ______    ________    _____    _______    _________________
+% 
+%       1          1        'hbo'    'A'        [1×1 LinearModel]
+%       1          1        'hbo'    'A:age'    [1×1 LinearModel]
+%       1          1        'hbr'    'A'        [1×1 LinearModel]
+%       1          1        'hbr'    'A:age'    [1×1 LinearModel]
+%       2          1        'hbo'    'A'        [1×1 LinearModel]
+%       2          1        'hbo'    'A:age'    [1×1 LinearModel]
+%       2          1        'hbr'    'A'        [1×1 LinearModel]
+%       2          1        'hbr'    'A:age'    [1×1 LinearModel]
+%       2          2        'hbo'    'A'        [1×1 LinearModel]
+%       2          2        'hbo'    'A:age'    [1×1 LinearModel]
+%       2          2        'hbr'    'A'        [1×1 LinearModel]
 
 % This is a class LinearModel and has the following methods/properties
 
@@ -101,8 +104,8 @@ GroupStats = j.run( SubjStats );
 
 
 % We can make scatter plots for each entry of the model using
-G.variables.model{1}.plotAdjustedResponse('age');  % This will plot model entry 1 
-% Src-1,Det-1,type-808, cond-'Digit_Symbol' verses age
+GroupStats.variables.model{1}.plotAdjustedResponse('A_age');  % This will plot model entry 1 
+% Src-1,Det-1,type-808, cond-'A' verses age
  
 disp(G.variables.model{1})
 % Linear regression model:

@@ -22,6 +22,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         verbose=false;
     end
     
+   
     methods
         function obj = MixedEffects( prevJob )
             obj.name = 'Mixed Effects Model';
@@ -257,11 +258,14 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 X    = W*X;
                 Z    = W*Z;
                 beta = W*beta;
+               
             else
                 Xorig=X;
                 Zorig=Z;
                 betaOrig=beta;
+                W=[];
             end
+            
             
             [i,j]=find(isnan(X));
             lst=find(~ismember(1:size(X,1),unique(i)));
@@ -305,6 +309,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             G.probe      = S(1).probe;
             
+            G.WhiteningW=W;
+            
             if(~ismember('source',vars.Properties.VariableNames) & ...
                     ismember('ROI',vars.Properties.VariableNames))
                 sd = repmat(sd, [length(unique(cnames)) 1]);
@@ -340,7 +346,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.demographics = nirs.util.combine_demographics(...
                 nirs.createDemographicsTable(S));
             
-            
+            G.categoricalvariableInfo=[];
             if(obj.include_diagnostics)
                 if(obj.verbose)
                     disp('Adding diagnostics information');
@@ -348,6 +354,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
                 %Create a diagnotistcs table of the adjusted data
                
+                G.categoricalvariableInfo=lm1.VariableInfo(lm1.VariableInfo.InModel,:);
+                
                 vars=G.variables;
                 [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
                 models=cell(height(G.variables),1);
@@ -356,7 +364,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     nll=find(lst ~= idx);
                     tmp = vars(ll, :);
                     
-                    yproj = betaOrig - Zorig*bHat - Xorig(:,nll)*G.beta(nll);
+                    yproj = betaOrig - Zorig*bHat-Xorig(:,nll)*G.beta(nll);
                     yproj = W *yproj;
                     s={};
                     for i=1:length(ll)
