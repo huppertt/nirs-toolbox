@@ -143,9 +143,8 @@ classdef ProbeROI < nirs.core.Probe
            end
            vals=reshape(vals,length(obj.RegionNames),length(conditions));
            hold(axis_handle,'on');
-           for i=1:size(vals,1)
-               h(i)=bar(axis_handle,i,vals(i,:),'grouped');
-           end
+           
+           h=bar(axis_handle,vals,'grouped');
            set(gca,'XtickLabel',[]);
            legend(obj.RegionNames);
             if(nargout==1)

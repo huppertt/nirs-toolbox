@@ -346,7 +346,7 @@ classdef ChannelStats
                 slope=[model.Coefficients.Estimate(lst) ...
                     model.Coefficients.Estimate(lst)-model.Coefficients.SE(lst)...
                     model.Coefficients.Estimate(lst)+model.Coefficients.SE(lst)];
-                
+                XX=[];
                 XX(:,1)=LE+x*slope(1);
                 XX(:,2)=UE+x*slope(1);
                 XX(:,3)=UE+x*slope(2);
