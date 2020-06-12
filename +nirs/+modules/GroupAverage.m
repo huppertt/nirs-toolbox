@@ -198,7 +198,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
             G.variables.Properties.VariableNames{end} = 'cond';
             
             if(ismember('ShortSeperation',S(1).variables.Properties.VariableNames))
-                ShortSeperation=S(1).variables.ShortSeperation;
+                ShortSeperation=S(1).probe.link.ShortSeperation;
                 ShortSeperation=repmat(ShortSeperation, [length(unique(cnames)) 1]);
                 G.variables = [G.variables table(ShortSeperation)];
             end

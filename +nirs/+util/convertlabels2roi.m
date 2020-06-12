@@ -22,6 +22,8 @@ useMNI=false;
 
 if(nargin<3 & ~exist('type','var'))
      type={'BA','gyrus'};
+elseif(~iscellstr(type))
+    type={type};
 end
 
 if (useMNI || isnumeric(label))

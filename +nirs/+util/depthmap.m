@@ -1,162 +1,187 @@
-function varargout = depthmap(label,headshape,type)
+function varargout = depthmap(label,headshape,atlas)
 
+if(nargin<3)
+    atlas={'aal','Brodmann (MRIcron)'};
 
-if(nargin==0)
-    if(nargout==0)
-        disp(nirs.util.listAtlasRegions)
-    else
-        varargout{1}=nirs.util.listAtlasRegions;
-    end
-    return
 end
 
-if(nargin<3 || isempty(type))
-    if (exist('label') && ~isempty(label) && isnumeric(label))
-        type = {'customize'};
-    else
-        type={'BA','gyrus'};
-    end
-end
-if(~iscellstr(label) && ~isnumeric(label))
-    label=cellstr(label);
-end
-label=lower(label);
-
-aal=load('ROI_MNI_V5_Border_modified.mat');
-%aalLabels=load(which('ROI_MNI_V5_List.mat'));
-aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)*2-90;
-aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)*2-126;
-aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)*2-72;
-aal.BORDER_XYZ=icbm_spm2tal(aal.BORDER_XYZ')';
-
-aal.BORDER_XYZ(1,:)=aal.BORDER_XYZ(1,:)-2.5;
-aal.BORDER_XYZ(2,:)=aal.BORDER_XYZ(2,:)+17.5;
-aal.BORDER_XYZ(3,:)=aal.BORDER_XYZ(3,:)-20;
-%
-% T =[ 0.9964    0.0178    0.0173   -0.0000
-%    -0.0169    0.9957   -0.0444   -0.0000
-%    -0.0151    0.0429    1.0215    0.0000
-%    -0.4232  -17.5022   11.6967    1.0000];
-%
-%
-% aal.BORDER_XYZ(4,:)=1;
-% aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
-% aal.BORDER_XYZ=aal.BORDER_XYZ(1:3,:);
-aal.ROI={aal.ROI{1} aal.ROI{2}};
-
-if (isnumeric(label))
-    n_rois = size(label, 1);
-    rois = cell(1, n_rois);
-    i_rois = [];
-    for i = 1:n_rois
-        pt_diff = aal.BORDER_XYZ' - repmat(label(i, 1:3), size(aal.BORDER_XYZ, 2), 1);
-        pt_dist = sqrt(pt_diff(:,1).^2 + pt_diff(:,2).^2 + pt_diff(:,3).^2);
-        rois(i) = {find(pt_dist <= label(i, 4))};
-        i_rois = [i_rois, repmat(i, 1, length(rois{i}))];
-    end
-end
 
 if(nargin>1)
     if(isa(headshape,'nirs.core.Probe1020'))
         probe1020=headshape;
         headshape=probe1020.get_headsize;
+        mesh=probe1020.getmesh;
+         mesh=mesh(end);
     else
         probe1020=nirs.core.Probe1020([],headshape);
+         mesh=nirs.registration.Colin27.mesh_V2;
+          mesh=mesh(end);
+       %  mesh=nirs.util.register_headsize
     end
-    tbl=nirs.util.list_1020pts('?');
-    Pos2=[tbl.X tbl.Y tbl.Z];
-    tbl= nirs.util.register_headsize(headshape,tbl);
-    Pos=[tbl.X tbl.Y tbl.Z];
-    T=Pos2\Pos;
-         aal.BORDER_XYZ=(aal.BORDER_XYZ'*T)';
 else
     probe1020=nirs.core.Probe1020;
-    tbl=nirs.util.list_1020pts('?');
-    Pos=[tbl.X tbl.Y tbl.Z];
+    mesh=nirs.registration.Colin27.mesh_V2;
+    mesh=mesh(end);
 end
 
 
-if (~isnumeric(label))
-    alllabels=label;
-    for idx=1:length(label)
-        if(isempty(strfind(label{idx},'_r')) & isempty(strfind(label{idx},'_l')))
-            alllabels={alllabels{:} [label{idx} '_l'] [label{idx} '_r']};
-        end
+if(nargin==0)
+    varargout{1}=nirs.util.listAtlasRegions(mesh.labels);
+    if(nargout==0)
+        disp(varargout{1})
     end
-    
-    for i=1:length(aal.ROI)
-        Labels{i}=lower(strvcat(aal.ROI{i}.Nom_L));
-        Idx{i}=vertcat(aal.ROI{i}.ID);
+    return
+end
+
+
+if(~iscellstr(label) && ~isnumeric(label))
+    label=cellstr(label);
+end
+
+for i=1:length(label)
+    if(isempty(strfind(label{i},'_R')) & isempty(strfind(label{i},'_L')))
+        label{end+1}=[label{i} '_R'];
+        label{end+1}=[label{i} '_L'];
+    end
+end
+
+lst=find(ismember(lower(mesh.labels.keys),lower(label)));
+for i=1:length(lst)
+    atlas={atlas{:} mesh.labels.keys{lst(i)}};
+    l=mesh.labels(mesh.labels.keys{lst(i)});
+    label={label{:} l.Label{:}};
+end
+label={label{~ismember(label,mesh.labels.keys)}};
+label=lower(label);
+label=unique(label);
+atlas=unique(atlas);
+
+alllabels.Label={};
+alllabels.VertexIndex={};
+keys=mesh.labels.keys;
+keys={keys{ismember(keys,atlas)}};
+
+for i=1:length(keys)
+    l=mesh.labels(keys{i});
+    for j=1:length(l.Label)
+        if(~isempty(l.Label{j}))
+        alllabels.Label{end+1,1}=lower(l.Label{j});
+        alllabels.VertexIndex{end+1,1}=l.VertexIndex{j};
+        end
         
-        if(any(strcmp(label,'?') | strcmp(label,'*') | strcmp(label,'any')))
-            lst{i}=[1:size(Labels{i},1)];
-        else
-            lst{i}=find(ismember(Labels{i},lower(alllabels)));
-        end
     end
-    
-    lstNodes=[];
-    useMNI=false;
-    % Add any MNI coordinates
-    for i=1:length(label)
+end
+
+lst=[];
+for i=1:length(label)
+  
+    if(any(strcmp(label{i},'?') | strcmp(label{i},'*') | strcmp(label{i},'any')))
+        lst=[lst; 1:length(alllabels.Label)];
+    elseif(~isempty(strfind(label{i},'[')))
         pt=sscanf(label{i},'[%d %d %d]')';
-        if(~isempty(pt))
-            lstNodes(end+1)=dsearchn(aal.BORDER_XYZ',pt);
-            useMNI=true;
-        end
-        
+        [k,d]=dsearchn(mesh.nodes,pt);
+        alllabels.Label{end+1,1}=label{i};
+        alllabels.VertexIndex{end+1,1}=k(d<5);
+        lst=[lst; length(alllabels.Labels)];
+    else
+        lst=[lst; find(ismember(lower(alllabels.Label),label{i}))];
     end
-    
-    if(isempty(lst) & isempty(lstNodes))
-        disp('region not found');
-        disp('use command:')
-        disp(' >> nirs.util.listAtlasRegions')
-        depth=[];
-        return
+   
+end 
+
+lst2=[];
+for i=1:length(lst)
+    if(isempty(alllabels.VertexIndex{lst(i)}))
+        lst2=[lst2 i];
     end
+end
+lst(lst2)=[];
+
+
+lst=unique(lst);
+
+if(isempty(lst))
+    disp('region not found');
+    disp('use command:')
+    disp(' >> nirs.util.listAtlasRegions')
+    depth=[];
+    return
+end
     
-    for i=1:length(aal.ROI)
-        lstTemp=find(ismember(aal.BORDER_V(i,:),Idx{i}(lst{i})));
-        if(~isempty(lstTemp))
-            lstNodes=[lstNodes lstTemp];
-            [k,depth{i}] = dsearchn(aal.BORDER_XYZ(:,lstTemp)',Pos);
-            
-            [~,regionIdx]=ismember(aal.BORDER_V(i,lstTemp(k)),Idx{i});
-            region{i}=cellstr(Labels{i}(regionIdx,:));
+headshape=probe1020.get_headsize;
+tbl=nirs.util.list_1020pts('?');
+Pos=[tbl.X tbl.Y tbl.Z];
+  
+for i=1:length(lst)
+    region{i,1}=alllabels.Label{lst(i)};
+    
+    [~,depth(:,i)]=dsearchn(mesh.nodes(alllabels.VertexIndex{lst(i)},:),Pos);
+end
+[depth,i]=min(depth,[],2);
+region={region{i}}';
+
+
+if(nargout==0)
+    figure;
+    tbl2=nirs.util.list_1020pts('Cz');
+    [xx,yy]=probe1020.convert2d([tbl2.X tbl2.Y tbl2.Z]);
+    shiftx=-xx; shifty=-yy;
+    
+    [xy(:,1),xy(:,2)]=probe1020.convert2d(Pos);
+    probe1020.draw1020([],[],gca);
+    
+    dx=mean(diff(sort(xy(:,1))));
+    dy=mean(diff(sort(xy(:,2))));
+    [X,Y]=meshgrid(min(xy(:,1)):dx:max(xy(:,1)),min(xy(:,2)):dy:max(xy(:,2)));
+  
+    warning('off','MATLAB:griddata:DuplicateDataPoints');
+    IM = griddata(xy(:,1),xy(:,2),depth,X,Y,'cubic');
+    
+    h=imagesc([min(xy(:,1)):dx:max(xy(:,1))]+shiftx,[min(xy(:,2)):dy:max(xy(:,2))]+shifty,...
+        IM,[0 max(abs(IM(:)))]);
+    set(h,'alphaData',1*(~isnan(IM)));
+    
+    hold on;
+    l=probe1020.draw1020([],[],gca);
+    set(l,'LineStyle', '-', 'LineWidth', 2)
+    
+    set(gcf,'color','w');
+    
+    
+    %
+    %
+    
+    %
+    if(ismember('10-20',label) | ismember('10-10',label))
+        if(ismember('10-20',label))
+            lst=find(ismember(tbl.Type,'10-20'));
         else
-            region{i}={};
-            depth{i}=[];
+            lst=1:height(tbl);
         end
+        for i=1:length(lst)
+            s(i)=text(xy(lst(i),1)+shiftx,xy(lst(i),2)+shifty,tbl.Name{lst(i)});
+            %         set(s(i),'Userdata',tbl.Name{i});
+            %         set(s(i),'ButtonDownFcn',@displabel);
+        end
+        set(s,'HorizontalAlignment','center','VerticalAlignment','baseline')
     end
     
-    if(useMNI)
-        for i=1:length(lstNodes)
-            [~,depth{length(aal.ROI)+i}]=dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
-            
-        end
-    end
+    axis tight;
+    axis equal;
+    axis off;
     
-    for i=1:length(aal.ROI)
-        lstTemp=find(ismember(aal.BORDER_V(i,:),Idx{i}(lst{i})));
-        if(~isempty(lstTemp))
-            lstNodes=[lstNodes lstTemp];
-            [k,depth{i}] = dsearchn(aal.BORDER_XYZ(:,lstTemp)',Pos);
-            
-            [~,regionIdx]=ismember(aal.BORDER_V(i,lstTemp(k)),Idx{i});
-            region{i}=cellstr(Labels{i}(regionIdx,:));
-        else
-            region{i}={};
-            depth{i}=[];
-        end
-    end
-else
-    lstNodes = vertcat(rois{:});
-    [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pos);
-    region = {i_rois(k)'};
-    depth = {depth};
+    cb=colorbar('SouthOutside');
+    caxis([0 40])
+    l=get(cb,'TickLabels');
+    l{end}=['>' num2str(l{end})];
+    set(cb,'TickLabels',l);
+    
+    
 end
 
+   
 
+    
 if(nargout>0)
     if(~isempty(probe1020.optodes_registered))
         
@@ -198,127 +223,31 @@ if(nargout>0)
             probe1020.optodes_registered.Y probe1020.optodes_registered.Z];
         
         
-        [k,depth] = dsearchn(aal.BORDER_XYZ(:,lstNodes)',Pts);
         tbl=table;
-        if (~isnumeric(label))
-            for i=1:length(Labels)
-                %                 [~,regionIdx]=ismember(aal.BORDER_V(i,lstNodes(k)),Idx{i});
-                %                 region=cellstr(Labels{i}(regionIdx,:));
-                %                 tbl=[tbl; [probe1020.optodes_registered table(depth,region)]];
-                
-                [~,regionIdx]=ismember(aal.BORDER_V(i,lstNodes(k)),Idx{i});
-                found_Idx = find(regionIdx ~= 0);
-                region=cellstr(Labels{i}(regionIdx(found_Idx),:));
-                tbl=[tbl; [probe1020.optodes_registered(found_Idx,:) table(depth(found_Idx),region, 'VariableNames',{'depth','region'})]];
-            end
-        else
-            tbl = [probe1020.optodes_registered table(depth, num2str(reshape(i_rois(k), size(probe1020.optodes_registered, 1), 1)), 'VariableNames',{'depth','region'})];
+        region={}; depth=[];
+        for i=1:length(lst)
+            [~,depth(:,i)]=dsearchn(mesh.nodes(alllabels.VertexIndex{lst(i)},:),Pts);
+            region{i,1}=alllabels.Label{lst(i)};
         end
-        depth=sortrows(tbl,{'Type','Name','region'});
+        [depth,i]=min(depth,[],2);
+        region={region{i}}';
+        depth=[probe1020.optodes_registered table(depth,region,'VariableNames',{'depth','region'})];
     else
-        n=length(vertcat(depth{:}))/height(tbl);
-        tbl=repmat(tbl,n,1);
-        depth=[tbl table(vertcat(depth{:}),vertcat(region{:}),'VariableNames',{'depth','region'})];
+        
+        depth=[tbl table(depth,region,'VariableNames',{'depth','region'})];
     end
-    
-    if(ismember(type,'customize'))
-        depth2=depth;
-        depth2.region=repmat(cellstr('custom'),height(depth2),1);
-        depth2=unique(depth2);
-    else
-        depth2=table;
-    end
-    
-    if (~isnumeric(label))
-        if(isempty(find(ismember(alllabels,{'?','*','any'}))))
-            depth=depth(ismember(depth.region,alllabels),:);
-        end
-        lst=[];
-        if(~ismember(type,'BA'))
-            
-            for i=1:height(depth)
-                if(~isempty(strfind(depth.region{i},'ba-')))
-                    lst=[lst i];
-                end
-            end
-        end
-        if(~ismember(type,'gyrus'))
-            for i=1:height(depth)
-                if(isempty(strfind(depth.region{i},'ba-')))
-                    lst=[lst i];
-                end
-            end
-        end
-        depth(lst,:)=[];
-    
-    end
-    %depth=[depth; depth2];
-    
     varargout{1}=depth;
+    
     return;
 end
+return
 
-figure;
-tbl2=nirs.util.list_1020pts('Cz');
-[xx,yy]=probe1020.convert2d([tbl2.X tbl2.Y tbl2.Z]);
-shiftx=-xx; shifty=-yy;
-
-[xy(:,1),xy(:,2)]=probe1020.convert2d(Pos);
-probe1020.draw1020([],[],gca);
-
-dx=mean(diff(sort(xy(:,1))));
-dy=mean(diff(sort(xy(:,2))));
-[X,Y]=meshgrid(min(xy(:,1)):dx:max(xy(:,1)),min(xy(:,2)):dy:max(xy(:,2)));
-depth=min(horzcat(depth{:}),[],2);
-warning('off','MATLAB:griddata:DuplicateDataPoints');
-IM = griddata(xy(:,1),xy(:,2),depth,X,Y,'cubic');
-
-h=imagesc([min(xy(:,1)):dx:max(xy(:,1))]+shiftx,[min(xy(:,2)):dy:max(xy(:,2))]+shifty,...
-    IM,[0 max(abs(IM(:)))]);
-set(h,'alphaData',1*(~isnan(IM)));
-
-hold on;
-l=probe1020.draw1020([],[],gca);
-set(l,'LineStyle', '-', 'LineWidth', 2)
-
-set(gcf,'color','w');
-
-
-%
-%
-
-%
-if(ismember('10-20',label) | ismember('10-10',label))
-    if(ismember('10-20',label))
-        lst=find(ismember(tbl.Type,'10-20'));
-    else
-        lst=1:height(tbl);
-    end
-    for i=1:length(lst)
-        s(i)=text(xy(lst(i),1)+shiftx,xy(lst(i),2)+shifty,tbl.Name{lst(i)});
-        %         set(s(i),'Userdata',tbl.Name{i});
-        %         set(s(i),'ButtonDownFcn',@displabel);
-    end
-    set(s,'HorizontalAlignment','center','VerticalAlignment','baseline')
-end
-
-axis tight;
-axis equal;
-axis off;
-
-cb=colorbar('SouthOutside');
-caxis([0 40])
-l=get(cb,'TickLabels');
-l{end}=['>' num2str(l{end})];
-set(cb,'TickLabels',l);
-
-
-
-end
 
 function displabel(varargin)
+        
+        legend(get(varargin{1},'Userdata'))
+        
+return
 
-legend(get(varargin{1},'Userdata'))
 
-end
 
