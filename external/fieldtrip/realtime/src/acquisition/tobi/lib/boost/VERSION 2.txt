@@ -1,1 +1,0 @@
-Boost version 1.42.0.1ubuntu1 was used to compile tia2ft.
