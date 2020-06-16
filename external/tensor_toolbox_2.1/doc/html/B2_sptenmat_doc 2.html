@@ -1,0 +1,607 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Converting sparse tensors to matrices and vice versa</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="B2_sptenmat_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Converting sparse tensors to matrices and vice versa</h1>
+         <introduction>
+            <p>We show how to convert a sptensor to a matrix stored in <i>coordinate</i> format and with extra information so that it can be converted back to a sptensor.
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Creating a sptenmat (sparse tensor as sparse matrix) object</a></li>
+               <li><a href="#11">Constituent parts of a sptenmat</a></li>
+               <li><a href="#16">Creating a sptenmat from its constituent parts</a></li>
+               <li><a href="#18">Creating a sptenmat with no nonzeros</a></li>
+               <li><a href="#19">Creating an emtpy sptenmat</a></li>
+               <li><a href="#20">Use double to convert a sptenmat to a MATLAB sparse matrix</a></li>
+               <li><a href="#24">Use full to convert a sptenmath to a tenmat</a></li>
+               <li><a href="#26">Use sptensor to convert a sptenmat to a sptensor</a></li>
+               <li><a href="#27">Use size and tsize for the dimensions of a sptenmat</a></li>
+               <li><a href="#28">Subscripted reference for a sptenmat</a></li>
+               <li><a href="#29">Subscripted assignment for a sptenmat</a></li>
+               <li><a href="#30">Use end for the last index</a></li>
+               <li><a href="#31">Basic operations for sptenmat</a></li>
+               <li><a href="#34">Use aatx to efficiently compute A * A' * x for a sptenmat</a></li>
+               <li><a href="#36">Displaying a tenmat</a></li>
+            </ul>
+         </div>
+         <h2>Creating a sptenmat (sparse tensor as sparse matrix) object<a name="1"></a></h2>
+         <p>A sparse tensor can be converted to a sparse matrix. The matrix, however, is not stored as a MATLAB sparse matrix because
+            that format is sometimes inefficient for converted sparse tensors. Instead, the row and column indices are stored explicitly.
+         </p>
+         <p>First, we create a sparse tensor to be converted.</p><pre class="codeinput">X = sptenrand([10 10 10 10],10) <span class="comment">%&lt;-- Generate some data.</span>
+</pre><pre class="codeoutput">X is a sparse tensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	(1,9, 5, 1)	0.424889
+	(3,2, 1, 2)	0.375577
+	(4,7,10, 9)	0.166154
+	(4,8, 3,10)	0.833151
+	(5,3, 4, 8)	0.83864
+	(5,3, 6, 7)	0.451614
+	(6,7, 5, 1)	0.956601
+	(6,7, 6, 6)	0.147153
+	(7,8, 5, 6)	0.869933
+	(9,9, 1, 9)	0.769436
+</pre><p>All the same options for tenmat are available as for tenmat.</p><pre class="codeinput">A = sptenmat(X,1) <span class="comment">%&lt;-- Mode-1 matricization.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	(1, 49)	0.424889
+	(3,102)	0.375577
+	(4,897)	0.166154
+	(4,928)	0.833151
+	(5,733)	0.83864
+	(5,653)	0.451614
+	(6, 47)	0.956601
+	(6,557)	0.147153
+	(7,548)	0.869933
+	(9,809)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,[2 3]) <span class="comment">%&lt;-- More than one mode is mapped to the columns.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 2  3 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  4 ] (modes of tensor corresponding to columns)
+	(49, 1)	0.424889
+	( 2,13)	0.375577
+	(97,84)	0.166154
+	(28,94)	0.833151
+	(33,75)	0.83864
+	(53,65)	0.451614
+	(47, 6)	0.956601
+	(57,56)	0.147153
+	(48,57)	0.869933
+	( 9,89)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,[2 3],<span class="string">'t'</span>) <span class="comment">%&lt;-- Specify column dimensions (transpose).</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 1  4 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 2  3 ] (modes of tensor corresponding to columns)
+	( 1,49)	0.424889
+	(13, 2)	0.375577
+	(84,97)	0.166154
+	(94,28)	0.833151
+	(75,33)	0.83864
+	(65,53)	0.451614
+	( 6,47)	0.956601
+	(56,57)	0.147153
+	(57,48)	0.869933
+	(89, 9)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,1:4) <span class="comment">%&lt;-- All modes mapped to rows, i.e., vectorize.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 1  2  3  4 ] (modes of tensor corresponding to rows)
+	A.cindices = [  ] (modes of tensor corresponding to columns)
+	( 481,1)	0.424889
+	(1013,1)	0.375577
+	(8964,1)	0.166154
+	(9274,1)	0.833151
+	(7325,1)	0.83864
+	(6525,1)	0.451614
+	( 466,1)	0.956601
+	(5566,1)	0.147153
+	(5477,1)	0.869933
+	(8089,1)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,2) <span class="comment">%&lt;-- By default, columns are ordered as [1 3 4].</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  3  4 ] (modes of tensor corresponding to columns)
+	(9, 41)	0.424889
+	(2,103)	0.375577
+	(7,894)	0.166154
+	(8,924)	0.833151
+	(3,735)	0.83864
+	(3,655)	0.451614
+	(7, 46)	0.956601
+	(7,556)	0.147153
+	(8,547)	0.869933
+	(9,809)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,2,[3 1 4]) <span class="comment">%&lt;-- Explicit column ordering.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 3  1  4 ] (modes of tensor corresponding to columns)
+	(9,  5)	0.424889
+	(2,121)	0.375577
+	(7,840)	0.166154
+	(8,933)	0.833151
+	(3,744)	0.83864
+	(3,646)	0.451614
+	(7, 55)	0.956601
+	(7,556)	0.147153
+	(8,565)	0.869933
+	(9,881)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,2,<span class="string">'fc'</span>) <span class="comment">%&lt;-- Foward cyclic.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 3  4  1 ] (modes of tensor corresponding to columns)
+	(9,  5)	0.424889
+	(2,211)	0.375577
+	(7,390)	0.166154
+	(8,393)	0.833151
+	(3,474)	0.83864
+	(3,466)	0.451614
+	(7,505)	0.956601
+	(7,556)	0.147153
+	(8,655)	0.869933
+	(9,881)	0.769436
+</pre><pre class="codeinput">A = sptenmat(X,2,<span class="string">'bc'</span>) <span class="comment">%&lt;-- Backward cyclic.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	(9,401)	0.424889
+	(2, 13)	0.375577
+	(7,984)	0.166154
+	(8,294)	0.833151
+	(3,375)	0.83864
+	(3,565)	0.451614
+	(7,406)	0.956601
+	(7,556)	0.147153
+	(8,457)	0.869933
+	(9, 89)	0.769436
+</pre><h2>Constituent parts of a sptenmat<a name="11"></a></h2><pre class="codeinput">A.subs <span class="comment">%&lt;-- Subscripts of the nonzeros.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     9   401
+     2    13
+     7   984
+     8   294
+     3   375
+     3   565
+     7   406
+     7   556
+     8   457
+     9    89
+
+</pre><pre class="codeinput">A.vals <span class="comment">%&lt;-- The corresponding nonzero values.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.4249
+    0.3756
+    0.1662
+    0.8332
+    0.8386
+    0.4516
+    0.9566
+    0.1472
+    0.8699
+    0.7694
+
+</pre><pre class="codeinput">A.tsize <span class="comment">%&lt;-- Size of the original tensor.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    10    10    10    10
+
+</pre><pre class="codeinput">A.rdims <span class="comment">%&lt;-- Dimensions that were mapped to the rows.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     2
+
+</pre><pre class="codeinput">A.cdims <span class="comment">%&lt;-- Dimensions that were mapped to the columns.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     1     4     3
+
+</pre><h2>Creating a sptenmat from its constituent parts<a name="16"></a></h2><pre class="codeinput">B = sptenmat(A.subs,A.vals,A.rdims,A.cdims,A.tsize) <span class="comment">%&lt;-- Copies A</span>
+</pre><pre class="codeoutput">B is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	B.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	B.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	(2, 13)	0.375577
+	(3,375)	0.83864
+	(3,565)	0.451614
+	(7,406)	0.956601
+	(7,556)	0.147153
+	(7,984)	0.166154
+	(8,294)	0.833151
+	(8,457)	0.869933
+	(9, 89)	0.769436
+	(9,401)	0.424889
+</pre><pre class="codeinput">B = sptenmat(double(A),A.rdims,A.cdims,A.tsize) <span class="comment">%&lt;-- More efficient to pass a matrix.</span>
+</pre><pre class="codeoutput">B is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	B.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	B.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+	(2, 13)	0.375577
+	(9, 89)	0.769436
+	(8,294)	0.833151
+	(3,375)	0.83864
+	(9,401)	0.424889
+	(7,406)	0.956601
+	(8,457)	0.869933
+	(7,556)	0.147153
+	(3,565)	0.451614
+	(7,984)	0.166154
+</pre><h2>Creating a sptenmat with no nonzeros<a name="18"></a></h2><pre class="codeinput">A = sptenmat([],[],A.rdims,A.cdims,A.tsize) <span class="comment">%&lt;-- An empty sptenmat.</span>
+</pre><pre class="codeoutput">A is an all-zero sptenmat from an sptensor of size 10 x 10 x 10 x 10
+	A.rindices = [ 2 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 1  4  3 ] (modes of tensor corresponding to columns)
+</pre><h2>Creating an emtpy sptenmat<a name="19"></a></h2><pre class="codeinput">A = sptenmat <span class="comment">%&lt;-- A really empty sptenmat.</span>
+</pre><pre class="codeoutput">A is an all-zero sptenmat from an sptensor of size [empty tensor]
+	A.rindices = [  ] (modes of tensor corresponding to rows)
+	A.cindices = [  ] (modes of tensor corresponding to columns)
+</pre><h2>Use double to convert a sptenmat to a MATLAB sparse matrix<a name="20"></a></h2><pre class="codeinput">X = sptenrand([10 10 10 10],10); <span class="comment">%&lt;-- Create a tensor.</span>
+A = sptenmat(X,1) <span class="comment">%&lt;-- Convert it to a sptenmat</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	A.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	( 2,723)	0.783859
+	( 3, 32)	0.986158
+	( 4,647)	0.473343
+	( 5,775)	0.902819
+	( 5,236)	0.451059
+	( 5,256)	0.804517
+	( 5,357)	0.828864
+	( 7,191)	0.16627
+	( 7,447)	0.393906
+	(10,434)	0.520757
+</pre><pre class="codeinput">B = double(A) <span class="comment">%&lt;-- Convert it to a MATLAB sparse matrix</span>
+</pre><pre class="codeoutput">
+B =
+
+   (3,32)      0.9862
+   (7,191)     0.1663
+   (5,236)     0.4511
+   (5,256)     0.8045
+   (5,357)     0.8289
+  (10,434)     0.5208
+   (7,447)     0.3939
+   (4,647)     0.4733
+   (2,723)     0.7839
+   (5,775)     0.9028
+
+</pre><pre class="codeinput">whos <span class="string">A</span> <span class="string">B</span> <span class="comment">%&lt;-- The storage for B (the sparse matrix) is larger than for A.</span>
+</pre><pre class="codeoutput">  Name      Size                    Bytes  Class
+
+  A        10x1000                    924  sptenmat object
+  B        10x1000                   4124  double array (sparse)
+
+Grand total is 53 elements using 5048 bytes
+
+</pre><pre class="codeinput">C = B'; <span class="comment">%&lt;-- Transposing the result fixes the problem.</span>
+whos <span class="string">C</span>
+</pre><pre class="codeoutput">  Name      Size                    Bytes  Class
+
+  C      1000x10                      164  double array (sparse)
+
+Grand total is 10 elements using 164 bytes
+
+</pre><h2>Use full to convert a sptenmath to a tenmat<a name="24"></a></h2><pre class="codeinput">B = sptenmat(sptenrand([3 3 3], 3), 1) <span class="comment">%&lt;-- Create a sptenmat</span>
+</pre><pre class="codeoutput">B is a sptenmat from an sptensor of size 3 x 3 x 3 with 3 nonzeros
+	B.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	B.cindices = [ 2  3 ] (modes of tensor corresponding to columns)
+	(2,1)	0.759479
+	(2,8)	0.949759
+	(3,5)	0.557939
+</pre><pre class="codeinput">C = full(B) <span class="comment">%&lt;-- Convert to a tenmat</span>
+</pre><pre class="codeoutput">C is a matrix corresponding to a tensor of size 3 x 3 x 3
+	C.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	C.cindices = [ 2  3 ] (modes of tensor corresponding to columns)
+	C.data = 
+		         0         0         0         0         0         0         0         0         0
+		    0.7595         0         0         0         0         0         0    0.9498         0
+		         0         0         0         0    0.5579         0         0         0         0
+</pre><h2>Use sptensor to convert a sptenmat to a sptensor<a name="26"></a></h2><pre class="codeinput">Y = sptensor(A) <span class="comment">%&lt;-- Convert a sptenmat to a sptensor</span>
+</pre><pre class="codeoutput">Y is a sparse tensor of size 10 x 10 x 10 x 10 with 10 nonzeros
+	( 2,3, 3, 8)	0.783859
+	( 3,2, 4, 1)	0.986158
+	( 4,7, 5, 7)	0.473343
+	( 5,5, 8, 8)	0.902819
+	( 5,6, 4, 3)	0.451059
+	( 5,6, 6, 3)	0.804517
+	( 5,7, 6, 4)	0.828864
+	( 7,1,10, 2)	0.16627
+	( 7,7, 5, 5)	0.393906
+	(10,4, 4, 5)	0.520757
+</pre><h2>Use size and tsize for the dimensions of a sptenmat<a name="27"></a></h2><pre class="codeinput">size(A) <span class="comment">%&lt;-- Matrix size</span>
+tsize(A) <span class="comment">%&lt;-- Corresponding tensor size</span>
+</pre><pre class="codeoutput">
+ans =
+
+          10        1000
+
+
+ans =
+
+    10    10    10    10
+
+</pre><h2>Subscripted reference for a sptenmat<a name="28"></a></h2>
+         <p>This is not supported beyond getting the constituent parts.</p>
+         <h2>Subscripted assignment for a sptenmat<a name="29"></a></h2><pre class="codeinput">A(1:2,1:2) = ones(2) <span class="comment">%&lt;-- Replace part of the matrix.</span>
+</pre><pre class="codeoutput">A is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 14 nonzeros
+	A.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	A.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	( 1,  1)	1
+	( 1,  2)	1
+	( 2,  1)	1
+	( 2,  2)	1
+	( 2,723)	0.783859
+	( 3, 32)	0.986158
+	( 4,647)	0.473343
+	( 5,236)	0.451059
+	( 5,256)	0.804517
+	( 5,357)	0.828864
+	( 5,775)	0.902819
+	( 7,191)	0.16627
+	( 7,447)	0.393906
+	(10,434)	0.520757
+</pre><h2>Use end for the last index<a name="30"></a></h2>
+         <p>End is not supported.</p>
+         <h2>Basic operations for sptenmat<a name="31"></a></h2><pre class="codeinput">norm(A) <span class="comment">%&lt;-- Norm of the matrix.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    2.9356
+
+</pre><pre class="codeinput">+A <span class="comment">%&lt;-- Calls uplus.</span>
+</pre><pre class="codeoutput">ans is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 14 nonzeros
+	ans.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	( 1,  1)	1
+	( 1,  2)	1
+	( 2,  1)	1
+	( 2,  2)	1
+	( 2,723)	0.783859
+	( 3, 32)	0.986158
+	( 4,647)	0.473343
+	( 5,236)	0.451059
+	( 5,256)	0.804517
+	( 5,357)	0.828864
+	( 5,775)	0.902819
+	( 7,191)	0.16627
+	( 7,447)	0.393906
+	(10,434)	0.520757
+</pre><pre class="codeinput">-A <span class="comment">%&lt;-- Calls uminus.</span>
+</pre><pre class="codeoutput">ans is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 14 nonzeros
+	ans.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	( 1,  1)	-1
+	( 1,  2)	-1
+	( 2,  1)	-1
+	( 2,  2)	-1
+	( 2,723)	-0.783859
+	( 3, 32)	-0.986158
+	( 4,647)	-0.473343
+	( 5,236)	-0.451059
+	( 5,256)	-0.804517
+	( 5,357)	-0.828864
+	( 5,775)	-0.902819
+	( 7,191)	-0.16627
+	( 7,447)	-0.393906
+	(10,434)	-0.520757
+</pre><h2>Use aatx to efficiently compute A * A' * x for a sptenmat<a name="34"></a></h2><pre class="codeinput">x = ones(10,1); <span class="comment">%&lt;-- Create vector</span>
+aatx(A,x) <span class="comment">%&lt;-- Compute A * A' * x</span>
+</pre><pre class="codeoutput">
+ans =
+
+    4.0000
+    4.6144
+    0.9725
+    0.2241
+    2.3528
+         0
+    0.1828
+         0
+         0
+    0.2712
+
+</pre><pre class="codeinput">double(A) * double(A)' * x <span class="comment">%&lt;-- Same as above but less efficient</span>
+</pre><pre class="codeoutput">
+ans =
+
+    4.0000
+    4.6144
+    0.9725
+    0.2241
+    2.3528
+         0
+    0.1828
+         0
+         0
+    0.2712
+
+</pre><h2>Displaying a tenmat<a name="36"></a></h2>
+         <p>Shows the original tensor dimensions, the modes mapped to rows, the modes mapped to columns, and the matrix.</p><pre class="codeinput">disp(A)
+</pre><pre class="codeoutput">ans is a sptenmat from an sptensor of size 10 x 10 x 10 x 10 with 14 nonzeros
+	ans.rindices = [ 1 ] (modes of tensor corresponding to rows)
+	ans.cindices = [ 2  3  4 ] (modes of tensor corresponding to columns)
+	( 1,  1)	1
+	( 1,  2)	1
+	( 2,  1)	1
+	( 2,  2)	1
+	( 2,723)	0.783859
+	( 3, 32)	0.986158
+	( 4,647)	0.473343
+	( 5,236)	0.451059
+	( 5,256)	0.804517
+	( 5,357)	0.828864
+	( 5,775)	0.902819
+	( 7,191)	0.16627
+	( 7,447)	0.393906
+	(10,434)	0.520757
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Converting sparse tensors to matrices and vice versa
+% We show how to convert a sptensor to a matrix stored in _coordinate_
+% format and with extra information so that it can be converted back to a
+% sptensor.
+
+%% Creating a sptenmat (sparse tensor as sparse matrix) object
+% A sparse tensor can be converted to a sparse matrix. The matrix, however,
+% is not stored as a MATLAB sparse matrix because that format is sometimes
+% inefficient for converted sparse tensors. Instead, the row and column
+% indices are stored explicitly.
+%%
+% First, we create a sparse tensor to be converted.
+X = sptenrand([10 10 10 10],10) %<REPLACE_WITH_DASH_DASH Generate some data.
+%%
+% All the same options for tenmat are available as for tenmat.
+A = sptenmat(X,1) %<REPLACE_WITH_DASH_DASH Mode-1 matricization.
+%%
+A = sptenmat(X,[2 3]) %<REPLACE_WITH_DASH_DASH More than one mode is mapped to the columns.
+%%
+A = sptenmat(X,[2 3],'t') %<REPLACE_WITH_DASH_DASH Specify column dimensions (transpose).
+%%
+A = sptenmat(X,1:4) %<REPLACE_WITH_DASH_DASH All modes mapped to rows, i.e., vectorize.
+%%
+A = sptenmat(X,2) %<REPLACE_WITH_DASH_DASH By default, columns are ordered as [1 3 4].
+%% 
+A = sptenmat(X,2,[3 1 4]) %<REPLACE_WITH_DASH_DASH Explicit column ordering.
+%%
+A = sptenmat(X,2,'fc') %<REPLACE_WITH_DASH_DASH Foward cyclic.
+%%
+A = sptenmat(X,2,'bc') %<REPLACE_WITH_DASH_DASH Backward cyclic.
+%% Constituent parts of a sptenmat
+A.subs %<REPLACE_WITH_DASH_DASH Subscripts of the nonzeros.
+%%
+A.vals %<REPLACE_WITH_DASH_DASH The corresponding nonzero values.
+%%
+A.tsize %<REPLACE_WITH_DASH_DASH Size of the original tensor.
+%%
+A.rdims %<REPLACE_WITH_DASH_DASH Dimensions that were mapped to the rows.
+%%
+A.cdims %<REPLACE_WITH_DASH_DASH Dimensions that were mapped to the columns.
+%% Creating a sptenmat from its constituent parts
+B = sptenmat(A.subs,A.vals,A.rdims,A.cdims,A.tsize) %<REPLACE_WITH_DASH_DASH Copies A
+%%
+B = sptenmat(double(A),A.rdims,A.cdims,A.tsize) %<REPLACE_WITH_DASH_DASH More efficient to pass a matrix.
+%% Creating a sptenmat with no nonzeros
+A = sptenmat([],[],A.rdims,A.cdims,A.tsize) %<REPLACE_WITH_DASH_DASH An empty sptenmat.
+%% Creating an emtpy sptenmat
+A = sptenmat %<REPLACE_WITH_DASH_DASH A really empty sptenmat.
+%% Use double to convert a sptenmat to a MATLAB sparse matrix
+X = sptenrand([10 10 10 10],10); %<REPLACE_WITH_DASH_DASH Create a tensor.
+A = sptenmat(X,1) %<REPLACE_WITH_DASH_DASH Convert it to a sptenmat
+%%
+B = double(A) %<REPLACE_WITH_DASH_DASH Convert it to a MATLAB sparse matrix
+%%
+whos A B %<REPLACE_WITH_DASH_DASH The storage for B (the sparse matrix) is larger than for A.
+%%
+C = B'; %<REPLACE_WITH_DASH_DASH Transposing the result fixes the problem.
+whos C
+%% Use full to convert a sptenmath to a tenmat
+B = sptenmat(sptenrand([3 3 3], 3), 1) %<REPLACE_WITH_DASH_DASH Create a sptenmat
+%%
+C = full(B) %<REPLACE_WITH_DASH_DASH Convert to a tenmat
+%% Use sptensor to convert a sptenmat to a sptensor
+Y = sptensor(A) %<REPLACE_WITH_DASH_DASH Convert a sptenmat to a sptensor
+%% Use size and tsize for the dimensions of a sptenmat
+size(A) %<REPLACE_WITH_DASH_DASH Matrix size
+tsize(A) %<REPLACE_WITH_DASH_DASH Corresponding tensor size
+%% Subscripted reference for a sptenmat
+% This is not supported beyond getting the constituent parts.
+%% Subscripted assignment for a sptenmat
+A(1:2,1:2) = ones(2) %<REPLACE_WITH_DASH_DASH Replace part of the matrix.
+%% Use end for the last index
+% End is not supported.
+%% Basic operations for sptenmat
+norm(A) %<REPLACE_WITH_DASH_DASH Norm of the matrix.
+%%
++A %<REPLACE_WITH_DASH_DASH Calls uplus.
+%%
+-A %<REPLACE_WITH_DASH_DASH Calls uminus.
+%% Use aatx to efficiently compute A * A' * x for a sptenmat
+x = ones(10,1); %<REPLACE_WITH_DASH_DASH Create vector
+aatx(A,x) %<REPLACE_WITH_DASH_DASH Compute A * A' * x
+%%
+double(A) * double(A)' * x %<REPLACE_WITH_DASH_DASH Same as above but less efficient
+%% Displaying a tenmat
+% Shows the original tensor dimensions, the modes mapped to rows, the modes
+% mapped to columns, and the matrix.
+disp(A) 
+
+##### SOURCE END #####
+-->
+   </body>
+</html>

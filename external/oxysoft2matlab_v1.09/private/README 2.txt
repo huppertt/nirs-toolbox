@@ -1,0 +1,1 @@
+private directories in matlab are not visible to the enduser, and can only be executed by functions that are located in the immediate parent directory.

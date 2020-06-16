@@ -1,0 +1,664 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Tucker Tensors</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="C_ttensor_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Tucker Tensors</h1>
+         <introduction>
+            <p>Tucker format is a decomposition of a tensor X as the product of a core tensor G and matrices (e.g., A,B,C) in each dimension.
+               In other words, a tensor X is expressed as:
+            </p>
+            <p><img vspace="5" hspace="5" src="C_ttensor_doc_eq96890.png"> </p>
+            <p>In MATLAB notation, <tt>X=ttm(G,{A,B,C})</tt>. The <tt>ttensor</tt> class stores the components of the tensor X and can perform many operations, e.g., <tt>ttm</tt>, without explicitly forming the tensor X.
+            </p>
+         </introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Creating a ttensor with a tensor core</a></li>
+               <li><a href="#2">Alternate core formats: sptensor, ktensor, or ttensor</a></li>
+               <li><a href="#5">Creating a one-dimensional ttensor</a></li>
+               <li><a href="#6">Constituent parts of a ttensor</a></li>
+               <li><a href="#8">Creating a ttensor from its constituent parts</a></li>
+               <li><a href="#9">Creating an empty ttensor.</a></li>
+               <li><a href="#10">Use full or tensor to convert a ttensor to a tensor</a></li>
+               <li><a href="#13">Use double to convert a ttensor to a (multidimensional) array</a></li>
+               <li><a href="#14">Use ndims and size to get the size of a ttensor</a></li>
+               <li><a href="#17">Subscripted reference to a ttensor</a></li>
+               <li><a href="#20">Subscripted assignment for a ttensor</a></li>
+               <li><a href="#23">Using end for last index</a></li>
+               <li><a href="#24">Basic operations (uplus, uminus, mtimes) for a ttensor.</a></li>
+               <li><a href="#27">Use permute to reorder the modes of a ttensor</a></li>
+               <li><a href="#28">Displaying a ttensor</a></li>
+            </ul>
+         </div>
+         <h2>Creating a ttensor with a tensor core<a name="1"></a></h2><pre class="codeinput">core = tensor(rand(3,2,1),[3 2 1]); <span class="comment">%&lt;-- The core tensor.</span>
+U = {rand(5,3), rand(4,2), rand(3,1)}; <span class="comment">%&lt;-- The matrices.</span>
+X = ttensor(core,U) <span class="comment">%&lt;-- Create the ttensor.</span>
+</pre><pre class="codeoutput">X is a ttensor of size 5 x 4 x 3
+	X.core is a tensor of size 3 x 2 x 1
+		X.core(:,:,1) = 
+	    0.0142    0.9771
+	    0.5962    0.2219
+	    0.8162    0.7037
+	X.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	X.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	X.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><h2>Alternate core formats: sptensor, ktensor, or ttensor<a name="2"></a></h2><pre class="codeinput">core1 = sptenrand([3 2 1],3); <span class="comment">%&lt;-- Create a 3 x 2 x 1 sptensor.</span>
+Y = ttensor(core1,U) <span class="comment">%&lt;-- Core is a sptensor.</span>
+</pre><pre class="codeoutput">Y is a ttensor of size 5 x 4 x 3
+	Y.core is a sparse tensor of size 3 x 2 x 1 with 3 nonzeros
+	(1,1,1)	0.375056
+	(1,2,1)	0.823387
+	(2,1,1)	0.0466361
+	Y.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	Y.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	Y.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><pre class="codeinput">V = {rand(3,2),rand(2,2),rand(1,2)}; <span class="comment">%&lt;-- Create some random matrices.</span>
+core2 = ktensor(V); <span class="comment">%&lt;-- Create a 3 x 2 x 1 ktensor.</span>
+Y = ttensor(core2,U) <span class="comment">%&lt;-- Core is a ktensor.</span>
+</pre><pre class="codeoutput">Y is a ttensor of size 5 x 4 x 3
+	Y.core is a ktensor of size 3 x 2 x 1
+		Y.core.lambda = [ 1  1 ]
+		Y.core.U{1} = 
+		    0.5979    0.8888
+		    0.9492    0.1016
+		    0.2888    0.0653
+		Y.core.U{2} = 
+		    0.2343    0.0631
+		    0.9331    0.2642
+		Y.core.U{3} = 
+		    0.9995    0.2120
+	Y.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	Y.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	Y.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><pre class="codeinput">core3 = ttensor(tensor(1:8,[2 2 2]),V); <span class="comment">%&lt;-- Create a 3 x 2 x 1 ttensor.</span>
+Y = ttensor(core3,U) <span class="comment">%&lt;-- Core is a ttensor.</span>
+</pre><pre class="codeoutput">Y is a ttensor of size 5 x 4 x 3
+	Y.core is a ttensor of size 3 x 2 x 1
+		Y.core.core is a tensor of size 2 x 2 x 2
+			Y.core.core(:,:,1) = 
+	     1     3
+	     2     4
+			Y.core.core(:,:,2) = 
+	     5     7
+	     6     8
+		Y.core.U{1} = 
+		    0.5979    0.8888
+		    0.9492    0.1016
+		    0.2888    0.0653
+		Y.core.U{2} = 
+		    0.2343    0.0631
+		    0.9331    0.2642
+		Y.core.U{3} = 
+		    0.9995    0.2120
+	Y.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	Y.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	Y.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><h2>Creating a one-dimensional ttensor<a name="5"></a></h2><pre class="codeinput">Z = ttensor(tensor(rand(2,1),2), rand(4,2)) <span class="comment">%&lt;-- One-dimensional ttensor.</span>
+</pre><pre class="codeoutput">Z is a ttensor of size 4
+	Z.core is a tensor of size 2
+		Z.core(:) = 
+	    0.4984
+	    0.2905
+	Z.U{1} = 
+		    0.6728    0.1309
+		    0.9580    0.0954
+		    0.7666    0.0149
+		    0.6661    0.2882
+</pre><h2>Constituent parts of a ttensor<a name="6"></a></h2><pre class="codeinput">X.core <span class="comment">%&lt;-- Core tensor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 3 x 2 x 1
+	ans(:,:,1) = 
+	    0.0142    0.9771
+	    0.5962    0.2219
+	    0.8162    0.7037
+</pre><pre class="codeinput">X.U <span class="comment">%&lt;-- Cell array of matrices.</span>
+</pre><pre class="codeoutput">
+ans = 
+
+    [5x3 double]    [4x2 double]    [3x1 double]
+
+</pre><h2>Creating a ttensor from its constituent parts<a name="8"></a></h2><pre class="codeinput">Y = ttensor(X.core,X.U) <span class="comment">%&lt;-- Recreate a tensor from its parts.</span>
+</pre><pre class="codeoutput">Y is a ttensor of size 5 x 4 x 3
+	Y.core is a tensor of size 3 x 2 x 1
+		Y.core(:,:,1) = 
+	    0.0142    0.9771
+	    0.5962    0.2219
+	    0.8162    0.7037
+	Y.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	Y.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	Y.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><h2>Creating an empty ttensor.<a name="9"></a></h2><pre class="codeinput">X = ttensor <span class="comment">%&lt;-- empty ttensor</span>
+</pre><pre class="codeoutput">X is a ttensor of size [empty tensor]
+	X.core is a tensor of size [empty tensor]
+		X.core = []
+</pre><h2>Use full or tensor to convert a ttensor to a tensor<a name="10"></a></h2><pre class="codeinput">X = ttensor(core,U) <span class="comment">%&lt;-- Create a tensor</span>
+</pre><pre class="codeoutput">X is a ttensor of size 5 x 4 x 3
+	X.core is a tensor of size 3 x 2 x 1
+		X.core(:,:,1) = 
+	    0.0142    0.9771
+	    0.5962    0.2219
+	    0.8162    0.7037
+	X.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	X.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	X.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><pre class="codeinput">full(X) <span class="comment">%&lt;-- Converts to a tensor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 5 x 4 x 3
+	ans(:,:,1) = 
+	    0.4236    0.2188    0.5476    0.2676
+	    0.4406    0.2191    0.5840    0.2934
+	    0.2668    0.1204    0.3746    0.1995
+	    0.3678    0.2009    0.4567    0.2128
+	    0.2709    0.1444    0.3425    0.1631
+	ans(:,:,2) = 
+	    0.4974    0.2569    0.6430    0.3142
+	    0.5173    0.2573    0.6857    0.3445
+	    0.3132    0.1414    0.4398    0.2343
+	    0.4318    0.2359    0.5363    0.2498
+	    0.3181    0.1696    0.4022    0.1915
+	ans(:,:,3) = 
+	    1.1514    0.5948    1.4883    0.7272
+	    1.1975    0.5956    1.5872    0.7974
+	    0.7251    0.3273    1.0180    0.5423
+	    0.9996    0.5461    1.2413    0.5783
+	    0.7363    0.3925    0.9310    0.4434
+</pre><pre class="codeinput">tensor(X) <span class="comment">%&lt;-- Also converts to a tensor.</span>
+</pre><pre class="codeoutput">ans is a tensor of size 5 x 4 x 3
+	ans(:,:,1) = 
+	    0.4236    0.2188    0.5476    0.2676
+	    0.4406    0.2191    0.5840    0.2934
+	    0.2668    0.1204    0.3746    0.1995
+	    0.3678    0.2009    0.4567    0.2128
+	    0.2709    0.1444    0.3425    0.1631
+	ans(:,:,2) = 
+	    0.4974    0.2569    0.6430    0.3142
+	    0.5173    0.2573    0.6857    0.3445
+	    0.3132    0.1414    0.4398    0.2343
+	    0.4318    0.2359    0.5363    0.2498
+	    0.3181    0.1696    0.4022    0.1915
+	ans(:,:,3) = 
+	    1.1514    0.5948    1.4883    0.7272
+	    1.1975    0.5956    1.5872    0.7974
+	    0.7251    0.3273    1.0180    0.5423
+	    0.9996    0.5461    1.2413    0.5783
+	    0.7363    0.3925    0.9310    0.4434
+</pre><h2>Use double to convert a ttensor to a (multidimensional) array<a name="13"></a></h2><pre class="codeinput">double(X) <span class="comment">%&lt;-- Converts to a MATLAB array</span>
+</pre><pre class="codeoutput">
+ans(:,:,1) =
+
+    0.4236    0.2188    0.5476    0.2676
+    0.4406    0.2191    0.5840    0.2934
+    0.2668    0.1204    0.3746    0.1995
+    0.3678    0.2009    0.4567    0.2128
+    0.2709    0.1444    0.3425    0.1631
+
+
+ans(:,:,2) =
+
+    0.4974    0.2569    0.6430    0.3142
+    0.5173    0.2573    0.6857    0.3445
+    0.3132    0.1414    0.4398    0.2343
+    0.4318    0.2359    0.5363    0.2498
+    0.3181    0.1696    0.4022    0.1915
+
+
+ans(:,:,3) =
+
+    1.1514    0.5948    1.4883    0.7272
+    1.1975    0.5956    1.5872    0.7974
+    0.7251    0.3273    1.0180    0.5423
+    0.9996    0.5461    1.2413    0.5783
+    0.7363    0.3925    0.9310    0.4434
+
+</pre><h2>Use ndims and size to get the size of a ttensor<a name="14"></a></h2><pre class="codeinput">ndims(X) <span class="comment">%&lt;-- Number of dimensions.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     3
+
+</pre><pre class="codeinput">size(X) <span class="comment">%&lt;-- Row vector of the sizes.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     5     4     3
+
+</pre><pre class="codeinput">size(X,2) <span class="comment">%&lt;-- Size of the 2nd mode.</span>
+</pre><pre class="codeoutput">
+ans =
+
+     4
+
+</pre><h2>Subscripted reference to a ttensor<a name="17"></a></h2><pre class="codeinput">X.core(1,1,1) <span class="comment">%&lt;-- Access an element of the core.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.0142
+
+</pre><pre class="codeinput">X.U{2} <span class="comment">%&lt;-- Extract a matrix.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.9408    0.4551
+    0.7019    0.0811
+    0.8477    0.8511
+    0.2093    0.5620
+
+</pre><pre class="codeinput">X{2} <span class="comment">%&lt;-- Same as above.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    0.9408    0.4551
+    0.7019    0.0811
+    0.8477    0.8511
+    0.2093    0.5620
+
+</pre><h2>Subscripted assignment for a ttensor<a name="20"></a></h2><pre class="codeinput">X.core = tenones(size(X.core)) <span class="comment">%&lt;-- Insert a new core.</span>
+</pre><pre class="codeoutput">X is a ttensor of size 5 x 4 x 3
+	X.core is a tensor of size 3 x 2 x 1
+		X.core(:,:,1) = 
+	     1     1
+	     1     1
+	     1     1
+	X.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	X.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	X.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><pre class="codeinput">X.core(2,2,1) = 7 <span class="comment">%&lt;-- Change a single element.</span>
+</pre><pre class="codeoutput">X is a ttensor of size 5 x 4 x 3
+	X.core is a tensor of size 3 x 2 x 1
+		X.core(:,:,1) = 
+	     1     1
+	     1     7
+	     1     1
+	X.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	X.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	X.U{3} = 
+		    0.3193
+		    0.3749
+		    0.8678
+</pre><pre class="codeinput">X{3}(1:2,1) = [1;1] <span class="comment">%&lt;-- Change the matrix for mode 3.</span>
+</pre><pre class="codeoutput">X is a ttensor of size 5 x 4 x 3
+	X.core is a tensor of size 3 x 2 x 1
+		X.core(:,:,1) = 
+	     1     1
+	     1     7
+	     1     1
+	X.U{1} = 
+		    0.5221    0.1722    0.8948
+		    0.9329    0.9688    0.2861
+		    0.7134    0.3557    0.2512
+		    0.2280    0.0490    0.9327
+		    0.4496    0.7553    0.1310
+	X.U{2} = 
+		    0.9408    0.4551
+		    0.7019    0.0811
+		    0.8477    0.8511
+		    0.2093    0.5620
+	X.U{3} = 
+		    1.0000
+		    1.0000
+		    0.8678
+</pre><h2>Using end for last index<a name="23"></a></h2><pre class="codeinput">X{end}  <span class="comment">%&lt;-- The same as X{3}.</span>
+</pre><pre class="codeoutput">
+ans =
+
+    1.0000
+    1.0000
+    0.8678
+
+</pre><h2>Basic operations (uplus, uminus, mtimes) for a ttensor.<a name="24"></a></h2><pre class="codeinput">X = ttensor(tenrand([2 2 2]),{rand(3,2),rand(1,2),rand(2,2)}) <span class="comment">%&lt;-- Data.</span>
++X <span class="comment">%&lt;-- Calls uplus.</span>
+</pre><pre class="codeoutput">X is a ttensor of size 3 x 1 x 2
+	X.core is a tensor of size 2 x 2 x 2
+		X.core(:,:,1) = 
+	    0.8167    0.0174
+	    0.9855    0.8194
+		X.core(:,:,2) = 
+	    0.6211    0.2440
+	    0.5602    0.8220
+	X.U{1} = 
+		    0.2632    0.2141
+		    0.7536    0.6021
+		    0.6596    0.6049
+	X.U{2} = 
+		    0.6595    0.1834
+	X.U{3} = 
+		    0.6365    0.5396
+		    0.1703    0.6234
+ans is a ttensor of size 3 x 1 x 2
+	ans.core is a tensor of size 2 x 2 x 2
+		ans.core(:,:,1) = 
+	    0.8167    0.0174
+	    0.9855    0.8194
+		ans.core(:,:,2) = 
+	    0.6211    0.2440
+	    0.5602    0.8220
+	ans.U{1} = 
+		    0.2632    0.2141
+		    0.7536    0.6021
+		    0.6596    0.6049
+	ans.U{2} = 
+		    0.6595    0.1834
+	ans.U{3} = 
+		    0.6365    0.5396
+		    0.1703    0.6234
+</pre><pre class="codeinput">-X <span class="comment">%&lt;-- Calls uminus.</span>
+</pre><pre class="codeoutput">ans is a ttensor of size 3 x 1 x 2
+	ans.core is a tensor of size 2 x 2 x 2
+		ans.core(:,:,1) = 
+	   -0.8167   -0.0174
+	   -0.9855   -0.8194
+		ans.core(:,:,2) = 
+	   -0.6211   -0.2440
+	   -0.5602   -0.8220
+	ans.U{1} = 
+		    0.2632    0.2141
+		    0.7536    0.6021
+		    0.6596    0.6049
+	ans.U{2} = 
+		    0.6595    0.1834
+	ans.U{3} = 
+		    0.6365    0.5396
+		    0.1703    0.6234
+</pre><pre class="codeinput">5*X <span class="comment">%&lt;-- Calls mtimes.</span>
+</pre><pre class="codeoutput">ans is a ttensor of size 3 x 1 x 2
+	ans.core is a tensor of size 2 x 2 x 2
+		ans.core(:,:,1) = 
+	    4.0837    0.0868
+	    4.9274    4.0970
+		ans.core(:,:,2) = 
+	    3.1057    1.2202
+	    2.8011    4.1100
+	ans.U{1} = 
+		    0.2632    0.2141
+		    0.7536    0.6021
+		    0.6596    0.6049
+	ans.U{2} = 
+		    0.6595    0.1834
+	ans.U{3} = 
+		    0.6365    0.5396
+		    0.1703    0.6234
+</pre><h2>Use permute to reorder the modes of a ttensor<a name="27"></a></h2><pre class="codeinput">permute(X,[3 2 1]) <span class="comment">%&lt;-- Reverses the modes of X</span>
+</pre><pre class="codeoutput">ans is a ttensor of size 2 x 1 x 3
+	ans.core is a tensor of size 2 x 2 x 2
+		ans.core(:,:,1) = 
+	    0.8167    0.0174
+	    0.6211    0.2440
+		ans.core(:,:,2) = 
+	    0.9855    0.8194
+	    0.5602    0.8220
+	ans.U{1} = 
+		    0.6365    0.5396
+		    0.1703    0.6234
+	ans.U{2} = 
+		    0.6595    0.1834
+	ans.U{3} = 
+		    0.2632    0.2141
+		    0.7536    0.6021
+		    0.6596    0.6049
+</pre><h2>Displaying a ttensor<a name="28"></a></h2>
+         <p>The tensor displays by displaying the core and each of the component matrices.</p><pre class="codeinput">disp(X) <span class="comment">%&lt;-- Prints out the ttensor.</span>
+</pre><pre class="codeoutput">ans is a ttensor of size 3 x 1 x 2
+	ans.core is a tensor of size 2 x 2 x 2
+		ans.core(:,:,1) = 
+	    0.8167    0.0174
+	    0.9855    0.8194
+		ans.core(:,:,2) = 
+	    0.6211    0.2440
+	    0.5602    0.8220
+	ans.U{1} = 
+		    0.2632    0.2141
+		    0.7536    0.6021
+		    0.6596    0.6049
+	ans.U{2} = 
+		    0.6595    0.1834
+	ans.U{3} = 
+		    0.6365    0.5396
+		    0.1703    0.6234
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Tucker Tensors
+% Tucker format is a decomposition of a tensor X as the product of a core
+% tensor G and matrices (e.g., A,B,C) in each dimension. In other words, a
+% tensor X is expressed as:
+% 
+% $${\mathcal X} = {\mathcal G} \times_1 A \times_2 B \times_2 C$$
+% 
+% In MATLAB notation, |X=ttm(G,{A,B,C})|. The |ttensor| class stores the
+% components of the tensor X and can perform many operations, e.g., |ttm|,
+% without explicitly forming the tensor X.
+%% Creating a ttensor with a tensor core
+core = tensor(rand(3,2,1),[3 2 1]); %<REPLACE_WITH_DASH_DASH The core tensor.
+U = {rand(5,3), rand(4,2), rand(3,1)}; %<REPLACE_WITH_DASH_DASH The matrices.
+X = ttensor(core,U) %<REPLACE_WITH_DASH_DASH Create the ttensor.
+%% Alternate core formats: sptensor, ktensor, or ttensor
+core1 = sptenrand([3 2 1],3); %<REPLACE_WITH_DASH_DASH Create a 3 x 2 x 1 sptensor.
+Y = ttensor(core1,U) %<REPLACE_WITH_DASH_DASH Core is a sptensor.
+%%
+V = {rand(3,2),rand(2,2),rand(1,2)}; %<REPLACE_WITH_DASH_DASH Create some random matrices.
+core2 = ktensor(V); %<REPLACE_WITH_DASH_DASH Create a 3 x 2 x 1 ktensor.
+Y = ttensor(core2,U) %<REPLACE_WITH_DASH_DASH Core is a ktensor.
+%% 
+core3 = ttensor(tensor(1:8,[2 2 2]),V); %<REPLACE_WITH_DASH_DASH Create a 3 x 2 x 1 ttensor.
+Y = ttensor(core3,U) %<REPLACE_WITH_DASH_DASH Core is a ttensor.
+%% Creating a one-dimensional ttensor
+Z = ttensor(tensor(rand(2,1),2), rand(4,2)) %<REPLACE_WITH_DASH_DASH One-dimensional ttensor.
+%% Constituent parts of a ttensor
+X.core %<REPLACE_WITH_DASH_DASH Core tensor.
+%%
+X.U %<REPLACE_WITH_DASH_DASH Cell array of matrices.
+%% Creating a ttensor from its constituent parts
+Y = ttensor(X.core,X.U) %<REPLACE_WITH_DASH_DASH Recreate a tensor from its parts.
+%% Creating an empty ttensor.
+X = ttensor %<REPLACE_WITH_DASH_DASH empty ttensor
+%% Use full or tensor to convert a ttensor to a tensor
+X = ttensor(core,U) %<REPLACE_WITH_DASH_DASH Create a tensor
+%%
+full(X) %<REPLACE_WITH_DASH_DASH Converts to a tensor.
+%%
+tensor(X) %<REPLACE_WITH_DASH_DASH Also converts to a tensor.
+%% Use double to convert a ttensor to a (multidimensional) array
+double(X) %<REPLACE_WITH_DASH_DASH Converts to a MATLAB array
+%% Use ndims and size to get the size of a ttensor
+ndims(X) %<REPLACE_WITH_DASH_DASH Number of dimensions.
+%%
+size(X) %<REPLACE_WITH_DASH_DASH Row vector of the sizes.
+%%
+size(X,2) %<REPLACE_WITH_DASH_DASH Size of the 2nd mode.
+%% Subscripted reference to a ttensor
+X.core(1,1,1) %<REPLACE_WITH_DASH_DASH Access an element of the core.
+%%
+X.U{2} %<REPLACE_WITH_DASH_DASH Extract a matrix.
+%%
+X{2} %<REPLACE_WITH_DASH_DASH Same as above.
+%% Subscripted assignment for a ttensor
+X.core = tenones(size(X.core)) %<REPLACE_WITH_DASH_DASH Insert a new core.
+%%
+X.core(2,2,1) = 7 %<REPLACE_WITH_DASH_DASH Change a single element.
+%%
+X{3}(1:2,1) = [1;1] %<REPLACE_WITH_DASH_DASH Change the matrix for mode 3.
+%% Using end for last index
+X{end}  %<REPLACE_WITH_DASH_DASH The same as X{3}.
+%% Basic operations (uplus, uminus, mtimes) for a ttensor.
+X = ttensor(tenrand([2 2 2]),{rand(3,2),rand(1,2),rand(2,2)}) %<REPLACE_WITH_DASH_DASH Data.
++X %<REPLACE_WITH_DASH_DASH Calls uplus.
+%%
+-X %<REPLACE_WITH_DASH_DASH Calls uminus.
+%%
+5*X %<REPLACE_WITH_DASH_DASH Calls mtimes.
+%% Use permute to reorder the modes of a ttensor
+permute(X,[3 2 1]) %<REPLACE_WITH_DASH_DASH Reverses the modes of X
+%% Displaying a ttensor
+% The tensor displays by displaying the core and each of the component
+% matrices.
+disp(X) %<REPLACE_WITH_DASH_DASH Prints out the ttensor.
+
+
+
+##### SOURCE END #####
+-->
+   </body>
+</html>

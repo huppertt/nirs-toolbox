@@ -1,0 +1,475 @@
+<html xmlns:mwsh="http://www.mathworks.com/namespace/mcode/v1/syntaxhighlight.dtd">
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   
+      <!--
+This HTML is auto-generated from an M-file.
+To make changes, update the M-file and republish this document.
+      -->
+      <title>Algorithms for computing tensor decompositions</title>
+      <meta name="generator" content="MATLAB 7.2">
+      <meta name="date" content="2006-12-01">
+      <meta name="m-file" content="T_algorithms_doc"><style>
+
+body {
+  background-color: white;
+  margin:10px;
+}
+
+h1 {
+  color: #990000; 
+  font-size: x-large;
+}
+
+h2 {
+  color: #990000;
+  font-size: medium;
+}
+
+/* Make the text shrink to fit narrow windows, but not stretch too far in 
+wide windows.  On Gecko-based browsers, the shrink-to-fit doesn't work. */ 
+p,h1,h2,div.content div {
+  /* for MATLAB's browser */
+  width: 600px;
+  /* for Mozilla, but the "width" tag overrides it anyway */
+  max-width: 600px;
+  /* for IE */
+  width:expression(document.body.clientWidth > 620 ? "600px": "auto" );
+}
+
+pre.codeinput {
+  background: #EEEEEE;
+  padding: 10px;
+}
+@media print {
+  pre.codeinput {word-wrap:break-word; width:100%;}
+} 
+
+span.keyword {color: #0000FF}
+span.comment {color: #228B22}
+span.string {color: #A020F0}
+span.untermstring {color: #B20000}
+span.syscmd {color: #B28C00}
+
+pre.codeoutput {
+  color: #666666;
+  padding: 10px;
+}
+
+pre.error {
+  color: red;
+}
+
+p.footer {
+  text-align: right;
+  font-size: xx-small;
+  font-weight: lighter;
+  font-style: italic;
+  color: gray;
+}
+
+  </style></head>
+   <body>
+      <div class="content">
+         <h1>Algorithms for computing tensor decompositions</h1>
+         <introduction></introduction>
+         <h2>Contents</h2>
+         <div>
+            <ul>
+               <li><a href="#1">Alternating least squares for PARAFAC/CANDECOMP</a></li>
+               <li><a href="#6">Alternating least squares for Tucker model</a></li>
+            </ul>
+         </div>
+         <h2>Alternating least squares for PARAFAC/CANDECOMP<a name="1"></a></h2>
+         <p>The function <tt>parafac_als</tt> computes an estimate of the best rank-R PARAFAC model of a tensor X using an alternating least-squares algorithm.  The input
+            X can be a tensor, sptensor, ktensor, or ttensor. The result P is a ktensor.
+         </p><pre class="codeinput">rand(<span class="string">'state'</span>,0);
+X = sptenrand([5 4 3], 10)
+</pre><pre class="codeoutput">X is a sparse tensor of size 5 x 4 x 3 with 10 nonzeros
+	(1,4,1)	0.496552
+	(2,2,3)	0.899769
+	(3,2,3)	0.821629
+	(3,3,1)	0.64491
+	(3,3,3)	0.817974
+	(3,4,1)	0.660228
+	(4,1,2)	0.341971
+	(4,1,3)	0.289726
+	(5,2,2)	0.341194
+	(5,3,2)	0.534079
+</pre><pre class="codeinput">P = parafac_als(X,2)
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 3.219563e-001 fitdelta = 3.2e-001
+ Iter  2: fit = 3.645517e-001 fitdelta = 4.3e-002
+ Iter  3: fit = 3.732887e-001 fitdelta = 8.7e-003
+ Iter  4: fit = 3.809608e-001 fitdelta = 7.7e-003
+ Iter  5: fit = 4.021826e-001 fitdelta = 2.1e-002
+ Iter  6: fit = 4.427524e-001 fitdelta = 4.1e-002
+ Iter  7: fit = 4.734919e-001 fitdelta = 3.1e-002
+ Iter  8: fit = 4.848760e-001 fitdelta = 1.1e-002
+ Iter  9: fit = 4.890031e-001 fitdelta = 4.1e-003
+ Iter 10: fit = 4.907726e-001 fitdelta = 1.8e-003
+ Iter 11: fit = 4.916244e-001 fitdelta = 8.5e-004
+ Iter 12: fit = 4.920996e-001 fitdelta = 4.8e-004
+ Iter 13: fit = 4.924246e-001 fitdelta = 3.2e-004
+ Iter 14: fit = 4.926962e-001 fitdelta = 2.7e-004
+ Iter 15: fit = 4.929575e-001 fitdelta = 2.6e-004
+ Iter 16: fit = 4.932285e-001 fitdelta = 2.7e-004
+ Iter 17: fit = 4.935198e-001 fitdelta = 2.9e-004
+ Iter 18: fit = 4.938385e-001 fitdelta = 3.2e-004
+ Iter 19: fit = 4.941904e-001 fitdelta = 3.5e-004
+ Iter 20: fit = 4.945813e-001 fitdelta = 3.9e-004
+ Iter 21: fit = 4.950178e-001 fitdelta = 4.4e-004
+ Iter 22: fit = 4.955072e-001 fitdelta = 4.9e-004
+ Iter 23: fit = 4.960583e-001 fitdelta = 5.5e-004
+ Iter 24: fit = 4.966814e-001 fitdelta = 6.2e-004
+ Iter 25: fit = 4.973882e-001 fitdelta = 7.1e-004
+ Iter 26: fit = 4.981921e-001 fitdelta = 8.0e-004
+ Iter 27: fit = 4.991075e-001 fitdelta = 9.2e-004
+ Iter 28: fit = 5.001490e-001 fitdelta = 1.0e-003
+ Iter 29: fit = 5.013282e-001 fitdelta = 1.2e-003
+ Iter 30: fit = 5.026502e-001 fitdelta = 1.3e-003
+ Iter 31: fit = 5.041052e-001 fitdelta = 1.5e-003
+ Iter 32: fit = 5.056587e-001 fitdelta = 1.6e-003
+ Iter 33: fit = 5.072418e-001 fitdelta = 1.6e-003
+ Iter 34: fit = 5.087490e-001 fitdelta = 1.5e-003
+ Iter 35: fit = 5.100586e-001 fitdelta = 1.3e-003
+ Iter 36: fit = 5.110745e-001 fitdelta = 1.0e-003
+ Iter 37: fit = 5.117692e-001 fitdelta = 6.9e-004
+ Iter 38: fit = 5.121888e-001 fitdelta = 4.2e-004
+ Iter 39: fit = 5.124165e-001 fitdelta = 2.3e-004
+ Iter 40: fit = 5.125308e-001 fitdelta = 1.1e-004
+ Iter 41: fit = 5.125856e-001 fitdelta = 5.5e-005
+P is a ktensor of size 5 x 4 x 3
+	P.lambda = [ 1.3189      1.1109 ]
+	P.U{1} = 
+		    0.0019    0.2743
+		    0.6406   -0.0177
+		    0.7679    0.9615
+		   -0.0000    0.0000
+		   -0.0000   -0.0000
+	P.U{2} = 
+		   -0.0000    0.0000
+		    0.9413   -0.0855
+		    0.2693    0.7083
+		   -0.2036    0.7007
+	P.U{3} = 
+		    0.0402    0.8828
+		   -0.0000   -0.0000
+		    0.9992    0.4698
+</pre><pre class="codeinput">P = parafac_als(X,2,struct(<span class="string">'dimorder'</span>,[3 2 1]))
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 3.575290e-001 fitdelta = 3.6e-001
+ Iter  2: fit = 4.968299e-001 fitdelta = 1.4e-001
+ Iter  3: fit = 5.047740e-001 fitdelta = 7.9e-003
+ Iter  4: fit = 5.084288e-001 fitdelta = 3.7e-003
+ Iter  5: fit = 5.103942e-001 fitdelta = 2.0e-003
+ Iter  6: fit = 5.114388e-001 fitdelta = 1.0e-003
+ Iter  7: fit = 5.119941e-001 fitdelta = 5.6e-004
+ Iter  8: fit = 5.122906e-001 fitdelta = 3.0e-004
+ Iter  9: fit = 5.124494e-001 fitdelta = 1.6e-004
+ Iter 10: fit = 5.125349e-001 fitdelta = 8.5e-005
+P is a ktensor of size 5 x 4 x 3
+	P.lambda = [ 1.3217      1.0933 ]
+	P.U{1} = 
+		   -0.0029    0.2940
+		    0.6361   -0.0293
+		    0.7716    0.9554
+		    0.0000   -0.0000
+		    0.0000    0.0000
+	P.U{2} = 
+		    0.0000   -0.0000
+		    0.9356   -0.0865
+		    0.3018    0.6913
+		   -0.1832    0.7174
+	P.U{3} = 
+		    0.0483    0.9024
+		    0.0000    0.0000
+		    0.9988    0.4308
+</pre><pre class="codeinput">P = parafac_als(X,2,struct(<span class="string">'dimorder'</span>,[3 2 1],<span class="string">'init'</span>,<span class="string">'nvecs'</span>))
+</pre><pre class="codeoutput">  Computing 2 leading e-vectors for factor 2.
+  Computing 2 leading e-vectors for factor 1.
+
+Alternating Least-Squares:
+ Iter  1: fit = 3.767513e-001 fitdelta = 3.8e-001
+ Iter  2: fit = 4.273501e-001 fitdelta = 5.1e-002
+ Iter  3: fit = 4.966758e-001 fitdelta = 6.9e-002
+ Iter  4: fit = 5.061467e-001 fitdelta = 9.5e-003
+ Iter  5: fit = 5.092466e-001 fitdelta = 3.1e-003
+ Iter  6: fit = 5.108361e-001 fitdelta = 1.6e-003
+ Iter  7: fit = 5.116747e-001 fitdelta = 8.4e-004
+ Iter  8: fit = 5.121203e-001 fitdelta = 4.5e-004
+ Iter  9: fit = 5.123582e-001 fitdelta = 2.4e-004
+ Iter 10: fit = 5.124859e-001 fitdelta = 1.3e-004
+ Iter 11: fit = 5.125545e-001 fitdelta = 6.9e-005
+P is a ktensor of size 5 x 4 x 3
+	P.lambda = [ 1.3212      1.0943 ]
+	P.U{1} = 
+		   -0.0028    0.2928
+		    0.6367   -0.0289
+		    0.7711    0.9557
+		    0.0000   -0.0000
+		    0.0000    0.0000
+	P.U{2} = 
+		    0.0000   -0.0000
+		    0.9360   -0.0856
+		    0.2999    0.6927
+		   -0.1842    0.7161
+	P.U{3} = 
+		    0.0471    0.9012
+		    0.0000    0.0000
+		    0.9989    0.4334
+</pre><pre class="codeinput">U0 = {rand(5,2),rand(4,2),[]}; <span class="comment">%&lt;-- Initial guess for factors of P</span>
+P = parafac_als(X,2,struct(<span class="string">'dimorder'</span>,[3 2 1],<span class="string">'init'</span>,{U0}))
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 4.361298e-001 fitdelta = 4.4e-001
+ Iter  2: fit = 5.082769e-001 fitdelta = 7.2e-002
+ Iter  3: fit = 5.105738e-001 fitdelta = 2.3e-003
+ Iter  4: fit = 5.116456e-001 fitdelta = 1.1e-003
+ Iter  5: fit = 5.121929e-001 fitdelta = 5.5e-004
+ Iter  6: fit = 5.124502e-001 fitdelta = 2.6e-004
+ Iter  7: fit = 5.125615e-001 fitdelta = 1.1e-004
+ Iter  8: fit = 5.126068e-001 fitdelta = 4.5e-005
+P is a ktensor of size 5 x 4 x 3
+	P.lambda = [ 1.3217      1.1037 ]
+	P.U{1} = 
+		   -0.0007    0.2835
+		    0.6381   -0.0241
+		    0.7699    0.9587
+		    0.0000   -0.0000
+		    0.0000    0.0000
+	P.U{2} = 
+		    0.0000   -0.0000
+		    0.9388   -0.0899
+		    0.2834    0.7000
+		   -0.1957    0.7085
+	P.U{3} = 
+		    0.0487    0.8893
+		    0.0000    0.0000
+		    0.9988    0.4573
+</pre><h2>Alternating least squares for Tucker model<a name="6"></a></h2>
+         <p>The function <tt>tucker_als</tt> computes the best rank(R1,R2,..,Rn) approximation of tensor X, according to the specified dimensions in vector R.  The input
+            X can be a tensor, sptensor, ktensor, or ttensor.  The result returned in T is a ttensor.
+         </p><pre class="codeinput">X = sptenrand([5 4 3], 10)
+</pre><pre class="codeoutput">X is a sparse tensor of size 5 x 4 x 3 with 10 nonzeros
+	(1,3,1)	0.739993
+	(3,1,2)	0.431873
+	(3,2,1)	0.634266
+	(3,3,2)	0.803026
+	(4,1,2)	0.083881
+	(4,2,1)	0.945463
+	(4,4,2)	0.915942
+	(4,4,3)	0.601987
+	(5,3,3)	0.253561
+	(5,4,3)	0.873451
+</pre><pre class="codeinput">T = tucker_als(X,2)        <span class="comment">%&lt;-- best rank(2,2,2) approximation</span>
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 2.810591e-001 fitdelta = 2.8e-001
+ Iter  2: fit = 3.474829e-001 fitdelta = 6.6e-002
+ Iter  3: fit = 3.628582e-001 fitdelta = 1.5e-002
+ Iter  4: fit = 3.700452e-001 fitdelta = 7.2e-003
+ Iter  5: fit = 3.727897e-001 fitdelta = 2.7e-003
+ Iter  6: fit = 3.737295e-001 fitdelta = 9.4e-004
+ Iter  7: fit = 3.740582e-001 fitdelta = 3.3e-004
+ Iter  8: fit = 3.741751e-001 fitdelta = 1.2e-004
+ Iter  9: fit = 3.742168e-001 fitdelta = 4.2e-005
+T is a ttensor of size 5 x 4 x 3
+	T.core is a tensor of size 2 x 2 x 2
+		T.core(:,:,1) = 
+	    1.1796   -0.0116
+	    0.4219   -0.0175
+		T.core(:,:,2) = 
+	    0.0098    1.0308
+	   -0.0191   -0.4827
+	T.U{1} = 
+		    0.0069   -0.0204
+		   -0.0000    0.0000
+		    0.2980   -0.6769
+		    0.8904   -0.0567
+		    0.3439    0.7336
+	T.U{2} = 
+		    0.0439    0.0018
+		    0.0204    0.9997
+		    0.1129    0.0109
+		    0.9924   -0.0219
+	T.U{3} = 
+		    0.0109    0.9999
+		    0.6015   -0.0016
+		    0.7988   -0.0124
+</pre><pre class="codeinput">T = tucker_als(X,[2 2 1])  <span class="comment">%&lt;-- best rank(2,2,1) approximation</span>
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 1.812756e-001 fitdelta = 1.8e-001
+ Iter  2: fit = 2.272937e-001 fitdelta = 4.6e-002
+ Iter  3: fit = 2.412379e-001 fitdelta = 1.4e-002
+ Iter  4: fit = 2.436064e-001 fitdelta = 2.4e-003
+ Iter  5: fit = 2.444688e-001 fitdelta = 8.6e-004
+ Iter  6: fit = 2.449320e-001 fitdelta = 4.6e-004
+ Iter  7: fit = 2.451964e-001 fitdelta = 2.6e-004
+ Iter  8: fit = 2.453474e-001 fitdelta = 1.5e-004
+ Iter  9: fit = 2.454331e-001 fitdelta = 8.6e-005
+T is a ttensor of size 5 x 4 x 3
+	T.core is a tensor of size 2 x 2 x 1
+		T.core(:,:,1) = 
+	    1.1975   -0.0004
+	   -0.0001    0.7710
+	T.U{1} = 
+		    0.0024    0.0387
+		    0.0000    0.0000
+		    0.0728    0.9885
+		    0.9137   -0.1170
+		    0.3999    0.0872
+	T.U{2} = 
+		    0.0760    0.4549
+		    0.0347    0.0306
+		    0.0869    0.8828
+		    0.9927   -0.1131
+	T.U{3} = 
+		    0.0343
+		    0.8414
+		    0.5394
+</pre><pre class="codeinput">T = tucker_als(X,2,struct(<span class="string">'dimorder'</span>,[3 2 1]))
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 3.268831e-001 fitdelta = 3.3e-001
+ Iter  2: fit = 3.604384e-001 fitdelta = 3.4e-002
+ Iter  3: fit = 3.708956e-001 fitdelta = 1.0e-002
+ Iter  4: fit = 3.731357e-001 fitdelta = 2.2e-003
+ Iter  5: fit = 3.738515e-001 fitdelta = 7.2e-004
+ Iter  6: fit = 3.741016e-001 fitdelta = 2.5e-004
+ Iter  7: fit = 3.741906e-001 fitdelta = 8.9e-005
+T is a ttensor of size 5 x 4 x 3
+	T.core is a tensor of size 2 x 2 x 2
+		T.core(:,:,1) = 
+	    1.1797   -0.0054
+	    0.4208   -0.0338
+		T.core(:,:,2) = 
+	    0.0015    1.0306
+	   -0.0375   -0.4818
+	T.U{1} = 
+		    0.0069   -0.0208
+		         0         0
+		    0.2981   -0.6769
+		    0.8904   -0.0566
+		    0.3439    0.7336
+	T.U{2} = 
+		    0.0440    0.0028
+		    0.0323    0.9992
+		    0.1134    0.0181
+		    0.9921   -0.0347
+	T.U{3} = 
+		    0.0298    0.9994
+		    0.6017   -0.0051
+		    0.7982   -0.0335
+</pre><pre class="codeinput">T = tucker_als(X,2,struct(<span class="string">'dimorder'</span>,[3 2 1],<span class="string">'init'</span>,<span class="string">'eigs'</span>))
+</pre><pre class="codeoutput">  Computing 2 leading e-vectors for factor 2.
+  Computing 2 leading e-vectors for factor 1.
+
+Alternating Least-Squares:
+ Iter  1: fit = 3.726300e-001 fitdelta = 3.7e-001
+ Iter  2: fit = 3.741337e-001 fitdelta = 1.5e-003
+ Iter  3: fit = 3.742335e-001 fitdelta = 1.0e-004
+T is a ttensor of size 5 x 4 x 3
+	T.core is a tensor of size 2 x 2 x 2
+		T.core(:,:,1) = 
+	    1.1798    0.0000
+	    0.4220   -0.0000
+		T.core(:,:,2) = 
+	   -0.0000    1.0311
+	   -0.0000   -0.4828
+	T.U{1} = 
+		    0.0000         0
+		         0    0.0000
+		    0.2970   -0.6795
+		    0.8913   -0.0548
+		    0.3426    0.7316
+	T.U{2} = 
+		    0.0427    0.0000
+		   -0.0000    1.0000
+		    0.1082    0.0000
+		    0.9932    0.0000
+	T.U{3} = 
+		    0.0000    1.0000
+		    0.6045   -0.0000
+		    0.7966   -0.0000
+</pre><pre class="codeinput">U0 = {rand(5,2),rand(4,2),[]}; <span class="comment">%&lt;-- Initial guess for factors of T</span>
+T = tucker_als(X,2,struct(<span class="string">'dimorder'</span>,[3 2 1],<span class="string">'init'</span>,{U0}))
+</pre><pre class="codeoutput">
+Alternating Least-Squares:
+ Iter  1: fit = 3.647914e-001 fitdelta = 3.6e-001
+ Iter  2: fit = 3.722524e-001 fitdelta = 7.5e-003
+ Iter  3: fit = 3.735753e-001 fitdelta = 1.3e-003
+ Iter  4: fit = 3.740042e-001 fitdelta = 4.3e-004
+ Iter  5: fit = 3.741559e-001 fitdelta = 1.5e-004
+ Iter  6: fit = 3.742100e-001 fitdelta = 5.4e-005
+T is a ttensor of size 5 x 4 x 3
+	T.core is a tensor of size 2 x 2 x 2
+		T.core(:,:,1) = 
+	    1.1797   -0.0042
+	    0.4214   -0.0265
+		T.core(:,:,2) = 
+	    0.0012    1.0308
+	   -0.0293   -0.4823
+	T.U{1} = 
+		    0.0054   -0.0162
+		    0.0000         0
+		    0.2980   -0.6769
+		    0.8904   -0.0567
+		    0.3439    0.7337
+	T.U{2} = 
+		    0.0440    0.0022
+		    0.0253    0.9995
+		    0.1131    0.0141
+		    0.9923   -0.0272
+	T.U{3} = 
+		    0.0233    0.9997
+		    0.6016   -0.0040
+		    0.7985   -0.0262
+</pre><p class="footer"><br>
+            Published with MATLAB&reg; 7.2<br></p>
+      </div>
+      <!--
+##### SOURCE BEGIN #####
+%% Algorithms for computing tensor decompositions
+
+%% Alternating least squares for PARAFAC/CANDECOMP
+% The function |parafac_als| computes an estimate of the best rank-R
+% PARAFAC model of a tensor X using an alternating least-squares
+% algorithm.  The input X can be a tensor, sptensor, ktensor, or
+% ttensor. The result P is a ktensor.
+rand('state',0);
+X = sptenrand([5 4 3], 10)
+%%
+P = parafac_als(X,2)
+%%
+P = parafac_als(X,2,struct('dimorder',[3 2 1]))
+%%
+P = parafac_als(X,2,struct('dimorder',[3 2 1],'init','nvecs'))
+%%
+U0 = {rand(5,2),rand(4,2),[]}; %<REPLACE_WITH_DASH_DASH Initial guess for factors of P
+P = parafac_als(X,2,struct('dimorder',[3 2 1],'init',{U0}))
+%% Alternating least squares for Tucker model 
+% The function |tucker_als| computes the best rank(R1,R2,..,Rn)
+% approximation of tensor X, according to the specified dimensions in
+% vector R.  The input X can be a tensor, sptensor, ktensor, or
+% ttensor.  The result returned in T is a ttensor.
+X = sptenrand([5 4 3], 10)
+%%
+T = tucker_als(X,2)        %<REPLACE_WITH_DASH_DASH best rank(2,2,2) approximation 
+%%
+T = tucker_als(X,[2 2 1])  %<REPLACE_WITH_DASH_DASH best rank(2,2,1) approximation 
+%%
+T = tucker_als(X,2,struct('dimorder',[3 2 1]))
+%%
+T = tucker_als(X,2,struct('dimorder',[3 2 1],'init','eigs'))
+%%
+U0 = {rand(5,2),rand(4,2),[]}; %<REPLACE_WITH_DASH_DASH Initial guess for factors of T
+T = tucker_als(X,2,struct('dimorder',[3 2 1],'init',{U0}))
+
+##### SOURCE END #####
+-->
+   </body>
+</html>
