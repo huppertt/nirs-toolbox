@@ -16,7 +16,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
     mkdir(root_dir);
     disp('downloading sample data from bitbucket.org site');
     %% download the dataset
-    urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip', ...
+    urlwrite('http://huppertlab.net/wp-content/uploads/2020/06/demo_data.zip', ...
         [root_dir filesep 'demo_data.zip'])
     % This command will download the demo_data.zip file from the server.  This
     % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow

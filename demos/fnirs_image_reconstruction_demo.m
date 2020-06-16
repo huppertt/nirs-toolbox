@@ -216,7 +216,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'Image_Recon_Sample'),'dir
     mkdir(root_dir);
     disp('downloading sample data from bitbucket.org site');
     %% download the dataset
-    urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/Image_Recon_Sample.zip', ...
+    urlwrite('http://huppertlab.net/wp-content/uploads/2020/06/Image_Recon_Sample.zip', ...
         [root_dir filesep 'Image_Recon_Sample.zip']);
     % This command will download the demo_data.zip file from the server.  This
     % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
