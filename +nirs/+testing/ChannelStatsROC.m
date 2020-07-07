@@ -269,6 +269,9 @@ classdef ChannelStatsROC
             for i = 1:length(obj.types)
                 t = obj.truth(:,i);
                 p = obj.pvals(:,i);
+                lst=~isnan(t);
+                t=t(lst);
+                p=p(lst);
                 out(i,1) = sum(t(p<pval)) / sum(t);
             end
         end
@@ -277,6 +280,9 @@ classdef ChannelStatsROC
             for i = 1:length(obj.types)
                 t = obj.truth(:,i);
                 p = obj.pvals(:,i);
+                lst=~isnan(t);
+                t=t(lst);
+                p=p(lst);
                 out(i,1) = 1 - sum(~t(p<pval)) / sum(~t);
             end
         end
