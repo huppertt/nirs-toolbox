@@ -1,8 +1,11 @@
 function varargout = depthmap(label,headshape,atlas)
 
 if(nargin<3)
+    if(nargin<1)
     atlas={'aal','Brodmann (MRIcron)'};
-
+    else
+      atlas={'aal' 'Brodmann (MRIcron)' 'Brodmann (Talairach daemon)' 'gordan' 'mmp'};
+    end
 end
 
 

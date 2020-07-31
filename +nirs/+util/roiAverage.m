@@ -320,15 +320,15 @@ elseif(isa(data,'nirs.core.sFCStats'))
                             se = sqrt(c(:)'*diag(CC(:))*c(:));
                            % se = sqrt(1 - rroi.^2./(df-2));
                         else
-                            se = sqrt(1 - rroi.^2./(df-2));
+                            se = sqrt((1 - rroi.^2)./(df-2));
                         end
                         
-                        t       = broi ./ se;
+                        t       = rroi ./ se;
                         
                         
                         
                         
-                        p       = 2*tcdf(-abs(t),df);
+                        p       = 2*tcdf(-abs(t),df-2);
                         
                         tmp = cell2table({names{j},names{j2} uconds{i}, rroi,broi, se, df, t, p});
                         tmp.Properties.VariableNames = varnames;

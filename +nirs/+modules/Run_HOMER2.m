@@ -267,6 +267,10 @@ for j=1:length(flds)
         elseif(~isempty(strfind(vars.(flds{j}),'<linked>:output-')))
             global HOMER2carryvars;
             v=HOMER2carryvars;
+            if(ismember(flds{j},fields(v)))
+                oname=flds{j};
+            else
+                
             oflds=fieldnames(v);
             ostr=strrep(vars.(flds{j}),'<linked>:output-','');
             if all(isstrprop(ostr,'digit'))
@@ -275,6 +279,7 @@ for j=1:length(flds)
                 oname=ostr;
             else
                 error('Could not find %s in previous job output',ostr);
+            end
             end
         end
         

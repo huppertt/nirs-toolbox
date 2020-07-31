@@ -7,6 +7,7 @@ classdef PCAFilter < nirs.modules.AbstractModule
     properties
         ncomp = 1; % number of components to remove
         splittypes=true;
+        keep_components=false;
     end
     
     methods
@@ -22,6 +23,13 @@ classdef PCAFilter < nirs.modules.AbstractModule
         function data = runThis( obj, data )
             for i = 1:numel(data)
                 
+                if(obj.keep_components)
+                    
+                    comp=data(i);
+                    comp.auxillary('eigenvalues')=[];
+                    data(i).auxillary('PCAfilter')=comp;
+                end
+                
                 types=unique(data(i).probe.link.type);
                 for tI=1:length(types)
                     
@@ -33,7 +41,7 @@ classdef PCAFilter < nirs.modules.AbstractModule
                         if(~iscell(types))
                             types=num2cell(types);
                         end
-                       lst=find(ismember(data(i).probe.link.type,types{tI})); 
+                        lst=find(ismember(data(i).probe.link.type,types{tI}));
                     else
                         lst=1:size(data(i).data,2);
                     end
@@ -59,6 +67,17 @@ classdef PCAFilter < nirs.modules.AbstractModule
                         end
                     else
                         n=obj.ncomp;
+                    end
+                    
+                    if(obj.keep_components)
+                        s2=s;
+                        s2(n+1:end)=0;
+                        comp=data(i).auxillary('PCAfilter');
+                        comp.data(:,lst) = u*diag(s2)*v';
+                        eig=comp.auxillary('eigenvalues');
+                        eig(:,end+1)=s;
+                        comp.auxillary('eigenvalues')=eig;
+                        data(i).auxillary('PCAfilter')=comp;
                     end
                     
                     % remove n components

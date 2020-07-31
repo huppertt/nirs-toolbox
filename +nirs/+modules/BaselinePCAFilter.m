@@ -6,6 +6,7 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
         table;  %
         splittypes;
         discard;
+        keep_components=false;
     end
     
     methods
@@ -25,6 +26,14 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
         function datafilt = runThis( obj, data )
             uniqBaseline = unique(obj.table.Baseline);
             datafilt=data;
+            
+            if(obj.keep_components)
+                for i=1:length(datafilt)
+                    comp=datafilt(i);
+                    comp.auxillary('eigenvalues')=[];
+                    datafilt(i).auxillary('PCAfilter')=comp;
+                end
+            end
             
             types=unique(data(1).probe.link.type);
             for tI=1:length(types)
@@ -86,10 +95,20 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
                             
                             datafilt(thesescans(idx2)).data(:,lst) = dTask - u(:,lstncomp)*s(lstncomp,lstncomp)*v(:,lstncomp)';
                             datafilt(thesescans(idx2)).data(:,lst) = bsxfun(@plus, datafilt(thesescans(idx2)).data(:,lst), m);
+                            
+                            if(obj.keep_components)
+                                comp=datafilt(thesescans(idx2)).auxillary('PCAfilter');
+                                comp.data(:,lst) = u(:,lstncomp)*s(lstncomp,lstncomp)*v(:,lstncomp)';
+                                eig=comp.auxillary('eigenvalues');
+                                eig(:,end+1)=diag(s);
+                                comp.auxillary('eigenvalues')=eig;
+                                datafilt(thesescans(idx2)).auxillary('PCAfilter')=comp;
+                            end
+                            
                         end
                     end
                     
-                   
+                    
                 else
                     %use the baseline rest period from the data file itself
                     for i=1:numel(data)
@@ -131,12 +150,23 @@ classdef BaselinePCAFilter < nirs.modules.AbstractModule
                         end
                         % baseline
                         dTask= data(i).data(:,lst);
-                       
+                        
                         dTask=detrend(dTask);
                         u = dTask*v*pinv(s);
                         
                         datafilt(i).data(:,lst) = dTask - u(:,lstncomp)*s(lstncomp,lstncomp)*v(:,lstncomp)';
                         datafilt(i).data(:,lst)= bsxfun(@plus, datafilt(i).data(:,lst), m);
+                        
+                        
+                        if(obj.keep_components)
+                            comp=datafilt(i).auxillary('PCAfilter');
+                            comp.data(:,lst) = u(:,lstncomp)*s(lstncomp,lstncomp)*v(:,lstncomp)';
+                            eig=comp.auxillary('eigenvalues');
+                            eig(:,end+1)=diag(s);
+                            comp.auxillary('eigenvalues')=eig;
+                            datafilt(i).auxillary('PCAfilter')=comp;
+                        end
+                        
                     end
                     
                     

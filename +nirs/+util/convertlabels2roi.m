@@ -9,6 +9,8 @@ if(nargin<2 || isempty(label))
 end
 
 
+
+
 useMNI=false;
 % Add any MNI coordinates
 % for i=1:length(label)
@@ -21,13 +23,22 @@ useMNI=false;
 
 
 if(nargin<3 & ~exist('type','var'))
-     type={'aal','Brodmann (MRIcron)'};
+     type={'aal' 'Brodmann (MRIcron)' 'Brodmann (Talairach daemon)' 'gordan' 'mmp'};
 elseif(~iscellstr(type))
     type={type};
 end
 
 if (useMNI || isnumeric(label))
    type = {'customize'}; 
+end
+
+
+if(length(label)>1)
+    R=table;
+    for i=1:length(label)
+        R=[R; nirs.util.convertlabels2roi(probe1020,{label{i}},type)];
+    end
+    return
 end
 
 
@@ -78,6 +89,11 @@ end
 %W=exp(-K * depth) ./ depth;
 
 
+if(ismember('ShortSep',probe1020.link.Properties.VariableNames))
+    MeasList=unique([probe1020.link.source probe1020.link.detector probe1020.link.ShortSep],'rows');
+    W(find(MeasList(:,3)))=0;
+end
+
 W=W./(ones(size(depth,1),1)*sum(W,1));
 
 R=[];
@@ -87,13 +103,13 @@ MeasList=unique([probe1020.link.source probe1020.link.detector],'rows');
 if (~isnumeric(label))
     for id=1:length(regions)
         R=[R; table(MeasList(:,1),MeasList(:,2),W(:,id),...
-        repmat({regions{id}},size(MeasList,1),1),...
-        'VariableNames',{'source','detector','weight','Name'})];
+            repmat({regions{id}},size(MeasList,1),1),...
+            'VariableNames',{'source','detector','weight','Name'})];
     end
 else
     for id=1:length(regions)
         R=[R; table(MeasList(:,1),MeasList(:,2),W(:,id),...
-        repmat({regions(id)},size(MeasList,1),1),...
-        'VariableNames',{'source','detector','weight','Name'})];
+            repmat({regions(id)},size(MeasList,1),1),...
+            'VariableNames',{'source','detector','weight','Name'})];
     end
 end

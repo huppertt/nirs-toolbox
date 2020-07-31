@@ -97,7 +97,7 @@ else
         % Unrestricted model
         LstU = ~(lst(:,1)==i & lst(:,2)==0);
         Xu = X(:,LstU);
-
+        
         b = Xu \ Y(:,i);
         E = Y(:,i) - Xu*b;
         SSEu(i) = var(E)';
