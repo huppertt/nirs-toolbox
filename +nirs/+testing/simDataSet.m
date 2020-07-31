@@ -10,6 +10,7 @@ function [data, truth] = simDataSet( noise, ngroup, stimFunc, beta, channels, te
 %     channels - n x 2 array specifying the SD pairs to add activity to
 
     if nargin < 1 || isempty(noise)
+        clear noise;
         for i = 1:30
             noise(i,1) = nirs.testing.simARNoise();
         end
