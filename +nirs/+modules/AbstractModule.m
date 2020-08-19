@@ -67,8 +67,12 @@ classdef AbstractModule
             if isempty( obj.prevJob )
                 if(iscell(inputs))
                     for i=1:length(inputs)
-                          out{i} = obj.runThis( inputs{i} );
+                        out{i} = obj.runThis( inputs{i} );
                     end
+                    if(length(out)==1)
+                        out=out{1};
+                    end
+                    
                 else
                out = obj.runThis( inputs );
                 end

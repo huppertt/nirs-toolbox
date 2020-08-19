@@ -9,6 +9,6 @@ function J = jacobian( obj)
     end
     
     L(find(isnan(L)))=0;
-    J.eeg=L;
+    J.eeg=L/1E8;
     
 end

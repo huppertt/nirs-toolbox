@@ -7,6 +7,7 @@ end
 if nargin < 3 || isempty(pmax)
     pmax=5;
 end
+
 Y =  noise.data;
 m = mean(Y);
 Y = Y./(ones(size(Y,1),1)*m);

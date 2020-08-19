@@ -1,4 +1,4 @@
-function S = ttest(obj, c, b, names)
+function [S,haserror] = ttest(obj, c, b, names)
     %% ttest - Tests the null hypothesis c*beta = b
     % 
     % Args:
@@ -11,28 +11,40 @@ function S = ttest(obj, c, b, names)
 
 
     
-    
+    haserror=false;
      if(nargin<3)
             b=[];
-     end
-     if(nargin<4)
+            names=[];
+     elseif(~isnumeric(b) && nargin<4)
+         names=b;
+         b=[];
+     elseif(nargin<4)
            names=[];
      end
     
      if(length(obj)>1)
+         
         for i=1:length(obj)
-            S(i)=obj(i).ttest(c, b, names);
+            [S(i)]=obj(i).ttest(c, b, names);
         end
-         return
+%         S(haserror)=[];
+%         haserror=any(haserror);
+        return
      end
      
      
      if(isstr(c) || iscell(c) || iscellstr(c))
          if(isstr(c)); c=cellstr(c); end;
+         if(isstr(names)); names=cellstr(names); end;
          if(isempty(names))
              names=c;
          end
-         c = nirs.design.contrastvector(c,obj.conditions);
+         [c,haserror] = nirs.design.contrastvector(c,obj.conditions,obj.basis);
+         
+         if(haserror)
+            warning(['error processing: ' obj.description]);
+            
+         end
          
          %Remove names that didn't exist in this file
          lst=all(c==0,2);
@@ -51,8 +63,9 @@ function S = ttest(obj, c, b, names)
     
     % sort variables
     [~, icond] = sort(obj.conditions);
-    obj = sorted(obj);
     
+    
+    obj=sorted(obj);
     c = c(:, icond);
     
     % full contrast matrix
@@ -76,6 +89,10 @@ function S = ttest(obj, c, b, names)
 
     S.beta  = beta;
     S.covb  = covb;
+    
+    if length(S.dfe)>1
+        S.dfe = abs(C) * obj.dfe ./ sum(abs(C),2);
+    end
 
     % new condition names
     if nargin < 4 && isempty(names)
@@ -87,9 +104,14 @@ function S = ttest(obj, c, b, names)
     cond = repmat( cond(:), [nchan 1] );
 
     
-    link = repmat( obj.probe.link, [size(c,1) 1] );
-    link = sortrows(link, {'electrode'});
-    S.variables = [link table(cond)];
+        link = repmat( obj.probe.link, [size(c,1) 1] );
+        if(isa(S.probe,'nirs.core.ProbeROI'))
+            link = nirs.util.sortrows(link, {'ROI'});
+        else
+            link = sortrows(link, {'electrode'});
+ end
+        S.variables = [link table(cond)];
   
     S.description = 'T-test';
 end
+

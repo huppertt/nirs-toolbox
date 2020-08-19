@@ -68,7 +68,6 @@ classdef ChannelStats
                 erp=eeg.design.extractERP(obj(i),obj(i).basis.base,obj(i).basis.stim,obj(i).basis.Fs);
             else
                 erp=[erp; eeg.design.extractERP(obj(i),obj(i).basis.base,obj(i).basis.stim,obj(i).basis.Fs)];
-
             end
         end
         end
@@ -144,7 +143,7 @@ classdef ChannelStats
             out.covb = obj.covb(idx, idx);
         end
         
-        stats = ttest( obj, c, b, names );
+        [stats,haserror] = ttest( obj, c, b, names );
         stats = ftest( obj, m );
         stats = jointTest( obj );
         

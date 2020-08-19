@@ -95,7 +95,11 @@ function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
             
             
             % apply basis to stim vector
-            x = basisObj.convert( stimVector, t );
+            if(isa(basisObj,'nirs.design.basis.FIR'))
+                [x,basisObj.nbins] = basisObj.convert( stimVector, t );
+            else
+                [x] = basisObj.convert( stimVector, t );
+            end
         end
       
 

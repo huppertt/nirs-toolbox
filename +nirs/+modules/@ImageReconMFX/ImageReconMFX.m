@@ -160,8 +160,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 xx=[];
                 
                 for j=1:length(conds)
-                    xlocal=Lfwdmodels(key);
-                    xx=[xx; xlocal];
+                    l=Lfwdmodels(key);
+                    flds=fields(l);
+                    for ii=1:length(flds)
+                        xlocal=l.(flds{ii});
+                        xx=[xx; xlocal];
+                    end
                 end
                 X=[X; W*xx];
             end
@@ -266,15 +270,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 thiscond = tmpvars.cond{i};
                 variables = variables(find(ismember(variables.cond,thiscond)),:); 
                 Llocal=Lfwdmodels(subname);
-%                 Llocal =[];
-%                 for fIdx=1:length(flds)
-%                         s=1;
-%                     if(strcmp(tmpvars.subject(i),'prior') && ~strcmp(tmpvars.type(i),flds{fIdx}))
-%                         s=0;
-%                     end
-%                     l=Lfwdmodels(subname);
-%                     Llocal =[Llocal s*l.(flds{fIdx})];
-%                 end
+                Llocal =[];
+                for fIdx=1:length(flds)
+                        s=1;
+                    if(strcmp(tmpvars.subject(i),'prior') && ~strcmp(tmpvars.type(i),flds{fIdx}))
+                        s=0;
+                    end
+                    l=Lfwdmodels(subname);
+                    Llocal =[Llocal s*l.(flds{fIdx})];
+                end
               
                 for j=1:size(X,2)
                     Xlocal=[Xlocal X(i,j)*Llocal];
@@ -348,10 +352,11 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                VtV{i}=V'*N*V;
            end
             % VtV{2}= VtV{2}/10;
-            N=[speye(n) -speye(n); -speye(n) speye(n)];
-            VtV{end+1}=V'*N*V;
+            if(all(ismember(flds,{'hbo','hbr'})))
+                N=[speye(n) -speye(n); -speye(n) speye(n)];
+                VtV{end+1}=V'*N*V;
+            end
             
-           
            
            ncond=length(lm1.CoefficientNames);
            n=size(VtV{1},1);

@@ -100,6 +100,7 @@ for i=1:length(S)
         elseif(~isempty(strfind(slocal(strfind(slocal,'['):strfind(slocal,']')),'s')))
             win=slocal(strfind(slocal,'['):strfind(slocal,']'));
             win(strfind(win,'s'))=[];
+            win=[win(1:strfind(win,':')) num2str(1/basis.Fs) win(strfind(win,':'):end)];
             win=str2num(win);
             m=multiplier{cnt};
             if(basis.base.iskey(cond{cnt}))

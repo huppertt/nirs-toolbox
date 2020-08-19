@@ -25,7 +25,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 obj.prevJob = prevJob;
             end
             
-            nVox=4849;
+            nVox=5124;
             obj.basis=nirs.inverse.basis.identity(nVox);
             
             prior.eeg=zeros(nVox,1);
@@ -137,7 +137,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             W=[];
             for i = 1:length(S)
                 %[u, s, ~] = svd(S(i).covb, 'econ');
-                C=chol(S(i).covb);
+                C=chol(S(i).covb+eps(1).^2*eye(size(S(i).covb)));
                 W = blkdiag(W, pinv(C));
             end
             lstBad=find(sum(abs(W),2)>100*median(sum(abs(W),2)));
@@ -169,7 +169,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 for j=1:length(conds)
                     xlocal=Lfwdmodels(key);
-                    xx=[xx; xlocal];
+                    xx=[xx; xlocal.eeg];
                 end
                 X=[X; W*xx];
             end
@@ -274,15 +274,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 thiscond = tmpvars.cond{i};
                 variables = variables(find(ismember(variables.cond,thiscond)),:); 
                 Llocal=Lfwdmodels(subname);
-%                 Llocal =[];
-%                 for fIdx=1:length(flds)
-%                         s=1;
-%                     if(strcmp(tmpvars.subject(i),'prior') && ~strcmp(tmpvars.type(i),flds{fIdx}))
-%                         s=0;
-%                     end
-%                     l=Lfwdmodels(subname);
-%                     Llocal =[Llocal s*l.(flds{fIdx})];
-%                 end
+                Llocal =[];
+                for fIdx=1:length(flds)
+                        s=1;
+                    if(strcmp(tmpvars.subject(i),'prior') && ~strcmp(tmpvars.type(i),flds{fIdx}))
+                        s=0;
+                    end
+                    l=Lfwdmodels(subname);
+                    Llocal =[Llocal s*l.(flds{fIdx})];
+                end
               
                 for j=1:size(X,2)
                     Xlocal=[Xlocal X(i,j)*Llocal];

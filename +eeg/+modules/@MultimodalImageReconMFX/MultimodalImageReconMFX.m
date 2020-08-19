@@ -129,6 +129,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             fldsAll={};
             for i = 1:L.count
                 key = L.keys{i};
+                if(ismember(key,nirs.createDemographicsTable(S).subject))
                 J =L(key);
                 flds=fields(J);
                 fldsAll={fldsAll{:} flds{:}};
@@ -143,19 +144,19 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                         Basis(LstInMask,:));
                 end
                 Lfwdmodels(key)=l;
+                end
             end
             
             fldsAll=unique(fldsAll);
             
-            
-            % Do a higher-order generalized SVD
-            [US,V]=nirs.math.hogSVD(Lfwdmodels.values);
-            % [U1,U2...,V,S1,S2...]=gsvd(L1,L2,...);
-            % L1 = U1*S1*V'
-            % L2 = U2*S2*V'
-            
-            % Store back into the forward model
-            Lfwdmodels.values=US;
+%             % Do a higher-order generalized SVD
+             [US,V]=nirs.math.hogSVD(Lfwdmodels.values);
+%             % [U1,U2...,V,S1,S2...]=gsvd(L1,L2,...);
+%             % L1 = U1*S1*V'
+%             % L2 = U2*S2*V'
+%             
+%             % Store back into the forward model
+             Lfwdmodels.values=US;
             
             
             %Make sure the probe and data link match
@@ -184,9 +185,10 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             % FInd the initial noise weighting
             W=[];
             for i = 1:length(S)
-                [u, s, ~] = svd(S(i).covb, 'econ');
-           %     W = [W; diag(1./diag(sqrt(s))) * u'];
-                W = blkdiag(W,diag(1./diag(sqrt(s))) * u');
+%                 [u, s, ~] = svd(S(i).covb, 'econ');
+%            %     W = [W; diag(1./diag(sqrt(s))) * u'];
+%                 W = blkdiag(W,diag(1./diag(sqrt(s))) * u');
+                  W=blkdiag(W,inv(chol(S(i).covb)));
             end
             lstBad=find(sum(abs(W),2)>100*median(sum(abs(W),2)));
             W(lstBad,:)=[];
@@ -228,13 +230,11 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 
                 for j=1:length(conds)
                     xlocal=[];
+                     L=Lfwdmodels(key);
                     for fIdx=1:length(fldsAll)
-                        L=Lfwdmodels(key);
-                        if(isfield(L,fldsAll{fIdx}))
-                            x2=L.(fldsAll{fIdx})*V';
-                        else
-                            x2=zeros(size(W,1),size(V,1));
-                        end
+                       
+                        x2=L.(fldsAll{fIdx})*V';
+                        
                         
                        xlocal=[xlocal x2]; 
                       
@@ -285,9 +285,10 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 b = [b; S(i).beta];
                 bLst=[bLst; repmat(i,size(S(i).beta))];
                 % whitening transform
-                [u, s, ~] = svd(S(i).covb, 'econ');
-                W = blkdiag(W, diag(1./diag(eps(1)+sqrt(s))) * u');
-                
+                %[u, s, ~] = svd(S(i).covb, 'econ');
+               % W = blkdiag(W, diag(1./diag(eps(1)+sqrt(s))) * u');
+                 W = blkdiag(W,inv(chol(S(i).covb)));
+                 
                 % table of variables
                 variables=S(i).variables;
                 conds=unique(variables.cond);
@@ -317,7 +318,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 end
             end
             
-            
+           
             beta = randn(height(tmpvars),1);                     
                    
             nRE = length(strfind(obj.formula,'|'));
@@ -347,7 +348,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 Xlocal=[];
                 Zlocal=[];
                 
-                if(isfield(tmpvars,'subject'))
+                if(ismember('subject',tmpvars.Properties.VariableNames))
                     subname = tmpvars.subject{i};
                 else
                     subname='default';
@@ -365,18 +366,12 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 thiscond = tmpvars.cond{i};
                 variables = variables(find(ismember(variables.cond,thiscond)),:); 
                 
-                Llocal =[];
+                Llocal=[];
+                l=Lfwdmodels(subname);
                 for fIdx=1:length(fldsAll)
-                        s=1;
-                 
-                    l=Lfwdmodels(subname);
-%                     if(isfield(l,fldsAll{fIdx}))
-%                         x2=l.(fldsAll{fIdx});
-%                     else
-%                         x2=zeros(height(variables),size(V,2));
-%                     end
-%                    
-                    Llocal =[Llocal s*l];
+                    x2=l.(fldsAll{fIdx});
+                     
+                    Llocal =[Llocal x2];
                 end
               
                 for j=1:size(X,2)
@@ -445,9 +440,9 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
 
           
                    
-            lstKeep = find(sum(abs(X),1)~=0);
+           lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
-                warning('Some measurenents have zero fluence in the forward model');
+                warning('Some measurements have zero fluence in the forward model');
             end
             
            
@@ -467,18 +462,17 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
            
             
             
-            
-            n=size(V,1)/length(flds);
-            for i=1:length(flds)
+            n=size(V,2);
+            for i=1:length(fldsAll)
                 N=[];
                 for j=1:i-1
                     N=blkdiag(N,zeros(n));
                 end
-                N=blkdiag(N,speye(n,n));
-                for j=i+1:length(flds)
+                N=blkdiag(N,V'*V);
+                for j=i+1:length(fldsAll)
                     N=blkdiag(N,zeros(n));
                 end
-                VtV{i}=V'*N*V;
+                VtV{i}=sparse(N);
             end
             
             
@@ -555,7 +549,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             Vall=[];
             iWall=[];
             for idx=1:length(cnames)
-                for fIdx=1:length(flds)
+                for fIdx=1:length(fldsAll)
                     Vall=sparse(blkdiag(Vall,V));
                     iWall=sparse(blkdiag(iWall,obj.basis.fwd));
                 end
@@ -569,7 +563,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             G.dfe        = dfe;
             
            fwd=[];
-           for idx=1:length(flds)
+           for idx=1:length(fldsAll)
                fwd=blkdiag(fwd,obj.basis.fwd);
            end
            fwd=sparse(fwd);
@@ -585,9 +579,9 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             
             tbl=[];
             for i=1:length(cnames)
-                for j=1:length(flds)
+                for j=1:length(fldsAll)
                     tbl=[tbl; table(arrayfun(@(x){x},[1:nVox]'),...
-                        repmat({flds{j}},nVox,1),...
+                        repmat({fldsAll{j}},nVox,1),...
                         repmat({cnames{i}},nVox,1),...
                         'VariableNames',{'VoxID','type','cond'})];
                 end

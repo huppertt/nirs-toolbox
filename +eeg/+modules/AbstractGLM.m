@@ -14,7 +14,7 @@ classdef AbstractGLM < nirs.modules.AbstractModule
             stims   = data.stimulus;
             
             [X, names] = nirs.design. ...
-                createDesignMatrix( stims, t-obj.time_window(1), basis );
+                createDesignMatrix( stims, t, basis );
                       
         end
         

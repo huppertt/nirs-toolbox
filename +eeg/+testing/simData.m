@@ -47,7 +47,7 @@ function [data, truth] = simData( noise, stim, beta, channels, basis )
     Y    = data.data;
     truth = zeros(size(Y,2), 1);
     
-    beta=beta./mad(Y(:));
+    beta=beta*mad(Y(:));
     X = nirs.design.createDesignMatrix( stim, data.time, basis);
     lst=ismember(data.probe.link.electrode,channels);
     

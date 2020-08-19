@@ -75,9 +75,10 @@ for idx=1:length(conditions)
     stimulus(conditions{idx})=stim;
 end
 
-[X, names] = nirs.design.createDesignMatrix( stimulus, t, basis);
+[X, names,offset] = nirs.design.createDesignMatrix( stimulus, t, basis);
 tbl=Stats.table;
 tbl=sortrows(tbl,{'electrode','type','cond'});
+t=t-t(offset+1);
 
 cnames=tbl.cond(1:size(X,2));
 for i=1:length(cnames)

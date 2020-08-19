@@ -13,10 +13,13 @@ classdef AverageERP < eeg.modules.AbstractGLM
             if nargin > 0, obj.prevJob = prevJob; end
             
             obj.name = 'ERP Average';
-            obj.time_window = [-0.050 0.300];
+            %obj.time_window = [-0.050 0.300];
             obj.prewhiten=false;
             obj.ARorder = 10;
-            obj.basis=nirs.design.basis.FIR;
+            obj.basis=Dictionary;
+            basis=nirs.design.basis.FIR;
+            basis.nbins={'-0.05s' '0.8s'};
+            obj.basis('default')=basis;
         end
         
         function S = runThis( obj, data )
@@ -29,29 +32,26 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 Fs = data(i).Fs;
                 
                 probe = data(i).probe;
-                
-                basis=obj.basis;
-                if(isa(basis,'nirs.design.basis.FIR'))
-                    nWin = (obj.time_window(2)-obj.time_window(1))*data(i).Fs;
-                    basis.binwidth=1;
-                    basis.nbins=nWin;
-                    basis.isIRF=false;
-                    nWin=max(-obj.time_window(1),0)*data(i).Fs;
-                else
-                    nWin=[];
-                end
-                model=Dictionary;
-                model('default')=basis;
+%                 
+%                 basis=obj.basis;
+%                 if(isa(basis,'nirs.design.basis.FIR'))
+%                     nWin = (obj.time_window(2)-obj.time_window(1))*data(i).Fs;
+%                     basis.binwidth=1;
+%                     basis.nbins=nWin;
+%                     basis.isIRF=false;
+%                     nWin=max(-obj.time_window(1),0)*data(i).Fs;
+%                 else
+%                     nWin=[];
+%                 end
+%                 nWin=ceil(nWin);
+%                 model=Dictionary;
+%                 model('default')=basis;
                 
                 % get experiment design
-                [X, names] = obj.createX( data(i),model);
+                [X, names] = obj.createX( data(i),obj.basis);
                 C = obj.getTrendMatrix( t );
                 
-                X(1:nWin,:)=[];
-                C(1:nWin,:)=[];
-                X=[X; zeros(nWin,size(X,2))];
-                C=[C; zeros(nWin,size(C,2))];
-               
+              
                 
                 % check model
                 obj.checkRank( [X C] )
@@ -69,10 +69,10 @@ classdef AverageERP < eeg.modules.AbstractGLM
                     end
                     stats.dfe = size(d,1) - rank([X C]);
                 end
-                
-                if(~isempty(nWin))
-                    stats.beta(1:size(X,2),:)=stats.beta(1:size(X,2),:)-ones(size(X,2),1)*mean(stats.beta(1:nWin,:));
-                end
+%                 
+%                 if(~isempty(nWin))
+%                     stats.beta(1:size(X,2),:)=stats.beta(1:size(X,2),:)-ones(size(X,2),1)*mean(stats.beta(1:nWin,:));
+%                 end
                 
                 % put stats
                 ncond = length(names);
@@ -120,13 +120,14 @@ classdef AverageERP < eeg.modules.AbstractGLM
                         s=nirs.design.StimulusEvents;
                         s.name=ss.name;
                         s.dur=mean(ss.dur);
-                        s.onset=-obj.time_window(1);
+                        s.onset=0;
+                        
                         s.amp=1;
                         stim(data(i).stimulus.keys{j})=s;
                     end
                 end
                 
-                S(i).basis.base=basis;
+                S(i).basis.base=obj.basis;
                 S(i).basis.Fs=Fs;
                 S(i).basis.stim=stim;
                 

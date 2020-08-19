@@ -19,6 +19,37 @@
 % TODO- In the not so distant future, I will add support for MEG as well in
 % this toolbox.
 
+%% DEMO-1 EEG data from a balance task
+
+clear 
+
+% change this to save results somewhere else
+
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+ end
+
+% Download a sample Brain-Vision data file if it does not already exist
+if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'SampleEEG_BalanceData'),'dir'))
+    mkdir(root_dir);
+    disp('downloading sample data from http://huppertlab.net site');
+    %% download the dataset
+    urlwrite('http://huppertlab.net/wp-content/uploads/2020/08/SampleEEG_BalanceData.zip', ...
+        [root_dir filesep 'SampleEEG_BalanceData.zip']);
+    % This command will download the demo_data.zip file from the server.  This
+    % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
+    % The file is about 140Mb in size.
+    
+    % unzip the data
+    unzip([root_dir filesep 'SampleEEG_BalanceData.zip'],[root_dir filesep]);
+    
+else
+    disp(['Data found in: ' root_dir ': skipping download']);
+end
+
+
 %% Loading data
 % Data is loaded via the +eeg/+io functions.  Currently, I only have code
 % to load BrainVision EEG files one at a time, but I will soon add more
@@ -29,12 +60,8 @@
 % memory when loading large data sets.  This is the same as loading and
 % then resampling in two job steps
 
-data(1)=eeg.testing.simData;
-data(2)=eeg.testing.simData;
-
-
-% data(1)=eeg.io.loadBrainVision('ted_standing_opticflow.vhdr',200);
-% data(2)=eeg.io.loadBrainVision('ted_standing_random_dots.vhdr',200);
+data(1)=eeg.io.loadBrainVision(fullfile(root_dir,'SampleEEG_BalanceData','ted_standing_opticflow.vhdr'),200);
+data(2)=eeg.io.loadBrainVision(fullfile(root_dir,'SampleEEG_BalanceData','ted_standing_random_dots.vhdr'),200);
 
 % The data class (eeg.core.Data) has the same basic structure as the NIRS
 % data class:
@@ -117,22 +144,6 @@ data(2).stimulus('Random')=stim;
 % Now the stimulus information shows in the draw function
 data(1).draw(1)
 
-% Demographics information can be added in the same way 
-data(1).demographics('subject')='S1';
-data(1).demographics('age')=3;
-data(2).demographics('subject')='S2';
-data(2).demographics('age')=5;
-
-% and is shown usuing the function 
-nirs.createDemographicsTable(data)
-
-%     subject    age
-%     _______    ___
-%     'S1'       3  
-%     'S2'       5  
-
-% The nirs.modules.AddDemographics will also work to add demographics from
-% a excell sheet (see fnirs_analysis_demo)
 
 %% Basic processing
 % This the NIRS toolbox, the EEG tools use a job/module format.  Many of
@@ -151,9 +162,9 @@ j=nirs.modules.PCAFilter(j);  % This is reused the NIRS PCA filter for removing 
 j=eeg.modules.BandPassFilter(j);  % This is a bandpass filter.  Apperently, I 
                                   % had not written a NIRS filter yet.  This module will work fine to
                                   % use on nirs data as well.
-j.lowpass=25;   % passbands for the filter
+j.lowpass=50;   % passbands for the filter
 j.highpass=1;   % note, the bandpass filter also resamples to the Nyquist if a lowpass is used
-
+j.do_downsample=true;  % this will reduce the sample rate to 2-times the LPF
 
 % As with the NIRS data, you create jobs or processing streams by chaining
 % jobs together and then issue the run command to process the data
@@ -170,7 +181,7 @@ j=eeg.modules.WaveletTransform;
 
 %   WaveletTransform with properties:
 %               wname: 'morl'         <-- wavelet type (anything the cwt
-%                                         functon supports)
+%                                         function supports)
 %     scale_smoothing: 1              <-- preform smoothing
 %         frequencies: [6x3 table]
 %       convert2power: 1              <-- returns power vs amp/phase data
@@ -191,36 +202,142 @@ j=eeg.modules.WaveletTransform;
 FD = j.run(data);
 % This is not terribly slow (~1min per file) and will give a progress update to the screen.
 
+% This will create 1 entry per frequency, so FD is now size 12x1
+disp(nirs.createDemographicsTable(FD));
+% 
+% ans =
+%   12×1 table
+%
+%         freq    
+%     ____________
+%     '1-4Hz'          
+%     '5.7419-7.3226Hz'   - Note this was adjusted to match the wavelet scales
+%     '7.5-12.5Hz'     
+%     '9-11Hz'         
+%     '12.5-30Hz'      
+%     '25-50Hz'        
+%     '1-4Hz'          
+%     '5.7419-7.3226Hz'
+%     '7.5-12.5Hz'     
+%     '9-11Hz'         
+%     '12.5-30Hz'      
+%     '25-50Hz'  
 
-
+% since we are now looking at changes in freq-power over time, we can
+% resample to a lower rate to allow the GLM to go faster (25^2 times
+% faster)
+j = nirs.modules.Resample;
+j.Fs=4;
+FD = j.run(FD);
 
 % Run the block averaging model on the Freq-Domain results
 j=eeg.modules.AverageERP();
-j.prewhiten=true;
-j.basis=nirs.design.basis.Canonical;
+j.prewhiten=true; % This runs the AR-IRLS version, but will be REALLY slow for high sample rates
+j.basis('default')=nirs.design.basis.Canonical;
 FDStats=j.run(FD);
+
+% We can use the mixed effects module to do the group model 
+j=eeg.modules.MixedEffects;
+j.formula='beta ~ -1 + freq';
+
+GroupStats=j.run(FDStats);
 
 
 
 % Do an image reconstruction of the results
-j=eeg.modules.ImageReconMFX;
+j=nirs.modules.ImageReconMFX;
+j.formula='beta ~ -1 + cond:freq';
 
 FTfwd=eeg.forward.FieldTrip;
-FTfwd.mesh=nirs.registration.Colin27.BEM;
+FTfwd.mesh=nirs.registration.Colin27.mesh;
 FTfwd.probe=FDStats(1).probe;
 FTfwd.prop=[1 NaN 1 1];
 
 J=FTfwd.jacobian;
 j.jacobian('default')=J;   
 j.probe('default')=data.probe;
-j.mesh=FTfwd.mesh.mesh(end);  
+j.mesh=FTfwd.mesh(end);  
 
-j.formula = 'beta ~ -1 + cond:freq';  % Simple fixed effects model
 %j.basis=nirs.inverse.basis.identity(j.mesh);
-%j.basis = nirs.inverse.basis.gaussian(j.mesh,20);
-
+j.basis = nirs.inverse.basis.gaussian(j.mesh,20);
 
 ImageStats=j.run(FDStats);
+
+% to draw
+ImageStats.draw('tstat',[],'p<0.05','beta>.8');
+
+
+
+
+%% DEMO-2 ERP analysis from simulated EEG data
+
+
+data(1)=eeg.testing.simData;
+data(2)=eeg.testing.simData;
+
+
+% Demographics information can be added in the same way 
+data(1).demographics('subject')='S1';
+data(1).demographics('age')=3;
+data(2).demographics('subject')='S2';
+data(2).demographics('age')=5;
+
+% and is shown usuing the function 
+nirs.createDemographicsTable(data)
+
+%     subject    age
+%     _______    ___
+%     'S1'       3  
+%     'S2'       5  
+
+% The nirs.modules.AddDemographics will also work to add demographics from
+% a excel sheet (see fnirs_analysis_demo)
+
+
+j=eeg.modules.KurtoisFilter;  % This is an EEG job to remove eye-blinks and artifacts
+                              % This is a PCA or ICA filter followed by
+                              % downweighting (via bisquare) of components with
+                              % high kurtois compared to the remaining
+                              % channels
+                              
+j=nirs.modules.PCAFilter(j);  % This is reused the NIRS PCA filter for removing spatial covariance
+
+j=eeg.modules.BandPassFilter(j);  % This is a bandpass filter.  Apperently, I 
+                                  % had not written a NIRS filter yet.  This module will work fine to
+                                  % use on nirs data as well.
+j.lowpass=50;   % passbands for the filter
+j.highpass=1;   % note, the bandpass filter also resamples to the Nyquist if a lowpass is used
+j.do_downsample=false;
+
+
+j=eeg.modules.AverageERP;
+% the default basis will be an FIR (deconvolution) model
+Stats=j.run(data);
+
+% just like the "HRF" function for NIRS, you can call ERP to get the
+% time-course
+Stats.ERP.draw;
+
+Stats(1).ttest('A[0.2:0.6s]').draw;
+
+
+% Do an image reconstruction of the results
+j=nirs.modules.ImageReconMFX;
+
+FTfwd=eeg.forward.FieldTrip;
+FTfwd.mesh=nirs.registration.Colin27.mesh;
+FTfwd.probe=Stats(1).probe;
+FTfwd.prop=[1 NaN 1 1];
+
+J=FTfwd.jacobian;
+j.jacobian('default')=J;   
+j.probe('default')=Stats.probe;
+j.mesh=FTfwd.mesh(end);  
+
+j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
+j.basis = nirs.inverse.basis.identity(j.mesh)
+
+ImageStats=j.run(Stats.ttest('A[0.2:0.6s]'));
 
 
 

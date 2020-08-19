@@ -76,7 +76,6 @@ classdef PCAFilter < nirs.modules.AbstractModule
                         comp.data(:,lst) = u*diag(s2)*v';
                         eig=comp.auxillary('eigenvalues');
                         eig(:,end+1)=s;
-                        comp.auxillary('eigenvalues')=eig;
                         data(i).auxillary('PCAfilter')=comp;
                     end
                     

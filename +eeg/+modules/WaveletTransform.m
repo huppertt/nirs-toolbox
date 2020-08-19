@@ -77,16 +77,26 @@ classdef WaveletTransform < nirs.modules.AbstractModule
                  end
                 disp('Computing frequency bands');
                 
-               
+                for j=1:height(obj.frequencies)
+                    lst=find(f>=obj.frequencies.lower(j) & f<=obj.frequencies.upper(j));
+                    if(isempty(lst))
+                        warning('Adjusting frequencies to match wavelet scales');
+                        ll=find(f<=obj.frequencies.lower(j));
+                        obj.frequencies.lower(j)=f(max(ll));
+                        ll=find(f>=obj.frequencies.upper(j));
+                        obj.frequencies.upper(j)=f(min(ll));
+                        
+                    end
+                end
                
                 tbl=table;
                 ele=data(i).probe.link;
                 n=size(data(i).data,2);
-                
+                d=[];
                 if(isa(obj.frequencies,'table'))
                     for j=1:height(obj.frequencies)
                         lst=find(f>=obj.frequencies.lower(j) & f<=obj.frequencies.upper(j));
-                        
+                                                 
                         if( obj.convert2power)
                             d(j,:,:)=sqrt(mean(cfs(lst,:,:).^2,1));
                         else

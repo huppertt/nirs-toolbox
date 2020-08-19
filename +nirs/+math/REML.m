@@ -65,6 +65,7 @@ if(size(X,1)<size(X,2))
     %  Y = U*(S*V'*Beta) --> Y=U*S*Beta2;
     %  cov(Beta2) = S*V'*Q*V*S';
     %[V,S,U]=svd(full(X'),0);
+    rescale=1;
     [U,S,V]=nirs.math.mysvd(full(X));
     
     for idx=1:length(Qp)
@@ -253,7 +254,7 @@ sse = normest(residuals)^2;    % sum of squared errors
 ssr = normest(yhat - ybar)^2;  % regression sum of squares
 sst = normest(Y - ybar)^2;     % total sum of squares;
 Hat = X*XtXi*X'*iCn;
-nu = size(X,1) - trace(2*Hat - Hat*Hat');
+nu = max(size(X,1) - trace(2*Hat - Hat*Hat'),1);
 %nu = size(X,1) - trace(Hat);
 %mse = sse./length(yhat);
 mse = sse./nu;
