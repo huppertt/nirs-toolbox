@@ -80,9 +80,10 @@ probe = defaultProbe;
             fract=.1;
             truth=(rand(length(lst))>(1-fract/sqrt(length(lst))));
             truth=truth+eye(length(lst));
+            
+            truth=truth*truth';
             truth=min(truth,1);
             truth=max(truth,-1);
-            truth=truth*truth';
         end
         et(:,lst) = mvnrnd( zeros(length(lst),1),truth, length(t) );
         T(lst,lst)=truth;
