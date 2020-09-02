@@ -38,7 +38,7 @@ filtered_nirs_data2=filtered_nirs_data2./repmat(std(filtered_nirs_data2,0,1),siz
 
     [pxx,f] = periodogram(similarity,hamming(length(similarity)),length(similarity),fs,'power');
     [pwrest,j] = max(pxx(f<1.7)); % FIX Make it age-dependent
-    sci(i)=similarity(length(filtered_nirs_data1(1:end)));
+    sci(i)=similarity(length(filtered_nirs_data1));
     power(i)=pwrest;
     fpower(i)=f(j);    
 end
