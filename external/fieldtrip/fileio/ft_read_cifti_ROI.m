@@ -399,11 +399,13 @@ if readdata
             case 768, [voxdata, nitemsread] = fread(fid, n, 'uint');   % assert(nitemsread==prod(hdr.dim(2:end)), 'could not read all data');
             otherwise, error('unsupported datatype');
         end
-        
+        voxdata(ii)=600;
         V(:,ii)=ROI'*voxdata(1:size(ROI,1));
         
     end
   voxdata=V(:,1:size(ROI,1))*ROI;
+  voxdata=voxdata/diag(sum(ROI,1)).^2;
+  
   % hdr.dim(1) is the number of dimensions
   % hdr.dim(2) is reserved for the x-dimension
   % hdr.dim(3) is reserved for the y-dimension
@@ -1031,3 +1033,5 @@ if readdata
   end
   
 end % if readdata
+
+return

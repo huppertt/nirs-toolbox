@@ -4,6 +4,11 @@ if nargin<1 || ~exist('data','var') || isempty(data)
    [data, truth]=nirs.testing.simData; 
 end
 
+if(isa(data,'function_handle'))
+    [data, truth]=feval(data);
+end
+
+
 if nargin<2 || ~exist('spikes_per_minute','var') || isempty(spikes_per_minute), spikes_per_minute = 2; end
 if nargin<3 || ~exist('shifts_per_minute','var') || isempty(shifts_per_minute), shifts_per_minute = .5; end
 

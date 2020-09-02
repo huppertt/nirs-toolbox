@@ -1,4 +1,4 @@
-classdef GLM < nirs.modules.AbstractGLM
+classdef connectivity_GLM < nirs.modules.AbstractGLM
     %% GLM- this is a wrapper for the OLS, AR-IRLS, and SPM-NIRS regression programs%
     %
     % Options:
@@ -26,7 +26,7 @@ classdef GLM < nirs.modules.AbstractGLM
         options;
     end
     methods
-        function obj = GLM( prevJob )
+        function obj = connectivity_GLM( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
             
             obj.name = 'GLM model';
@@ -36,7 +36,7 @@ classdef GLM < nirs.modules.AbstractGLM
         end
         
         function obj = set.type(obj,type)
-            validtypes={'OLS','NIRS-SPM','AR-IRLS','MV-GLM','Nonlinear'};
+            validtypes={'OLS','NIRS-SPM','AR-IRLS','MV-GLM','Nonlinear','Ordinal','RepeatedMeasures'};
             if(~ismember(type,validtypes))
                 disp('type must be one of : ')
                 disp(strvcat(validtypes));
@@ -135,8 +135,30 @@ classdef GLM < nirs.modules.AbstractGLM
                 j.listOfStims=Stim;
             end
             
+           
+            for i=1:length(data)
+                cnt=1;
+                link=struct;
+                dd=zeros(size(data(i).data,1),size(data(i).data,2)*(size(data(i).data,2)-1)/2+size(data(i).data,2));
+                for a=1:size(data(i).data,2) 
+                    for b=a:size(data(i).data,2)
+                        dd(:,cnt)=data(i).data(:,a).*data(i).data(:,b);
+                        link.source{cnt,1}=['src-' num2str(data(i).probe.link.source(a)) ':' ...
+                            'det-' num2str(data(i).probe.link.detector(a))];
+                        link.detector{cnt,1}=['src-' num2str(data(i).probe.link.source(b)) ':' ...
+                            'det-' num2str(data(i).probe.link.detector(b))];
+                        link.type{cnt,1}=[num2str(data(i).probe.link.type(a)) '-' ...
+                            num2str(data(i).probe.link.type(b))];
+                        cnt=cnt+1; 
+                    end; 
+                end;
+                data2(i)=data;
+                data2(i).data=dd;
+                data2(i).probe.link=struct2table(link);
+            end
             
-            S=j.run(data);
+            
+            S=j.run(data2);
             
             
             for idx=1:length(S)
