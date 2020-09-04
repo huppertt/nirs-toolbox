@@ -76,3 +76,9 @@ end
 metadata=cell2table(metadata,'VariableNames',names);
     
 [X,names,offset]=nirs.design.createDesignMatrix( stimulus, t, basis, type );
+
+
+
+
+return
+

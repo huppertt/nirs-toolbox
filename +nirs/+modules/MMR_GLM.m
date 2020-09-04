@@ -21,7 +21,8 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
 %     trend_func must at least return a constant term unless all baseline periods are
 %     specified explicitly in the stimulus design with BoxCar basis functions
      properties
-        formula='Y~1+cond*cat';
+        formula='Y~cond';
+        within_variables=[];
      end
     
      
@@ -86,9 +87,10 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
                 for chIdx=1:size(d,2)
                     tbl.Y=d(:,chIdx);
                     r{chIdx}=nirs.math.fitrm(tbl,formula,1,4*data(i).Fs);
-                    [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;
-                   
+                    [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;  
                 end
+                             
+                
                 Beta(:,1)=[];
                 Cov(1,:,:)=[];
                 Cov(:,1,:)=[];

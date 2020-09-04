@@ -26,7 +26,8 @@ classdef ChannelFStats
         df1         % degrees of freedom 1
         df2         % degrees of freedom 2
         probe       % probe geometry
-         demographics    % Dictionary containing demographics info
+        demographics    % Dictionary containing demographics info
+       
     end
     
     properties ( Dependent = true )
@@ -60,11 +61,10 @@ classdef ChannelFStats
         
         % p values
         function p = get.p( obj )
-            p = zeros(size(obj.F));
-            for i = 1:numel(obj.F)
-                p(i) = fcdf( 1./obj.F(i), obj.df2(i), obj.df1(i) );
-                
-            end
+            e=1./obj.df2;
+            p=fcdf( obj.F, e*obj.df2, e*obj.df1 ,'upper');
+
+            
         end
         
         % q values
@@ -80,7 +80,12 @@ classdef ChannelFStats
             q = obj.q;
             df1 = obj.df1;
             df2 = obj.df2;
-            
+            if(length(df1)==1)
+                df1=df1*ones(size(F));
+            end
+            if(length(df2)==1)
+                df2=df2*ones(size(F));
+            end
             out = [obj.variables table(F, df1, df2, p, q)];
         end
         

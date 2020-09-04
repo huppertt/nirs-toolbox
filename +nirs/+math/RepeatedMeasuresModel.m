@@ -43,7 +43,7 @@ classdef (Sealed) RepeatedMeasuresModel < matlab.mixin.CustomDisplay & classreg.
         OrthogonalContrasts = 'orthogonalcontrasts';
         MeanResponse = 'meanresponse';
     end
-    properties(GetAccess=public, SetAccess=private)
+    properties(GetAccess=public)
 %BetweenDesign - Design for between-subjects factors.
 %   The BetweenDesign property is a table containing the values of the
 %   between-subject factors and the repeated measures.
@@ -295,7 +295,7 @@ classdef (Sealed) RepeatedMeasuresModel < matlab.mixin.CustomDisplay & classreg.
             CovB=this.Cov;
             beta=this.B;
             
-            stats.beta=beta;
+            stats.beta=beta; %reshape(beta(2:end,:),[],1);
             stats.se=sqrt(diag(CovB));
             stats.t=stats.beta./stats.se;
             stats.p=1-tcdf(abs(stats.t),this.DFE-length(beta));
@@ -1372,6 +1372,8 @@ classdef (Sealed) RepeatedMeasuresModel < matlab.mixin.CustomDisplay & classreg.
            
             [Bmat,CovB] = nirs.math.linsolveW(Xmat,Ymat,Noise,pmax);
             
+
+            
             Resid = Ymat-Xmat*Bmat;
             dfe = size(Xmat,1)-size(Xmat,2);
             if dfe>0
@@ -1450,7 +1452,7 @@ classdef (Sealed) RepeatedMeasuresModel < matlab.mixin.CustomDisplay & classreg.
             % Compute error matrix E
             % Would do [C,R]=qr(C,0) & convert D to D/R if D were not zero
             [C,~] = qr(C,0);
-            E = (N-k) * C'*this.Covariance{:,:}*C;
+            E = (N-k) * C'*this.Cov*C;
             
             % Prepare variables for anova table
             r = size(C,2);

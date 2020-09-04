@@ -111,7 +111,7 @@ classdef Probe1020 < nirs.core.Probe
             if(nargin<3)
                 noreg=false;
             end
-            
+   
             tbl=table(obj.labels,obj.pts1020(:,1),obj.pts1020(:,2),obj.pts1020(:,3),...
                 'VariableNames',{'Name','X','Y','Z'});
             

@@ -12,7 +12,7 @@ ProtocolName = 'NIRSToolbox';
 if ~brainstorm('status')
     brainstorm('nogui');
 end
-gui_brainstorm('DeleteProtocol', ProtocolName);
+try; gui_brainstorm('DeleteProtocol', ProtocolName); end;
 gui_brainstorm('CreateProtocol', ProtocolName, 0, 0);
 
 import_anatomy(0);

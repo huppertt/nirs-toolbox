@@ -12,7 +12,11 @@ if(pmax==0)
 else
     stats = nirs.math.ar_irls(YW,XW,pmax);
     Bmat=stats.beta;
-    Cov=stats.covb;
+    if(ndims(stats.covb)==4)
+        Cov=cov(YW-XW*Bmat);
+    else
+        Cov=stats.covb;
+    end
 end
 
 

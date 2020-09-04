@@ -21,7 +21,7 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
 %     trend_func must at least return a constant term unless all baseline periods are
 %     specified explicitly in the stimulus design with BoxCar basis functions
      properties
-        formula = 'cat';
+        formula = 'Time';
      end
     
      
@@ -98,47 +98,32 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
                             metadata=[metadata; st.metadata];
                         end
                         within=[table(cond) metadata];
-                        
+                        within.Time=[1:height(within)]';
                         
                         between=struct;
                         for ii=1:length(cond)
                             between=setfield(between,['y' num2str(ii)],Y(:,ii));
                         end
-                        str=['y1-y' num2str(length(cond)) '~1'];
+                        str=['y1-y' num2str(length(cond)) '~1+'];
+                       str2=['y1-y' num2str(length(cond)) '~1'];
+                       
                         for jj=1:length(keys)
                         for ii=1:size(IRF,2)
-                            between=setfield(between,[keys{jj} '_' num2str(ii)],IRF(:,ii));
-                            str=[str '+' keys{jj} '_' num2str(ii)];
+                           if(size(IRF,2)>1)
+                                between=setfield(between,[keys{jj} '_' num2str(ii)],IRF(:,ii));
+                                str=[str  keys{jj} '_' num2str(ii) '+'];
+                           else
+                                between=setfield(between,[keys{jj} ],IRF(:,ii));
+                                str=[str keys{jj} '+' ];
+                           end
                         end
                         end
-                        r{chIdx}=nirs.math.fitrm(struct2table(between),str,1,4,'WithinDesign',within);
+                        str(end)=[];
+                        r{chIdx}=nirs.math.fitrm(struct2table(between),str,1,fix(data(i).Fs*4),'WithinDesign',within);
+                        
                         fprintf(1,'%d of %d\n',chIdx,size(d,2))
                     end
-%                     
-%                      G.F=a.FStat;
-%             
-%             G.df1       = a.DF1;
-%             G.df2       = a.DF2;
-%             
-%             %             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
-%             %             G.dfe=length(beta)-sum(U(:).*U(:));
-%             
-%             G.probe      = S(1).probe;
-%             
-%             if(~ismember('source',vars.Properties.VariableNames) & ...
-%                     ismember('ROI',vars.Properties.VariableNames))
-%                 sd = repmat(sd, [length(unique(cnames)) 1]);
-%                 sd = nirs.util.sortrows(sd, {'ROI', 'type'});
-%             else
-%                 
-%                 sd = repmat(sd, [length(unique(cnames)) 1]);
-%                 sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
-%             end
-%             
-%             G.variables = [sd table(cnames)];
-%             G.variables.Properties.VariableNames{end} = 'cond';
-%             G = G.sorted();
-%             G.description = ['ANOVA Model: ' obj.formula];
+                     
                 
                     var=[];
 
@@ -153,7 +138,7 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
                         tbl=ranova(r{chIdx},'WithinModel',obj.formula);
                         for ii=1:length(keys)
                             for jj=1:height(tbl)
-                                if(~isempty(strfind(tbl.Row{jj},[keys{ii} '_'])))
+                                if(~isempty(strfind(tbl.Row{jj},[keys{ii}])))
                                     n=tbl(jj,:);
                                     nn=n.Properties.RowNames;
                                     n.Properties.RowNames={};
@@ -162,13 +147,16 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
                                 end
                             end
                         end
+                        a=anova(r{chIdx});
                         
-                        
-                        
+                          
                     end
                     S(i).F=var.F;
-                    S(i).df1=var.DF;
-                    S(i).df2=r{1}.DFE;
+                    S(i).df2=var.DF(1);
+                    S(i).df1=length(d)-length(keys)-1;
+                    
+                    var.F=[];
+                    var.DF=[];
                     S(i).variables=var;
                 
                 % print progress
@@ -191,9 +179,7 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
             set(DictionaryProp,'Category','Misc');
             set(DictionaryProp,'Description','Select the canonical basic function');
             prop(find(ismember(opts,'basis')))=DictionaryProp;
-            
-            
-            
+  
             
         end
         

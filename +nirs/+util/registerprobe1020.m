@@ -1,10 +1,21 @@
 function probe1020 = registerprobe1020(probe,headsize,seperateflag,extrapoints)
 % This function registers a probe to the 10-20 system
 
+if(isa(headsize,'nirs.core.Mesh'))
+    Anatmesh=headsize;
+    headsize=nirs.registration.getheadshape(Anatmesh(1));
+else
+    Anatmesh=[];
+end
+
 if(nargin>1 & ~isempty(headsize))
     probe1020 = nirs.core.Probe1020([],headsize);
 else
     probe1020 = nirs.core.Probe1020;
+end
+
+if(~isempty(Anatmesh))
+    probe1020=probe1020.set_mesh(Anatmesh);
 end
 
 if(nargin<3 || isempty(seperateflag))
@@ -90,7 +101,5 @@ end
 
     
 probe1020.optodes_registered=probe.optodes;
-
-
 
 

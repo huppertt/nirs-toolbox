@@ -41,8 +41,10 @@ for i=1:length(fileExt)
 %            disp(['loading: ' files(iFile).name]);
             tmp = loadFunc{i}( files(iFile).name );
         catch
-            warning(['error reading file: ' files(iFile).name]);
-            disp(lasterr)
+            if(~strcmp(fileExt{i},'TXT'))
+                warning(['error reading file: ' files(iFile).name]);
+                disp(lasterr)
+            end
             continue;
         end
         % NIRx data uses folders instead of files... back up one
