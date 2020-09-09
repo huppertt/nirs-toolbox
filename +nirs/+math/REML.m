@@ -32,7 +32,7 @@ end
 Beta=[];
 Stats=[];
 
-if(~exist('jump'))
+if(exist('jump') ~= 1)
     jump=false;
 end
     
@@ -49,7 +49,7 @@ X = U(:,1:r)*s*V(:,1:r)';
 tolr=eps(full(max(X(:))))*max(size(X))*10;
 
 
-if(~exist('maxIter'))
+if(exist('maxIter') ~= 1)
     maxIter=150;  %Max # of iterations of REML code
 end
 
