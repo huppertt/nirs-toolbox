@@ -1,7 +1,19 @@
-function [data,truth]=simData_connectivity_shortsep(truth)
+function [data,truth]=simData_connectivity_shortsep(truth,lags)
 sigma=150; %units-(mm) % spatial smoothing kernel for the skin layer 
 pmax=10;  % model order to use for the AR model
 t = (0:1/10:300)';
+
+if(nargin<2)
+    if(nargin>1 && ndims(truth)==3)
+        lags=true(size(truth,3)-1,1);
+    else
+        lags=true(1);
+    end
+else
+    if(length(lags)==1)
+        lags=true(length(lags),1);
+    end
+end
 
 SNR=1;  % ratio of skin to brain signals
 
@@ -71,34 +83,40 @@ probe = defaultProbe;
     
     % now the connectivity part
     types=probe.types;
-    et=zeros(length(t),height(probe.link));
+    et=zeros(length(t),height(probe.link),length(lags));
     T=zeros(height(probe.link));
     for id=1:length(types)
         lst=find(~probe.link.ShortSeperation & ...
             probe.link.type==types(id));
         if(id==1)
-            if(nargin<1)
-                flag=1;
-                while(flag~=0)
-                    fract=.25;
-                    truth=(rand(length(lst))>(1-fract/sqrt(length(lst))));
-                    truth(find(eye(size(truth))))=1;
-                    truth=(truth+truth');                           
-                    truth=triu(truth./(ones(length(truth),1)*(sum(truth))))+triu(truth./(ones(length(truth),1)*(sum(truth))))';
-                    truth(find(eye(size(truth))))=0;
-                    [~,flag]=chol(truth+eye(size(truth)));
-                end
+            if(nargin<1 || isempty(truth))
+              
+                    flag=1;
+                    while(flag~=0)
+                        fract=.25;
+                        truth=(rand(length(lst))>(1-fract/sqrt(length(lst))));
+                        truth(find(eye(size(truth))))=1;
+                        truth=(truth+truth');
+                        truth=triu(truth./(ones(length(truth),1)*(sum(truth))))+triu(truth./(ones(length(truth),1)*(sum(truth))))';
+                        truth(find(eye(size(truth))))=0;
+                        [~,flag]=chol(truth+eye(size(truth)));
+                    end
+                    T(lst,lst)=truth;
+              
             end
             
         end
-             
-        et(:,lst) = mvnrnd( zeros(length(lst),1),truth+eye(size(truth)), length(t) );
-        T(lst,lst)=truth;
-        a = randAR( pmax );
-        for i = 1:length(lst)
-            et(:,lst(i)) = filter(1, [1; -a], et(:,lst(i)));
+        for ilag=1:length(lags)
+            if(lags(ilag))
+                et(:,lst,ilag) = mvnrnd( zeros(length(lst),1),truth+eye(length(lst)), length(t) );
+                a = randAR( pmax );
+                for i = 1:length(lst)
+                    et(:,lst(i),ilag) = filter(1, [1; -a], et(:,lst(i),ilag));
+                end
+            end
         end
     end
+et=sum(et,3);   
 lst=find(~probe.link.ShortSeperation);
 et(:,lst)=SNR*6*et(:,lst)./(ones(length(t),1)*std(et(:,lst),[],1));
 
