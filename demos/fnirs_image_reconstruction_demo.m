@@ -276,7 +276,7 @@ j.prior('default')=prior;
 ImageStats=j.run(SubjStats);
 
 % Mask the image at alpha<0.05 (typeI error) and power>.8 (typeII error)
-h=ImageStats.draw('tstat',[-5 5],'p<0.15','beta>.8','right');
+h=ImageStats.draw('tstat',[-5 5],'p<0.15','beta>.8','left');
 
 
 

@@ -158,14 +158,18 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 
                 
                 xx=[];
-                
+                V2=[];
                 for j=1:length(conds)
                     l=Lfwdmodels(key);
                     flds=fields(l);
+                    x2=[];
                     for ii=1:length(flds)
                         xlocal=l.(flds{ii});
-                        xx=[xx; xlocal];
+                        x2=[x2 xlocal];
+                        V2=blkdiag(V2,V');
                     end
+                    xx=blkdiag(xx, x2);
+                    
                 end
                 X=[X; W*xx];
             end
@@ -178,7 +182,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 x=X(:,idx);
                 VarMDU(idx)=pinv(x'*x+eps(1));
             end
-           VarMDU=abs(VarMDU*V');
+           VarMDU=abs(VarMDU*V2);
            
               
             % The MDU is the variance at each voxel (still in the basis
@@ -225,7 +229,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                     if(~iscell(variableLst.type)); variableLst.type=arrayfun(@(x){num2str(x)},variableLst.type); end;
                     idx = repmat(i,height(variableLst),1);
                     variableLst =[table(idx) variableLst repmat(demo(i,:),height(variableLst),1)];
+                   if(ismember( variableLst.Properties.VariableNames,'DataType'))
                     variableLst.DataType=strcat(variableLst.DataType, variableLst.type);
+                   end
                     vars = [vars; variableLst];
                     tmpvars =[tmpvars; variableLst(1,:)];
                 end
@@ -339,7 +345,12 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             X=sparse(X);
             Z=sparse(Z);
-            n=size(V,1)/length(flds);
+            n=size(V,1);
+            V2=[];
+            for i=1:length(flds)
+                V2=blkdiag(V2,V);
+            end
+            V2=sparse(V2);
            for i=1:length(flds)
                N=[]; 
                for j=1:i-1
@@ -349,38 +360,42 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                for j=i+1:length(flds)
                    N=blkdiag(N,0*speye(n,n));
                end
-               VtV{i}=V'*N*V;
+               VtV{i}=V2'*N*V2;
            end
             % VtV{2}= VtV{2}/10;
             if(all(ismember(flds,{'hbo','hbr'})))
                 N=[speye(n) -speye(n); -speye(n) speye(n)];
-                VtV{end+1}=V'*N*V;
+                VtV{end+1}=V2'*N*V2;
             end
             
            
            ncond=length(lm1.CoefficientNames);
            n=size(VtV{1},1);
            cnt=1;
-           for k=1:length(VtV)
-               
-               for i=1:ncond
-                   Q{cnt}=[];
-                   for j=1:i-1
-                       Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
-                   end
-                   Q{cnt}=blkdiag(Q{cnt},VtV{k});
-                   for j=i+1:ncond
-                       Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
-                   end
-                   Q{cnt}=blkdiag(Q{cnt},0*speye(size(Z,2),size(Z,2)));
-                   cnt=cnt+1;
-               end
-           end
-            for i=1:size(Z,2)
-                Q{end+1}=blkdiag(0*speye(size(X,2),size(X,2)),...
-                    speye(size(Z,2),size(Z,2)));
-                
-            end
+           
+           % for now.
+           Q={eye(length(lstKeep))};
+           
+%            for k=1:length(VtV)
+%                
+%                for i=1:ncond
+%                    Q{cnt}=[];
+%                    for j=1:i-1
+%                        Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
+%                    end
+%                    Q{cnt}=blkdiag(Q{cnt},VtV{k});
+%                    for j=i+1:ncond
+%                        Q{cnt}=blkdiag(Q{cnt},0*speye(n,n));
+%                    end
+%                    Q{cnt}=blkdiag(Q{cnt},0*speye(size(Z,2),size(Z,2)));
+%                    cnt=cnt+1;
+%                end
+%            end
+%             for i=1:size(Z,2)
+%                 Q{end+1}=blkdiag(0*speye(size(X,2),size(X,2)),...
+%                     speye(size(Z,2),size(Z,2)));
+%                 
+%             end
            % TODO-- off diagionals
            %     lst=find(ismember(names,{'priorhbo','priorhbr'}));
            
@@ -420,7 +435,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             Vall=[];
             iWall=[];
             for idx=1:length(cnames)
-                Vall=sparse(blkdiag(Vall,V));
+                Vall=sparse(blkdiag(Vall,V2));
                 for fIdx=1:length(flds)
                     
                     iWall=sparse(blkdiag(iWall,obj.basis.fwd));
@@ -435,16 +450,16 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             G.dfe        = dfe;
             
            fwd=[];
+            for idx=1:length(cnames); 
            for idx=1:length(flds)
                fwd=blkdiag(fwd,obj.basis.fwd);
            end
+            end
            fwd=sparse(fwd);
            
            G.typeII_StdE=1/eps(1)*ones(size(fwd,1),1);
            Lst=find(sum(abs(fwd),2)~=0);
            G.typeII_StdE(Lst) =fwd(Lst,:) * sqrt(VarMDU');
-            
-           G.typeII_StdE=repmat(G.typeII_StdE,size(lm1.designMatrix('Fixed'),2),1);
            
             
             nVox=size(obj.basis.fwd,1);
