@@ -3,6 +3,7 @@ classdef synthetic_measurement < nirs.modules.AbstractModule
     %
     properties
         commonprobe = 'combine';
+        FwdModel = [];
     end
     methods
         function obj = synthetic_measurement( prevJob )
@@ -21,7 +22,7 @@ classdef synthetic_measurement < nirs.modules.AbstractModule
             end
             for i = 1:numel(data)
                 disp([num2str(i) ' of ' num2str(length(data))]);
-                data(i)=synthetic_meas(data(i),probe);
+                data(i)=synthetic_meas(data(i),probe, obj.FwdModel);
             end
         end
     end
@@ -134,7 +135,7 @@ function ChanStatsNew = synthetic_meas(ChanStats,NewProbe,FwdModel)
 
 %% Construct the forward model for the old and new probe
 
-if(nargin<3)
+if(nargin<3 || isempty(FwdModel))
     
     if(~isa(NewProbe,'nirs.core.Probe1020'))
         % No forward model provided, then build the slab version
@@ -169,47 +170,55 @@ end
 ChanStats=sorted(ChanStats,{'type','source','detector','cond'});
 NewProbe.link=sortrows(NewProbe.link,{'type','source','detector'});
 
-if(~isa(ChanStats.probe,'nirs.core.Probe1020'))
-    FwdModel.probe=ChanStats.probe;
-else
-    FwdModel.probe=ChanStats.probe.swap_reg;
-end
-
-if(isnumeric(FwdModel.probe.link.type))
-    [Lold]=FwdModel.jacobian('spectral');
-    Lold=[Lold.hbo Lold.hbr];
-else
-     % If hemoglobin was supplied, fake it with a 808 wavelength
-    [a,~,lst]=unique(FwdModel.probe.link.type);
-    FwdModel.probe.link.type=repmat(808,height(FwdModel.probe.link),1);
-    Lold=FwdModel.jacobian;
-    L=zeros(length(lst),length(a)*size(Lold.mua,2));
-    for i=1:length(a)
-        L(find(lst==i),(i-1)*size(Lold.mua,2)+1:i*size(Lold.mua,2))=Lold.mua(find(lst==i),:);
-    end
-    Lold=sparse(L)*1E6;
-end
+% if(~isa(ChanStats.probe,'nirs.core.Probe1020'))
+%     FwdModel.probe=ChanStats.probe;
+% else
+%     FwdModel.probe=ChanStats.probe.swap_reg;
+% end
 
 
-if(~isa(NewProbe,'nirs.core.Probe1020'))
-    FwdModel.probe=NewProbe;
-else
-    FwdModel.probe=NewProbe.swap_reg;
-end
-if(isnumeric(FwdModel.probe.link.type))
-    [Lnew]=FwdModel.jacobian('spectral');
-    Lnew=[Lnew.hbo Lnew.hbr];
-else
-    % If hemoglobin was supplied, fake it with a 808 wavelength
-    [a,~,lst]=unique(FwdModel.probe.link.type);
-    FwdModel.probe.link.type=repmat(808,height(FwdModel.probe.link),1);
-    Lnew=FwdModel.jacobian;
-    L=zeros(length(lst),length(a)*size(Lnew.mua,2));
-    for i=1:length(a)
-        L(find(lst==i),(i-1)*size(Lnew.mua,2)+1:i*size(Lnew.mua,2))=Lnew.mua(find(lst==i),:);
-    end
-    Lnew=sparse(L)*1E6;
-end
+[Lold]=FwdModel.jacobian('spectral');
+Lold=[Lold.hbo Lold.hbr];
+
+% if(isnumeric(FwdModel.probe.link.type))
+%     [Lold]=FwdModel.jacobian('spectral');
+%     Lold=[Lold.hbo Lold.hbr];
+% else
+%      % If hemoglobin was supplied, fake it with a 808 wavelength
+%     [a,~,lst]=unique(FwdModel.probe.link.type);
+%     FwdModel.probe.link.type=repmat(808,height(FwdModel.probe.link),1);
+%     Lold=FwdModel.jacobian;
+%     L=zeros(length(lst),length(a)*size(Lold.mua,2));
+%     for i=1:length(a)
+%         L(find(lst==i),(i-1)*size(Lold.mua,2)+1:i*size(Lold.mua,2))=Lold.mua(find(lst==i),:);
+%     end
+%     Lold=sparse(L)*1E6;
+% end
+
+
+% if(~isa(NewProbe,'nirs.core.Probe1020'))
+%     FwdModel.probe=NewProbe;
+% else
+%     FwdModel.probe=NewProbe.swap_reg;
+% end
+
+[Lnew]=FwdModel.jacobian('spectral');
+Lnew=[Lnew.hbo Lnew.hbr];
+    
+% if(isnumeric(FwdModel.probe.link.type))
+%     [Lnew]=FwdModel.jacobian('spectral');
+%     Lnew=[Lnew.hbo Lnew.hbr];
+% else
+%     % If hemoglobin was supplied, fake it with a 808 wavelength
+%     [a,~,lst]=unique(FwdModel.probe.link.type);
+%     FwdModel.probe.link.type=repmat(808,height(FwdModel.probe.link),1);
+%     Lnew=FwdModel.jacobian;
+%     L=zeros(length(lst),length(a)*size(Lnew.mua,2));
+%     for i=1:length(a)
+%         L(find(lst==i),(i-1)*size(Lnew.mua,2)+1:i*size(Lnew.mua,2))=Lnew.mua(find(lst==i),:);
+%     end
+%     Lnew=sparse(L)*1E6;
+% end
 
 
 
@@ -248,6 +257,13 @@ Lnew=Lnew*V;
 % ChanStatsNew.covb=Lnew*Stats.tstat.covb*Lnew';
 
 L=Lnew*pinv(W*S*U)*W;
+
+
+% [Uold, Unew, V, Sold, Snew] = gsvd(Lold, Lnew);
+% stalbe_param = 1e-6;
+% L = Unew * Snew / (Sold + stalbe_param * eye(size(Sold))) * Uold';
+
+
 ChanStatsNew.beta=L*ChanStats.beta;
 ChanStatsNew.covb=L*ChanStats.covb*L';
 
