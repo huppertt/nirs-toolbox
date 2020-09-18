@@ -33,14 +33,18 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                         ismember('ROI',p.link.Properties.VariableNames))
                     [p.link, idx] = nirs.util.sortrows(p.link,{'ROI','type'});
                     d = d(:,idx);
-                    
+                    if(~isempty(p.fixeddistances))
+                        p.fixeddistances=p.fixeddistances(idx);
+                    end
                     % unique source-detector pairs
                     [~,~,idx] = nirs.util.uniquerows(table([p.link.ROI]));
                 else
                     % sort channels
                     [p.link, idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
                     d = d(:,idx);
-                    
+                    if(~isempty(p.fixeddistances))
+                        p.fixeddistances=p.fixeddistances(idx);
+                    end
                     % unique source-detector pairs
                     [~,~,idx] = nirs.util.uniquerows(table([p.link.source p.link.detector]));
                 end
