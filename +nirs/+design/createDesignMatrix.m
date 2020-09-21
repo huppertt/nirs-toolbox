@@ -53,6 +53,24 @@ function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
                      x=stimVector;
                 end
             end
+        elseif((isa( stim_vals{iKey},'nirs.design.OrdinalVector')))
+             if isempty(type)
+                if basis.iskey( stim_keys{iKey}  );
+                    basisObj = basis( stim_keys{iKey} );
+                elseif basis.iskey( 'StimulusVector' );
+                    basisObj = basis( 'StimulusVector' );
+                else
+                    x=stimVector;
+                end
+            else
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {{stim_keys{iKey},type}} );
+                elseif basis.iskey({'StimulusVector',type})
+                    basisObj = basis( {{'StimulusVector',type}} );
+                else
+                     x=stimVector;
+                end
+            end
         else
             % get basis object
             if isempty(type)
