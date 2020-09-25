@@ -84,6 +84,8 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
                     formula=[formula(1:strfind(formula,'cond')-1) str formula(strfind(formula,'cond')+4:end)];
                 end
                 
+                tbl=remove_unrepresented_levels(tbl);
+                
                 for chIdx=1:size(d,2)
                     tbl.Y=d(:,chIdx);
                     r{chIdx}=nirs.math.fitrm(tbl,formula,1,4*data(i).Fs);
@@ -187,7 +189,23 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
             
         end
         
+     
+        
+        
     end
     
+end
+
+function tbl=remove_unrepresented_levels(tbl)
+
+vars=tbl.Properties.VariableNames;
+for i=1:length(vars)
+    if(isa(tbl.(vars{i}),'ordinal'))
+        tbl.(vars{i})=droplevels(tbl.(vars{i}));
+        
+        
+    end
+end
+
 end
 
