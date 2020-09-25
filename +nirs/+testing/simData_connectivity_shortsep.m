@@ -62,7 +62,7 @@ else
 end
 
 if(sigma==0)
-    e=randn(height(probe.link),length(t));
+    e=randn(length(t),height(probe.link));
 else
     % find all the superficial (<5mm) voxels
     voxellist=find(fwdSlab.mesh.nodes(:,3)<=2.5);
