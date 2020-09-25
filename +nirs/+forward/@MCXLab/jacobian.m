@@ -1,6 +1,17 @@
-function [J,meas] = jacobian( obj )
+function [J,meas] = jacobian( obj,type )
 %JACOBIAN Summary of this function goes here
 %   Detailed explanation goes here
+
+
+ if nargin < 2
+                isSpectral = false;
+            elseif strcmpi( type,'standard' )
+                isSpectral = false;
+            elseif strcmpi( type,'spectral' );
+                isSpectral = true;
+            else
+                error('Jacobian can either be ''standard'' or ''spectral''.')
+            end
 
     % TODO change fft to properly due a dtft
     % for now, choose proper timeStep
@@ -23,6 +34,7 @@ function [J,meas] = jacobian( obj )
     for iLink = 1:size(obj.probe.link,1)
         iDet = obj.probe.link(iLink,2);
         iSrc = obj.probe.link(iLink,1);
+      
         
         src = load([obj.directory filesep 'src' num2str(iSrc) '.mat'],'fluence');
         det = load([obj.directory filesep 'det' num2str(iDet) '.mat'],'fluence');
@@ -40,6 +52,24 @@ function [J,meas] = jacobian( obj )
             J.kappa(iLink,iLayer) = - sum( Jkappa(mask) ) / meas.data(iLink);
         end
     end
+    
+       types = unique( obj.probe.link.type );
+            assert( isnumeric( types ) );
+            [~,~,iType] = unique(obj.probe.link.type );
+      if ~isSpectral
+                J.mua = Jmua;
+            else
+                % convert jacobian to conc
+                ext = nirs.media.getspectra( types );
+                
+                ehbo = ext(iType,1);
+                ehbr = ext(iType,2);
+                
+                J.hbo = bsxfun(@times,ehbo,J.mua);
+                J.hbr = bsxfun(@times,ehbr,J.mua);
+                
+      end
+
     
     if obj.cleanup == 1
         rmdir(obj.directory,'s');

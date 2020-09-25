@@ -27,15 +27,14 @@ cfg.nphoton = obj.nPhotons;
 
 cfg.node=obj.mesh.nodes;
 cfg.elem=obj.mesh.elems;
+% 
+% prop(:,1)=obj.mesh.regions(obj.mesh.elems(:,1));
+% prop(:,2)=obj.mesh.regions(obj.mesh.elems(:,2));
+% prop(:,3)=obj.mesh.regions(obj.mesh.elems(:,3));
+% prop(:,4)=obj.mesh.regions(obj.mesh.elems(:,4));
 
 
-prop(:,1)=obj.mesh.regions(obj.mesh.elems(:,1));
-prop(:,2)=obj.mesh.regions(obj.mesh.elems(:,2));
-prop(:,3)=obj.mesh.regions(obj.mesh.elems(:,3));
-prop(:,4)=obj.mesh.regions(obj.mesh.elems(:,4));
-
-
-cfg.elemprop=mode(prop,2);
+cfg.elemprop=obj.mesh.regions;
 
 
 
@@ -56,7 +55,7 @@ cfg.elemprop=mode(prop,2);
          cfg.srcdir = (cfg.srcpos-CenterMass.*ones(1,size(cfg.srcpos,1)))./...
             sqrt(sum((cfg.srcpos-CenterMass.*ones(1,size(cfg.srcpos,1))).^2,2)*ones(1,3));
         cfg.detpos = [obj.probe.srcPos ones(size(obj.probe.srcPos,1),1)];
-        lst = obj.probe.detector == idx;
+        lst = obj.probe.link.detector == idx;
     else
         error( 'Must specify "source" or "detector".' )
     end

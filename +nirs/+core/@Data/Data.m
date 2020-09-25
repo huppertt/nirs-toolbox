@@ -185,25 +185,36 @@ classdef Data
             
             % plot stim blocks if available
             if ~isempty(s) 
-                for j=1:size(s,2)
-                    s(:,j)=s(:,j)./(ones(size(s(:,j)))*max(s(:,j)));
+                if(~isordinal(s) & ~iscategorical(s))
+                    for j=1:size(s,2)
+                        s(:,j)=s(:,j)./(ones(size(s(:,j)))*max(s(:,j)));
+                    end
+                    
+                    
+                    % min/max of axes
+                    pmin = dmin - 0.2*dsize;
+                    pmax = dmin - 0.05*dsize;
+                    
+                    % adjust amplitude so stims are visible
+                    s = (pmax-pmin)*s + pmin ;
+                    % plot
+                    plot(axis_handle, t, s, 'LineWidth', 3 );
+                    
+                    % legend
+                    l = legend(axis_handle,k{:});
+                    set(l,'Interpreter', 'none');
+                    dmax = max( dmax,max(s(:)));
+                    dmin = min( dmin,min(s(:)));
+                    dsize = (dmax-dmin);
+                else
+                    m=get(axis_handle,'Position');
+                    aa=axes('parent',get(axis_handle,'parent'),'Position',[m(1) m(2) m(3) m(4)/8]);
+                    plot(aa, t, s, 'LineWidth', 3 );
+                    set(aa,'YTickLabel',categories(s));
+                    set(axis_handle,'Position',[m(1) m(2)+m(4)/8 m(3) m(4)*7/8]);
+                    set(axis_handle,'Xtick',[]);
                 end
-                % min/max of axes
-                pmin = dmin - 0.2*dsize;
-                pmax = dmin - 0.05*dsize;
-
-                % adjust amplitude so stims are visible
-                s = (pmax-pmin)*s + pmin ;
                 
-                % plot
-                plot(axis_handle, t, s, 'LineWidth', 3 );
-                
-                % legend
-                l = legend(axis_handle,k{:});
-                set(l,'Interpreter', 'none');
-                 dmax = max( dmax,max(s(:)));
-                dmin = min( dmin,min(s(:)));
-            dsize = (dmax-dmin);
                 
                 
             end

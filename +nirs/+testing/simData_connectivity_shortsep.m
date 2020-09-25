@@ -1,7 +1,7 @@
-function [data,truth]=simData_connectivity_shortsep(truth,lags)
-sigma=150; %units-(mm) % spatial smoothing kernel for the skin layer
+function [data,truth]=simData_connectivity_shortsep(truth,lags, sigma)
+
 pmax=10;  % model order to use for the AR model
-t = (0:1/10:300)';
+t = (0:1/10:300)'; % Fs  = 10 Hz
 
 if(nargin<2)
     if(nargin>1 && ndims(truth)==3)
@@ -13,6 +13,10 @@ else
     if(length(lags)==1)
         lags=true(length(lags),1);
     end
+end
+
+if nargin<3
+    sigma=150; %units-(mm) % spatial smoothing kernel for the skin layer
 end
 
 SNR=1;  % ratio of skin to brain signals
@@ -57,6 +61,16 @@ else
     
 end
 
+if(sigma<=1)
+    e = randn(length(t),height(probe.link));
+
+    % add temporal covariance
+    a = randAR( pmax );
+    for i = 1:size(e,2)
+        e(:,i) = filter(1, [1; -a], e(:,i)); 
+    end
+    e=6*e./(ones(length(t),1)*std(e,[],1));
+else
 % find all the superficial (<5mm) voxels
 voxellist=find(fwdSlab.mesh.nodes(:,3)<5);
 nchan=length(voxellist);
@@ -68,21 +82,31 @@ S=exp(-squareform(pdist(fwdSlab.mesh.nodes(voxellist,:))).^2/sigma^2);
 
 
 e = mvnrnd( mu, S, length(t) );
+e2 = mvnrnd( mu, S, length(t) );
 %e = mvnrnd( mu, eye(nchan), length(t) );
 
 % add temporal covariance
 a = randAR( pmax );
+a2 = randAR( pmax );
 for i = 1:size(e,2)
-    e(:,i) = filter(1, [1; -a], e(:,i));
+    e(:,i) = filter(1, [1; -a], e(:,i)); 
+    e2(:,i) = filter(1, [1; -a2], e2(:,i));
 end
 
 
-J=fwdSlab.jacobian('spectral');
-e=(J.hbo(:,voxellist)*e')';
+
+J=fwdSlab.jacobian;
+J.mua=J.mua./(sum(J.mua,2)*ones(1,size(J.mua,2)));
+e=(J.mua(:,voxellist)*e')';
+e2=(J.mua(:,voxellist)*e2')';
+e(:,1:2:end)=e2(:,2:2:end);
 e=6*e./(ones(length(t),1)*std(e,[],1));
+end
+
 
 % now the connectivity part
 types=probe.types;
+et=zeros(length(t),height(probe.link));
 T=zeros(height(probe.link));
 for id=1:length(types)
     lst=find(~probe.link.ShortSeperation & ...
@@ -106,29 +130,24 @@ for id=1:length(types)
         
     end
     
-    et=zeros(length(t),height(probe.link));
+  et(:,lst) = mvnrnd(zeros(length(lst),1),truth+eye(length(lst)), length(t) );
     for ilag=1:length(lags)
         if(lags(ilag))
-            if(ilag==1)
-                et(:,lst) = mvnrnd(zeros(length(lst),1),truth+eye(length(lst)), length(t) );
-            else
-                for i=1:length(lst)
-                    for j=i+1:length(lst)
-                        if(truth(i,j))
-                            a=randn(length(t),1);
-                            a2=randn(length(t),1);
-                            
-                            et(:,lst(i))=et(:,lst(i)) + a;
-                            et(:,lst(j))=et(:,lst(j)) + [zeros(ilag-1,1); a(1:end-ilag+1)];
-                            et(:,lst(i))=et(:,lst(i)) + [zeros(ilag-1,1); a2(1:end-ilag+1)];
-                            et(:,lst(j))=et(:,lst(j)) +  a2;
-                        end
+            for i=1:length(lst)
+                for j=i+1:length(lst)
+                    if(truth(i,j))
+                        a=randn(length(t),1);
+                        a2=randn(length(t),1);
+
+                        et(:,lst(i))=et(:,lst(i)) + a;
+                        et(:,lst(j))=et(:,lst(j)) + [zeros(ilag-1,1); a(1:end-ilag+1)];
+                        et(:,lst(i))=et(:,lst(i)) + [zeros(ilag-1,1); a2(1:end-ilag+1)];
+                        et(:,lst(j))=et(:,lst(j)) +  a2;
                     end
                 end
-                
-                
             end
-        end
+                
+         end
     end
     
     a = randAR( pmax );
@@ -136,7 +155,7 @@ for id=1:length(types)
         et(:,lst(i)) = filter(1, [1; -a], et(:,lst(i)));
     end
 end
-et=sum(et,3);
+
 lst=find(~probe.link.ShortSeperation);
 et(:,lst)=SNR*6*et(:,lst)./(ones(length(t),1)*std(et(:,lst),[],1));
 
@@ -217,3 +236,4 @@ function [r,T]=mvnrnd(mu,sigma,cases)
 r = randn(cases,size(T,1)) * T + ones(cases,1)*mu';
 
 end
+

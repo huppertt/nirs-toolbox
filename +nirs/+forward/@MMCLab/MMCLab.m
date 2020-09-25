@@ -10,12 +10,13 @@ classdef MMCLab
         directory = [getenv('TMPDIR') filesep 'tmp'...
             filesep num2str(randi(2^32-1))];
 
-        Fm = 110;
+        Fm =0;
         
         nPhotons = 1e8;
         nTimeGates = 40;
         timeStep = 1/100e6/300;
         nRepetitions = 1;
+      
     end
     
     properties(SetAccess = private)
@@ -26,7 +27,7 @@ classdef MMCLab
     methods
         %% Constructor
         function obj = MMCLab(mesh, prop, probe, Fm )
-            if nargin > 0, obj.image = mesh; end
+            if nargin > 0, obj.mesh = mesh; end
             if nargin > 1, obj.prop = prop; end
             if nargin > 2, obj.probe = probe; end
             if nargin > 3, obj.Fm = Fm; end
@@ -55,7 +56,7 @@ classdef MMCLab
         saveFluence( obj );
         meas = measurement( obj );
         meas = timeResolvedMeas( obj );
-        [J,meas] = jacobian( obj );
+        [J,meas] = jacobian( obj,type );
         cfg = getConfig( obj, idx, idxType );
         
     end
