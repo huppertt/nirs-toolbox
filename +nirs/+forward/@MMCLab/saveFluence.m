@@ -29,12 +29,11 @@ function saveFluence( obj )
             %         t = toc;
             
             tic,
-            cfg.nphoton=10;
+         
+            cfg.nphoton=100;
+            obj.nRepetitions=1000;
             [~,flux,~,cfg] = evalc('mmclab(cfg)'); % stupid way to suppress mcxlab output
-
-            cfg.nphoton=5E5;
-            obj.nRepetitions=200;
-            [~,flux,~] = evalc('mmclab(cfg)'); % stupid way to suppress mcxlab output
+            cfg.nphoton=1E5;
             for iRep = 2:obj.nRepetitions
                 disp(['Iter ' num2str(iRep)]);
                 [~,tmp,~] = evalc('mmclab(cfg)');

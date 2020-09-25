@@ -29,10 +29,10 @@ lambda=unique(probe.link.type)';  %List of wavelengths from the probe
 % will be used
 if(0)
     Slab = nirs.core.Image;
-    Slab.dim = [5 5 5];
+    Slab.dim = [2.5 2.5 2.5];
     Slab.origin = [-100 -100 0];
     Slab.description = 'Slab model for FEM/BEM models';
-    Slab.vol = ones(41,41,11);  % SLab from -100:5:100, -100:5:100, 0:5:50
+    Slab.vol = ones(81,81,21);  % SLab from -100:5:100, -100:5:100, 0:2:50
     
     % This command will create a nirs.core.Mesh data type
     % This requires iso2mesh to be installed.
@@ -61,47 +61,42 @@ else
     
 end
 
-if(sigma<=1)
-    e = randn(length(t),height(probe.link));
-
+if(sigma==0)
+    e=randn(height(probe.link),length(t));
+else
+    % find all the superficial (<5mm) voxels
+    voxellist=find(fwdSlab.mesh.nodes(:,3)<=2.5);
+    nchan=length(voxellist);
+    
+    % noise mean and spatial covariance
+    mu = zeros(nchan,1);
+    % Noise model based on spatial distance
+    S=exp(-squareform(pdist(fwdSlab.mesh.nodes(voxellist,:))).^2/sigma^2);
+    
+    
+    e = mvnrnd( mu, S, length(t) );
+    e2 = mvnrnd( mu, S, length(t) );
+    %e = mvnrnd( mu, eye(nchan), length(t) );
+    
     % add temporal covariance
     a = randAR( pmax );
+    a2 = randAR( pmax );
     for i = 1:size(e,2)
-        e(:,i) = filter(1, [1; -a], e(:,i)); 
+        e(:,i) = filter(1, [1; -a], e(:,i));
+        e2(:,i) = filter(1, [1; -a2], e2(:,i));
     end
-    e=6*e./(ones(length(t),1)*std(e,[],1));
-else
-% find all the superficial (<5mm) voxels
-voxellist=find(fwdSlab.mesh.nodes(:,3)<5);
-nchan=length(voxellist);
-
-% noise mean and spatial covariance
-mu = zeros(nchan,1);
-% Noise model based on spatial distance
-S=exp(-squareform(pdist(fwdSlab.mesh.nodes(voxellist,:))).^2/sigma^2);
-
-
-e = mvnrnd( mu, S, length(t) );
-e2 = mvnrnd( mu, S, length(t) );
-%e = mvnrnd( mu, eye(nchan), length(t) );
-
-% add temporal covariance
-a = randAR( pmax );
-a2 = randAR( pmax );
-for i = 1:size(e,2)
-    e(:,i) = filter(1, [1; -a], e(:,i)); 
-    e2(:,i) = filter(1, [1; -a2], e2(:,i));
+    
+    
+    
+    J=fwdSlab.jacobian;
+    J.mua=J.mua./(sum(J.mua,2)*ones(1,size(J.mua,2)));
+    e=(J.mua(:,voxellist)*e')';
+    e2=(J.mua(:,voxellist)*e2')';
+    e(:,1:2:end)=e2(:,2:2:end);
 end
 
-
-
-J=fwdSlab.jacobian;
-J.mua=J.mua./(sum(J.mua,2)*ones(1,size(J.mua,2)));
-e=(J.mua(:,voxellist)*e')';
-e2=(J.mua(:,voxellist)*e2')';
-e(:,1:2:end)=e2(:,2:2:end);
 e=6*e./(ones(length(t),1)*std(e,[],1));
-end
+
 
 
 % now the connectivity part
