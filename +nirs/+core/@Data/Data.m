@@ -185,7 +185,7 @@ classdef Data
             
             % plot stim blocks if available
             if ~isempty(s) 
-                if(~isordinal(s) & ~iscategorical(s))
+                if(~isa(s,'ordinal') & ~isa(s,'categorical'))
                     for j=1:size(s,2)
                         s(:,j)=s(:,j)./(ones(size(s(:,j)))*max(s(:,j)));
                     end
