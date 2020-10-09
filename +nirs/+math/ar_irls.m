@@ -134,7 +134,7 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.dfe = sum(S.w)-sum(U(:).*U(:));
         
         %  Satterthwaite estimate of model DOF
-        H=diag(S.w)-wXf*inv(wXf'*wXf)*wXf';
+        H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
         % note trace(A*B) = sum(reshape(A,[],1).*reshape(B',[],1)); 
         HtH=H'*H;
         stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);

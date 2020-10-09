@@ -97,7 +97,40 @@ if(size(X,1)<size(X,2))
     X2 = [X; speye(size(X,2))];
     
     R=speye(size(X2,1))-X2*pinv(full(X2'*iCe*X2+10*eps(1)*speye(size(X2,2),size(X2,2))))*X2'*iCe;
-        
+elseif(size(X,1)>size(X,2))
+    
+    rescale=1;
+    [q,r]=qr(X,0);
+    for idx=1:length(Qn)
+        Qn2{idx}=q'*Qn{idx}*q;
+    end
+    
+    [lambda,Beta,Stats]=nirs.math.REML(q'*Y,r,Beta_prior,Qn2,Qp,maxIter);
+
+    if(jump | nargout==1)
+        return
+    end
+    
+    %lambda is right, but the Stats are not directly related to the ones we want.  So we
+    %recompute. 
+    Cn=tolr*speye(size(Qn{1},1));
+    for idx=1:length(Qn)
+        Cn=Cn+Qn{idx}*exp(lambda(idx));
+    end
+    Cp=tolr*speye(size(Qp{1},1));
+    for idx2=1:length(Qp)
+        Cp=Cp+Qp{idx2}*exp(lambda(idx+idx2));
+    end
+    Ce=blkdiag(Cn,Cp);
+    Ce=Ce+speye(size(Ce))*tolr;
+
+    iCn=inv((Cn+speye(size(Cn))*tolr));
+    iCp=inv((Cp+speye(size(Cp))*tolr));
+    iCe = blkdiag(iCn,iCp);
+    X2 = [X; speye(size(X,2))];
+    
+  %  R=speye(size(X2,1))-X2*pinv(full(X2'*iCe*X2+10*eps(1)*speye(size(X2,2),size(X2,2))))*X2'*iCe;
+    
 else
 
     %%Else, run the normal model
@@ -149,9 +182,13 @@ else
         for i = 1:length(Q)
             Ce = Ce + Q{i}*exp(lambda(i));
         end
-
-  %      iCe=blkdiag(inv(Ce(1:end/2,1:end/2)),inv(Ce(1+end/2:end,1+end/2:end)));
-        iCe = pinv(full(Ce));
+        
+        if(isdiag(Ce))
+            iCe=diag(1./diag(Ce));
+        else
+            %      iCe=blkdiag(inv(Ce(1:end/2,1:end/2)),inv(Ce(1+end/2:end,1+end/2:end)));
+            iCe = pinv(full(Ce));
+        end
         Xt_iCe = X' * iCe;
         Xt_iCe_X = Xt_iCe * X;
         C_beta_y = pinv(full(Xt_iCe_X));  %Estimate of covariance of beta given the measurements
@@ -230,8 +267,16 @@ Cp = tolr*speye(size(Qp{1},1));  %Make sure it stays in numerical precision
 for i = 1:length(Qp)
     Cp = Cp + Qp{i}*exp(lambda(i+length(Qn)));
 end
-iCn=pinv(full(Cn));
-iCp=pinv(full(Cp));
+if(isdiag(Cn))
+    iCn=diag(1./diag(Cn));
+else
+    iCn=pinv(full(Cn));
+end
+if(isdiag(Cp))
+    iCp=diag(1./diag(Cp));
+else
+    iCp=pinv(full(Cp));
+end
 XtXi = pinv(X'*iCn*X+iCp);
 Beta = XtXi*X'*iCn*Y;
 %Now, put the final pieces together

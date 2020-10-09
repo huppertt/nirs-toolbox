@@ -29,13 +29,15 @@ cats={};
 for i=1:length(keys)
     st=stimulus(keys{i});
     if(isa(st,'nirs.design.StimulusEvents'))
-        names={names{:} st.metadata.Properties.VariableNames{:}};
-        
-        n=st.metadata.Properties.VariableNames;
-        for j=1:length(n)
-            cats{end+1}=class(st.metadata.(n{j}));
-            if(strcmp(class(st.metadata.(n{j})),'ordinal'))
-                st.metadata.(n{j})=addlevel(st.metadata.(n{j}),'undefined');
+        if(~isempty(st.metadata))
+            names={names{:} st.metadata.Properties.VariableNames{:}};
+            
+            n=st.metadata.Properties.VariableNames;
+            for j=1:length(n)
+                cats{end+1}=class(st.metadata.(n{j}));
+                if(strcmp(class(st.metadata.(n{j})),'ordinal'))
+                    st.metadata.(n{j})=addlevel(st.metadata.(n{j}),'undefined');
+                end
             end
         end
     end

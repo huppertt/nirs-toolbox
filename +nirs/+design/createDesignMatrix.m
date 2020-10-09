@@ -138,11 +138,20 @@ function [X, names,offset] = createDesignMatrix( stimulus, t, basis, type )
         else
             names{end+1} = stim_keys{iKey};
         end
-        
-        X = [X x];
+        X=setfield(X,stim_keys{iKey},x);
+        %X = [X x];
     end
     
     names = names';
+    
+    try;
+        % If this design matrix is a mix of ordinal and categorical this
+        % will fail, but we can still use it in our MMR_GLM code
+        X=struct2array(X);
+    catch
+        X=struct2table(X);
+    end
+    
     
 %     % append type if specified
 %     if ~isempty(type)

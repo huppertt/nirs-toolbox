@@ -73,11 +73,17 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
                 
                 tbl=metadata;
                 str='(';
-                for i=1:length(names)
-                    tbl.(names{i})=X(:,i);
-                    str=[str names{i} '+'];
+                for j=1:length(names)
+                    str=[str names{j} '+'];
                 end
                 str=[str(1:end-1) ')'];
+                if(istable(X))
+                    tbl=[tbl X];
+                else
+                    for j=1:length(names)
+                        tbl.(names{j})=X(:,j);
+                    end
+                end
                 
                 formula=obj.formula;
                 if(~isempty(strfind(formula,'cond')))

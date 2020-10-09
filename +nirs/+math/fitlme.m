@@ -89,7 +89,17 @@ if robust_flag
     D = 100*sqrt(eps(class(X)));
 
     % Adjust by leverage to account for prior weight differences in design matrix
-    lev = diag( full(X) * pinv(full(X)) );
+    
+    if(size(X,1)>5E4)
+        iX=inv(X'*X);
+        for i=1:size(X,1); 
+            lev(i,1)=X(i,:)*iX*X(i,:)';  
+        end;
+    else
+    
+        lev = diag( full(X) * pinv(full(X)) );
+    end
+    
     adj = 1 ./ sqrt(1-min(.9999,lev));
     xrank = rank(X);
     num_params = max(1,xrank);
@@ -100,7 +110,7 @@ if robust_flag
         resid = (Y - X*beta - Z*bHat) .* adj;
         resid_s = studentizeResiduals( resid , num_params );
         w = bisquare( resid_s , tune );
-        w = diag(w);
+        w = spdiags(w,0,length(w),length(w));
         beta0=beta;
         
         % Bail out if weights are bad
