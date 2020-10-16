@@ -27,8 +27,8 @@ nsamp = length(data.time);
 spike_inds = randi([2 nsamp-1],[1 num_spikes]);
 shift_inds = randi([2 nsamp-1],[1 num_shifts]);
 
-spike_amp_Z = 25 * randn([1 num_spikes]);
-shift_amp_Z = 25 * randn([1 num_shifts]);
+spike_amp_Z = 10 * randn([1 num_spikes]);
+shift_amp_Z = 10 * randn([1 num_shifts]);
 
 mu = mean(data.data);
 stds = std(data.data);
