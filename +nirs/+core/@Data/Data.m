@@ -84,6 +84,35 @@ classdef Data
             end
         end
         
+        
+        function showStimMatrix(obj)
+            if(isempty(which('spm_DesRep')))
+                warning('this function  requires SPM to be installed in this computer');
+                return
+            end
+            [X,conds] = obj.getStimMatrix;
+            
+            C = ones(size(obj.time));
+            
+            for id=1:size(C,2)
+                cnames{id}=sprintf('trend_%d',i);
+            end
+            
+            SPM.xX.X      = [X C];
+            nscan=length(obj.time);
+            
+            % Create the SPM structure
+            
+            SPM.xX.iH     = [];
+            SPM.xX.iC     = [1:size(X,2)];
+            SPM.xX.iB     = [1:size(C,2)] + size(X,2);
+            SPM.xX.iG     = [];
+            SPM.xX.name   = {conds{:} cnames{:}};
+            
+            spm_DesRep('DesMtx',SPM.xX);
+            
+        end
+        
         function [X,conds] = getStimMatrix( obj )
             %% returns a [time x condition] matrix of task timings and a cell array of condition names
             if numel(obj)>1

@@ -13,10 +13,10 @@ function [coef, res, yhat] = ar_fit( y,Pmax )
     
     X = [ones(2*n,1) [Xf; Xb]];
     
+    yy=[y; flipud(y)];
+    lstValid=~isnan(yy) & ~isnan(sum(X,2));
     
-    
-    
-    [coef, res] = nirs.math.stepwise(X, [y; flipud(y)]);
+    [coef, res] = nirs.math.stepwise(X(lstValid,:), yy(lstValid));
     
     res = res(1:n);
     yhat = y - res;

@@ -38,7 +38,7 @@ classdef NirfastBEM
                 obj.probe=probe;
                 return
             end
-            if(all(probe.optodes.Z==0))
+            if(all(probe.optodes.Z==0) & isa(probe,'nirs.core.Probe1020'))
                % disp('warning: changing probe to 3D using "swap_reg" function');
                 probe=probe.swap_reg;
             end

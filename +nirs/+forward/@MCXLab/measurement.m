@@ -47,14 +47,16 @@ function meas = measurement( obj )
         lst = find( probe.link.source == iSrc & probe.link.type==itype);
         
         pos = probe.detPos( probe.link.detector(lst),:);
-        pos = pos / thisObj.image.dim(1) + repmat(thisObj.image.origin,[size(pos,1) 1]);
+     %   pos = pos / thisObj.image.dim(1) + repmat(thisObj.image.origin,[size(pos,1) 1]);
+        
+        pos = (pos -  repmat(thisObj.image.origin,[size(pos,1) 1]))./(ones(size(pos,1),1)*thisObj.image.dim);
 
 %         thisR = nirs.utilities.quad_interp(pos,real(log(fluence)),3);
 %         thisI = nirs.utilities.quad_interp(pos,imag(log(fluence)),3);
 %         pos = fix(pos);
 %         data(lst) = fluence( sub2ind(size(fluence),pos(:,1),pos(:,2),pos(:,3)) );
         data(lst) = exp(...
-            nirs.utilities.quad_interp(pos,log(fluence),3)...
+            nirs.math.quad_interp(pos,log(fluence),3)...
             );
         
     end

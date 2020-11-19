@@ -139,8 +139,9 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 %ensure positive/definant (sometimes off due to numerical
                 %prec.
              
-                [U,s,V]=svd(covb);
-                covb=0.5*(U*s*U'+V*s*V');
+                lst=find(~all(isnan(covb),1));
+                [U,s,V]=svd(covb(lst,lst));
+                covb(lst,lst)=0.5*(U*s*U'+V*s*V');
                 
                 S(i).covb = covb;
                 

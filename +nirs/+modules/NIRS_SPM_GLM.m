@@ -61,6 +61,8 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 end
                 d = d(:, idx);
                 
+                
+                
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );

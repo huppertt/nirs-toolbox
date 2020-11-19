@@ -61,11 +61,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             
             b = [];
+            LstV=[];
             vars = table();
             for i = 1:length(S)
                 
-               
-                
+               lstValid=~isnan(S(i).tstat);
+                LstV=[LstV; lstValid];
                 % coefs
                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
                     b = [b; S(i).tstat];
@@ -80,11 +81,14 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         nirs.util.flushstdout(1);
                         fprintf( 'preparing covariance model %4i of %4i.\n', i, length(S) )
                     end
-                    [u, s, ~] = svd(S(i).covb, 'econ');
+                    [u, s, ~] = svd(S(i).covb(lstValid,lstValid), 'econ');
                     %W = blkdiag(W, diag(1./diag(sqrt(s))) * u');
-                    W = blkdiag(W, pinv(s).^.5 * u');
-                    
-                    iW = blkdiag(iW, u*sqrt(s) );
+                    w=nan(size(S(i).covb));
+                    w(lstValid,lstValid)=pinv(s).^.5 * u';
+                    W = blkdiag(W, w);
+                    iw=nan(size(S(i).covb));
+                    iw(lstValid,lstValid)=u*sqrt(s);
+                    iW = blkdiag(iW, iw );
                 end
                 
                 
@@ -92,11 +96,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 %                W = blkdiag(W,pinv(L));
                 
                 % table of variables
-                file_idx = repmat(i, [size(S(i).beta,1) 1]);
+                file_idx = repmat(i, [height(S(i).variables) 1]);
                 
                 if(~isempty(demo))
                     vars = [vars;
-                        [table(file_idx) S(i).variables repmat(demo(i,:), [size(S(i).beta,1) 1])]
+                        [table(file_idx) S(i).variables repmat(demo(i,:), [height(S(i).variables) 1])]
                         ];
                 else
                     vars = [vars; ...
@@ -254,7 +258,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 Xorig=X;
                 Zorig=Z;
                 betaOrig=beta;
-                
+                W(isnan(W))=0;
                 X    = W*X;
                 Z    = W*Z;
                 beta = W*beta;

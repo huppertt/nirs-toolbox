@@ -80,11 +80,29 @@ function stats = ar_irls( d,X,Pmax,tune )
         y = d(:,i);
         
         if ~any(y)  % In case y is all zeros (e.g., null hb)...
-            y = sqrt(0.01)*randn(length(y),1);  %...a non-null vector prevents a robustfit error without creating false positives 
-        end
+            %y = sqrt(0.01)*randn(length(y),1);  %...a non-null vector prevents a robustfit error without creating false positives
+            Xfall{i}=nan(length(y),size(X,2));
+            stats.beta(:,i) = nan(size(X,2),1);
+            
+            stats.covb(:,:,i) = nan(size(X,2),size(X,2));
+            stats.w(:,i)=nan(length(y),1);
+            stats.a{i} = [];
+            stats.sigma2(i)=NaN;
+            
+            stats.tstat(:,i) =nan(size(X,2),1);
+            stats.pval(:,i) = nan(size(X,2),1);     % two-sided
+            stats.ppos(:,i) = nan(size(X,2),1);            % one-sided (positive only)
+            stats.pneg(:,i) = nan(size(X,2),1);             % one-sided (negative only)
+            
+            resid(:,i)=nan(length(y),1);
+            
+            stats.filter{i}=[];
+            stats.R2(i)=NaN;
+        else
             
         % initial fit
-        B = X \ y;
+        lstValid=~isnan(y);
+        B = X(lstValid,:) \ y(lstValid);
         B0 = 1e6*ones(size(B));
         
         % iterative re-weighted least squares
@@ -111,15 +129,24 @@ function stats = ar_irls( d,X,Pmax,tune )
             Xf = myFilter(f,X);
           
             % subtract constant from AR model and filter the data
+            lstInValid=isnan(y);
+            lstValid=~isnan(y);
+            if(nnz(lstInValid)>0)
+                yy=y;
+                yy(lstInValid)=interp1(find(lstValid),y(lstValid),find(lstInValid),'spline',true);
+                 yf = myFilter(f,yy);
+    
+            else
             yf = myFilter(f,y);
-
+            end
             % perform IRLS
-            [B, S] = nirs.math.robustfit(Xf,yf,'bisquare',tune,'off');
+            [B, S] = nirs.math.robustfit(Xf(lstValid,:),yf(lstValid),'bisquare',tune,'off');
             
             iter = iter + 1;
         end
-        fprintf(1,'.');
         
+        fprintf(1,'.');
+        Xf=Xf(lstValid,:);
         
         % the model gets huge for EEG data.
         wXf=Xf;
@@ -145,9 +172,11 @@ function stats = ar_irls( d,X,Pmax,tune )
                stats.P(i) = length(a)-1;
         
         L = pinv(Xf'*Xf); % more stable
-        Xfall{i}=wXf;
+        Xfall{i}=nan(length(y),size(wXf,2));
+        Xfall{i}(lstValid,:)=wXf;
         stats.covb(:,:,i) = L*S.robust_s^2;  
-        stats.w(:,i) = S.w;
+        stats.w(:,i)=nan(length(y),1);
+        stats.w(lstValid,i) = S.w;
         stats.a{i} = a;
         stats.sigma2(i)=S.robust_s^2;  
         
@@ -156,10 +185,12 @@ function stats = ar_irls( d,X,Pmax,tune )
         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
 
-        resid(:,i)=S.resid.*S.w; 
+        resid(:,i)=nan(length(y),1);
+        resid(lstValid,i)=S.resid.*S.w; 
         
         stats.filter{i}=f;
-        stats.R2(i)=max(1-mad(yf-Xf*B)/mad(yf),0);
+        stats.R2(i)=max(1-mad(yf(lstValid)-Xf*B)/mad(yf(lstValid)),0);
+        end
         
     end   
    
@@ -168,19 +199,20 @@ function stats = ar_irls( d,X,Pmax,tune )
     
     for i=1:size(stats.beta,2)
         for j=1:size(stats.beta,2)
-            a=resid(:,i)-median(resid(:,i));
-            b=resid(:,j)-median(resid(:,j));
+            a=resid(:,i)-nanmedian(resid(:,i));
+            b=resid(:,j)-nanmedian(resid(:,j));
             
-            C(i,j)=1.4810*median(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+            C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
         end
     end
-    C=C*(mean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
+    C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
     
 
     for i=1:size(stats.beta,2)
         for j=1:size(stats.beta,2)
-            covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}'*Xfall{j})*C(i,j);
-            covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}'*Xfall{i})*C(j,i);  % done to ensure symmetry
+            lstV=~isnan(sum(Xfall{i},2)+sum(Xfall{j},2));
+            covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
+            covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
         end
     end
     covb=covb/2;

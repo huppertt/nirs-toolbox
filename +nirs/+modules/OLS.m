@@ -78,6 +78,16 @@ classdef OLS < nirs.modules.AbstractGLM
                     lst=find(diag(s)>eps(1)*10);
                     V=V(:,lst);
                     A=U(:,lst)*s(lst,lst);
+                    
+                    for ii=1:size(d,2)
+                        lstV=find(~isnan(d(:,ii)));
+                        if(~isempty(lstV))
+                        stats.beta(:,ii) = A(lstV,:)\ d(lstV,ii);
+                        else
+                            stats.beta(:,ii)=nan(size(A,2),1);
+                        end
+                    end
+                    
                     stats.beta = A\ d;                    
                     iXtX = V*pinv(A'*A)*V';
                     Cres = cov(d - A*stats.beta);                    
@@ -93,7 +103,14 @@ classdef OLS < nirs.modules.AbstractGLM
                     stats.covb = covb;
                     stats.dfe = size(d,1) - rank(A);
                 else
-                    stats.beta = [X C]\ d;
+                    for ii=1:size(d,2)
+                        lstV=find(~isnan(d(:,ii)));
+                        if(~isempty(lstV))
+                        stats.beta(:,ii) = [X(lstV,:) C(lstV,:)]\ d(lstV,ii);
+                        else
+                            stats.beta(:,ii)=nan(size(X,2)+size(C,2),1);
+                        end
+                    end
                     iXtX = pinv([X C]'*[X C]);
                     Cres = cov(d - [X C]*stats.beta);
                     covb = zeros(ncond*nchan,ncond*nchan);
