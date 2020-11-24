@@ -47,9 +47,20 @@ if(~isfield(probeInfo.probes,'labels_s'))
         probeInfo.probes.index_d(lst(i),2)=length(probeInfo.geom.NIRxHead.ext1020sys.labels);
     end
     
-    
-    probeInfo.probes.labels_s= {probeInfo.geom.NIRxHead.ext1020sys.labels{probeInfo.probes.index_s(:,2)}};
-    probeInfo.probes.labels_d= {probeInfo.geom.NIRxHead.ext1020sys.labels{probeInfo.probes.index_d(:,2)}};
+    for ii=1:size(probeInfo.probes.index_s,1)
+        if(probeInfo.probes.index_s(ii,2)~=0)
+            probeInfo.probes.labels_s{ii}= {probeInfo.geom.NIRxHead.ext1020sys.labels{probeInfo.probes.index_s(ii,2)}};
+        else
+            probeInfo.probes.labels_s{ii}=['customSrc-' num2str(probeInfo.probes.index_s(ii,1))];
+        end
+    end
+    for ii=1:size(probeInfo.probes.index_d,1)
+         if(probeInfo.probes.index_d(ii,2)~=0)
+            probeInfo.probes.labels_d{ii}= {probeInfo.geom.NIRxHead.ext1020sys.labels{probeInfo.probes.index_d(ii,2)}};
+        else
+            probeInfo.probes.labels_d{ii}=['customDet-' num2str(probeInfo.probes.index_d(ii,1))];
+        end
+    end
 end
 
 
@@ -65,8 +76,8 @@ XYZ2D = [SrcPos2D; DetPos2D]; % FID2D];
 
 SrcPos3D = probeInfo.probes.coords_s3*10;
 DetPos3D = probeInfo.probes.coords_d3*10;
-%FID3D    = probeInfo.probes.coords_c3*10;
-XYZ3D = [SrcPos3D; DetPos3D]; % FID3D];
+FID3D    = probeInfo.probes.coords_c3*10;
+XYZ3D = [SrcPos3D; DetPos3D]; %; FID3D];
 
 
 cnt=1; Name={}; Type={};
@@ -128,7 +139,6 @@ optodes3D=[optodes3D; fid3D];
 
 
 
-
 if(registerprobe)
     BEM = nirs.registration.Colin27.mesh_V2;
 else
@@ -142,6 +152,24 @@ else
     T=eye(4);
 end
 
+try
+    if(norm(mean(probeInfo.geom.NIRxHead.ext1020sys.coords3d*10))>25)
+        % this is an intermediate version of the NIRx format where the head
+        % is not in MNI space
+        tbl=table(probeInfo.geom.NIRxHead.ext1020sys.labels',probeInfo.geom.NIRxHead.ext1020sys.coords3d(:,1)*10,...
+            probeInfo.geom.NIRxHead.ext1020sys.coords3d(:,2)*10,probeInfo.geom.NIRxHead.ext1020sys.coords3d(:,3)*10,...
+            repmat({'mm'},size(probeInfo.geom.NIRxHead.ext1020sys.coords3d,1),1),'VariableNames',...
+            {'Name','X','Y','Z','Units'});
+         [T,tbl2]=nirs.registration.cp2tform(tbl,BEM(1).fiducials,true);
+        xyz=[optodes3D.X optodes3D.Y optodes3D.Z];
+        xyz(:,4)=1;
+        xyz=xyz*T;
+        optodes3D.X=xyz(:,1);
+        optodes3D.Y=xyz(:,2);
+        optodes3D.Z=xyz(:,3);
+        
+    end
+end
 
 
 probe=nirs.core.Probe1020;

@@ -107,10 +107,18 @@ else
         probe.link=link;
     end
     
+    if(info.Wavelengths==2)
+        % not sure why
+        info.Wavelengths=[780 850];
+    end
+    
     probe.link=[[probe.link; probe.link] ...
         table(reshape(repmat(info.Wavelengths(:)',...
         height(probe.link),1),[],1),'VariableNames',{'type'})];
     
+    if(~isfield(info,'SDkey') & isfield(info,'S_D_Key'))
+        info.SDkey=info.S_D_Key;
+    end
     
 
     
@@ -166,9 +174,11 @@ else
 end
 
 demo=Dictionary;
+if(exist('demoinfo'))
 flds=fields(demoinfo);
 for idx=1:length(flds)
     demo(flds{idx})=demoinfo.(flds{idx});
+end
 end
 raw.demographics=demo;
 
@@ -304,7 +314,7 @@ while(1)
 end
 fclose(fid);
 
-if(isfield(info,'Wavelengths'))
+if(isfield(info,'Wavelengths') & isfield(info,'ChanDis'))
     
     % fix a few strings that should be numeric
     info.Wavelengths=str2num(info.Wavelengths);

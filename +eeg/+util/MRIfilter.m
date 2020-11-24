@@ -4,25 +4,29 @@ if(nargin<4)
     split=true;
 end
 
-lst=find(MRIpulse>max(MRIpulse)*.8);
+lst=[find(MRIpulse>max(MRIpulse)*.8)];
 lst(1+find(diff(lst)<10))=[];
 
-if(split & any(diff(lst)>median(diff(lst))*100))
-    lst2=find((diff(lst)>median(diff(lst))*100));
+if(split & any(diff(lst)>median(diff(lst))*20))
+    lst2=find((diff(lst)>median(diff(lst))*20));
     lst2=[2; lst2; length(lst)];
     % need to split the file 
     md=mean(d);
     df=d-md;
     for i=1:length(lst2)-1
-       l=lst(lst2(i)):lst(lst2(i+1)); 
-       s=eeg.util.MRIfilter(d(l),t(l),MRIpulse(l),false);
+       l=lst(lst2(i))-2000:lst(lst2(i+1))+2000; 
+       l=max(l,1); l=min(l,length(t));
+       s=eeg.util.MRIfilter(df(l),t(l),MRIpulse(l),false);
+       s=s-mean(s(1:500))+mean(df(l(1:500)));
        df(l)=s;
     end
     df=df+md;
     return;
 end
 
-
+md=mean(d);
+d=d-md;
+    
 TRpulse=nirs.design.StimulusEvents;
 TRpulse.onset=t(lst);
 TRpulse.name='MRI pulse';
@@ -38,18 +42,14 @@ Fs=1./mean(diff(t));
 k=dsearchn(t,TRpulse.onset);
 s=zeros(length(t),1);
 s(k)=1;
-
-X=convmtx(s,ceil(TR*1.1*Fs));
-X=X(ceil(TR*1.1*Fs):end,:);
+s=sparse(s);
+X=convmtx(s,ceil(TR*2*Fs));
+X=X(1:length(d),:);
 X(:,end+1)=1;
-iX=pinv(X);
+iX=pinv(full(X));
 
-beta = iX*d;
-beta(end)=0;
-df=d-X*beta;
-[fa,fb]=butter(4,100*2/Fs);
-df=filtfilt(fa,fb,double(medfilt1(df,5)));
-df=df-df(1)+d(1);
+beta = iX*double(d);
+df=d-X*beta+md;
 disp('done');
 return
 
