@@ -162,10 +162,13 @@ classdef NirfastBEM
                 
                 atlas.probe.Lambda=atlas.probe.lambda;
                 obj.probe = nirs.util.sd2probe(atlas.probe);
+                obj.probe.optodes_registered.X=optpos_reg(:,1);
+                obj.probe.optodes_registered.Y=optpos_reg(:,2);
+                obj.probe.optodes_registered.Z=optpos_reg(:,3);
                 
                 BEM(1).fiducials.Draw(:)=false;
                 BEM(1).fiducials=[BEM(1).fiducials;...
-                    [obj.probe.optodes table(repmat(true,height(obj.probe.optodes),1),...
+                    [obj.probe.optodes_registered table(repmat(true,height(obj.probe.optodes_registered),1),...
                     'VariableNames',{'Draw'})]];
                 
                  lambda = unique(obj.probe.link.type);

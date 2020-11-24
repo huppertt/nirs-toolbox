@@ -146,27 +146,28 @@ if(isfield(SD,'AnchorList') && ~isempty(SD.AnchorList))
             probe1020.link=probe.link;
             probe1020.optodes=probe.optodes;
             
-            T=eye(3);
-            if(strcmp(SD.orientation(1),'L'))
-                T(1,1)=1;
-            end
-            if(strcmp(SD.orientation(2),'I'))
-                T(2,2)=-1;
-            end
-            if(strcmp(SD.orientation(3),'P'))
-                T(3,3)=-1;
-            end
+%             T=eye(3);
+%             if(strcmp(SD.orientation(1),'L'))
+%                 T(1,1)=1;
+%             end
+%             if(strcmp(SD.orientation(2),'I'))
+%                 T(2,2)=-1;
+%             end
+%             if(strcmp(SD.orientation(3),'P'))
+%                 T(3,3)=-1;
+%             end
             SP=SD.optpos_reg(1:size(SD.SrcPos,1),:);
             DP=SD.optpos_reg(size(SD.SrcPos,1)+1:end,:);
-            SP=SP-ones(size(SP,1),1)*SD.center;
-            DP=DP-ones(size(DP,1),1)*SD.center;
-            SP=SP*T;
-            DP=DP*T;
-            
-            p2=nirs.core.Probe( SP(:,[1 3 2]), DP(:,[1 3 2]), link );
-            
-            
-            probe1020.optodes_registered=p2.optodes;
+%             SP=SP-ones(size(SP,1),1)*SD.center;
+%             DP=DP-ones(size(DP,1),1)*SD.center;
+%             SP=SP*T;
+%             DP=DP*T;
+%             
+             p2=nirs.core.Probe( SP(:,[1 3 2]), DP(:,[1 3 2]), link );
+%             p2=nirs.core.Probe( SP, DP, link );
+%             
+%             
+             probe1020.optodes_registered=p2.optodes;
             probe=probe1020;
             
     

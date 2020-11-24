@@ -8,24 +8,26 @@ end
 MESH=nirs.forward.NirfastBEM();
 MESH=MESH.loadBEM_atlasviewer(file);
 MESH.mesh(1).fiducials.Draw(:)=false;
-tmp=load(file,'probe');
-probe=nirs.util.sd2probe(tmp.probe);
-
-probe1020 = nirs.core.Probe1020;
-probe1020.optodes=probe.optodes;
-probe1020.optodes_registered=MESH.probe.optodes;
-probe1020.link=MESH.probe.link;
+% tmp=load(file,'probe');
+% probe=nirs.util.sd2probe(tmp.probe);
+% 
+% probe1020 = nirs.core.Probe1020;
+% probe1020.optodes=probe.optodes;
+% probe1020.optodes_registered=MESH.probe.optodes;
+% probe1020.link=MESH.probe.link;
+probe1020=MESH.probe;
 
 MESH.mesh(1).transparency=.1;
 MESH.mesh(2).transparency=1;
 
-probe1020=probe1020.register_mesh2probe(MESH.mesh,false);
+probe1020=probe1020.set_mesh(MESH.mesh);
+%probe1020=probe1020.register_mesh2probe(MESH.mesh,false);
 
-% Use the corrdinates in the atlasiewer file instead of our re-registration
-fidtbl =probe1020.getmesh.fiducials;
-fidtbl.Draw=[];
-fidtbl(find(ismember(fidtbl.Type,'10-20')),:)=[];
-probe1020.optodes_registered=fidtbl;
+% % Use the corrdinates in the atlasiewer file instead of our re-registration
+% fidtbl =probe1020.getmesh.fiducials;
+% fidtbl.Draw=[];
+% fidtbl(find(ismember(fidtbl.Type,'10-20')),:)=[];
+% probe1020.optodes_registered=fidtbl;
 
 if(sym)
     probe1020=nirs.registration.realign_symetric(probe1020);
