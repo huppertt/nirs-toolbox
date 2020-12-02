@@ -75,3 +75,6 @@ if nargin > 3
 end
 
 s = nirs.math.RepeatedMeasuresModel.fit(ds,model,Noise,pmax,varargin{:});
+
+
+return

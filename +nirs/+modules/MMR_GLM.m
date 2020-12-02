@@ -98,13 +98,20 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
                     [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;  
                 end
                              
+%                 
+%                 Beta(:,1)=[];
+%                 Cov(1,:,:)=[];
+%                 Cov(:,1,:)=[];
+%                 
+                 names=r{1}.Coefficients.Row; %(2:end);
                 
-                Beta(:,1)=[];
-                Cov(1,:,:)=[];
-                Cov(:,1,:)=[];
-                
-                names=r{1}.Coefficients.Row(2:end);
-                
+                 for ii=1:length(names)
+                     names{ii}(strfind(names{ii},'('))=[];
+                     names{ii}(strfind(names{ii},' '))=[];
+                     names{ii}(strfind(names{ii},')'))=[];
+                 end
+                 names=matlab.lang.makeValidName(names);
+                 
                 %% TODO
                 ncond = length(names);
                 nchan = size(data(i).probe.link, 1);

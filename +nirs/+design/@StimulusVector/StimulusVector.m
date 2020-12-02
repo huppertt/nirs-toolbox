@@ -11,7 +11,13 @@ classdef StimulusVector
     
     methods
         function vec = getStimVector( obj, time )
-            vec = interp1( obj.time, obj.vector, time );
+            if(isa(obj.vector,'double'))
+               vec = interp1( obj.time, obj.vector, time );
+            
+            else
+                vec=obj.vector;
+            end
+            
         end
         
         function draw(obj)
