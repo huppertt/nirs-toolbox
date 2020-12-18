@@ -37,7 +37,7 @@ function q = fdr( p )
         pi0 = max(pi0, 0);
         pi0 = min(pi0, 1);
     end
-    
+    pi0=1;
      % p = (i/m)*Q
     q = p*m./[1:m]'*pi0;
         

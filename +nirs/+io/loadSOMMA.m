@@ -12,10 +12,11 @@ for iFile = 1:length(filenames)
     disp(['Loading ' filenames{iFile}]);
     try
         [hdr,d]=readSOMMAheader(filenames{iFile});
-        try
+        
             for i=1:length(d)
+                try
                 data(cnt,1)=parseData(hdr(i),d{i});
-                data(cnt).time=data(cnt).time-data(cnt).time(1);
+               % data(cnt).time=data(cnt).time-data(cnt).time(1);
                 data(cnt,1).description=filenames{iFile};
                 
                 
@@ -39,12 +40,13 @@ for iFile = 1:length(filenames)
                     data(cnt,1).demographics('Site')='Pitt';
                 end
                 
+                try
                 j=nirs.modules.TDDR;
                 j.usePCA=true;
                 data(cnt,1)=j.run( data(cnt,1));
                 
                 data(cnt,1)=SOMMA_ApplyCal(data(cnt,1));
-                
+                end
                 
                 
                 
@@ -63,7 +65,7 @@ end
 function hb = AddStim(hb)
 
 
-lst=find(ismember(nirs.createDemographicsTable(hb).Session,{'F0' 'C0'}));
+lst=find(ismember(nirs.createDemographicsTable(hb).Session,{'F0' 'C0','C1','C12'}));
 for i=1:length(lst)
     
     a=mean(abs(hb(lst(i)).data),2);
@@ -178,13 +180,15 @@ for j=1:length(raw);
     types=raw(j).probe.types;
     for i=1:length(types)
         lst = find(raw(j).probe.link.type==types(i));
-        Y=raw(j).data(:,lst)'.*(cal(lst,j)*ones(1,size(raw(j).data,1)));
+        Y=abs(raw(j).data(:,lst))'.*(cal(lst,j)*ones(1,size(raw(j).data,1)));
         
         r = raw(j).probe.distances(lst)/10;
         Y = log(Y.*(r*ones(1,size(Y,2))));
+        ll= (abs(mean(Y,2))~=Inf);
+        
         X(:,1)=r;
         X(:,2)=1;
-        beta = inv(X'*X)*X'*Y;
+        beta = inv(X(ll,:)'*X(ll,:))*X(ll,:)'*Y(ll,:);
         %    beta=nirs.math.kalman_rts(Y,X,diag([100 0]));
         S=-beta(1,:)';
         % Sl^2 = A*(3*A+3*S); Sl^2/3 = A^2 +A*S
@@ -219,17 +223,21 @@ function [hdr,data] = readSOMMAheader(filename)
 fid=fopen(filename,'r');
 hdr=struct('start',NaN,'nrows',NaN,'line','','ncols',5,'marks',[]);
 cnt=0; data={};
-line=[];
-while(isempty(line))
-    line=fgetl(fid);
-end
-bypass=false;
-if(isempty(strfind(line,'<SYSTEM>')) & isempty(strfind(line,'<SCAN>')))
-   warning(['Header missing: ' filename]);
-   bypass=true; cnt=1;
-end
+
 
 while(~feof(fid))
+    
+    line=[];
+    while(isempty(line) || ~isempty(strfind(line,'</SCAN>')) || ~isempty(strfind(line,'</DATA>')))
+        line=fgetl(fid);
+    end
+    bypass=false;
+    if(isempty(strfind(line,'<SYSTEM>')) & isempty(strfind(line,'<SCAN>')))
+        warning(['Header missing: ' filename]);
+        bypass=true; cnt=1;
+    end
+    
+    
     hdr(end+1)=struct('start',NaN,'nrows',NaN,'line','','ncols',5,'marks',[]);
     dd={};
     while(1 & ~bypass)
@@ -247,6 +255,7 @@ while(~feof(fid))
     while(1)
         line=fgetl(fid);
         if(~isempty(line) & ~feof(fid))
+            line(strfind(line,'"'))=[];
             line=strtrim(line);
             cnt2=cnt2+1;
             if(~isempty(strfind(line,'MARK')))
@@ -254,6 +263,7 @@ while(~feof(fid))
             elseif(~isempty(strfind(line,'</DATA>')))
                 line=strtrim(line(1:strfind(line,'</DATA>')-1));
                 dd{end+1}=[line ','];
+                line=fgetl(fid);
                 break;
             else
                 dd{end+1}=[line ','];
@@ -263,15 +273,34 @@ while(~feof(fid))
         % cnt=cnt+1;
         if(feof(fid)); break; end
     end
+    
+    
+    
     if(~isempty(dd))
-        str=strcat(dd{:});
-        str(strfind(str,','))=' ';
-        c=sscanf(str,'%f');
-        c=c(1:floor(size(c,1)/6)*6);
-        data{end+1}=reshape(c,6,[])';
+        cc=[]; idx=1;
+        for i=1:length(dd); 
+           
+            try; 
+                d=dd{i}; d(strfind(d,','))=' '; 
+                cc(:,idx)=sscanf(d,'%f');
+                idx=idx+1;
+            end;
+        end
+%         
+%         str=strcat(dd{:});
+%         str(strfind(str,','))=' ';
+%         c=sscanf(str,'%f');
+%         c=c(1:floor(size(c,1)/6)*6);
+        data{end+1}=cc';
+      %  data{end+1}=reshape(c,6,[])';
         hdr(end).nrows=cnt2-cnt;
         cnt=cnt2;
     end
+    
+    while(~isempty(line) & ~feof(fid))
+        line=fgetl(fid);
+    end
+    
 end
 fclose(fid);
 hdr(1)=[];
@@ -417,6 +446,9 @@ d2=squeeze(nanmedian(DD2,2));
 n=min(length(t1),length(t2));
 d1=d1(1:n,:);
 d2=d2(1:n,:);
+d1=medfilt1(d1,11);
+d2=medfilt1(d2,11);
+
 t1=t1(1:n);
 t2=t2(1:n);
 
