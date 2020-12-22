@@ -462,7 +462,7 @@ classdef ChannelStats
         stats = ftest( obj, m );
         stats = jointTest( obj );
         
-        f = draw( obj, vtype, vrange, thresh,fhandle );
+        f = draw( obj, vtype, vrange, thresh,fhandle,ConditionsShown,TypesShown );
         
         printAll( obj, vtype, vrange, thresh, folder, ext );
         

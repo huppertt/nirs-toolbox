@@ -20,8 +20,8 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
     end
     
     for i = 1:length(obj.conditions)
-        conddata = obj.ttest(I(i,:));
-        h = conddata.draw(vtype, vrange, thresh);
+        %conddata = obj.ttest(I(i,:));
+        h = obj.draw(vtype, vrange, thresh,[],{obj.conditions{i}});
         for j = length(utypes):-1:1
             f=intersect(h,findobj('name',[utypes{j} ' : ' obj.conditions{i}]));
             set(f, 'PaperPositionMode', 'auto')

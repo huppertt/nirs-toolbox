@@ -1,4 +1,4 @@
-function f = draw( obj, vtype, vrange, thresh,figH)
+function f = draw( obj, vtype, vrange, thresh,figH,ConditionsShown,TypesShown)
 %% draw - Draws channelwise values on a probe.
 % Args:
 %     vtype   - either 'beta' or 'tstat'
@@ -71,9 +71,18 @@ if any(isnumeric(types))
     types = cellfun(@(x) {num2str(x)}, num2cell(types));
 end
 
+
 % unique types
 utypes = unique(types, 'stable');
 % unique conditions
+
+
+if(nargin>6 && ~isempty(TypesShown))
+    if(ischar(TypesShown))
+        TypesShown={TypesShown};
+    end
+    utypes={utypes{ismember(utypes,TypesShown)}};
+end
 
 if(length(obj)>1)
     cond=vertcat(obj.variables);
@@ -82,6 +91,15 @@ if(length(obj)>1)
 else
     uconds = unique(obj.variables.cond, 'stable');
 end
+
+if(nargin>5 && ~isempty(ConditionsShown))
+     if(ischar(ConditionsShown))
+        ConditionsShown={ConditionsShown};
+    end
+     uconds={ uconds{ismember( uconds,ConditionsShown)}};
+end
+
+
 % colormap
 [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',128) )');
 z = linspace(vrange(1), vrange(2), size(cmap,1))';
@@ -92,7 +110,7 @@ for iType = 1:length(utypes)
     if(isa(obj(1).probe,'nirs.core.ProbeROI'))
         hind = hind + 1;
         
-        if(nargin<5)
+        if(nargin<5 || isempty(figH))
             f(hind)=figure('Visible',visible);
         else
             f(hind)=figH;
@@ -172,7 +190,7 @@ for iType = 1:length(utypes)
             
             hind = hind + 1;
             
-            if(nargin<5)
+            if(nargin<5 || isempty(figH))
                 f(hind)=figure('Visible',visible);
             else
                 f(hind)=figH;

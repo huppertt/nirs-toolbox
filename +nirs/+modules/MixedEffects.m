@@ -283,6 +283,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 disp('Solving linear model');
                 tic;
             end
+            
             [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,obj.verbose);
             
             % this gives the same results as the built in matlab code,
@@ -397,3 +398,5 @@ classdef MixedEffects < nirs.modules.AbstractModule
     end
     
 end
+
+

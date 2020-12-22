@@ -141,8 +141,11 @@ if robust_flag
     end
     
     % Calculate sigma
-    sigma_robust = robustSigma(X,Y,Z,adj,num_params,tune,beta,bHat);
-    sigma = max( sigma_robust , sqrt((sigma2 * xrank^2 + sigma_robust^2 * nT) / (xrank^2 + nT)) );
+    
+    sigma = robustSigma(X,Y,Z,adj,num_params,tune,beta,bHat);
+    if(~robust_flag)
+        sigma = max( sigma , sqrt((sigma2 * xrank^2 + sigma_robust^2 * nT) / (xrank^2 + nT)) );
+    end
     
     % Calculate covariance betas
     Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
@@ -316,6 +319,9 @@ end
 
 function w = bisquare(resid,tune)
 if isempty(tune), tune = 4.685; end
+
+%don't need to divide by s because it is already studentized
+%s = mad(resid, 0) / 0.6745;
 r = resid/tune;
 w = (1 - r.^2) .* (r < 1 & r > -1);
 end
