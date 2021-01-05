@@ -204,7 +204,30 @@ classdef Anova < nirs.modules.AbstractModule
             
             % this gives the same results as the built in matlab code,
             % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s
-            lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+            %             lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+            if(~ismember('source',vars.Properties.VariableNames) & ...
+                    ismember('ROI',vars.Properties.VariableNames))
+                [~, i,id] = nirs.util.uniquerows(table(vars.ROI, vars.type));
+            else
+                [~,i,id]=nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+            end
+            
+            G.F=[];
+            G.df1=[];
+            G.df2=[];
+            for j=1:length(i)
+                lst=find(id==i(j));
+                lme2 = fitlme([table(beta(lst),'VariableNames',{respvar}) vars(lst,:)], obj.formula, 'dummyVarCoding',...
+                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                 a=lme2.anova();
+                 G.F=[G.F; a.FStat];
+                 G.df1       = [G.df1; a.DF1];
+                 G.df2       = [G.df2; a.DF2];
+            end
+            %% output
+        
+            
+            
             
             if(obj.verbose)
                 disp(['Finished solving: time elapsed ' num2str(toc) 's']);
@@ -217,12 +240,7 @@ classdef Anova < nirs.modules.AbstractModule
             end
             cnames = repmat(cnames, [nchan 1]);
             
-            %% output
-            a=lme2.anova();
-            G.F=a.FStat;
             
-            G.df1       = a.DF1;
-            G.df2       = a.DF2;
             
             %             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
             %             G.dfe=length(beta)-sum(U(:).*U(:));
