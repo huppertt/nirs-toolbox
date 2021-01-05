@@ -97,37 +97,37 @@ if(size(X,1)<size(X,2))
     X2 = [X; speye(size(X,2))];
     
     R=speye(size(X2,1))-X2*pinv(full(X2'*iCe*X2+10*eps(1)*speye(size(X2,2),size(X2,2))))*X2'*iCe;
-elseif(size(X,1)>size(X,2))
-    
-    rescale=1;
-    [q,r]=qr(X,0);
-    for idx=1:length(Qn)
-        Qn2{idx}=q'*Qn{idx}*q;
-    end
-    
-    [lambda,Beta,Stats]=nirs.math.REML(q'*Y,r,Beta_prior,Qn2,Qp,maxIter);
-
-    if(jump | nargout==1)
-        return
-    end
-    
-    %lambda is right, but the Stats are not directly related to the ones we want.  So we
-    %recompute. 
-    Cn=tolr*speye(size(Qn{1},1));
-    for idx=1:length(Qn)
-        Cn=Cn+Qn{idx}*exp(lambda(idx));
-    end
-    Cp=tolr*speye(size(Qp{1},1));
-    for idx2=1:length(Qp)
-        Cp=Cp+Qp{idx2}*exp(lambda(idx+idx2));
-    end
-    Ce=blkdiag(Cn,Cp);
-    Ce=Ce+speye(size(Ce))*tolr;
-
-    iCn=inv((Cn+speye(size(Cn))*tolr));
-    iCp=inv((Cp+speye(size(Cp))*tolr));
-    iCe = blkdiag(iCn,iCp);
-    X2 = [X; speye(size(X,2))];
+% elseif(size(X,1)>size(X,2))
+%     
+%     rescale=1;
+%     [q,r]=qr(X,0);
+%     for idx=1:length(Qn)
+%         Qn2{idx}=q'*Qn{idx}*q;
+%     end
+%     
+%     [lambda,Beta,Stats]=nirs.math.REML(q'*Y,r,Beta_prior,Qn2,Qp,maxIter);
+% 
+%     if(jump | nargout==1)
+%         return
+%     end
+%     
+%     %lambda is right, but the Stats are not directly related to the ones we want.  So we
+%     %recompute. 
+%     Cn=tolr*speye(size(Qn{1},1));
+%     for idx=1:length(Qn)
+%         Cn=Cn+Qn{idx}*exp(lambda(idx));
+%     end
+%     Cp=tolr*speye(size(Qp{1},1));
+%     for idx2=1:length(Qp)
+%         Cp=Cp+Qp{idx2}*exp(lambda(idx+idx2));
+%     end
+%     Ce=blkdiag(Cn,Cp);
+%     Ce=Ce+speye(size(Ce))*tolr;
+% 
+%     iCn=inv((Cn+speye(size(Cn))*tolr));
+%     iCp=inv((Cp+speye(size(Cp))*tolr));
+%     iCe = blkdiag(iCn,iCp);
+%     X2 = [X; speye(size(X,2))];
     
   %  R=speye(size(X2,1))-X2*pinv(full(X2'*iCe*X2+10*eps(1)*speye(size(X2,2),size(X2,2))))*X2'*iCe;
     
@@ -169,7 +169,11 @@ else
     %% This function was adapted from the SPM function spm_reml.m
     %  which is part of the SPM toolkit (http://www.fil.ion.ucl.ac.uk/spm)
     %
-
+    clear u s;
+    for i=1:length(Q)
+          [u{i},s{i}]=nirs.math.mysvd(Q{i});
+    end
+    
     for iter=1:maxIter
         Ce = tolr*speye(size(Q{1},1));  %Make sure it stays in numerical precision
 
@@ -204,8 +208,8 @@ else
         for i = 1:size(Q,1)
             PQ = PQ_i{i};
             PQt=PQ';
-            [u,s]=nirs.math.mysvd(Q{i});
-            nn= 0.5*norm(PY'*u*sqrt(s))^2;
+%             [u,s]=nirs.math.mysvd(Q{i});
+            nn= 0.5*norm(PY'*u{i}*sqrt(s{i}))^2;
             g(i,1) = -0.5*trace(PQ)*exp(lambda(i)) +nn*exp(lambda(i));
             for j = i:size(Q,1)
                 PQj = PQ_i{j};
@@ -310,8 +314,9 @@ lambda=max(lambda,log(tolr));
 lambda=min(lambda,log(1/tolr));
 
 Stats.tstat.beta=Beta; %*s1/s2;
-%Stats.tstat.covb=XtXi*Stats.tstat.mse;
-Stats.tstat.covb=Stats.tstat.mse*XtXi*(X'*iCn)*(iCn'*X)*XtXi;
+Stats.tstat.covb=XtXi*Stats.tstat.mse;
+%Stats.tstat.covb=Stats.tstat.mse*XtXi*(X'*iCn)*(iCn'*X)*XtXi;  % WHY???
+
 %Stats.tstat.dfe=size(X,2);
 Stats.tstat.dfe=size(X,1) - trace(Hat);
 Stats.tstat.t=Stats.tstat.beta./sqrt(diag(Stats.tstat.covb));

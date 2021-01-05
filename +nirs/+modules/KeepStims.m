@@ -24,7 +24,7 @@ classdef KeepStims < nirs.modules.AbstractModule
         function data = runThis( obj, data )
             
             if obj.regex
-                checkmatch = @(conds,reference) ~cellfun(@isempty,regexpi(conds,reference,'forcecelloutput'));
+                checkmatch = @(conds,reference) ~cellfun(@isempty,nirs.util.regexpi(conds,reference,'forcecelloutput'));
             else
                 checkmatch = @(conds,reference) strcmpi(conds,reference);
             end

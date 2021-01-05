@@ -19,6 +19,11 @@ classdef MEGProbe
             % Args:
             %     labels - name of 10-20 points
            
+            if(iscellstr(hdr))
+                obj=obj.MEGprobeFromLabels(hdr);
+                return
+            end
+            
            lst=find([hdr.chs.kind]==1);
            coils={hdr.ch_names{:}};
            xyz =horzcat(hdr(:).chs.loc);
@@ -48,15 +53,35 @@ classdef MEGProbe
            end
           obj.link=table(Name,type);
           obj.electrodes=table(Name,X,Y,Z);
+     
+        end
+        
+        function obj = MEGprobeFromLabels(obj,labels)
+        
+            tbl=nirs.util.list_1020pts('?');
+            lst=[];
+            for i=1:length(labels)
+                lst=[lst find(ismember(lower(tbl.Name),lower(labels{i})))];
+            end
+            
+            tbl.Type=[];
            
-                      
+            obj.electrodes=tbl(lst,:);
+            
+            type=[repmat({'Mag'},length(lst),1);...
+                repmat({'Grad-A'},length(lst),1);...
+                repmat({'Grad-B'},length(lst),1)];
+            electrode=[1:length(lst) 1:length(lst) 1:length(lst)]';
+            lst=[lst lst lst];
+            obj.link=table(electrode,type);
+        
         end
         
         function varargout=draw(obj, colors, lineStyles, axis_handle )
             
             types= unique(obj.link.type);
             for i=1:length(types)
-                lst=find(ismember(obj.link.type,types{i}));
+                lst=obj.link.electrode(find(ismember(obj.link.type,types{i})));
                 if nargin < 4
                     axis_handle = subplot(1,length(types),i);
                 end

@@ -62,7 +62,7 @@ classdef ChannelFStats
         % p values
         function p = get.p( obj )
             e=1./obj.df2;
-            p=fcdf( obj.F, e*obj.df2, e*obj.df1 ,'upper');
+            p=fcdf( obj.F, e.*obj.df2, e.*obj.df1 ,'upper');
 
             
         end
