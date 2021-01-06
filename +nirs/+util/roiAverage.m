@@ -499,20 +499,22 @@ else
         
         if(ismember('model',vars.Properties.VariableNames))
             % include the LinearModel (diagnotics) in the ROI
-            model = combineLinearModels(repmat(c,length(uconds),1),vars.model,data.WhiteningW);
+            str=matlab.lang.makeValidName(uconds);
+            % 
+            model = combineLinearModels(repmat(c,length(uconds),1),vars.model,data.WhiteningW,str);
             tmp.model={model};
             t=model.Coefficients;
-            str=matlab.lang.makeValidName(uconds);
-            [~,l]=ismember(t.Properties.RowNames,str);
             
+            [~,l]=ismember(t.Properties.RowNames,str);
+               
             lst2=find(ismember(tbl.ROI,tmp.ROI) & ismember(tbl.type,tmp.type));
             
             % Use the values from the table instead
-            tbl(lst2,:).Beta=t.Estimate(l);
-            tbl(lst2,:).SE=t.SE(l);
-            tbl(lst2,:).T=t.tStat(l);
-            tbl(lst2,:).p=t.pValue(l);
-            tbl(lst2,:).DF=model.DFE*ones(length(l),1);
+%             tbl(lst2,:).Beta=t.Estimate(l);
+%             tbl(lst2,:).SE=t.SE(l);
+%             tbl(lst2,:).T=t.tStat(l);
+%             tbl(lst2,:).p=t.pValue(l);
+%             tbl(lst2,:).DF=model.DFE*ones(length(l),1);
             for i=1:length(uconds)
                 models{end+1,1}=model;
             end
@@ -555,31 +557,27 @@ end
 
 
 
-function mdl = combineLinearModels(c,models,WhiteningW)
+function mdl = combineLinearModels(c,models,WhiteningW,str)
 
 tbl=table();
 w=[];
-%c=c/rms(c);
 
 if(~isempty(WhiteningW))
      iW=inv(WhiteningW);
 else
-    WhiteningW=eye(height(thistbl));
-    iW=1;
+   iW=1;
 end
-for idx=1:length(models);
-    
-    
-    if(c(idx)~=0)
-        thistbl=models{idx}.Variables;
-        flds=thistbl.Properties.VariableNames;
-        for j=1:length(flds)
-            thistbl.(flds{j})=iW*thistbl.(flds{j})*c(idx);
-        end
-       %thistbl.beta=thistbl.beta*c(idx);
 
-        tbl=[tbl; thistbl];
-        w=[w; models{idx}.ObservationInfo.Weights];
+tbl=models{1}.Variables;
+flds=tbl.Properties.VariableNames;
+for j=1:length(flds)
+    tbl.(flds{j})(:)=0;
+end
+
+for idx=1:length(models);
+    tmp=models{idx}.Variables;
+    for j=1:length(flds)
+        tbl.(flds{j})=tbl.(flds{j})+tmp.(flds{j})*c(idx);
     end
 end
 
@@ -593,9 +591,40 @@ end
 
 lst=find(mask<1E-9);
 tbl(lst,:)=[];
-w(lst)=[];
 
-mdl=fitlm(tbl,models{1}.Formula,'weights',max(w,eps(1)),'dummyVarCoding','full');
+mdl=fitlm(tbl,models{1}.Formula,'dummyVarCoding','full');
 
+%     
+%     if(c(idx)~=0)
+%         thistbl=models{idx}.Variables;
+%         flds=thistbl.Properties.VariableNames;
+%         for j=1:length(flds)
+%             if(~ismember(flds{j},str))
+%                 thistbl.(flds{j})=iW*thistbl.(flds{j})*c(idx);
+%             else
+%                 thistbl.(flds{j})=iW*thistbl.(flds{j});
+%             end
+%         end
+%        %thistbl.beta=thistbl.beta*c(idx);
+% 
+%         tbl=[tbl; thistbl];
+%         w=[w;  models{idx}.ObservationInfo.Weights];
+%     end
+% end
+% 
+% flds=tbl.Properties.VariableNames;
+% mask=zeros(height(tbl),1);
+% for i=1:length(flds)
+%     if(~strcmp(flds{i},models{1}.ResponseName))
+%         mask=max(mask,abs(tbl.(flds{i})));
+%     end
+% end
+% 
+% lst=find(mask<1E-9);
+% tbl(lst,:)=[];
+% w(lst)=[];
+% 
+% 
+% mdl=fitlm(tbl,models{1}.Formula,'weights',max(w,eps(1)),'dummyVarCoding','full');
 
 end
