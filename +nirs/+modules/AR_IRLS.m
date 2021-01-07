@@ -20,7 +20,9 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
 % Note: 
 %     trend_func must at least return a constant term unless all baseline periods are
 %     specified explicitly in the stimulus design with BoxCar basis functions
-    
+    properties
+        useREML=false;
+    end
     methods
         function obj = AR_IRLS( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
@@ -84,7 +86,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     [U,s,V]=nirs.math.mysvd([X C]);
                     lst=find(diag(s)>eps(1)*100);
                     V=V(:,lst);
+                    if(obj.useREML)
+                         stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                    else
+                        
                     stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                    end
                     stats.beta=V*stats.beta;
                     c=[];
                     for j=1:size(stats.covb,3)
@@ -96,7 +103,11 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 else
                 
                     % run regression
-                    stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
+                     if(obj.useREML)
+                         stats = nirs.math.ar_irls_REML( d, [X C], round(4*Fs) );
+                     else
+                        stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
+                     end
                 end
                 % put stats
                 ncond = length(names);

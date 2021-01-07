@@ -32,7 +32,7 @@ classdef GLM < nirs.modules.AbstractGLM
             obj.name = 'GLM model';
             obj.basis('default') = nirs.design.basis.Canonical();
             obj.type='AR-IRLS';
-            obj.options=[];
+            %obj.options=[];
         end
         
         function obj = set.type(obj,type)
