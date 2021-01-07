@@ -1,6 +1,4 @@
-function stats = ar_irls_REML( d,X,Pmax,HEGrouping,tune )
-
-
+function stats = ar_irls_reml(d,X,Pmax,tune)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -51,46 +49,16 @@ function stats = ar_irls_REML( d,X,Pmax,HEGrouping,tune )
  
     warning('off','stats:statrobustfit:IterationLimit')
     
-    if nargin < 5
+    if nargin < 4
         tune = 4.685;
     end
-   HEGrouping=(HEGrouping~=0);
-   
-   nHElevels=size(HEGrouping,2);
     
-     % preallocate stats
+       
+    % preallocate stats
+    nCond = size(X,2);
     nChan = size(d,2);
     nTime = size(d,1);
-    nCond = size(X,2);
     
-    
-    Xall=zeros(size(X,1),nCond+nHElevels);
-    
-    contrastV =zeros(nCond,nCond+nHElevels);
-    
-    cnt=1;
-    Qp=cell(nHElevels+nCond,1);
-    for i=1:nHElevels
-        Qp{i}=zeros(size(Xall,2));
-        for j=1:nCond
-            if(HEGrouping(j,i))
-                Xall(:,i)=Xall(:,i)+X(:,j);
-                Qp{i}(j,j)=1;
-                contrastV(j,i)=1;
-            end
-        end
-        cnt=cnt+1;
-    end
-    for j=1:nCond
-        Xall(:,nHElevels+j)=X(:,j);
-        Qp{nHElevels+j}=zeros(size(Xall,2));
-        Qp{nHElevels+j}(nHElevels+j,nHElevels+j)=1;
-        contrastV(j,nHElevels+j)=1;
-    end
-    
-    Qn={eye(nTime)};
-    
-   
     stats.beta = zeros(nCond,nChan);    % betas
     stats.tstat = zeros(nCond,nChan);   % tstats
     stats.pval = zeros(nCond,nChan);    % two-sided t-test
@@ -106,18 +74,35 @@ function stats = ar_irls_REML( d,X,Pmax,HEGrouping,tune )
 %         Xfiltered=[];
     
 
+
     % loop through each channel
     for i = 1:nChan
         y = d(:,i);
         
         if ~any(y)  % In case y is all zeros (e.g., null hb)...
-            y = sqrt(0.01)*randn(length(y),1);  %...a non-null vector prevents a robustfit error without creating false positives 
-        end
+            %y = sqrt(0.01)*randn(length(y),1);  %...a non-null vector prevents a robustfit error without creating false positives
+            Xfall{i}=nan(length(y),size(X,2));
+            stats.beta(:,i) = nan(size(X,2),1);
+            
+            stats.covb(:,:,i) = nan(size(X,2),size(X,2));
+            stats.w(:,i)=nan(length(y),1);
+            stats.a{i} = [];
+            stats.sigma2(i)=NaN;
+            
+            stats.tstat(:,i) =nan(size(X,2),1);
+            stats.pval(:,i) = nan(size(X,2),1);     % two-sided
+            stats.ppos(:,i) = nan(size(X,2),1);            % one-sided (positive only)
+            stats.pneg(:,i) = nan(size(X,2),1);             % one-sided (negative only)
+            
+            resid(:,i)=nan(length(y),1);
+            
+            stats.filter{i}=[];
+            stats.R2(i)=NaN;
+        else
             
         % initial fit
-       
-        [lambda,B]=nirs.math.REML_fast(y,Xall,[],Qn,Qp);
-        
+        lstValid=~isnan(y);
+        B = X(lstValid,:) \ y(lstValid);
         B0 = 1e6*ones(size(B));
         
         % iterative re-weighted least squares
@@ -128,11 +113,11 @@ function stats = ar_irls_REML( d,X,Pmax,HEGrouping,tune )
         % and it's less than the max number of iterations
         while norm(B-B0)/norm(B0) > 1e-2 && iter < maxiter
             % store the last fit
-            BB(:,iter+1)=B;
+            
             B0 = B;
             
             % get the residual
-            res = y - Xall*B;
+            res = y - X*B;
                         
             % fit the residual to an ar model
             a = nirs.math.ar_fit(res, Pmax);
@@ -141,24 +126,27 @@ function stats = ar_irls_REML( d,X,Pmax,HEGrouping,tune )
             f = [1; -a(2:end)];
             
             % filter the design matrix
-            Xf = myFilter(f,Xall);
+            Xf = myFilter(f,X);
           
             % subtract constant from AR model and filter the data
+            lstInValid=isnan(y);
+            lstValid=~isnan(y);
+            if(nnz(lstInValid)>0)
+                yy=y;
+                yy(lstInValid)=interp1(find(lstValid),y(lstValid),find(lstInValid),'spline',true);
+                 yf = myFilter(f,yy);
+    
+            else
             yf = myFilter(f,y);
-
-            res = yf - Xf*B;
-            w = wfun(res,tune);
-            w=diag(w);
+            end
             % perform IRLS
-            [lambda,B,S]=nirs.math.REML_fast(w*yf,w*Xf,[],Qn,Qp);
+            [B, S] = nirs.math.robustfit_reml(Xf(lstValid,:),yf(lstValid),'bisquare',tune,'off');
+            
             iter = iter + 1;
         end
+        
         fprintf(1,'.');
-        res = yf - Xf*B;
-        S.w = wfun(res,tune);
-        S.robust_s = mad(res, 0);  
-            
-        %  Satterthwaite estimate of model DOF
+        Xf=Xf(lstValid,:);
         
         % the model gets huge for EEG data.
         wXf=Xf;
@@ -172,76 +160,67 @@ function stats = ar_irls_REML( d,X,Pmax,HEGrouping,tune )
        % stats.dfe = length(yf)-sum(U(:).*U(:));
         stats.dfe = sum(S.w)-sum(U(:).*U(:));
         
-        %stats.dfe = length(yf)-trace(H'*H)^2/trace(H'*H*H*H');
+        %  Satterthwaite estimate of model DOF
+        H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
+        % note trace(A*B) = sum(reshape(A,[],1).*reshape(B',[],1)); 
+        HtH=H'*H;
+        stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);
+        %stats.dfe = trace(H'*H)^2/trace(H'*H*H*H');  % same result but 4-6x slower
         
         % moco data & statistics
-        stats.beta(:,i) =  contrastV*B;
-        stats.P(i) = length(a)-1;
+        stats.beta(:,i) = B;
+               stats.P(i) = length(a)-1;
         
-        L =  contrastV*pinv(Xf'*Xf)* contrastV'; % more stable
-        Xfall{i}=wXf;
-        stats.covb(:,:,i) = 1.1265*L*S.robust_s^2;
-        stats.w(:,i) = S.w;
+        L = pinv(Xf'*Xf); % more stable
+        Xfall{i}=nan(length(y),size(wXf,2));
+        Xfall{i}(lstValid,:)=wXf;
+        stats.covb(:,:,i) = S.covb;  
+        stats.w(:,i)=nan(length(y),1);
+        stats.w(lstValid,i) = S.w;
         stats.a{i} = a;
-        stats.sigma2(i)=1.1265*S.robust_s^2;
+        stats.sigma2(i)=S.sigma^2;  
         
-        stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag( contrastV*S.tstat.covb* contrastV'));
+        stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(S.covb));
         stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
 
-        
-        resid(:,i)=res; %S.rstud*S.s;
-        
-%         subplot(1,2,1); plot(S.rstud*S.s)
-%         subplot(1,2,2); plot(S.resid)
-%         pause;
+        resid(:,i)=nan(length(y),1);
+        resid(lstValid,i)=S.resid.*S.w; 
         
         stats.filter{i}=f;
-        stats.R2(i)=max(1-mad(yf-Xf*B)/mad(yf),0);
-%         yfiltered=[yfiltered; yf];
-%         weights=[weights; S.w];
-%         Xfiltered=sparse(blkdiag(Xfiltered,Xf));
+        stats.R2(i)=max(1-mad(yf(lstValid)-Xf*B)/mad(yf(lstValid)),0);
+        end
         
     end   
-   
-    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
-     
-    
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            a=resid(:,i)-median(resid(:,i));
-            b=resid(:,j)-median(resid(:,j));
-            
-            C(i,j)=1.1265*(median(a.*b));
+%    
+      covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
+      C=nirs.sFC.ar_corr(resid,Pmax,true);
+      for i=1:size(stats.beta,2)
+          for j=i:size(stats.beta,2)
+              covb(:,:,i,j)=covb(:,:,i,j)+C(i,j)*sqrt(stats.covb(:,:,i).*stats.covb(:,:,j));
         end
-    end
-    C=C*(mean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
-    
+      end
+      
+        
+        
 
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            covb(:,:,i,j) =covb(:,:,i,j)+contrastV*pinv(Xfall{i}'*Xfall{j})*contrastV'*C(i,j);
-            covb(:,:,j,i) =covb(:,:,j,i)+contrastV*pinv(Xfall{j}'*Xfall{i})*contrastV'*C(j,i);  % done to ensure symmetry
-        end
-    end
-    covb=covb/2;
-    
+%     
 %     figure(1); cla; d=[];
 %     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;
 %     plot(log(squeeze(stats.covb(2,2,:))),'b')
 %     hold on;
 %     plot(log(d),'r--')
 %     pause;
-    
+%     
     stats.covb = real(covb);
-% 
-%     for i=1:size(stats.beta,2)
-%         stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(squeeze(stats.covb(:,:,i,i))));
-%         stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
-%         stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
-%         stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
-%     end
+
+    for i=1:size(stats.beta,2)
+        stats.tstat(:,i) = stats.beta(:,i)./sqrt(diag(squeeze(stats.covb(:,:,i,i))));
+        stats.pval(:,i) = 2*tcdf(-abs(stats.tstat(:,i)),stats.dfe);     % two-sided
+        stats.ppos(:,i) = tcdf(-stats.tstat(:,i),stats.dfe);            % one-sided (positive only)
+        stats.pneg(:,i) = tcdf(stats.tstat(:,i),stats.dfe);             % one-sided (negative only)
+    end
     
    % diagnotics=fitglm(Xfiltered,yfiltered,'Weights',weights);
    % diagnotics=fitlm(Xfiltered,yfiltered,'Weights',weights);
@@ -258,12 +237,4 @@ function out = myFilter( f, y )
     out = filter(f, 1, y);
     out = bsxfun(@plus,out,sum(f)*y1); % add the corrected offset back
 
-end
-
-
-function w = wfun(r,tune)
-s = mad(r, 0) / 0.6745;
-r = r/s/tune;
-
-w = (1 - r.^2) .* (r < 1 & r > -1);
 end
