@@ -137,7 +137,18 @@ fid3D = table({probeInfo.probes.labels_s{:} probeInfo.probes.labels_d{:}}', ...
 optodes2D=[optodes2D; fid2D];
 optodes3D=[optodes3D; fid3D];
 
+for i=1:height(optodes3D)
+    if(iscell(optodes3D.Name{i}))
+        optodes3D.Name{i}=optodes3D.Name{i}{1};
+    end
+end
 
+
+for i=1:height(optodes2D)
+    if(iscell(optodes2D.Name{i}))
+        optodes2D.Name{i}=optodes2D.Name{i}{1};
+    end
+end
 
 if(registerprobe)
     BEM = nirs.registration.Colin27.mesh_V2;
