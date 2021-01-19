@@ -175,6 +175,7 @@ if(nargout==0)
     
    lstt=unique(IM2(~isnan(IM2)));
    cm=jet(length(lstt)+1);
+%    cm=cm(randperm(length(cm)),:);
    colormap(cm);
    colorbar off;
    

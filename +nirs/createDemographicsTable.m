@@ -10,7 +10,7 @@ function tbl = createDemographicsTable( data )
 
 keys=[]; 
 for i=1:length(data)
-    keys=[keys(:); data(i).demographics.keys(:)]; 
+   keys=[keys(:); data(i).demographics.keys(:)]; 
 end;
 keys=unique(keys);
 

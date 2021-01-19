@@ -115,7 +115,7 @@ for j=1:length(List)
 end
 
 %% ROC run
-iter=10;
+iter=1;
 for i=1:length(ROCtest)
     ROCtest(i)=ROCtest(i).run(iter);
 end
@@ -127,6 +127,35 @@ end
 ROCtest(1).draw     %Change the number to see other results
 %Or, we can also look to area under the ROC curve (AUC)
 ROCtest(1).auc  %Change the number to see other results
+
+
+%% =========== Simple script to run GLM with SS ===========
+rawSS = nirs.testing.simData_shortsep %loading testing data with SS channel
+%load NIRx data will automatically label the SS channel
+
+rawSS.probe.link %SS channel is labled in the last column
+
+%If you use other system, you can label the SS manually
+nirs.modules.LabelShortSeperation 
+%Example:
+%raw = nirs.io.loadDirectory(folder)
+%job = nirs.modules.LabelShortSeperation()l
+%raw = job.run(raw)
+
+%Basic pipelines
+job = nirs.modules.Resample();
+job = nirs.modules.OpticalDensity(job);
+job = nirs.modules.BeerLambertLaw(job);
+hbSS = job.run(rawSS);
+
+%First level Stats
+job = nirs.modules.GLM();
+    job.AddShortSepRegressors = true;
+Stats = job.run(hbSS);
+
+%if you want to use SS as pre-filter for RSFC
+job = advanced.nirs.modules.ShortDistanceFilter();
+hbSS_Filt = job.run(hbSS)
 
 
 
