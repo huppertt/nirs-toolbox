@@ -128,7 +128,13 @@ end
 % This is faster then getting the data from the TData cell
 %% 
 frewind(fid);
-for i=1:ChanIdx; fgetl(fid); end;
+while(1)
+    l=fgetl(fid); 
+    if(~isempty(strfind(l,'PreScan')))
+        break;
+    end
+end;
+
 data=textscan(fid,f,'delimiter',',');
 %% 
 
