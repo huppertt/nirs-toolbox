@@ -1,5 +1,5 @@
-classdef MMR_GLM < nirs.modules.AbstractGLM
-%% nominal or ordinal multinomial regression model..
+classdef MNR_GLM < nirs.modules.AbstractGLM
+%% multinomial regression model..
 % 
 % Options:
 %     basis       - a Dictionary object containing temporal bases using stim name as key
@@ -23,11 +23,12 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
      properties
         formula='Y~cond';
         within_variables=[];
+        FitMethod='REML';
      end
     
      
     methods
-        function obj = MMR_GLM( prevJob )
+        function obj = MNR_GLM( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
             
             obj.name = 'GLM with repeated measurements model';
@@ -71,6 +72,7 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
                         createDesignMatrixRM(data(i).stimulus,data(i).time, obj.basis );
                 C = obj.getTrendMatrix( t );
                 
+               
                 tbl=metadata;
                 str='(';
                 for j=1:length(names)
@@ -94,16 +96,20 @@ classdef MMR_GLM < nirs.modules.AbstractGLM
                 
                 for chIdx=1:size(d,2)
                     tbl.Y=d(:,chIdx);
-                    r{chIdx}=nirs.math.fitrm(tbl,formula,1,4*data(i).Fs);
-                    [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;  
+                    if(strcmp(obj.FitMethod,'Repeatedmeas'))
+                        r{chIdx}=nirs.math.fitrm(tbl,formula,1,4*data(i).Fs);
+                        [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;
+                         names=r{chIdx}.Coefficients.Row; %(2:end);
+                    else
+                        r{chIdx}=nirs.math.fitlme_AR(tbl,formula,4*data(i).Fs,'DummyVarCoding','full','FitMethod',obj.FitMethod);
+                        Beta(chIdx,:)=r{chIdx}.Coefficients.Estimate;
+                        Cov(:,:,chIdx)=r{chIdx}.CoefficientCovariance;
+                        stats.dfe=r{chIdx}.DFE;
+                        names=r{chIdx}.CoefficientNames;
+                    end
                 end
                              
-%                 
-%                 Beta(:,1)=[];
-%                 Cov(1,:,:)=[];
-%                 Cov(:,1,:)=[];
-%                 
-                 names=r{1}.Coefficients.Row; %(2:end);
+               
                 
                  for ii=1:length(names)
                      names{ii}(strfind(names{ii},'('))=[];

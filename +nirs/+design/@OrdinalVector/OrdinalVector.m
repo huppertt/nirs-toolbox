@@ -36,6 +36,14 @@ classdef OrdinalVector
             
         end
         
+        function st=convert2categorical(obj)
+            st = nirs.design.CategoricalVector;
+            st.name=obj.name;
+            st.values = categorical(ordinal(obj.numericvalues,obj.classlabels,[],obj.classedges));
+        end
+            
+        
+        
     end
     
 end

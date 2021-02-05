@@ -60,24 +60,24 @@ end
 
 for i=1:length(keys)
      st=stimulus(keys{i});
-    if(isa(st,'nirs.design.StimulusEvents'))
-    for j=1:length(st.onset)
-        st2=st;
-        st2.onset=st.onset(j);
-        st2.dur=st.dur(j);
-        st2.amp=st.amp(j);
-        D=Dictionary({keys{i}},{st2});
-        XX=nirs.design.createDesignMatrix(D, t, basis);
-       [lst,~]=find(XX~=0);
-       for k=1:length(names)
-            if(ismember(names{i},st.metadata.Properties.VariableNames))
-                for l=1:length(lst)
-                    metadata{lst(l),k}=st.metadata.(names{k})(j);
-                end
-            end
-       end
-    end
-    end
+     if(isa(st,'nirs.design.StimulusEvents'))
+         for j=1:length(st.onset)
+             st2=st;
+             st2.onset=st.onset(j);
+             st2.dur=st.dur(j);
+             st2.amp=st.amp(j);
+             D=Dictionary({keys{i}},{st2});
+             XX=nirs.design.createDesignMatrix(D, t, basis);
+             [lst,~]=find(XX~=0);
+             for k=1:length(names)
+                 if(ismember(names{i},st.metadata.Properties.VariableNames))
+                     for l=1:length(lst)
+                         metadata{lst(l),k}=st.metadata.(names{k})(j);
+                     end
+                 end
+             end
+         end
+     end
 end
 metadata=cell2table(metadata,'VariableNames',names);
     
