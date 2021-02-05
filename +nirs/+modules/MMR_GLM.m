@@ -1,5 +1,5 @@
 classdef MNR_GLM < nirs.modules.AbstractGLM
-%% multinomial regression model..
+%% multinomial regression model.
 % 
 % Options:
 %     basis       - a Dictionary object containing temporal bases using stim name as key
@@ -94,13 +94,9 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                 
                 tbl=remove_unrepresented_levels(tbl);
                 
-                % add a few more fields to allow more options on the
-                % formula
-                tbl.time=data.time;
-                    
                 for chIdx=1:size(d,2)
                     tbl.Y=d(:,chIdx);
-                    if(strcmp(obj.FitMethod,'Repeatedmeas'))
+                    if(strcmp(lower(obj.FitMethod),'repeatedmeas'))
                         r{chIdx}=nirs.math.fitrm(tbl,formula,1,4*data(i).Fs);
                         [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;
                          names=r{chIdx}.Coefficients.Row; %(2:end);
