@@ -210,33 +210,77 @@ classdef ChannelStatsROC
             end
            if(nargin<2)
                 type=unique(utype);
-            end
+           end
             
+           if(strcmp(type,'seperate'))
+               type=unique(utype);
+                seperate=true;
+           else
+               seperate=false;
+           end
+           
             colors = lines(length(obj.types));
             
-            figure, hold on
+           figure, hold on;
             for i = 1:length(obj.types)
+                
                 if(ismember(utype{i},type))
+                    if(seperate)
+                        hold on;
+                        subplot(1,length(type),find(ismember(type,utype{i})));
+                    end
                     [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
-                    plot(fp, tp, 'Color', colors(i,:))
+                     plot(fp, tp, 'Color', colors(i,:));
                 
                 end
             end
-            xlabel('False Positive Rate')
-            ylabel('True Positive Rate')
-            legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
-            
-            figure, hold on
+            if(~seperate)
+               
+                xlabel('False Positive Rate');
+                ylabel('True Positive Rate');
+                legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast');
+            else
+                for i=1:length(type)
+                    subplot(1,length(type),i);
+                    title(type{i});
+                    xlabel('False Positive Rate');
+                    ylabel('True Positive Rate');
+                    legend({obj.types{ismember(utype,type{i})}}, 'Location', 'SouthEast');
+                end
+                
+            end
+           
+            figure, hold on;
             for i = 1:length(obj.types)
                 if(ismember(utype{i},type))
+                    if(seperate)
+                        hold on;
+                        subplot(1,length(type),find(ismember(type,utype{i}))); 
+                    end
                     [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
-                    plot(phat, fp, 'Color', colors(i,:))
+                   plot(phat, fp, 'Color', colors(i,:));
+                  
+                    
                 end
             end
-            plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--')
-            ylabel('False Positive Rate')
-            xlabel('Estimated FPR (p-value)')
-            legend({obj.types{ismember(utype,type)}}, 'Location', 'SouthEast')
+            
+             if(~seperate)
+                   plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--')
+                legend({obj.types{ismember(utype,type)} 'truth'}, 'Location', 'SouthEast');
+                ylabel('False Positive Rate')
+                    xlabel('Estimated FPR (p-value)')
+             else
+                 for i=1:length(type)
+                    subplot(1,length(type),i)
+                    title(type{i});   
+                    plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--');
+                    legend({obj.types{ismember(utype,type{i})} 'truth'}, 'Location', 'SouthEast');
+                
+                    ylabel('False Positive Rate')
+                    xlabel('Estimated FPR (p-value)')
+                 end
+                 
+             end
         end
         
         function [tp, fp, phat] = roc( obj,flag)

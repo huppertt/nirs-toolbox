@@ -75,15 +75,19 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                
                 tbl=metadata;
                 str='(';
+               
                 for j=1:length(names)
                     str=[str names{j} '+'];
+                   
                 end
                 str=[str(1:end-1) ')'];
+              
                 if(istable(X))
                     tbl=[tbl X];
                 else
                     for j=1:length(names)
                         tbl.(names{j})=X(:,j);
+                        
                     end
                 end
                 
@@ -91,6 +95,8 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                 if(~isempty(strfind(formula,'cond')))
                     formula=[formula(1:strfind(formula,'cond')-1) str formula(strfind(formula,'cond')+4:end)];
                 end
+               
+          
                 
                 tbl=remove_unrepresented_levels(tbl);
                 
@@ -108,12 +114,25 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                         r{chIdx}=nirs.math.fitlme_AR(tbl,formula,4*data(i).Fs,'DummyVarCoding','full','FitMethod',obj.FitMethod);
                         Beta(chIdx,:)=r{chIdx}.Coefficients.Estimate;
                         Cov(:,:,chIdx)=r{chIdx}.CoefficientCovariance;
-                        stats.dfe=r{chIdx}.DFE;
+                        stats.dfe(chIdx)=r{chIdx}.DFE;
                         names=r{chIdx}.CoefficientNames;
                     end
                 end
-                             
-               
+                %stats.dfe=min(stats.dfe);      
+                
+                
+%                 resid=zeros(size(d));
+%                 for chIdx=1:size(d,2)
+%                     resid(:,chIdx)=r{chIdx}.residuals;
+%                 end
+%                 CC=nirs.math.robust_corrcoef(resid);
+%                 COV=zeros(size(Cov,1),size(Cov,1),size(d,2),size(d,2));
+%                 for ii=1:size(d,2)
+%                     for jj=1:size(d,2)
+%                         COV(:,:,ii,jj)=1/2*CC(ii,jj)*(Cov(:,:,ii)+Cov(:,:,jj));
+%                     end
+%                 end
+%                 Cov=COV;
                 
                  for ii=1:length(names)
                      names{ii}(strfind(names{ii},'('))=[];
