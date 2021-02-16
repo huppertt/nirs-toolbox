@@ -15,8 +15,10 @@ classdef Probe1020 < nirs.core.Probe
         headcircum;  % circumference of head  % make dependent
         AP_arclength; % Anterior-Posterior arc length
         LR_arclength; % Left-right arclength
-        
+        srcPos3D      % nsrc x 3 array of source positions (mm)
+        detPos3D      % ndet x 3 array of detector positions (mm)
     end
+      
     properties (Access = private)
         zoom; % Flag to zoom in or show full 10-20 probe
         
@@ -66,6 +68,73 @@ classdef Probe1020 < nirs.core.Probe
             obj.opticalproperties = nirs.media.tissues.brain(lambda,0.7, 50);
             
             obj.defaultdrawfcn='draw1020';
+        end
+        
+        
+                function srcPos = get.srcPos3D(obj)
+            %% This function returns the src pos (in mm)
+            
+            optodes=obj.optodes_registered;
+            lst=[];
+            for i=1:height(optodes)
+                if(isempty(optodes.Name{i}))
+                    lst=[lst; i];
+                end
+            end
+            optodes(lst,:)=[];
+            
+            tbl=sortrows(optodes,{'Type','Name'});
+            lst=find(ismember(tbl.Type,'Source'));
+            
+            found=[];
+            for i=1:length(lst)
+                sIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
+                srcPos(sIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
+                if(strcmp(tbl.Units(lst(i)),'cm'))
+                    srcPos(sIdx,:)=srcPos(sIdx,:)*10;
+                end
+                found(sIdx)=1;
+            end
+            srcPos(~found,:)=NaN;
+%             
+%             srcPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
+%             
+%              %Convert to mm if needed
+%             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+%             srcPos(lstCM,:)=srcPos(lstCM,:)*10;
+        end
+        
+        function detPos = get.detPos3D(obj)
+            
+             optodes=obj.optodes_registered;
+            lst=[];
+            for i=1:height(optodes)
+                if(isempty(optodes.Name{i}))
+                    lst=[lst; i];
+                end
+            end
+            optodes(lst,:)=[];
+            
+            %% This function returns the det pos (in mm)
+            tbl=sortrows(optodes,{'Type','Name'});
+            lst=find(ismember(tbl.Type,'Detector'));
+            
+            found=[];
+            for i=1:length(lst)
+                dIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
+                detPos(dIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
+                if(strcmp(tbl.Units(lst(i)),'cm'))
+                    detPos(dIdx,:)=detPos(dIdx,:)*10;
+                end
+                found(dIdx)=1;
+            end
+            detPos(~found,:)=NaN;
+            
+%             detPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
+%             
+%             %Convert to mm if needed
+%             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+%             detPos(lstCM,:)=detPos(lstCM,:)*10;
         end
         
         function obj = apply_tform_mesh(obj,tform)
@@ -475,7 +544,10 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,1)=obj.optodes_registered.X;
             Pos(:,2)=obj.optodes_registered.Y;
             Pos(:,3)=obj.optodes_registered.Z;
-            
+            DetPos3D=obj.detPos3D;
+            SrcPos3D=obj.srcPos3D;
+
+
             hold(axis_handle,'on');
             lstS=find(ismember(obj.optodes_registered.Type,'Source'));
             scatter3(axis_handle,Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r')
@@ -494,7 +566,7 @@ classdef Probe1020 < nirs.core.Probe
                 for j=1:length(source)
                     s = source(j);
                     d = detector(j);
-                    h(i)=line(axis_handle,Pos([lstS(s) lstD(d)],1),Pos([lstS(s) lstD(d)],2),Pos([lstS(s) lstD(d)],3),'Color', colors(i, :), lineStyles{i, :});
+                    h(i)=line(axis_handle,[SrcPos3D(s,1) DetPos3D(d,1)],[SrcPos3D(s,2) DetPos3D(d,2)],[SrcPos3D(s,3) DetPos3D(d,3)],'Color', colors(i, :), lineStyles{i, :});
                     set(h(i),'UserData',[s d]);
                 end
             end
@@ -529,6 +601,8 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,1)=obj.optodes_registered.X;
             Pos(:,2)=obj.optodes_registered.Y;
             Pos(:,3)=obj.optodes_registered.Z;
+            DetPos3D=obj.detPos3D;
+            SrcPos3D=obj.srcPos3D;
             
             hold(axis_handle,'on');
             
@@ -564,8 +638,8 @@ classdef Probe1020 < nirs.core.Probe
                     s = source(j);
                     d = detector(j);
                     
-                    src = Pos(lstS(s),:);
-                    det = Pos(lstD(d),:);
+                    src = SrcPos3D(s,:);
+                    det = DetPos3D(d,:);
 
                     [x,y,z] = cylinder2P(2,100,src,det);
                     surf(x,y,z,[],'FaceColor',[0 1 0],'EdgeAlpha',0);
@@ -730,6 +804,12 @@ classdef Probe1020 < nirs.core.Probe
                 Pos(:,2)=obj.optodes_registered.Y(lst);
                 Pos(:,3)=obj.optodes_registered.Z(lst);
                 [x,y]=obj.convert2d(Pos);
+                
+                DetPos3D=obj.detPos3D;
+                SrcPos3D=obj.srcPos3D;
+                [Detx,Dety]=obj.convert2d(DetPos3D);
+                [Srcx,Srcy]=obj.convert2d(SrcPos3D);
+                
                 xop=x; yop=y;
                 lstS=find(ismember(obj.optodes_registered.Type,'Source'));
                 scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r','parent',axis_handle)
@@ -747,7 +827,7 @@ classdef Probe1020 < nirs.core.Probe
                     for j=1:length(source)
                         s = source(j);
                         d = detector(j);
-                        h(i)=line(x([lstS(s) lstD(d)])+dx,y([lstS(s) lstD(d)])+dy,'parent',axis_handle,'Color', colors(i, :), lineStyles{i, :});
+                        h(i)=line([Srcx(s) Detx(d)]+dx,[Srcy(s) Dety(d)]+dy,'parent',axis_handle,'Color', colors(i, :), lineStyles{i, :});
                         set(h(i),'UserData',[s d]);
                     end
                 end

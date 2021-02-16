@@ -254,7 +254,7 @@ classdef ChannelStatsROC
             for i = 1:length(obj.types)
                 if(ismember(utype{i},type))
                     if(seperate)
-                        hold on;
+                        hold on;;
                         subplot(1,length(type),find(ismember(type,utype{i}))); 
                     end
                     [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
@@ -271,7 +271,8 @@ classdef ChannelStatsROC
                     xlabel('Estimated FPR (p-value)')
              else
                  for i=1:length(type)
-                    subplot(1,length(type),i)
+                    subplot(1,length(type),i);
+                    hold on;
                     title(type{i});   
                     plot([0 1],[0 1],'Color',[.8 .8 .8],'linestyle','--');
                     legend({obj.types{ismember(utype,type{i})} 'truth'}, 'Location', 'SouthEast');

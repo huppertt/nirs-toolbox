@@ -820,9 +820,12 @@ methods(Access='protected')
         % (1) Save names for the big sparse Zs used to fit a standard LME.
         model.RandomInfo.ZsColNames = makeSparseZNames(model);
         
-        % (2) Fit a LME model in standard form.        
+        % (2) Fit a LME model in standard form.  
+        try
         [model.slme,w] = fitStandardLMEModel(model);
-       
+        catch
+            1
+        end
         % (3) Fill in DFE and Coefs so that get.NumCoefficients and 
         % get.NumEstimatedCoefficients in ParametricRegression work as
         % required. Also fill in CoefficientCovariance.
@@ -1250,9 +1253,8 @@ methods (Access={?classreg.regr.LinearLikeMixedModel})
             'CheckHessian',model.CheckHessian);
         
         B0 = 1e6*ones(size(slme.betaHat));
-        iter=1; maxiter=10;
+        iter=1; maxiter=30;
         while norm(slme.betaHat-B0)/norm(B0) > 1e-2 && iter < maxiter
-            
             B0 =slme.betaHat;
             
             resid = yw - Xw*slme.betaHat - Zsw*slme.bHat;
@@ -1266,7 +1268,7 @@ methods (Access={?classreg.regr.LinearLikeMixedModel})
             Zf = myFilter(f,Zsw);
             yf = myFilter(f,yw);
             
-            for iter=1
+            for it=1:2
                 resid = yf - Xf*slme.betaHat - Zf*slme.bHat;
                 w=wfun(resid,model.pmax);
                 
@@ -1280,18 +1282,18 @@ methods (Access={?classreg.regr.LinearLikeMixedModel})
                     'CheckHessian',model.CheckHessian);
                 
             end
-            dostats = true;
-            Zfw=diag(w)*Zf;
-            slme = classreg.regr.lmeutils.StandardLinearMixedModel(Xfw,yfw,Zfw,Psi,model.FitMethod,...
-                dofit,dostats,'Optimizer',model.Optimizer,...
-                'OptimizerOptions',model.OptimizerOptions,...
-                'InitializationMethod',model.StartMethod,...
-                'CheckHessian',model.CheckHessian);
+          iter=iter+1;
             
             
         end
-        
-         fprintf(1,'.');
+        dostats = true;
+        Zfw=diag(w)*Zf;
+        slme = classreg.regr.lmeutils.StandardLinearMixedModel(Xfw,yfw,Zfw,Psi,model.FitMethod,...
+            dofit,dostats,'Optimizer',model.Optimizer,...
+            'OptimizerOptions',model.OptimizerOptions,...
+            'InitializationMethod',model.StartMethod,...
+            'CheckHessian',model.CheckHessian);
+        fprintf(1,'.');
         
         
     end % end of fitStandardLMEModel.

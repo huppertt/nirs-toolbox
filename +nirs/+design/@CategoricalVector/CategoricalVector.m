@@ -11,13 +11,17 @@ classdef CategoricalVector
         function vec = getStimVector( obj, time )
             
             [~,i]=ismember(obj.values,categories(obj.values));
-            
             vec = interp1( obj.time, i, time ,'nearest','extrap');
             c=categories(obj.values);
-            vec=categorical([c(vec)]);
-          
-            
+            c{end+1}='undefined';
+            vec(find(vec==0))=length(c);
+            vec=categorical([c(vec)]);  
+            vec=removecats(vec,{'undefined'});
+            vec=removecats(vec);
+            vec=reshape(vec,[],1); 
         end
+        
+            
         
         function draw(obj)
 

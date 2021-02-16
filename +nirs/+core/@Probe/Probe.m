@@ -105,12 +105,22 @@ classdef Probe
             tbl=sortrows(optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Source'));
             
-            
-            srcPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
-            
-             %Convert to mm if needed
-            lstCM=find(ismember(tbl.Units(lst),{'cm'}));
-            srcPos(lstCM,:)=srcPos(lstCM,:)*10;
+            found=[];
+            for i=1:length(lst)
+                sIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
+                srcPos(sIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
+                if(strcmp(tbl.Units(lst(i)),'cm'))
+                    srcPos(sIdx,:)=srcPos(sIdx,:)*10;
+                end
+                found(sIdx)=1;
+            end
+            srcPos(~found,:)=NaN;
+%             
+%             srcPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
+%             
+%              %Convert to mm if needed
+%             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+%             srcPos(lstCM,:)=srcPos(lstCM,:)*10;
         end
         
         function detPos = get.detPos(obj)
@@ -125,16 +135,25 @@ classdef Probe
             optodes(lst,:)=[];
             
             %% This function returns the det pos (in mm)
-             tbl=sortrows(optodes,{'Type','Name'});
+            tbl=sortrows(optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Detector'));
             
+            found=[];
+            for i=1:length(lst)
+                dIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
+                detPos(dIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
+                if(strcmp(tbl.Units(lst(i)),'cm'))
+                    detPos(dIdx,:)=detPos(dIdx,:)*10;
+                end
+                found(dIdx)=1;
+            end
+            detPos(~found,:)=NaN;
             
-            
-            detPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
-            
-            %Convert to mm if needed
-            lstCM=find(ismember(tbl.Units(lst),{'cm'}));
-            detPos(lstCM,:)=detPos(lstCM,:)*10;
+%             detPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
+%             
+%             %Convert to mm if needed
+%             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+%             detPos(lstCM,:)=detPos(lstCM,:)*10;
         end
         
         function d = get.distances( obj )

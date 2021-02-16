@@ -1,27 +1,60 @@
-function Data2BIDS(data,folder,participant_id,session,task,run)
+function Data2BIDS(data,folder,participant_id,session,task,runs)
 
 filename=[participant_id];
 
 if(nargin>3 && ~isempty(session))
-    filename=[filename '_ses-' session];
+    filename=[filename '_ses-' lower(session)];
 end
 
-if(nargin<4 || ~isempty(task))
+if(nargin<4 || isempty(task))
     task='func';
 end
 
+task=lower(task);
+if(nargin<5)
+    runs=[];
+end
+
 filename=[filename '_task-' task];
+
 if(~exist(folder,'dir'))
     mkdir(folder);
 end
  
 %sub-<label>[_ses-<label>]_task-<label>[_run-<index>]_fnirs.snirf
 for i=1:length(data)
-    disp(['Saving ' filename '_run-' num2str(i) '_fnirs.snirf']);
-    nirs.io.saveSNIRF(data(i),fullfile(folder,[filename '_run-' num2str(i) '_fnirs.snirf']),true);
-    stim2JSON(data(i).stimulus,fullfile(folder,[filename '_run-' num2str(i) '_event.json']));
-    data2JSON(data(i),fullfile(folder,[filename '_run-' num2str(i) '_fnirs.json']),task);
-    probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' num2str(i) '_coordsystem.json']));
+    
+    if(isempty(runs))
+        run=num2str(i);
+    elseif(length(data)>1)
+        run=[runs num2str(i)];
+    else
+        run=runs;
+    end
+    
+    if(isa(data(i),'nirs.core.Data'))    
+
+        disp(['Saving ' filename '_run-' run '_fnirs.snirf']);
+        if(exist(fullfile(folder,[filename '_run-' run '_fnirs.snirf']))==2)
+            delete(fullfile(folder,[filename '_run-' run '_fnirs.snirf']));
+        end
+        nirs.io.saveSNIRF(data(i),fullfile(folder,[filename '_run-' run '_fnirs.snirf']),false);
+        data2JSON(data(i),fullfile(folder,[filename '_run-' run '_fnirs.json']),task);
+        probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' run '_coordsystem.json']));
+    elseif(isa(data(i),'eeg.core.Data'))    
+        disp(['Saving ' filename '_run-' run '_eeg']);
+        
+        file=data(i).description;
+        f=rdir([strtok(file,'.') '.*']);
+        for ii=1:length(f)
+            [~,~,e]=fileparts(f(ii).name);
+            system(['cp -v ' f(ii).name ' ' filename '_run-' run '_eeg' e]);
+        end
+     %% TODO   
+        probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' run '_coordsystem.json']));
+        data2JSON_EEG(data(i),fullfile(folder,[filename '_run-' run '_eeg.json']),task);
+    end
+    stim2JSON(data(i).stimulus,fullfile(folder,[filename '_run-' run '_event.json']));   
 end
 
 

@@ -40,6 +40,7 @@ classdef OrdinalVector
             st = nirs.design.CategoricalVector;
             st.name=obj.name;
             st.values = categorical(ordinal(obj.numericvalues,obj.classlabels,[],obj.classedges));
+            st.time=obj.time;
         end
             
         

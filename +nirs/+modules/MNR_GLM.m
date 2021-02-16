@@ -111,6 +111,8 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                         [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;
                          names=r{chIdx}.Coefficients.Row; %(2:end);
                     else
+                        
+                       % r{chIdx}=fitlme(tbl,formula,'DummyVarCoding','full','FitMethod',obj.FitMethod);
                         r{chIdx}=nirs.math.fitlme_AR(tbl,formula,4*data(i).Fs,'DummyVarCoding','full','FitMethod',obj.FitMethod);
                         Beta(chIdx,:)=r{chIdx}.Coefficients.Estimate;
                         Cov(:,:,chIdx)=r{chIdx}.CoefficientCovariance;
@@ -244,7 +246,8 @@ vars=tbl.Properties.VariableNames;
 for i=1:length(vars)
     if(isa(tbl.(vars{i}),'ordinal'))
         tbl.(vars{i})=droplevels(tbl.(vars{i}));
-        
+    elseif(isa(tbl.(vars{i}),'categorical'))
+        tbl.(vars{i})=removecats(tbl.(vars{i}));
         
     end
 end

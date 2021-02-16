@@ -199,7 +199,9 @@ classdef Data
             % get stim vecs
             s = []; k = obj.stimulus.keys;
             for i = 1:length( obj.stimulus.keys )
-                s = [s obj.stimulus.values{i}.getStimVector( t )];
+                try
+                    s = [s obj.stimulus.values{i}.getStimVector( t )];
+                end
             end
             
 

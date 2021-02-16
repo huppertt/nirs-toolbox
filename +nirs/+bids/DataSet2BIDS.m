@@ -1,4 +1,4 @@
-function DataSet2BIDS(data,folder,name)
+function DataSet2BIDS(data,folder,name,deID)
 BIDSver='pre-release 0.1';
 
 if(~exist(folder,'dir'))
@@ -7,6 +7,16 @@ end
 
 if(nargin<3)
     name=folder;
+end
+
+if(nargin<4)
+    deID=false;
+end
+
+data = nirs.util.addUUID(data);
+
+if(deID)
+    data=nirs.util.deidentify(data);
 end
 
 
@@ -32,6 +42,41 @@ if(isempty(demo))
         data(i).demographics('description')=data(i).description;
     end
     demo = nirs.createDemographicsTable(data);
+end
+
+lst=find(ismember(lower(demo.Properties.VariableNames),{'task','tasks','scans'}));
+if(~isempty(lst))
+    for i=1:height(demo)
+        Task{i,1}=[];
+        for j=1:length(lst)
+            try
+                Task{i}=[Task{i} demo.(demo.Properties.VariableNames{lst(j)}){i}];
+            end
+        end
+        
+    end
+    demo(:,lst)=[];
+else
+    for i=1:height(demo)
+        Task{i,1}=[];
+    end
+end
+lst=find(ismember(lower(demo.Properties.VariableNames),{'session','sessions','study'}));
+if(~isempty(lst))
+    for i=1:height(demo)
+        Session{i,1}=[];
+        for j=1:length(lst)
+            try
+                Session{i}=[Session{i} demo.(demo.Properties.VariableNames{lst(j)}){i}];
+            end
+        end
+        
+    end
+    demo(:,lst)=[];
+else
+    for i=1:height(demo)
+        Session{i,1}=[];
+    end
 end
 
 
@@ -66,13 +111,31 @@ writetable(demo2,fullfile(folder,'participants.tsv'),'FileType','text','Delimite
 
 for i=1:height(demo2)
 
-    folder2=fullfile(folder,demo2.participant_id{i},'nirs');
+    if(isa(data,'nirs.core.Data'))
+        folder2=fullfile(folder,demo2.participant_id{i},'nirs');
+    elseif(isa(data,'eeg.core.Data'))
+        folder2=fullfile(folder,demo2.participant_id{i},'eeg');
+    else
+        error('unknown BIDS type');
+    end
+    
     if(~exist(folder2,'dir'))
         mkdir(fullfile(folder,demo2.participant_id{i}));
         mkdir(folder2);
     end
-    Data2BIDS(data(find(lst==i)),folder2,demo2.participant_id{i});
-
+    lst2=find(lst==i);
+    for j=1:length(lst2)
+        
+        
+        if(length(lst2)>1)
+            run=num2str(j);
+        else
+            run=[];
+        end
+               
+        
+        Data2BIDS(data(lst2(j)),folder2,demo2.participant_id{i},Session{lst2(j)},Task{lst2(j)},run);
+    end
 end
 
 

@@ -43,6 +43,7 @@ for iKey = 1:length(stim_keys)
                 basisObj = basis( 'StimulusVector' );
             else
                 x=stimVector;
+                basisObj=[];
             end
         else
             if basis.iskey( {stim_keys{iKey},type} );
@@ -51,6 +52,7 @@ for iKey = 1:length(stim_keys)
                 basisObj = basis( {{'StimulusVector',type}} );
             else
                 x=stimVector;
+                basisObj=[];
             end
         end
     elseif((isa( stim_vals{iKey},'nirs.design.OrdinalVector')))
@@ -61,6 +63,7 @@ for iKey = 1:length(stim_keys)
                 basisObj = basis( 'StimulusVector' );
             else
                 x=stimVector;
+                basisObj=[];
             end
         else
             if basis.iskey( {stim_keys{iKey},type} );
@@ -69,6 +72,7 @@ for iKey = 1:length(stim_keys)
                 basisObj = basis( {{'StimulusVector',type}} );
             else
                 x=stimVector;
+                basisObj=[];
             end
         end
     elseif((isa( stim_vals{iKey},'nirs.design.CategoricalVector')))
@@ -79,6 +83,7 @@ for iKey = 1:length(stim_keys)
                 basisObj = basis( 'StimulusVector' );
             else
                 x=stimVector;
+                basisObj=[];
             end
         else
             if basis.iskey( {stim_keys{iKey},type} );
@@ -87,6 +92,7 @@ for iKey = 1:length(stim_keys)
                 basisObj = basis( {{'StimulusVector',type}} );
             else
                 x=stimVector;
+                basisObj=[];
             end
         end
     else
