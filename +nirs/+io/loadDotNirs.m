@@ -60,6 +60,15 @@ end
             % probe
             thisFile.probe = nirs.util.sd2probe( d.SD );
 
+            %load demographics
+            if(isfield(d,'demographics'))
+                flds=fields(d.demographics);
+                for i=1:length(flds)
+                    thisFile.demographics(flds{i})=getfield(d.demographics,flds{i});
+                end
+            end
+            
+            
             % stimulus vector
             if isfield(d,'StimDesign')
                 thisFile.stimulus = nirs.util.convertStimDesignStruct( d.StimDesign,d.t );

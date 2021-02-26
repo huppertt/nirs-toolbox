@@ -1,27 +1,28 @@
 classdef AR_IRLS < nirs.modules.AbstractGLM
-%% AR_IRLS - Performs first-level per file GLM analysis.
-% 
-% Options:
-%     basis       - a Dictionary object containing temporal bases using stim name as key
-%     verbose     - flag to display progress
-%     trend_func  - a function that takes in a time vector and returns trend regressors
-%     
-% Example:
-%     j = nirs.modules.AR_IRLS();
-%     
-%     b = Dictionary();
-%     b('default') = nirs.design.basis.Canonical(); % default basis
-%     b('A')       = nirs.design.basis.Gamma();     % a different basis for condition 'A'
-%     
-%     j.basis = b;
-%     
-%     j.trend_func = @(t) nirs.design.trend.legendre(t, 3); % 3rd order polynomial for trend
-%     
-% Note: 
-%     trend_func must at least return a constant term unless all baseline periods are
-%     specified explicitly in the stimulus design with BoxCar basis functions
+    %% AR_IRLS - Performs first-level per file GLM analysis.
+    %
+    % Options:
+    %     basis       - a Dictionary object containing temporal bases using stim name as key
+    %     verbose     - flag to display progress
+    %     trend_func  - a function that takes in a time vector and returns trend regressors
+    %
+    % Example:
+    %     j = nirs.modules.AR_IRLS();
+    %
+    %     b = Dictionary();
+    %     b('default') = nirs.design.basis.Canonical(); % default basis
+    %     b('A')       = nirs.design.basis.Gamma();     % a different basis for condition 'A'
+    %
+    %     j.basis = b;
+    %
+    %     j.trend_func = @(t) nirs.design.trend.legendre(t, 3); % 3rd order polynomial for trend
+    %
+    % Note:
+    %     trend_func must at least return a constant term unless all baseline periods are
+    %     specified explicitly in the stimulus design with BoxCar basis functions
     properties
         useREML=false;
+        nonstationary_noise=false;
     end
     methods
         function obj = AR_IRLS( prevJob )
@@ -50,7 +51,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 
                 if(~isempty(strfind(class(probe),'nirs')))
                     if(~ismember('source',probe.link.Properties.VariableNames) & ...
-                    ismember('ROI',probe.link.Properties.VariableNames))
+                            ismember('ROI',probe.link.Properties.VariableNames))
                         [probe.link, idx] = nirs.util.sortrows(probe.link, {'ROI','type'});
                     else
                         [probe.link, idx] = nirs.util.sortrows(probe.link, {'source', 'detector','type'});
@@ -60,7 +61,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 else
                     error('data type not supported');
                 end
-                    d = d(:, idx);
+                d = d(:, idx);
                 
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
@@ -87,10 +88,13 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     lst=find(diag(s)>eps(1)*100);
                     V=V(:,lst);
                     if(obj.useREML)
-                         stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                        stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), round(4*Fs) );
                     else
-                        
-                    stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                        if(obj.nonstationary_noise)
+                            stats = nirs.math.ar_irnnls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                        else
+                            stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                        end
                     end
                     stats.beta=V*stats.beta;
                     c=[];
@@ -101,13 +105,18 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     end
                     stats.covb=c;
                 else
-                
+                    
                     % run regression
-                     if(obj.useREML)
-                         stats = nirs.math.ar_irls_REML( d, [X C], round(4*Fs) );
-                     else
+                    if(obj.useREML)
+                        stats = nirs.math.ar_irls_REML( d, [X C], round(4*Fs) );
+                    else
+                        if(obj.nonstationary_noise)
+                             stats = nirs.math.ar_irnsls( d, [X C], round(4*Fs) );
+                        else
+                            
                         stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
-                     end
+                        end
+                    end
                 end
                 % put stats
                 ncond = length(names);
@@ -116,7 +125,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 link = repmat( probe.link, [ncond 1] );
                 cond = repmat(names(:)', [nchan 1]);
                 cond = cond(:);
-               
+                
                 if(~isempty(strfind(class(probe),'nirs')))
                     S(i) = nirs.core.ChannelStats();
                 elseif(~isempty(strfind(class(probe),'eeg')))
@@ -149,7 +158,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 
                 %ensure positive/definant (sometimes off due to numerical
                 %prec.
-             
+                
                 lst=find(~all(isnan(covb),1));
                 [U,s,V]=svd(covb(lst,lst));
                 covb(lst,lst)=0.5*(U*s*U'+V*s*V');
@@ -180,10 +189,10 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 
                 % print progress
                 if(obj.verbose)
-                 obj.printProgress( i, length(data) )
+                    obj.printProgress( i, length(data) )
                 end
             end
-
+            
         end
         
         

@@ -40,7 +40,7 @@ for i=1:length(data)
         end
         nirs.io.saveSNIRF(data(i),fullfile(folder,[filename '_run-' run '_fnirs.snirf']),false);
         data2JSON(data(i),fullfile(folder,[filename '_run-' run '_fnirs.json']),task);
-        probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' run '_coordsystem.json']));
+        probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' run ]));
     elseif(isa(data(i),'eeg.core.Data'))    
         disp(['Saving ' filename '_run-' run '_eeg']);
         
@@ -51,7 +51,7 @@ for i=1:length(data)
             system(['cp -v ' f(ii).name ' ' filename '_run-' run '_eeg' e]);
         end
      %% TODO   
-        probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' run '_coordsystem.json']));
+        probe2JSON(data(i).probe,fullfile(folder,[filename '_run-' run ]));
         data2JSON_EEG(data(i),fullfile(folder,[filename '_run-' run '_eeg.json']),task);
     end
     stim2JSON(data(i).stimulus,fullfile(folder,[filename '_run-' run '_event.json']));   
