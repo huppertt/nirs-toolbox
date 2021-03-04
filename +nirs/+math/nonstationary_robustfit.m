@@ -190,21 +190,25 @@ while((iter==0) || any(abs(b-b0) > D*max(abs(b),abs(b0))))
    
       
    radj = r .* adjfactor ./ sw;
-   ns_sigma = sqrt(1.4830*movmedian(abs(radj),20));
+   ns_sigma = 1.479*movmedian(abs(radj),10);
    
    %s = madsigma(radj,wxrank);
    
    % Compute new weights from these residuals, then re-fit
    w = feval(wfun, radj./(max(ns_sigma,tiny_s)*tune));
+   dfe=sum(w);
+   w2=w./ns_sigma.^2;
    b0 = b;
-   nn=diag(1./ns_sigma);
-   [b(perm),wxrank] = wfit(nn*y,nn*X(:,perm),w);
+   
+   [covb(perm,perm),se(perm,1),b(perm,1)] =hac(X,y,'intercept',false,'weights',...
+       'HC0','type','HC','display','off');
+   %[b(perm),wxrank] = wfit(y,X(:,perm),w2);
+   
 end
 
-y=nn*y;
-X=nn*X;
 
 if (nargout>1)
+    
    r = y - X*b;
    radj = r .* adjfactor ./ sw;
    mad_s = madsigma(radj,xrank);
@@ -221,58 +225,23 @@ if (nargout>1)
 
    % Shrink robust value toward ols value if the robust version is
    % smaller, but never decrease it if it's larger than the ols value
-   sigma = max(robust_s, ...
+    sigma = max(robust_s, ...
                sqrt((ols_s^2 * xrank^2 + robust_s^2 * n) / (xrank^2 + n)));
-
-   % Get coefficient standard errors and related quantities
-   RI = R(1:xrank,1:xrank)\eye(xrank);
-   tempC = (RI * RI') * sigma^2;
-   tempse = sqrt(max(eps(class(tempC)),diag(tempC)));
-   C = NaN(p,p);
-   covb = zeros(p,p);
-   se = zeros(p,1);
-   covb(perm,perm) = tempC;
-   C(perm,perm) = tempC ./ (tempse * tempse');
-   se(perm) = tempse;
-
-   
-   % Save everything
-   stats.ols_s = ols_s;
-   stats.robust_s = robust_s;
+    
+    dfe=sum(w)-size(X,2);
+    stats.covb=covb;
+    stats.se=se;
+    stats.t = NaN(size(b));
+    stats.t(se>0) = b(se>0) ./ se(se>0);
+    stats.p = 2 * tcdf(-abs(stats.t), dfe);
+    stats.dfe=dfe;
+    stats.w=w;
+     stats.robust_s = robust_s;
    stats.mad_s = mad_s;
    stats.s = sigma;
-   stats.resid = r;
+     stats.resid = r;
    stats.rstud = r .* adjfactor / sigma;
-   stats.se = se;
-   stats.covb = covb;
-   stats.coeffcorr = C;
-   stats.t = NaN(size(b));
-   stats.t(se>0) = b(se>0) ./ se(se>0);
-   stats.p = 2 * tcdf(-abs(stats.t), dfe);
-   stats.w = w;
-   RR = zeros(p);
-   RR(perm,perm) = R(1:xrank,1:xrank);
-   Qy = zeros(p,1);
-   Qy(perm) = Q(:,1:xrank)'*y;
-   stats.Qy = Qy;
-   stats.R = RR;
-   stats.dfe = dfe;
-   stats.h = h;
-   stats.Rtol = tol;
 end
-
-% -----------------------------
-function [b,r] = wfit(y,x,w)
-%WFIT    weighted least squares fit
-
-% Create weighted x and y
-n = size(x,2);
-sw = sqrt(w);
-yw = y .* sw;
-xw = x .* sw(:,ones(1,n));
-
-% Computed weighted least squares results
-[b,r] = linsolve(xw,yw,struct('RECT',true));
 
 % -----------------------------
 function s = madsigma(r,p)

@@ -20,6 +20,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
         robust=false;
         weighted=true;
         verbose=false;
+        use_nonparametric_stats=false;
     end
     
    
@@ -286,6 +287,28 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,obj.verbose);
             
+            
+            if(obj.use_nonparametric_stats)
+               disp('Running permutation testing for non-parametric statistics');
+               maxiter=10000;
+                Names=lm1.CoefficientNames;
+                for iter=1:maxiter; 
+                    if(mod(iter,500)==0)
+                        disp(['Permutation iteration ' num2str(iter) ' of ' num2str(maxiter)]);
+                    end
+                    
+                    Xnull=Xorig;
+                    for jj=1:size(Xnull,1)
+                        lst=find(Xnull(jj,:)~=0);
+                        Xnull(jj,lst)=Xnull(jj,lst(randperm(length(lst))));
+                    end
+                    [CoefNull(:,iter),~,~,~,~] = nirs.math.fitlme(W*Xnull,...
+                        beta(randperm(length(beta))),Z,obj.robust,false,obj.verbose);
+                end;
+            end
+            
+            
+            
             % this gives the same results as the built in matlab code,
             % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s 
             % lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
@@ -352,6 +375,13 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 nirs.createDemographicsTable(S));
             
             G.categoricalvariableInfo=[];
+            
+            if(obj.use_nonparametric_stats)
+                for i=1:length(G.p);
+                    G.pvalue_fixed(i,1)=length(find(abs(CoefNull(i,:))>abs(Coef(i))))/size(CoefNull,2);
+                end;
+            end
+            
             if(obj.include_diagnostics)
                 if(obj.verbose)
                     disp('Adding diagnostics information');

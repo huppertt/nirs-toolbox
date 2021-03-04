@@ -158,7 +158,7 @@ function stats = ar_irnsls( d,X,Pmax,tune )
        %[U,~,~]=nirs.math.mysvd(diag(S.w)*Xf);
        
        % stats.dfe = length(yf)-sum(U(:).*U(:));
-        stats.dfe = sum(S.w)-sum(U(:).*U(:));
+        stats.dfe = S.dfe; %-sum(U(:).*U(:));
         
         %  Satterthwaite estimate of model DOF
         H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
@@ -169,12 +169,8 @@ function stats = ar_irnsls( d,X,Pmax,tune )
         
         % moco data & statistics
         stats.beta(:,i) = B;
-               stats.P(i) = length(a)-1;
-        
-        L = pinv(Xf'*Xf); % more stable
-        Xfall{i}=nan(length(y),size(wXf,2));
-        Xfall{i}(lstValid,:)=wXf;
-        stats.covb(:,:,i) = L*S.robust_s^2;  
+        stats.P(i) = length(a)-1;
+        stats.covb(:,:,i)=S.covb;
         stats.w(:,i)=nan(length(y),1);
         stats.w(lstValid,i) = S.w;
         stats.a{i} = a;
@@ -195,27 +191,29 @@ function stats = ar_irnsls( d,X,Pmax,tune )
     end   
    
     covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
-     
-    
     for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            a=resid(:,i)-nanmedian(resid(:,i));
-            b=resid(:,j)-nanmedian(resid(:,j));
-            
-            C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
-        end
+        covb(:,:,i,i)=stats.covb(:,:,i);
     end
-    C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
-    
-
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            lstV=~isnan(sum(Xfall{i},2)+sum(Xfall{j},2));
-            covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
-            covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
-        end
-    end
-    covb=covb/2;
+%     
+%     for i=1:size(stats.beta,2)
+%         for j=1:size(stats.beta,2)
+%             a=resid(:,i)-nanmedian(resid(:,i));
+%             b=resid(:,j)-nanmedian(resid(:,j));
+%             
+%             C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+%         end
+%     end
+%     C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
+%     
+% 
+%     for i=1:size(stats.beta,2)
+%         for j=1:size(stats.beta,2)
+%             lstV=~isnan(sum(Xfall{i},2)+sum(Xfall{j},2));
+%             covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
+%             covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
+%         end
+%     end
+%     covb=covb/2;
     
 %     figure(1); cla; d=[];
 %     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;

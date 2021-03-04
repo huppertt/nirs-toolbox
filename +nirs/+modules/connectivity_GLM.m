@@ -152,7 +152,7 @@ classdef connectivity_GLM < nirs.modules.AbstractGLM
                         cnt=cnt+1; 
                     end; 
                 end;
-                data2(i)=data;
+                data2(i)=data(i);
                 data2(i).data=dd;
                 data2(i).probe.link=struct2table(link);
             end

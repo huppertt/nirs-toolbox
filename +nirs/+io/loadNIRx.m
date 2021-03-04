@@ -62,6 +62,7 @@ end
 if(isfield(info,'ShortDetectors') & info.Detectors>size(probe.detPos,1))
     % this is an intermediate version of the software when short
     % seperations were first introduced.
+      if (info.ShortDetectors >= 1)
         lst=find(ismember(probe.optodes.Type,{'Source'}));
         lst2=find(ismember(probe.optodes.Type,{'Detector'}));
         lst3=find(~ismember(probe.optodes.Type,{'Source','Detector'}));
@@ -84,7 +85,7 @@ if(isfield(info,'ShortDetectors') & info.Detectors>size(probe.detPos,1))
             DetShort3D; probe.optodes_registered(lst,:); probe.optodes_registered(lst3,:)];
         
         info.S_D_Mask(:,info.Detectors-info.ShortDetectors+1:end)=eye(info.ShortDetectors);
-    
+      end
         
 end
 

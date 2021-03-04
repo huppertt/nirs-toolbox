@@ -155,12 +155,11 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     end
                     
                     if(length(lambda)>2)
-                        r=d(:,lst)';
+                        r=mad(d(:,lst)',1,2);
+                        r=r-mean(r);
                         s = mad(r, 0) / 0.6745;
                         r = r/s/4.685;
-                        w = diag((1 - r.^2) .* (r < 1 & r > -1));
-                        
-                        
+                        w = diag((abs(r)<1) .* (1 - r.^2).^2);
                     else
                         w=diag([1 1]);
                     end
