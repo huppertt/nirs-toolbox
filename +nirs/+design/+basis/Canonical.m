@@ -57,6 +57,22 @@ classdef Canonical
             
         end
         
+        function h = getFilter(obj,Fs)
+            % params
+            a1 = obj.peakTime;
+            a2 = obj.uShootTime;
+            b1 = obj.peakDisp;
+            b2 = obj.uShootDisp;
+            c  = obj.ratio;
+            
+            
+            % time vector
+            t = (0:1/Fs:obj.duration)';
+            
+            % impulse response
+            h = obj.getImpulseResponse( a1, b1, a2, b2, c, t );
+        end
+        
         function h = draw(obj)
             
             % params
