@@ -286,7 +286,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             end
             
             [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,obj.verbose);
-            
+            % this gives the same results as the built in matlab code,
+            % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s 
+            % lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+        
             
             if(obj.use_nonparametric_stats)
                disp('Running permutation testing for non-parametric statistics');
@@ -309,9 +312,6 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             
             
-            % this gives the same results as the built in matlab code,
-            % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s 
-            % lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
              if(obj.verbose)
                 disp(['Finished solving: time elapsed ' num2str(toc) 's']);

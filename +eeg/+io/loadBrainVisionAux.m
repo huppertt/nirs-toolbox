@@ -1,4 +1,4 @@
-function [aux,t]=loadBrainVisionAux(filename)
+function [aux,t,hdr]=loadBrainVisionAux(filename)
 
 [hdr.fs, hdr.label,hdr.meta]=bva_readheader(filename);
 d=bva_loadeeg(filename);

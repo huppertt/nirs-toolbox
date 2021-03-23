@@ -215,17 +215,15 @@ classdef Anova < nirs.modules.AbstractModule
             G.F=[];
             G.df1=[];
             G.df2=[];
-            for j=1:length(i)
-                lst=find(id==i(j));
-                lme2 = fitlme([table(beta(lst),'VariableNames',{respvar}) vars(lst,:)], obj.formula, 'dummyVarCoding',...
-                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
-                 a=lme2.anova();
-                 G.F=[G.F; a.FStat];
-                 G.df1       = [G.df1; a.DF1];
-                 G.df2       = [G.df2; a.DF2];
-            end
+            lme2 = fitlmematrix(X(:,lstKeep),beta, Z,[], 'dummyVarCoding',...
+                obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+            
+            a=lme2.anova();
+            G.F=a.FStat;
+            G.df1       = a.DF1;
+            G.df2       = a.DF2;
             %% output
-        
+            
             
             
             
@@ -233,7 +231,7 @@ classdef Anova < nirs.modules.AbstractModule
                 disp(['Finished solving: time elapsed ' num2str(toc) 's']);
                 
             end
-            cnames = lm1.anova.Term(:);
+            cnames = lm1.CoefficientNames(:);
             for idx=1:length(cnames)
                 cnames{idx}=cnames{idx}(max([0 min(strfind(cnames{idx},'_'))])+1:end);
                 %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end;

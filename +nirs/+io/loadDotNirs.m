@@ -75,25 +75,26 @@ end
             else
                 % This will handle the HOMER-2 nirs format
                 stims = Dictionary();
-                for idx=1:size(d.s,2)
-                    
-                    if isfield(d,'CondNames')
-                        stimname = d.CondNames{idx};
-                    else
-                        stimname = ['stim_channel' num2str(idx)];
-                    end
-
-                    if(islogical(d.s)); d.s=d.s*1; end;
-                    d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
-
-                    s = nirs.design.vector2event( d.t , d.s(:,idx) , stimname );
-
-                    if(~isempty(s.onset))
-                        stims(stimname)=s;
-                    end
+                if(isfield(d,'s'))
+                    for idx=1:size(d.s,2)
                         
+                        if isfield(d,'CondNames')
+                            stimname = d.CondNames{idx};
+                        else
+                            stimname = ['stim_channel' num2str(idx)];
+                        end
+                        
+                        if(islogical(d.s)); d.s=d.s*1; end;
+                        d.s(:,idx)=d.s(:,idx)./max(d.s(:,idx));
+                        
+                        s = nirs.design.vector2event( d.t , d.s(:,idx) , stimname );
+                        
+                        if(~isempty(s.onset))
+                            stims(stimname)=s;
+                        end
+                        
+                    end
                 end
-                
                 thisFile.stimulus=stims;
                 
             end

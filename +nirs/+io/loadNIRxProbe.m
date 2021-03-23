@@ -19,12 +19,6 @@ if(isempty(file)); raw=[]; return; end;
 load(fullfile(folder,file(1).name)); % --> probeInfo
 
 
-
-
-
-
-
-
 % fix for older versions
 if(~isfield(probeInfo.probes,'labels_s'))
     
@@ -153,7 +147,9 @@ end
 if(registerprobe)
     BEM = nirs.registration.Colin27.mesh_V2;
 else
-    BEM = nirs.registration.NIRxGeom.mesh;
+    %'Infant_00_02'
+    
+    BEM = nirs.registration.NIRxGeom.Colin.mesh;
 end
 
 
