@@ -10,7 +10,6 @@ function [S,haserror] = ttest(obj, c, b, names)
     %     stats.ttest([1 1; 1 -1])
 
 
-    
     haserror=false;
      if(nargin<3)
             b=[];
@@ -22,6 +21,10 @@ function [S,haserror] = ttest(obj, c, b, names)
            names=[];
      end
     
+     
+     
+     
+     
      if(length(obj)>1)
          
         for i=1:length(obj)
@@ -39,6 +42,8 @@ function [S,haserror] = ttest(obj, c, b, names)
          if(isempty(names))
              names=c;
          end
+         
+         
          [c,haserror] = nirs.design.contrastvector(c,obj.conditions,obj.basis);
          
          if(haserror)
