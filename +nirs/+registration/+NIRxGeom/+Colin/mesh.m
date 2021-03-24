@@ -1,7 +1,7 @@
 function m = mesh
 
 % If I already have this file, then just load it
- a=which('nirs.registration.NIRxGeom.BEM');
+ a=which('nirs.registration.NIRxGeom.Colin.BEM');
  folder=fileparts(a); 
  
 
