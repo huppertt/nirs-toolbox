@@ -7,6 +7,7 @@ function C = makeConnectivityTimeCourse(data)
 
 if(length(data)>1)
     for i=1:length(data)
+        disp([num2str(i) ' of ' num2str(length(data))]);
         C(i)=nirs.util.makeConnectivityTimeCourse(data(i));
     end
     return

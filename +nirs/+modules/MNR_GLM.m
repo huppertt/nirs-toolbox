@@ -102,8 +102,8 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                 
                 % add a few more fields to allow more options on the
                 % formula
-                tbl.time=data.time;
-                    
+                tbl.time=data(i).time;
+                clear Beta Cov stats;    
                 for chIdx=1:size(d,2)
                     tbl.Y=d(:,chIdx);
                     if(strcmp(obj.FitMethod,'Repeatedmeas'))
@@ -112,8 +112,8 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                          names=r{chIdx}.Coefficients.Row; %(2:end);
                     else
                         
-                       % r{chIdx}=fitlme(tbl,formula,'DummyVarCoding','full','FitMethod',obj.FitMethod);
-                        r{chIdx}=nirs.math.fitlme_AR(tbl,formula,4*data(i).Fs,'DummyVarCoding','full','FitMethod',obj.FitMethod);
+                       % r{chIdx}=nirs.math.fitlme_AR(tbl,formula,4*data(i).Fs,'DummyVarCoding','full','FitMethod',obj.FitMethod);
+                        r{chIdx}=fitlme(tbl,formula,'DummyVarCoding','full','FitMethod',obj.FitMethod);
                         Beta(chIdx,:)=r{chIdx}.Coefficients.Estimate;
                         Cov(:,:,chIdx)=r{chIdx}.CoefficientCovariance;
                         stats.dfe(chIdx)=r{chIdx}.DFE;

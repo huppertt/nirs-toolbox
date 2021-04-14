@@ -296,7 +296,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
                maxiter=10000;
                 Names=lm1.CoefficientNames;
                 for iter=1:maxiter; 
-                    if(mod(iter,500)==0)
+                    if(mod(iter,50)==0)
                         disp(['Permutation iteration ' num2str(iter) ' of ' num2str(maxiter)]);
                     end
                     

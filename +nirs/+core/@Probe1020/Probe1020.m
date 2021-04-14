@@ -447,10 +447,26 @@ classdef Probe1020 < nirs.core.Probe
             mesh=obj.mesh;
         end
         
-        function obj=set_mesh(obj,mesh)
+        function obj=set_mesh(obj,mesh,tbl1020)
             
-            if(nargin==2)
+            if(nargin>1)
                 obj.mesh=mesh;
+                
+                if(nargin>2)
+                    obj.pts1020=[tbl1020.X tbl1020.Y tbl1020.Z];
+                    obj.labels=tbl1020.Name;
+                    
+                    % Find the default arc lengths
+                    pt(1,:)=obj.pts1020(find(ismember(lower(obj.labels),'lpa')),:);
+                    pt(2,:)=obj.pts1020(find(ismember(lower(obj.labels),'rpa')),:);
+                    pt(3,:)=obj.pts1020(find(ismember(lower(obj.labels),'cz')),:);
+                    pt(4,:)=obj.pts1020(find(ismember(lower(obj.labels),'nas')),:);
+                    pt(5,:)=obj.pts1020(find(ismember(lower(obj.labels),'iz')),:);
+                    
+                    obj.AP_distance=norm(pt(4,:)-pt(5,:));
+                    obj.LR_distance=norm(pt(1,:)-pt(2,:));
+                    obj.IS_distance=norm(pt(3,:)-.5*(pt(1,:)-pt(2,:)));
+                end
             else
             
             mesh(1) = nirs.util.spheremesh;

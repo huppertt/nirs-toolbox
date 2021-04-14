@@ -37,11 +37,11 @@ for id=1:length(lst)
     Units{cnt}='mm';
     cnt=cnt+1;
 end
-fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
-    'VariableNames',{'Name','X','Y','Z','Type','Units'});
 
 probe=nirs.util.probe_remove_unconnected(probe);
 
+fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
+    'VariableNames',{'Name','X','Y','Z','Type','Units'});
 headsize=nirs.registration.getheadshape(fid);
 probe1020 = nirs.core.Probe1020([],headsize);
 probe1020.optodes=probe.optodes;
@@ -68,23 +68,49 @@ for i=1:length(lst)
         probe1020.optodes_registered.X(id)=C{2}(lst(i));
         probe1020.optodes_registered.Y(id)=C{3}(lst(i));
         probe1020.optodes_registered.Z(id)=C{4}(lst(i));
+        Name{cnt}=str;
+        xyz(cnt,:)=[C{2}(lst(i)) C{3}(lst(i)) C{4}(lst(i))];
+        Type{cnt}='FID-anchor';  % This is an anchor point
+        Units{cnt}='mm';
+        cnt=cnt+1;
+        
     end
         
 end
+
+fid=table(Name',xyz(:,1),xyz(:,2),xyz(:,3),Type',Units',...
+    'VariableNames',{'Name','X','Y','Z','Type','Units'});
+
 % and concatinate it to the probe
 probe1020.optodes_registered=[probe1020.optodes_registered; fid];
-
 mesh=probe1020.getmesh;
-
 T = nirs.registration.cp2tform(fid,mesh(1).fiducials);
- [xyz]=[probe1020.optodes_registered.X probe1020.optodes_registered.Y...
-     probe1020.optodes_registered.Z];
-xyz(:,4)=1;
-xyz=xyz*T;
 
-probe1020.optodes_registered.X=xyz(:,1);
-probe1020.optodes_registered.Y=xyz(:,2);
-probe1020.optodes_registered.Z=xyz(:,3);
+mesh=nirs.registration.applytform(mesh,inv(T));
+% mesh(1).fiducials.Draw(:)=false;
+% fid.Draw(:)=true;
+%mesh(1).fiducials=[mesh(1).fiducials; fid];
+
+probe1020=probe1020.set_mesh(mesh,mesh(1).fiducials);
+
+
+% 
+% [xyz]=[probe1020.optodes_registered.X probe1020.optodes_registered.Y...
+%     probe1020.optodes_registered.Z];
+% xyz(:,4)=1;
+% 
+% if(isa(probe,'nirs.core.Probe1020'))
+%     probe1020=nirs.registration.applytform(probe,T);
+%     return
+% end
+% 
+% xyz=xyz*T;
+% probe1020.optodes_registered.X=xyz(:,1);
+% probe1020.optodes_registered.Y=xyz(:,2);
+% probe1020.optodes_registered.Z=xyz(:,3);
+
+
+
 
 
 return

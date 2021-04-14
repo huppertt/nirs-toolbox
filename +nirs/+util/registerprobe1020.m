@@ -1,6 +1,21 @@
 function probe1020 = registerprobe1020(probe,headsize,seperateflag,extrapoints)
 % This function registers a probe to the 10-20 system
 
+% This function was intended to register a 2D probe, not to re-register a 3D
+% probe to a different head size.  If you give me a 3D probe, then call the
+% proper version of the function
+if(isa(probe,'nirs.core.Probe1020'))
+    oldheadsize=probe.get_headsize;
+    tbl1020=nirs.util.list_1020pts('?');
+    oldtbl1020=nirs.util.register_headsize(oldheadsize,tbl1020);
+    newtbl1020=nirs.util.register_headsize(headsize,tbl1020);
+    Tform=nirs.registration.cp2tform(oldtbl1020,newtbl1020);
+    
+    probe1020=nirs.registration.applytform(probe,Tform);
+    return;
+end
+
+
 if(nargin>2 && ~isempty(headsize) && isa(headsize,'nirs.core.Mesh'))
     Anatmesh=headsize;
     headsize=nirs.registration.getheadshape(Anatmesh(1));
