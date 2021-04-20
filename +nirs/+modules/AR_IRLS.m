@@ -78,9 +78,19 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     names={names{lstA}};
                 end
                 
-                % check model
-                obj.checkRank( [X C] )
-                obj.checkCondition( [X C] )
+                if(cond(X)>300 & obj.goforit)
+                    [U1,S1,V1]=nirs.math.mysvd(X);
+                    lst=1:rank(X);
+                    X = U1(:,lst)*S1(lst,lst);
+                    V1=V1(:,lst);
+                else
+                    V1=[];
+                    % check model
+                    obj.checkRank( [X C] )
+                    obj.checkCondition( [X C] )
+                end
+                
+                
                 
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
@@ -118,13 +128,26 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                         end
                     end
                 end
+                
+                if(~isempty(V1))
+                    n=size(V1,2);
+                    stats.beta=V1*stats.beta(1:n,:);
+                    c=[];
+                    for j=1:size(stats.covb,3)
+                        for j2=1:size(stats.covb,4)
+                            c(:,:,j,j2)=V1*squeeze(stats.covb(1:n,1:n,j,j2))*V1';
+                        end
+                    end
+                    stats.covb=c;
+                end
+                
                 % put stats
                 ncond = length(names);
                 nchan = size(data(i).probe.link, 1);
                 
                 link = repmat( probe.link, [ncond 1] );
-                cond = repmat(names(:)', [nchan 1]);
-                cond = cond(:);
+                condition = repmat(names(:)', [nchan 1]);
+                condition = condition(:);
                 
                 if(~isempty(strfind(class(probe),'nirs')))
                     S(i) = nirs.core.ChannelStats();
@@ -134,7 +157,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     warning('unsupported data type');
                     S(i) = nirs.core.ChannelStats();
                 end
-                S(i).variables = [link table(cond)];
+                S(i).variables = [link table(condition,'VariableNames',{'cond'})];
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
                 
                 covb = zeros( nchan*ncond );

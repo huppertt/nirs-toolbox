@@ -224,86 +224,40 @@ fid=fopen(filename,'r');
 hdr=struct('start',NaN,'nrows',NaN,'line','','ncols',5,'marks',[]);
 cnt=0; data={};
 
-
+Idx=1; isopen=false; dataopen=false;
+data={};
 while(~feof(fid))
-    
-    line=[];
-    while(isempty(line) || ~isempty(strfind(line,'</SYSTEM>')) || ~isempty(strfind(line,'</SCAN>')) || ~isempty(strfind(line,'</DATA>')))
-        line=fgetl(fid);
-    end
-    bypass=false;
-    if(isempty(strfind(line,'<SYSTEM>')) & isempty(strfind(line,'<SCAN>')))
-        warning(['Header missing: ' filename]);
-        bypass=true; cnt=1;
-    end
-    
-    
-    hdr(end+1)=struct('start',NaN,'nrows',NaN,'line','','ncols',5,'marks',[]);
-    dd={};
-    while(1 & ~bypass)
-        line=fgetl(fid);
-        cnt=cnt+1;
-        if(~isempty(strfind(line,'<DATA>')))
-            break;
+    %find the header blocks
+    line=fgetl(fid);
+    cnt=cnt+1;
+    if(~isempty(strfind(line,'<SCAN>')))
+        hdr(Idx).start=cnt;
+        hdr(Idx).marks=[];
+        data{Idx}=[];
+        Idx=Idx+1;
+        isopen=true;
+    elseif(~isempty(strfind(line,'</SCAN>')))
+        hdr(Idx-1).nrows=cnt-hdr(Idx-1).start;
+        isopen=false;
+    elseif(~isempty(strfind(line,'<DATA>')))
+           isopen=false;
+           dataopen=true;
+    elseif(~isempty(strfind(line,'</DATA>')))
+           isopen=false;
+           dataopen=false;
+    elseif(isopen)
+        line(find(double(line)>122 | double(line)<10))=[];
+        hdr(Idx-1).line=strvcat(hdr(Idx-1).line,line);
+    elseif(dataopen)
+        try
+            data{Idx-1}(end+1,:)=sscanf(line,'%f,%f,%f,%f,%f,%f,%f')';
         end
-        hdr(end).line=strvcat(hdr(end).line,line);
-        if(feof(fid)); break; end;       
-        
-    end
-    hdr(end).start=cnt;
-    cnt2=cnt;
-    while(1)
-        line=fgetl(fid);
-        if(~isempty(line) & ~feof(fid))
-            line(strfind(line,'"'))=[];
-            line=strtrim(line);
-            cnt2=cnt2+1;
-            if(~isempty(strfind(line,'MARK')))
-                hdr(end).marks(end+1)=str2num(line(1:strfind(line,',')));
-            elseif(~isempty(strfind(line,'</DATA>')))
-                line=strtrim(line(1:strfind(line,'</DATA>')-1));
-                dd{end+1}=[line ','];
-                line=fgetl(fid);
-                break;
-            else
-                dd{end+1}=[line ','];
-            end
-            
-        end
-        % cnt=cnt+1;
-        if(feof(fid)); break; end
-    end
-    
-    
-    
-    if(~isempty(dd))
-        cc=[]; idx=1;
-        for i=1:length(dd); 
-           
-            try; 
-                d=dd{i}; d(strfind(d,','))=' '; 
-                cc(:,idx)=sscanf(d,'%f');
-                idx=idx+1;
-            end;
-        end
-%         
-%         str=strcat(dd{:});
-%         str(strfind(str,','))=' ';
-%         c=sscanf(str,'%f');
-%         c=c(1:floor(size(c,1)/6)*6);
-        data{end+1}=cc';
-      %  data{end+1}=reshape(c,6,[])';
-        hdr(end).nrows=cnt2-cnt;
-        cnt=cnt2;
-    end
-    
-    while(~isempty(line) & ~feof(fid))
-        line=fgetl(fid);
+    elseif(~isempty(strfind(line,'MARK')))
+         hdr(Idx-1).marks(end+1)=str2num(line(1:strfind(line,',')));
     end
     
 end
 fclose(fid);
-hdr(1)=[];
 
 
 
