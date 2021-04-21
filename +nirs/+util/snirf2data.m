@@ -149,7 +149,11 @@ for i=1:length(snirf.nirs)
         end
     end
     tmpdata(ii).probe.link=table(source,detector,type);
-    
+	% add registered optodes distances to probe fixeddistances - added by Peggy Skelly
+	if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+		tmpdata(ii).probe.fixeddistances=tmpdata(ii).probe.swap_reg.distances;
+	end
+	
     if(isfield(snirf.nirs(i),'stim'))
         for j=1:length(snirf.nirs(i).stim)
             
