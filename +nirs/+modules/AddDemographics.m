@@ -59,7 +59,8 @@ classdef AddDemographics < nirs.modules.AbstractModule
                     varToMatchA=obj.demoTable.Properties.VariableNames(find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch))));
                     % row idx of demo table
                     T = cell2table(data(i).demographics(obj.varToMatch),'VariableNames',varToMatchA);
-                    [~,idx] = ismember(T,obj.demoTable(:,varToMatchA));
+                  %  [~,idx] = ismember(T,obj.demoTable(:,varToMatchA));
+                    idx = find(ismember(obj.demoTable(:,varToMatchA),T));
                 end
                 
                

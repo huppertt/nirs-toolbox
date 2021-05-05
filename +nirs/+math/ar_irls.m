@@ -1,4 +1,4 @@
-function stats = ar_irls( d,X,Pmax,tune )
+function [stats,resid] = ar_irls( d,X,Pmax,tune )
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -67,6 +67,8 @@ function stats = ar_irls( d,X,Pmax,tune )
     stats.P = zeros(nChan,1);           % the final AR model order
     stats.w = zeros(nTime,nChan);       % save the weights
     stats.dfe = nTime - nCond;          % degrees of freedom
+    
+    
 
 %     
 %        yfiltered=[];
@@ -102,7 +104,7 @@ function stats = ar_irls( d,X,Pmax,tune )
             
         % initial fit
         lstValid=~isnan(y);
-        B = X(lstValid,:) \ y(lstValid);
+        B = pinv(X(lstValid,:))* y(lstValid);
         B0 = 1e6*ones(size(B));
         
         % iterative re-weighted least squares
