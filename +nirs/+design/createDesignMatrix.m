@@ -28,6 +28,7 @@ offset=0;
 % keys are stimulus names and values are stim objects
 stim_keys = stimulus.keys;
 stim_vals = stimulus.values;
+stim_keys=matlab.lang.makeValidName(stim_keys);
 
 X = []; names = {};
 for iKey = 1:length(stim_keys)
