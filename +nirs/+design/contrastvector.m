@@ -10,6 +10,11 @@ if(nargin<3)
     basis=[];
 end
 
+
+
+
+
+
 if(iscellstr(str) | iscell(str))
     for idx=1:length(str)
         [C(idx,:),haserror(idx)] = nirs.design.contrastvector(str{idx},conditions,basis);
@@ -17,6 +22,10 @@ if(iscellstr(str) | iscell(str))
     haserror=any(haserror);
     return;
 end
+
+
+
+
 
 % remove spaces
 for i=1:length(conditions)

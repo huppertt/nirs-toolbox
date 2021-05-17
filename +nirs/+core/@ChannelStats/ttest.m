@@ -21,7 +21,16 @@ function [S,haserror] = ttest(obj, c, b, names)
            names=[];
      end
     
-     
+     if(contains(c,'*'))
+         str2={};
+         for i=1:length(obj.conditions)
+             a=regexp(obj.conditions{i},c);
+             if~isempty(a)
+                 str2{end+1}=obj.conditions{i};
+             end
+         end
+         c=str2;
+     end
      
      
      
