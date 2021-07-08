@@ -73,6 +73,9 @@ for i=1:length(keys)
                  if(ismember(names{i},st.metadata.Properties.VariableNames))
                      for l=1:length(lst)
                          metadata{lst(l),k}=st.metadata.(names{k})(j);
+                         if(iscell(metadata{lst(l),k}) & length(metadata{lst(l),k})==1)
+                             metadata{lst(l),k}=metadata{lst(l),k}{1};
+                         end
                      end
                  end
              end
