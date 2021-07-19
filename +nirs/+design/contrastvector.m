@@ -61,6 +61,16 @@ for i=1:length(S)
         strfind(slocal,'*')])+1:end);
     cond{cnt}=[cond{cnt}(1:min([strfind(cond{cnt},'[')-1 length(cond{cnt})]))...
         cond{cnt}(min([strfind(cond{cnt},']')+1 length(cond{cnt})+1]):end)];
+    
+%     
+%     for i=1:length(cond)
+%         if~(basis.base.iskey(cond{i}))
+%             cond{i}=cond{i}(1:min(strfind(cond{i},':'))-1);
+%         end
+%     end
+    
+    
+    
     if(isempty(strfind(slocal,'[')))
         indices{cnt}=[];
     else
@@ -185,7 +195,7 @@ for idx=1:length(cond)
     else
         lst=[];
         for i=1:length(indices{idx})
-            l=strfind(cond{idx},':');
+            l=[]; %strfind(cond{idx},':');
             if(isempty(l))
                 l=length(cond{idx});
             else
