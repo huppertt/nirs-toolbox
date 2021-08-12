@@ -48,17 +48,20 @@ end
 cnt=1;
 for i=1:length(S)
     slocal=S{i};
-    if(isempty([strfind(slocal,'-') strfind(slocal,'+')]))
+    if(~isempty(strfind(slocal,'x')))
+        multiplier{cnt}=str2num(slocal(1:strfind(slocal,'x')-1));
+        if(isempty(multiplier{cnt}))
+            multiplier{cnt}=1;
+        end
+    elseif(isempty([strfind(slocal,'-') strfind(slocal,'+')]))
         multiplier{cnt}=1;
-    elseif(~isempty(strfind(slocal,'*')))
-        multiplier{cnt}=str2num(slocal(1:strfind(slocal,'*')-1));
     elseif(~isempty(strfind(slocal,'+')))
         multiplier{cnt}=1;
     else
         multiplier{cnt}=-1;
     end
     cond{cnt}=slocal(max([0 strfind(slocal,'-') strfind(slocal,'+') ...
-        strfind(slocal,'*')])+1:end);
+        strfind(slocal,'x')])+1:end);
     cond{cnt}=[cond{cnt}(1:min([strfind(cond{cnt},'[')-1 length(cond{cnt})]))...
         cond{cnt}(min([strfind(cond{cnt},']')+1 length(cond{cnt})+1]):end)];
     
