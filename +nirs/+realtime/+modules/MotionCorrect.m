@@ -1,6 +1,7 @@
-classdef MotionCorrect < handle
+classdef MotionCorrect < nirs.realtime.modules.AbstractModule
    properties
        Tune=1;
+       
    end
    properties(Hidden=true)
         model=4;
@@ -19,10 +20,29 @@ classdef MotionCorrect < handle
    end
     
     methods
-        function obj = MotionCorrect()
+        function obj = MotionCorrect(prevJob)
+            obj.name='RT-motion correct';
+            if nargin > 0
+                obj.prevJob = prevJob;
+            end
         end
         
-        function d = update(obj,d,t)
+        function obj=resetThis(obj)
+            obj.Q1=[];
+            obj.R1=[];
+            obj.P1=[];
+            obj.X1=[];
+            obj.I1=[];
+            obj.LagMtx=[];
+            
+            obj.Q2=[];
+            obj.R2=[];
+            obj.P2=[];
+            obj.X2=[];
+            obj.I2=[];
+        end
+        
+        function [d,t,probe,stimulus] = updateThis(obj,d,t,probe,stimulus)
             
             if(isempty(obj.Q1))
                 obj.I1=speye(obj.model*size(d,2),obj.model*size(d,2));

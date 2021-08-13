@@ -13,6 +13,7 @@ classdef AbstractModule < handle
         % every module must specify a runThis function which performs the
         % core functionality of that module
         output = updateThis( obj, d,t);
+        resetThis(obj);
     end
     
     methods
@@ -57,25 +58,28 @@ classdef AbstractModule < handle
             end
         end
         
-        function out = update( obj, d,t)
+        function [d,t,probe,stimulus] = update( obj,d,t,probe,stimulus)
             
-            if(nargin<2)
-                inputs=[];
-            end
             
             % if no prev job execute and return result
             if isempty( obj.prevJob )
-                
-                out = obj.updateThis(d,t );
-                
-                
+                [d,t,probe,stimulus] = obj.updateThis(d,t,probe,stimulus);
                 % else execute prev job first
             else
-                out = obj.updateThis( obj.prevJob.update(d,t) );
+                [d,t,probe,stimulus] =obj.prevJob.update(d,t,probe,stimulus);
+                [d,t,probe,stimulus] = obj.updateThis(d,t,probe,stimulus);
             end
-            
-            
         end
+        
+        function reset(obj)
+            if isempty( obj.prevJob )
+                obj.resetThis();
+            else
+                obj.prevJob.reset();
+                obj.resetThis();
+            end
+        end
+        
         
         % option interface
         function out = options( obj, opts )
