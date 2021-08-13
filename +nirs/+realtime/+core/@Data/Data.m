@@ -43,6 +43,7 @@ classdef Data < handle
         
         function reset(obj)
             obj.rawdata=[];
+            obj.probe=obj.rawprobe;
             obj.rawprobe=[];
             obj.stimulus=Dictionary();
             obj.auxillary=Dictionary();
@@ -58,13 +59,16 @@ classdef Data < handle
                 obj.drawhandles_data = zeros(size(d,2),1);
             end
            
-            [d2,t,obj.probe,obj.stimulus]=obj.updatefunction.update(d,t,obj.rawprobe,obj.stimulus);
-            
+            if(~isempty(obj.updatefunction))
+                [d2,t,obj.probe,obj.stimulus]=obj.updatefunction.update(d,t,obj.rawprobe,obj.stimulus);
+            else
+                d2=d;
+            end
             obj.rawdata=[obj.rawdata; d];
             obj.data=[obj.data; d2];
             obj.time=[obj.time; t];
             do_once=false;
-           for i=1:length(obj.drawhandles_data)
+            for i=1:length(obj.drawhandles_data)
                 if(ishandle(obj.drawhandles_data(i)))
                     set(obj.drawhandles_data(i),...
                         'Ydata',[get(obj.drawhandles_data(i),'Ydata') d2(:,i)],...
@@ -107,6 +111,7 @@ classdef Data < handle
             stim.amp(end+1,1)=1;
             stim.dur(end+1,1)=inf;
             obj.stimulus(name)=stim;
+            drawstim(obj);
         end
         
         function addeventEnd(obj,name,offset)
@@ -127,12 +132,13 @@ classdef Data < handle
                 return
             end
             obj.stimulus(name)=stim;
+            drawstim(obj);
         end
 
         
         function addevent(obj,name,onset,dur,amp)
             if(nargin<4)
-                dur=1/obj.fs;
+                dur=1/obj.Fs;
             end
             if(nargin<5)
                 amp=1;
@@ -148,6 +154,7 @@ classdef Data < handle
             stim.amp(end+1,1)=1;
             stim.dur(end+1,1)=dur;
             obj.stimulus(name)=stim;
+            drawstim(obj);
         end
         
         
@@ -162,6 +169,15 @@ classdef Data < handle
             data.auxillary=obj.auxillary;
         end
         
+        function drawstim(obj)
+            for i=1:length(obj.drawhandles_data)
+                if(ishandle(obj.drawhandles_data(i)))
+                    axis_handle=get(obj.drawhandles_data(i),'parent');
+                    obj.draw([],false,axis_handle);
+                    return;
+                end
+            end
+        end
         
         %----------------------
         % Same as nirs.core.Data below here
@@ -298,7 +314,12 @@ classdef Data < handle
             if(nargin<3 || isempty(adderr))
                 adderr=false;
             end
-            obj.drawhandles_data=[];
+          
+            if(~isempty(obj.drawhandles_stimulus))
+                delete(obj.drawhandles_stimulus);
+                obj.drawhandles_stimulus=[];
+            end
+            
             
             if(isempty(lstChannels))
                 % draw a plot, but then turn it off to only show the stim
@@ -307,6 +328,7 @@ classdef Data < handle
                 showplot=false;
             else
                 showplot=true;
+                obj.drawhandles_data=[];
             end
             if(isempty(obj(1).data))
                 lstChannels=[];
@@ -354,24 +376,25 @@ classdef Data < handle
                     
                     
                     % min/max of axes
-                    pmin = dmin - 0.2*dsize;
-                    pmax = dmin - 0.05*dsize;
+                    %pmin = dmin - 0.2*dsize;
+                    %pmax = dmin - 0.05*dsize;
                     
                     % adjust amplitude so stims are visible
-                    s = (pmax-pmin)*s + pmin ;
+                    %s = (pmax-pmin)*s + pmin ;
+                    s = s*2E7-1E6;
                     % plot
-                    plot(axis_handle, t, s, 'LineWidth', 3 );
+                    obj.drawhandles_stimulus=plot(axis_handle, t, s, 'LineWidth', 3 );
                     
                     % legend
                     l = legend(axis_handle,k{:});
                     set(l,'Interpreter', 'none');
-                    dmax = max( dmax,max(s(:)));
-                    dmin = min( dmin,min(s(:)));
-                    dsize = (dmax-dmin);
+                %    dmax = max( dmax,max(s(:)));
+                %    dmin = min( dmin,min(s(:)));
+                %    dsize = (dmax-dmin);
                 else
                     m=get(axis_handle,'Position');
                     aa=axes('parent',get(axis_handle,'parent'),'Position',[m(1) m(2) m(3) m(4)/8]);
-                    plot(aa, t, s, 'LineWidth', 3 );
+                    obj.drawhandles_stimulus=plot(aa, t, s, 'LineWidth', 3 );
                     set(aa,'YTickLabel',categories(s));
                     set(axis_handle,'Position',[m(1) m(2)+m(4)/8 m(3) m(4)*7/8]);
                     set(axis_handle,'Xtick',[]);
