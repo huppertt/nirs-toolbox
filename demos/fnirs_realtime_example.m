@@ -32,13 +32,13 @@ data = nirs.realtime.core.Data;
 
 % create a realtime analysis pipeline
 job = nirs.realtime.modules.BandPass;
-job = nirs.realtime.modules.MotionCorrect(job);
+%job = nirs.realtime.modules.MotionCorrect(job);
 data.updatefunction=job;
 
 
 listener = nirs.realtime.listeners.lslStream;
-listener.LSLdata_StreamName='NIRx';
-listener.LSLmarker_StreamName='EprimeLSL';
+listener.LSLdata_StreamName='NIRS';
+listener.LSLmarker_StreamName=[];%'EprimeLSL';
 listener.data_output = data;  % where to send the data (this is the storage class we just created above)
 
 listener.start;

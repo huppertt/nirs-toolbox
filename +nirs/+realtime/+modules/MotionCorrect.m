@@ -84,8 +84,8 @@ classdef MotionCorrect < nirs.realtime.modules.AbstractModule
             obj.P2=(obj.I2-K)*obj.P2;
             
             d = (obj.X2+ H*obj.X1)';
-            obj.LagMtx(1,:)=d';
-           
+            %obj.LagMtx(1,:)=d';
+            obj.LagMtx=d;
             
         end
         
