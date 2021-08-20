@@ -71,10 +71,10 @@ classdef Data < handle
             for i=1:length(obj.drawhandles_data)
                 if(ishandle(obj.drawhandles_data(i)) && obj.drawhandles_data(i)~=0)
                     set(obj.drawhandles_data(i),...
-                        'Ydata',[get(obj.drawhandles_data(i),'Ydata') d2(:,i)],...
-                        'Xdata',[get(obj.drawhandles_data(i),'Xdata') t]);   
+                        'Ydata',[get(obj.drawhandles_data(i),'Ydata') d2(:,i)'],...
+                        'Xdata',[get(obj.drawhandles_data(i),'Xdata') t']);   
                     if(~do_once)
-                        set(get(obj.drawhandles_data(i),'parent'),'Xlim',[obj.time(1) t]);
+                        set(get(obj.drawhandles_data(i),'parent'),'Xlim',[obj.time(1) t(end)]);
                         yy=get(get(obj.drawhandles_data(i),'parent'),'Ylim');
                         ymin=min([yy(:); d2(:)]);
                         ymax=max([yy(:); d2(:)]);

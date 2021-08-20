@@ -7,7 +7,7 @@ classdef BandPass < nirs.realtime.modules.AbstractModule
       
     end
     
-    properties(Hidden=true);
+    properties(Hidden=true)
        model=41;
        previousdata=[];
        fs=[];
@@ -33,7 +33,9 @@ classdef BandPass < nirs.realtime.modules.AbstractModule
         end
         
         function fb =get.fb(obj)
-            if(isempty(obj.fs) || obj.fs==inf || obj.fs<=0)
+           
+            
+            if(isempty(obj.fs(1)) || obj.fs(1)==inf || obj.fs(1)<=0)
                 fb=[];
                 return;
             end
@@ -61,12 +63,12 @@ classdef BandPass < nirs.realtime.modules.AbstractModule
         function [dOut,t,probe,stimulus] = updateThis(obj,d,t,probe,stimulus)
             
             if(isempty(obj.firstsample) & isempty(obj.fs))
-                obj.firstsample=t;
+                obj.firstsample=t(1);
                 dOut=d; 
                 return;
             end
             if(isempty(obj.fs))
-                obj.fs=1/(t-obj.firstsample);
+                obj.fs=1/(t(end)-obj.firstsample);
             end
             
             if(isempty(obj.fb))

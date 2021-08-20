@@ -37,15 +37,19 @@ classdef lslStream < handle
         
         function start(obj)
             if(~isempty(obj.LSLdata_StreamName))
-                result = lsl_resolve_byprop(obj.liblsl,'name',obj.LSLdata_StreamName,1,obj.timeout);
+                result = lsl_resolve_byprop(obj.liblsl,'type',obj.LSLdata_StreamName,1,obj.timeout);
                 if(~isempty(result))
                     obj.LSLdata_Stream = lsl_inlet(result{1});
+                    disp('Now receiving chunked data...');
+                    %FIRST CHUNK PULLED IS SEEMINGLY EMPTY, THEREFORE PULL
+                    %A CHUNK DURING THE INIT:
+                    obj.LSLdata_Stream.pull_chunk();
                 else
                     warning(['Unable to find data stream: ' obj.LSLdata_StreamName]);
                 end
             end
             if(~isempty(obj.LSLmarker_StreamName))
-                result = lsl_resolve_byprop(obj.liblsl,'name',obj.LSLmarker_StreamName,1,obj.timeout);
+                result = lsl_resolve_byprop(obj.liblsl,'type',obj.LSLmarker_StreamName,1,obj.timeout);
                 if(~isempty(result))
                     obj.LSLmarker_Stream = lsl_inlet(result{1});
                 else
@@ -69,14 +73,18 @@ end
 
 function timer_callback(varargin)
 
- 
+    pause(0.05);
     obj=varargin{1}.UserData;
+    
     if(~isempty(obj.LSLdata_Stream))
         [d,t] = obj.LSLdata_Stream.pull_chunk();
+        d=d(2:end,:)'; %first channel is the frame number
+        t=t';
         if(~isempty(t) && ~isempty(obj.data_output))
             obj.data_output.adddata(d,t);
         end
     end
+    
     if(~isempty(obj.LSLmarker_Stream))
         [d,t] = obj.LSLmarker_Stream.pull_chunk();
         if(~isempty(t) && ~isempty(obj.data_output))
