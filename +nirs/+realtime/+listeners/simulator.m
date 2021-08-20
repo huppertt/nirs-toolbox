@@ -38,6 +38,7 @@ classdef simulator < handle
         end
         
         function start(obj)
+            obj.data_output.probe=obj.datasource.probe;
             start(obj.timer);
         end
         function stop(obj)

@@ -20,6 +20,7 @@ listener.data_output = data;  % where to send the data (this is the storage clas
 
 listener.start;
 data.draw;  % now that the storage class is getting data, we can draw it
+% or use "data.gui" 
 
 listener.stop;
 
@@ -37,7 +38,7 @@ data.updatefunction=job;
 
 
 listener = nirs.realtime.listeners.lslStream;
-listener.LSLdata_StreamName='NIRx';
+listener.LSLdata_StreamName='Aurora';
 listener.LSLmarker_StreamName='EprimeLSL';
 listener.data_output = data;  % where to send the data (this is the storage class we just created above)
 

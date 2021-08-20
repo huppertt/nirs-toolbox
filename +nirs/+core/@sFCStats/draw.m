@@ -363,57 +363,74 @@ for cIdx=1:length(obj.conditions)
                     colors = cmap(idx, :);
                     
                     if(strcmp(drawtype,'line'))
-                        posOrig=(obj.probe.srcPos(tbl.SourceOrigin(lst),:)+...
-                            obj.probe.detPos(tbl.DetectorOrigin(lst),:))/2;
-                        posDest=(obj.probe.srcPos(tbl.SourceDest(lst),:)+...
-                            obj.probe.detPos(tbl.DetectorDest(lst),:))/2;
+                        figure(f(cIdx));
+                        sp=subplot(length(utypesOrigin),1,cnt);
+                        
+                        h=obj.probe.draw([],[],sp);
+                        set(h,'Color', [.7 .7 .7]);
+                        
+                        srcPos=obj.probe.srcPos;
+                        detPos=obj.probe.detPos;
+                        
+                        link=obj.probe.link;
+                        link=link(ismember(link.type,link.type(1)),:);
+                        for id=1:length(h)
+                            XYZ=[get(h(id),'XData')' get(h(id),'YData')' get(h(id),'ZData')'];
+                            if(isempty(get(h(id),'ZData')))
+                                XYZ(:,3)=0;
+                            end
+                            srcPos(link.source(end-id+1),:)=XYZ(1,:);
+                            detPos(link.detector(end-id+1),:)=XYZ(2,:);
+                        end
+                        
+                        
+                        posOrig=(srcPos(tbl.SourceOrigin(lst),:)+...
+                            detPos(tbl.DetectorOrigin(lst),:))/2;
+                        posDest=(srcPos(tbl.SourceDest(lst),:)+...
+                            detPos(tbl.DetectorDest(lst),:))/2;
                         
                         
                         X=[posOrig(:,1) posDest(:,1)];
                         Y=[posOrig(:,2) posDest(:,2)];
                         Z=[posOrig(:,3) posDest(:,3)];
                         
-                        figure(f(cIdx));
-                        subplot(length(utypesOrigin),1,cnt);
+                       
                         
                         
-                        
-
-                        
-%                        Draw the probe
-                        link=obj.probe.link;
-                        s=obj.probe.srcPos;
-                        d=obj.probe.detPos;
-                        for iChan = 1:size(link,1)
-                            iSrc = link.source(iChan);
-                            iDet = link.detector(iChan);
-                            
-                            x = [s(iSrc,1) d(iDet,1)]';
-                            y = [s(iSrc,2) d(iDet,2)]';
-                            
-                            h3 = line(x, y, 'Color', [.7 .7 .7]);
-                        end
-                        
+% %                        Draw the probe
+%                         link=obj.probe.link;
+%                         s=obj.probe.srcPos;
+%                         d=obj.probe.detPos;
+%                         for iChan = 1:size(link,1)
+%                             iSrc = link.source(iChan);
+%                             iDet = link.detector(iChan);
+%                             
+%                             x = [s(iSrc,1) d(iDet,1)]';
+%                             y = [s(iSrc,2) d(iDet,2)]';
+%                             
+%                             h3 = line(x, y, 'Color', [.7 .7 .7]);
+%                         end
+%                         
                         h2=[];
                         for idx=1:length(vals)
                             if(m(idx))
                                 h2(end+1)=line(X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:));
                             end
                         end
-                        
-                        for i = 1:size(s,1)
-                            x = s(i,1);
-                            y = s(i,2);
-                            text(x, y,['S' num2str(i)], 'FontSize', 14);
-                        end
-                        
-                        for i = 1:size(d,1)
-                            x = d(i,1);
-                            y = d(i,2);
-                            text(x, y,['D' num2str(i)], 'FontSize', 14);
-                        end
-                        axis off;
-                        axis tight;
+%                         
+%                         for i = 1:size(s,1)
+%                             x = s(i,1);
+%                             y = s(i,2);
+%                             text(x, y,['S' num2str(i)], 'FontSize', 14);
+%                         end
+%                         
+%                         for i = 1:size(d,1)
+%                             x = d(i,1);
+%                             y = d(i,2);
+%                             text(x, y,['D' num2str(i)], 'FontSize', 14);
+%                         end
+%                         axis off;
+%                         axis tight;
                         title([utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
                         
                     else

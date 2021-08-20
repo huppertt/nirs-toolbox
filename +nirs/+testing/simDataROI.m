@@ -8,11 +8,11 @@ if exist('circum_mean') ~= 1 || isempty(circum_mean)
 end
 
 if exist('circum_std') ~= 1 || isempty(circum_std) 
-    circum_std = 50;
+    circum_std = 0;
 end
 
 if exist('reg_err') ~= 1 || isempty(reg_err)
-   reg_err = 8; 
+   reg_err = 5; 
 end
 
 if exist('stimDur') ~= 1 || isempty(stimDur)
@@ -97,7 +97,9 @@ if(nargin<2 || isempty(probe))
     %headsize('circumference')=420;
     noise.demographics('headsize')=headsize;
     
-    probe=nirs.util.registerprobe1020(probe,headsize);    
+    probe=nirs.util.registerprobe1020(probe,headsize);
+    mesh=nirs.registration.Colin27.mesh_V2;
+    probe=probe.register_mesh2probe(mesh);
 end
 
 if(length(probe)>1)

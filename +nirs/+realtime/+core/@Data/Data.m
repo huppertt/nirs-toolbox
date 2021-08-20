@@ -69,7 +69,7 @@ classdef Data < handle
             obj.time=[obj.time; t];
             do_once=false;
             for i=1:length(obj.drawhandles_data)
-                if(ishandle(obj.drawhandles_data(i)))
+                if(ishandle(obj.drawhandles_data(i)) && obj.drawhandles_data(i)~=0)
                     set(obj.drawhandles_data(i),...
                         'Ydata',[get(obj.drawhandles_data(i),'Ydata') d2(:,i)],...
                         'Xdata',[get(obj.drawhandles_data(i),'Xdata') t]);   

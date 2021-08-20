@@ -152,12 +152,21 @@ classdef ChannelStatsROC
                    
                    t = []; p = [];
                    for j = 1:length(types)
+                       if(iscellstr(types(i)))
                        lst = strcmp(types(j), stats.variables.type);
+                       else
+                           lst = find(types(j)==stats.variables.type);
+                       end
                        
                        t(:,j) = truth(lst);
                        p(:,j) = stats.p(lst);
                    end
-                   
+                   if(~iscellstr(types(1)))
+                        for i=1:length(types)
+                            tt{i,1}=[num2str(types(i)) 'nm'];
+                        end
+                        types=tt;
+                   end
                    t(:, end+1) = sum(t, 2) > 0;
                    p(:, end+1) = fstats.p;
                    

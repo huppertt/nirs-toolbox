@@ -33,10 +33,10 @@ tol=sum(abs(V),2);
 V(find(tol<max(tol)*1E-6),:)=0;
 
 US={}; cnt=1;
-for i=1:size(L,1)
+for i=1:length(Lorig)
     US{i}=[];
-     f=fields(Lorig{i});
-    for j=1:size(L,2)
+    f=fields(Lorig{i});
+    for j=1:length(f)
         US{i}=setfield(US{i},f{j},L{cnt}*V);
         cnt=cnt+1;
     end

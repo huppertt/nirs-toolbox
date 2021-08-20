@@ -93,7 +93,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             end
             
             % Do a higher-order generalized SVD
-            [US,V]=nirs.math.hogSVD(Lfwdmodels.values);
+            [US,V]=nirs.math.hogSVD(Lfwdmodels.values');
             % [U1,U2...,V,S1,S2...]=gsvd(L1,L2,...);
             % L1 = U1*S1*V'
             % L2 = U2*S2*V'
@@ -265,7 +265,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 Zlocal=[];
                 
                 subname = tmpvars.subject(i);
-                if(~Lfwdmodels.iskey(subname))
+                if(~Lfwdmodels.iskey(subname{1}))
                     subname='default';
                 end
             
