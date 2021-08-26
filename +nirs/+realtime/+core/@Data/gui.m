@@ -1,16 +1,23 @@
 function h = gui(obj)
-% this launchs the NIRSviewer GUI for this data
+% This launchs the NIRSviewer real-time GUI for streaming data.
+% Note: still work-in-progress -- TN 08.26.2021
 
-h=figure('Tag','nirsviewer');
+h=figure('Tag','nirsRTviewer','Name','NIRS realtime viewer','Position',[0 0 1250 500]);
 set(h,'MenuBar','none');
 
 handles=guihandles(h);
-handles.axis_main = axes('parent',h,...
-    'Units','normalized','Box','on','Position',[.05 .1 .6 .8]);
-xlabel(handles.axis_main,'time (s)');
+
+%axis_Ydata: handle for streaming Y data (e.g. data.draw nested in the GUI)
+handles.axis_Ydata = axes('parent',h,...
+    'Units','pixels','Box','on','Position',[25 175 450 300]);
+
+%axis_Xdata: handle for streaming X data 
+handles.axis_Xdata = axes('parent',h,...
+    'Units','pixels','Box','on','Position',[25 50 450 100]);
+xlabel(handles.axis_Xdata,'time (s)');
 
 handles.axis_sdg = axes('parent',h,...
-    'Units','normalized','Box','on','Position',[.7 .55 .28 .35],...
+    'Units','pixels','Box','on','Position',[500 25 400 425],...
     'XTick',[],'YTick',[]);
 
 try
@@ -19,11 +26,20 @@ catch
     types=arrayfun(@(x){x{1}},obj(1).probe.link.type);
 end
 
+%selecttye: handle for selecting the data type of choice (hbo/hbr, 690/830)
 handles.selecttype = uicontrol('Style','popupmenu','String',unique(types),...
-    'Units','normalized','Position',[.69 .43 .31 .1]);
-set(handles.selecttype,'callback',@changetype);
+    'Units','pixels','Position',[500 450 400 25]);
+%set(handles.selecttype,'callback',@changetype);
+%note when working on changetype callback, it should sync rtpanel as well
 
-linehandles=obj(1).draw(1:height(obj(1).probe.link),[],handles.axis_main);
+handles.rtpanel = uipanel('Title', 'Real-time Analysis',...
+    'Units','pixels','Position',[925 25 300 450]);
+
+%selecttye: handle for selecting the data channels of choice
+handles.selectchans = uitable('parent',handles.rtpanel,...
+    'Units','pixels','Position',[0 0 300 450]);
+
+linehandles=obj(1).draw(1:height(obj(1).probe.link),[],handles.axis_Ydata);
 set(linehandles,'tag','dataline');
 
 SDcolors=nirs.util.makeSDcolors(obj(1).probe.link);
@@ -68,7 +84,7 @@ else
     colorfield='Color';
 end
 
-lines=findobj('type','line','parent',handles.axis_main,'tag','dataline');
+lines=findobj('type','line','parent',handles.axis_Ydata,'tag','dataline');
 isvis={};
 for idx=1:length(lines)
     isvis{idx}=get(lines(idx),'visible');
@@ -96,7 +112,7 @@ handles.SDG_menu=uicontextmenu;
 uimenu(handles.SDG_menu,'Label','All Off','Callback',@setalloff);
 uimenu(handles.SDG_menu,'Label','All On','Callback',@setallon);
 
-set(handles.axis_main,'uiContextMenu',handles.SDG_menu);
+set(handles.axis_Ydata,'uiContextMenu',handles.SDG_menu);
 
 if(isempty(nirs.getStimNames(obj)))
     legend off;
@@ -157,7 +173,7 @@ if(length(obj)>1)
     set(jtable,'MousePressedCallback',@tablechange);
 end
 
-set(handles.axis_main,'userdata',obj);
+set(handles.axis_Ydata,'userdata',obj);
 
 set(h,'userdata',handles);
 
@@ -170,7 +186,7 @@ idx=get(varargin{1},'SelectedRow')+1;
 
 handles=guihandles(findobj('tag','nirsviewer'));
 handles=get(handles(1).nirsviewer,'userdata');
-data=get(handles.axis_main,'userdata');
+data=get(handles.axis_Ydata,'userdata');
 
 flag=false(size(handles.linehandles));
 for i=1:length(handles.linehandles)
@@ -178,8 +194,8 @@ for i=1:length(handles.linehandles)
     colors{i}=get(handles.linehandles(i),'color');
 end
 delete(handles.linehandles);
-cla(handles.axis_main);
-handles.linehandles=data(idx).draw(1:height(data(idx).probe.link),[],handles.axis_main);
+cla(handles.axis_Ydata);
+handles.linehandles=data(idx).draw(1:height(data(idx).probe.link),[],handles.axis_Ydata);
 for i=1:length(handles.linehandles)
     set(handles.linehandles(i),'color',colors{i});
 end
