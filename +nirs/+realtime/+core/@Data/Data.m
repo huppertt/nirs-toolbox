@@ -1,7 +1,7 @@
 classdef Data < handle
     %% DATA - Holds Real-time NIRS data.
-    % 
-    % Properties: 
+    %
+    % Properties:
     %     description  - description of data (e.g. filename)
     %     data         - ntime x nchan array of NIRS data
     %     probe        - a Probe object containing measurement geometry
@@ -12,8 +12,8 @@ classdef Data < handle
     %                    (e.g. stimulus('tapping') returns a StimulusEvents Object)
     %     demographics - a Dictionary object containing demographics info
     %                    (e.g. demographics('age') returns 28)
-    % 
-    %     
+    %
+    %
     %  Methods:
     %     draw - displays the time series data and stimulus timings
     
@@ -52,13 +52,14 @@ classdef Data < handle
         end
         function adddata(obj,d,t)
             
-           
+            stck=dbstack;
+            isGUI = strcmpi(stck(end).name,'gui');
             
             if(isempty(obj.time) && ~isempty(obj.probe))
                 obj.rawprobe=obj.probe;
                 obj.drawhandles_data = zeros(size(d,2),1);
             end
-           
+            
             if(~isempty(obj.updatefunction))
                 [d2,t,obj.probe,obj.stimulus]=obj.updatefunction.update(d,t,obj.rawprobe,obj.stimulus);
             else
@@ -72,9 +73,14 @@ classdef Data < handle
                 if(ishandle(obj.drawhandles_data(i)) && obj.drawhandles_data(i)~=0)
                     set(obj.drawhandles_data(i),...
                         'Ydata',[get(obj.drawhandles_data(i),'Ydata') d2(:,i)'],...
-                        'Xdata',[get(obj.drawhandles_data(i),'Xdata') t']);   
+                        'Xdata',[get(obj.drawhandles_data(i),'Xdata') t'-obj.time(1)]);
                     if(~do_once)
-                        set(get(obj.drawhandles_data(i),'parent'),'Xlim',[obj.time(1) t(end)]);
+                        if t(end)-obj.time(1)>30
+                            set(get(obj.drawhandles_data(i),'parent'),'Xlim',[t(end)-obj.time(1)-30 t(end)-obj.time(1)]);
+                        else
+                            set(get(obj.drawhandles_data(i),'parent'),'Xlim',[0 t(end)-obj.time(1)]);
+                        end
+                        
                         yy=get(get(obj.drawhandles_data(i),'parent'),'Ylim');
                         ymin=min([yy(:); d2(:)]);
                         ymax=max([yy(:); d2(:)]);
@@ -82,7 +88,10 @@ classdef Data < handle
                         do_once=true;
                     end
                 end
-           end
+            end
+            if isGUI
+                set(get(get(obj.drawhandles_data(i),'parent'),'XLabel'),'String','');
+            end
         end
         
         function data = raw(obj)
@@ -134,7 +143,7 @@ classdef Data < handle
             obj.stimulus(name)=stim;
             drawstim(obj);
         end
-
+        
         
         function addevent(obj,name,onset,dur,amp)
             if(nargin<4)
@@ -184,7 +193,7 @@ classdef Data < handle
         
         function obj = Data(probe, Fm, stimulus, demographics, description )
             %% Data - Creates a Data object.
-            % 
+            %
             % Args:
             %     data         - (optional) ntime x nchan array of NIRS data
             %     time         - (optional) a vector containing the time
@@ -193,7 +202,7 @@ classdef Data < handle
             %     stimulus     - (optional) a Dictionary object containing stimulus info
             %     demographics - (optional) a Dictionary object containing demographics info
             %     description  - (optional) description of data (e.g. filename)
-
+            
             if nargin > 1, obj.probe        = probe;        end
             if nargin > 2, obj.Fm           = Fm;           end
             if nargin > 3, obj.stimulus     = stimulus;     end
@@ -202,13 +211,13 @@ classdef Data < handle
         end
         
         function set.stimulus( obj, stim )
-           assert( isa(stim,'Dictionary') )
-           obj.stimulus = stim;
+            assert( isa(stim,'Dictionary') )
+            obj.stimulus = stim;
         end
         
         function set.demographics( obj, demo )
-           assert( isa(demo,'Dictionary') )
-           obj.demographics = demo;
+            assert( isa(demo,'Dictionary') )
+            obj.demographics = demo;
         end
         
         function set.auxillary( obj, auxillary )
@@ -218,9 +227,9 @@ classdef Data < handle
         
         
         function set.time( obj, time )
-           assert( isvector(time) | isempty(time))
-           obj.time = time(:);
-           
+            assert( isvector(time) | isempty(time))
+            obj.time = time(:);
+            
         end
         
         function out = get.Fs( obj )
@@ -272,9 +281,9 @@ classdef Data < handle
             end
             t = obj.time;
             conds = obj.stimulus.keys;
-           % X = zeros(length(t),length(conds));  %This is less efficient
-           % but allows X to keep the class of the stim vector which allows
-           % comidations for ordinal and catagorcial vectors
+            % X = zeros(length(t),length(conds));  %This is less efficient
+            % but allows X to keep the class of the stim vector which allows
+            % comidations for ordinal and catagorcial vectors
             for i = 1:length(conds)
                 stim = obj.stimulus(conds{i});
                 X(:,i) = stim.getStimVector(t);
@@ -299,7 +308,7 @@ classdef Data < handle
         
         function varargout=draw( obj, lstChannels,adderr,axis_handle )
             %% draw - Plots the probe geometry.
-            % 
+            %
             % Args:
             %     lstChannels - list of channels to show
             
@@ -314,7 +323,7 @@ classdef Data < handle
             if(nargin<3 || isempty(adderr))
                 adderr=false;
             end
-          
+            
             if(~isempty(obj.drawhandles_stimulus))
                 delete(obj.drawhandles_stimulus);
                 obj.drawhandles_stimulus=[];
@@ -357,7 +366,7 @@ classdef Data < handle
                 end
             end
             
-
+            
             % plots
             nextplot=get(axis_handle,'NextPlot');
             hold(axis_handle,'on');
@@ -368,7 +377,7 @@ classdef Data < handle
             dsize = (dmax-dmin);
             
             % plot stim blocks if available
-            if ~isempty(s) 
+            if ~isempty(s)
                 if(~isa(s,'ordinal') & ~isa(s,'categorical'))
                     for j=1:size(s,2)
                         s(:,j)=s(:,j)./(ones(size(s(:,j)))*max(s(:,j)));
@@ -388,9 +397,9 @@ classdef Data < handle
                     % legend
                     l = legend(axis_handle,k{:});
                     set(l,'Interpreter', 'none');
-                %    dmax = max( dmax,max(s(:)));
-                %    dmin = min( dmin,min(s(:)));
-                %    dsize = (dmax-dmin);
+                    %    dmax = max( dmax,max(s(:)));
+                    %    dmin = min( dmin,min(s(:)));
+                    %    dsize = (dmax-dmin);
                 else
                     m=get(axis_handle,'Position');
                     aa=axes('parent',get(axis_handle,'parent'),'Position',[m(1) m(2) m(3) m(4)/8]);
@@ -403,9 +412,9 @@ classdef Data < handle
                 
                 
             end
-                % min/max of axes
-               	pmin = dmin - 0.1*dsize;
-                pmax = dmax + 0.1*dsize;
+            % min/max of axes
+            pmin = dmin - 0.1*dsize;
+            pmax = dmax + 0.1*dsize;
             
             
             % plot data
@@ -420,10 +429,10 @@ classdef Data < handle
                 legend(axis_handle,obj.stimulus.keys)
             end
             
-                
+            
             if(isempty(t) || min(t)==max(t))
-            % axes limits
-             xlim(axis_handle, [0 1] );
+                % axes limits
+                xlim(axis_handle, [0 1] );
             else
                 xlim(axis_handle, [min(t) max(t)] );
             end
@@ -448,9 +457,9 @@ classdef Data < handle
             
         end
         
-          function varargout=drawwaterfall( obj, lstChannels,adderr,axis_handle )
+        function varargout=drawwaterfall( obj, lstChannels,adderr,axis_handle )
             %% draw - Plots the probe geometry.
-            % 
+            %
             % Args:
             %     lstChannels - list of channels to show
             
@@ -500,7 +509,7 @@ classdef Data < handle
                 s = [s obj.stimulus.values{i}.getStimVector( t )];
             end
             
-
+            
             % plots
             hold(axis_handle,'on');
             
@@ -510,12 +519,12 @@ classdef Data < handle
             dsize = (dmax-dmin);
             set(axis_handle,'view',[  -44.0191   74.3316])
             % plot stim blocks if available
-            if ~isempty(s) 
+            if ~isempty(s)
                 s=s./(ones(size(s))*max(s(:)));
                 % min/max of axes
                 pmin = dmin;
                 pmax = dmax;
-
+                
                 % adjust amplitude so stims are visible
                 s = .2*(pmax-pmin)*s + pmin ;
                 
@@ -525,14 +534,14 @@ classdef Data < handle
                 % legend
                 l = legend(axis_handle,k{:});
                 set(l,'Interpreter', 'none');
-           
-            dsize = (dmax-dmin);
+                
+                dsize = (dmax-dmin);
                 
                 
             end
-                % min/max of axes
-               	pmin = dmin - 0.1*dsize;
-                pmax = dmax + 0.1*dsize;
+            % min/max of axes
+            pmin = dmin - 0.1*dsize;
+            pmax = dmax + 0.1*dsize;
             
             
             % plot data
@@ -545,19 +554,19 @@ classdef Data < handle
                 legend(axis_handle,obj.stimulus.keys)
             end
             
-                
-         
-             
+            
+            
+            
             if(isempty(t) || min(t)==max(t))
-            % axes limits
-             ylim(axis_handle, [0 1] );
+                % axes limits
+                ylim(axis_handle, [0 1] );
             else
                 ylim(axis_handle, [min(t) max(t)] );
             end
             if(isempty(pmin))
                 zlim(axis_handle,[-1 1]);
             elseif (pmin == pmax)
-                 zlim(axis_handle,pmin + [-1 1]);
+                zlim(axis_handle,pmin + [-1 1]);
             else
                 zlim(axis_handle, [dmin dmax] );
             end
@@ -566,10 +575,10 @@ classdef Data < handle
             
             names{1}='Stim';
             for i=1:length(lstChannels)
-               type=obj.probe.link.type(lstChannels(i));
-               if(~iscellstr(type))
-                   type=[num2str(type) 'nm'];
-               end
+                type=obj.probe.link.type(lstChannels(i));
+                if(~iscellstr(type))
+                    type=[num2str(type) 'nm'];
+                end
                 names{i+1}=['Src' num2str(obj.probe.link.source(lstChannels(i))) '-Det' ...
                     num2str(obj.probe.link.detector(lstChannels(i))) ' (' type ')'];
             end
@@ -585,9 +594,9 @@ classdef Data < handle
                 varargout{1}=h;
             end
             
-          end
+        end
         
-          f = gui( obj);
+        f = gui( obj);
         
     end
 end
