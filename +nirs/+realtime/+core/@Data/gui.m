@@ -1,8 +1,8 @@
 function h = gui(obj)
-% This launchs the NIRSviewer real-time GUI for streaming data.
+% This launchs the nirsRTviewer real-time GUI for streaming data.
 % Note: still work-in-progress -- TN 08.26.2021
 
-h=figure('Tag','nirsRTviewer','Name','NIRS realtime viewer','Position',[0 0 1250 500]);
+h=figure('Tag','nirsRTviewer','Name','NIRS realtime viewer','Position',[0 0 1250 500]);%,'HandleVisibility','on');
 set(h,'MenuBar','none');
 
 handles=guihandles(h);
@@ -17,8 +17,11 @@ handles.axis_Xdata = axes('parent',h,...
 xlabel(handles.axis_Xdata,'time (s)');
 
 handles.axis_sdg = axes('parent',h,...
-    'Units','pixels','Box','on','Position',[500 25 400 425],...
+    'Units','pixels','Box','on','Position',[500 50 400 400],...
     'XTick',[],'YTick',[]);
+
+annotation('textbox','Units','pixels','Position',[500 25 400 25]...
+    ,'String','Probe Configuration','HorizontalAlignment','center','EdgeColor','none');
 
 try
     types=arrayfun(@(x){num2str(x)},obj(1).probe.link.type);
@@ -27,17 +30,28 @@ catch
 end
 
 %selecttye: handle for selecting the data type of choice (hbo/hbr, 690/830)
-handles.selecttype = uicontrol('Style','popupmenu','String',unique(types),...
+handles.selecttype = uicontrol(h,'Style','popupmenu','String',unique(types),...
     'Units','pixels','Position',[500 450 400 25]);
-%set(handles.selecttype,'callback',@changetype);
-%note when working on changetype callback, it should sync rtpanel as well
+set(handles.selecttype,'callback',@changetype);
+%note when working on changetype callback, it should sync selectchans as well
+
+
+handles.selectall = uicontrol(h,'Style','pushbutton','Units','pixels','Position',[925 450 75 25],'String','Select All');
+handles.clearall = uicontrol(h,'Style','pushbutton','Units','pixels','Position',[1000 450 75 25],'String','Clear All');
 
 handles.rtpanel = uipanel('Title', 'Real-time Analysis',...
-    'Units','pixels','Position',[925 25 300 450]);
+    'Units','pixels','Position',[925 25 300 425]);
 
-%selecttye: handle for selecting the data channels of choice
+t = table2cell(table(true(size(obj.probe.link,1),1),obj.probe.link.source,...
+    obj.probe.link.detector,nan(size(obj.probe.link,1),1),nan(size(obj.probe.link,1),1)));
+%selectchans: handle for selecting the data channels of choice
 handles.selectchans = uitable('parent',handles.rtpanel,...
-    'Units','pixels','Position',[0 0 300 450]);
+    'Units','pixels','Position',[0 0 300 415],'Data',t);
+handles.selectchans.ColumnName = {'Plot','S','D','<html>&#x03b2 </html>','p'};
+handles.selectchans.ColumnFormat={'logical','numeric','numeric','long','long'};
+handles.selectchans.ColumnEditable = logical([1,0,0,0,0]);
+handles.selectchans.ColumnWidth = {31,25,25,85,85};
+
 
 linehandles=obj(1).draw(1:height(obj(1).probe.link),[],handles.axis_Ydata);
 set(linehandles,'tag','dataline');
@@ -184,8 +198,8 @@ function tablechange(varargin)
 idx=get(varargin{1},'SelectedRow')+1;
 
 
-handles=guihandles(findobj('tag','nirsviewer'));
-handles=get(handles(1).nirsviewer,'userdata');
+handles=guihandles(findobj('tag','nirsRTviewer'));
+handles=get(handles(1).nirsRTviewer,'userdata');
 data=get(handles.axis_Ydata,'userdata');
 
 flag=false(size(handles.linehandles));
@@ -214,7 +228,7 @@ for idx=1:length(handles.SDGhandles)
     
     handles.linelinks(idx)=linkprop([handles.linehandles(handles.LstAll(idx,ii)),handles.SDGhandles(idx)],{'Visible','Color'});
 end
-set(handles.nirsviewer,'userdata',handles);
+set(handles.nirsRTviewer,'userdata',handles);
 
 
 return
@@ -223,13 +237,13 @@ return
 
 function setalloff(varargin)
 handles=guihandles(gcbo);
-handles=get(handles.nirsviewer,'userdata');
+handles=get(handles.nirsRTviewer,'userdata');
  set(handles.SDGhandles,'visible','off');
 return
 
 function setallon(varargin)
 handles=guihandles(gcbo);
-handles=get(handles.nirsviewer,'userdata');
+handles=get(handles.nirsRTviewer,'userdata');
  set(handles.SDGhandles,'visible','on');
 return
 
@@ -238,7 +252,7 @@ return
 function changetype(varargin)
 
 handles=guihandles(gcbo);
-handles=get(handles.nirsviewer,'userdata');
+handles=get(handles.nirsRTviewer,'userdata');
 subtype=get(handles.selecttype);
 
 flag=false(length(handles.linehandles),1);
@@ -259,6 +273,6 @@ for idx=1:length(handles.SDGhandles)
     warning('off','MATLAB:linkprop:InvalidProperty');
     handles.linelinks(idx)=linkprop([handles.linehandles(handles.LstAll(idx,ii)),handles.SDGhandles(idx)],{'Visible','Color'});
 end
-set(handles.nirsviewer,'userdata',handles);
+set(handles.nirsRTviewer,'userdata',handles);
 
 return
