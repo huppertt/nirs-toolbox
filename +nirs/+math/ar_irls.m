@@ -192,6 +192,36 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune )
         
         stats.filter{i}=f;
         stats.R2(i)=max(1-mad(yf(lstValid)-Xf*B)/mad(yf(lstValid)),0);
+        
+        
+        sse = norm((S.w.*S.resid).^2);
+        ssr = norm((S.w.*yf(lstValid)-mean(S.w.*yf(lstValid))).^2);
+        n=sum(S.w)-size(X,2);
+        p=size(X,2);
+        
+        for j=1:size(Xf,2)
+            ssp = norm((S.w.*S.resid+S.w.*Xf(:,j)*stats.beta(j,i)).^2);
+            F1=(ssr/p)/(sse/n);
+            F2=(ssr/(p))/(ssp/(n+1));
+            F(j)=F2-F1;
+        end
+        stats.F(:,i)=F;
+        stats.Fpval(:,i)=1-fcdf(1./F,1,1);
+        
+        
+%      sse = norm(residuals)^2;    % sum of squared errors
+%      ssr = norm(yhat - ybar)^2;  % regression sum of squares
+%      d.sse = sse;
+%      d.dfe = dfe;
+%      d.dfr = p-1;
+%      d.ssr = ssr;
+%      d.f = (d.ssr/d.dfr)/(d.sse/d.dfe);
+%      d.pval = fpval(d.f, d.dfr, d.dfe);
+        
+        
+        
+        
+        
         end
         
     end   
