@@ -23,6 +23,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
     properties
         useREML=false;
         nonstationary_noise=false;
+        useFstats=false;
     end
     methods
         function obj = AR_IRLS( prevJob )
@@ -129,6 +130,8 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     end
                 end
                 
+                
+                
                 if(~isempty(V1))
                     n=size(V1,2);
                     stats.beta=V1*stats.beta(1:n,:);
@@ -159,6 +162,10 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 end
                 S(i).variables = [link table(condition,'VariableNames',{'cond'})];
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
+                
+                if(obj.useFstats)
+                    S(i).pvalue_fixed=vec( stats.Fpval(1:ncond,:)' );
+                end
                 
                 covb = zeros( nchan*ncond );
                 if(ndims(stats.covb)==4)
