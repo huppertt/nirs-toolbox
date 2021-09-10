@@ -456,6 +456,11 @@ classdef ChannelStats
             out.probe.link = nirs.util.sortrows(out.probe.link,{colsToSortBy{ismember(colsToSortBy,out.probe.link.Properties.VariableNames)}}); %out.probe.link(idx,:);
             out.beta = obj.beta(idx);
             out.covb = obj.covb(idx, idx);
+            
+            if(~isempty(out.pvalue_fixed))
+                out.pvalue_fixed=out.pvalue_fixed(idx);
+            end
+            
         end
         
         [stats,haserror] = ttest( obj, c, b, names );

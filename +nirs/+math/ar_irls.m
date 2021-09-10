@@ -1,4 +1,4 @@
-function [stats,resid] = ar_irls( d,X,Pmax,tune )
+function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -49,10 +49,12 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune )
  
     warning('off','stats:statrobustfit:IterationLimit')
     
-    if nargin < 4
+    if nargin < 4 || isempty(tune)
         tune = 4.685;
     end
-    
+    if(nargin<5)
+        nosearch=false;
+    end
        
     % preallocate stats
     nCond = size(X,2);
@@ -122,7 +124,12 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune )
             res = y - X*B;
                         
             % fit the residual to an ar model
-            a = nirs.math.ar_fit(res, Pmax);
+            if(length(Pmax)>1)
+                p=Pmax(i);
+            else
+                p=Pmax;
+            end
+            a = nirs.math.ar_fit(res, p,nosearch);
             
             % create a whitening filter from the coefficients
             f = [1; -a(2:end)];
@@ -191,36 +198,13 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune )
         resid(lstValid,i)=S.resid.*S.w; 
         
         stats.filter{i}=f;
-        stats.R2(i)=max(1-mad(yf(lstValid)-Xf*B)/mad(yf(lstValid)),0);
+        sse =  norm(yf - Xf*B-mean(yf - Xf*B))^2;
+        sst =  norm(yf - mean(yf))^2;
+        stats.R2(i)=1-sse./sst;
         
-        
-        sse = norm((S.w.*S.resid).^2);
-        ssr = norm((S.w.*yf(lstValid)-mean(S.w.*yf(lstValid))).^2);
-        n=sum(S.w)-size(X,2);
-        p=size(X,2);
-        
-        for j=1:size(Xf,2)
-            ssp = norm((S.w.*S.resid+S.w.*Xf(:,j)*stats.beta(j,i)).^2);
-            F1=(ssr/p)/(sse/n);
-            F2=(ssr/(p))/(ssp/(n+1));
-            F(j)=F2-F1;
-        end
-        stats.F(:,i)=F;
-        stats.Fpval(:,i)=1-fcdf(1./F,1,1);
-        
-        
-%      sse = norm(residuals)^2;    % sum of squared errors
-%      ssr = norm(yhat - ybar)^2;  % regression sum of squares
-%      d.sse = sse;
-%      d.dfe = dfe;
-%      d.dfr = p-1;
-%      d.ssr = ssr;
-%      d.f = (d.ssr/d.dfr)/(d.sse/d.dfe);
-%      d.pval = fpval(d.f, d.dfr, d.dfe);
-        
-        
-        
-        
+        N=length(y)-size(B,2)-stats.P(i);
+        stats.logLik(i)=(-N/2)*log(2*pi*sse/N)-N/2;
+       
         
         end
         
