@@ -21,6 +21,7 @@ function [S,haserror] = ttest(obj, c, b, names)
            names=[];
      end
     
+     if(isstr(c) | iscellstr(c))
      if(contains(c,'*'))
          str2={};
          for i=1:length(obj.conditions)
@@ -32,7 +33,7 @@ function [S,haserror] = ttest(obj, c, b, names)
          c=str2;
      end
      
-     
+     end
      
      if(length(obj)>1)
          

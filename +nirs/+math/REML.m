@@ -222,7 +222,7 @@ else
         I=eye(size(H,1));
        % warning('off','MATLAB:nearlySingularMatrix');
         
-       dL = (expm(H*t) - I)*inv(full(H)+eye(size(H))*1E-10)*g;
+       dL = (expm(H*t) - I)*pinv(full(H)+eye(size(H))*1E-10)*g;
        %dL= pinv(H)*g;
        lambda = lambda + dL;
         

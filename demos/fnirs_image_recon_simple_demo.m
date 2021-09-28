@@ -189,7 +189,7 @@ job.probe('default')=SubjStats.probe;
 % with different forward solutions, you need to have them all project to a
 % common space see; % Abdelnour, F., & Huppert, T. (2011). A random-effects model for group-level analysis of diffuse opti
 % cal brain imaging. Biomedical optics express, 2(1), 1-25.
-job.mesh=ApproxSlab.mesh;  
+job.mesh=ApproxSlab.mesh(end);  
  
 % finally, lets use a Gaussian smoothing basis set
 job.basis=nirs.inverse.basis.gaussian(job.mesh,15); %1.5cm surface smoothing kernel  

@@ -127,9 +127,7 @@ classdef ChannelStatsROC
                    
                    
                    if(ismember('ShortSeperation',data(1).probe.link.Properties.VariableNames))
-                       if(any(data(1).probe.link.ShortSeperation) & ~any(stats(1).probe.link.ShortSeperation))
-                           truth = truth(~data(1).probe.link.ShortSeperation);
-                       elseif(any(stats(1).probe.link.ShortSeperation))
+                      if(any(stats(1).probe.link.ShortSeperation))
                            truth = truth(~data(1).probe.link.ShortSeperation);
                            job=nirs.modules.RemoveShortSeperations;
                            stats=job.run(stats);
