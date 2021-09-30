@@ -3,6 +3,7 @@ classdef MixedEffects_bootstrap < nirs.modules.MixedEffects
         number_iterations=1000;
         replacement=true;
         useparallel=false;
+        savefile = 'bb';
     end
      methods
         function obj = MixedEffects_bootstrap( prevJob )
@@ -28,6 +29,8 @@ classdef MixedEffects_bootstrap < nirs.modules.MixedEffects
             else
                 bb=jackknife(@(x)job.run(x).beta,S,'Options',opt); 
             end
+            
+            save([obj.savefile '.mat'], 'bb', '-v7.3')
            
             beta=mean(bb,1)';
             covB=cov(bb);
