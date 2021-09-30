@@ -16,17 +16,17 @@ classdef MixedEffects_bootstrap < nirs.modules.MixedEffects
              job = nirs.modules.MixedEffects;
             flds=fields(obj);
              flds2=fields(job);
-             flds=intersect(flds2,flds);
+             flds=intersect(flds2,flds)
             for i=1:length(flds)
                 job.(flds{i})=obj.(flds{i});
             end
             
-            opt = statset('UseParallel',obj.useparallel,'Display','iter');
+%             opt = statset('UseParallel',obj.useparallel,'Display','iter');
             
             if(obj.replacement)
-                bb=bootstrp(obj.number_iterations,@(x)job.run(x).beta,S,'Options',opt); 
+                bb=bootstrp(obj.number_iterations,@(x)job.run(x).beta,S); 
             else
-                bb=jackknife(@(x)job.run(x).beta,S,'Options',opt); 
+                bb=jackknife(@(x)job.run(x).beta,S); 
             end
            
             beta=mean(bb,1)';
@@ -35,9 +35,9 @@ classdef MixedEffects_bootstrap < nirs.modules.MixedEffects
             for i=1:length(beta)
                 % this matches the one-sided T-test
                 if(beta(i)>0)
-                    pval(i,1)=length(1+find(bb(:,i)<=0))/size(bb,1);
+                    pval(i,1)=length(find(bb(:,i)<=0))/size(bb,1);
                 else
-                    pval(i,1)=length(1+find(bb(:,i)>0))/size(bb,1);
+                    pval(i,1)=length(find(bb(:,i)>0))/size(bb,1);
                 end
             end
             G=job.run(S);
