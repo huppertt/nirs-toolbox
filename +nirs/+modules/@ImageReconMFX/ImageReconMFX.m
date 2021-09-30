@@ -291,8 +291,11 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
                 ZFull=[ZFull; Zlocal];
             end
             
-            
-            
+            for ii=2:size(X,2)
+                Basis=blkdiag(Basis,Basis);
+                V=blkdiag(V,V);
+            end
+            Basis=sparse(Basis);
             
             
             if(isempty(ZFull)), ZFull=zeros(size(XFull,1),0); end;
@@ -332,6 +335,9 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             beta = W*beta;
             
             n=size(Basis,1);
+            
+            
+            
             
             iB=V'*Basis';
             a=iB*eye(n,n)*iB';
@@ -415,7 +421,7 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             
             G.typeII_StdE=1/eps(1)*ones(size(fwd,1),1);
             Lst=find(sum(abs(fwd),2)~=0);
-            G.typeII_StdE(Lst) =diag(fwd(Lst,:) * sqrt(VarMDU'));
+            G.typeII_StdE(Lst) =fwd(Lst,:) * diag(sqrt(VarMDU'));
             %G.typeII_StdE(Lst) =fwd(Lst,:) * sqrt(diag(S));
             
             %             %Now deal with the ReML covariace terms
