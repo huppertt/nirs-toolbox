@@ -52,6 +52,7 @@ classdef ChannelStats
         pvalue_fixed;
         categoricalvariableInfo;
         WhiteningW;
+        tag;
     end
     
     

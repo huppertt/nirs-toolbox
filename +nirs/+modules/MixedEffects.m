@@ -285,11 +285,17 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 tic;
             end
             
+           
+            
             [Coef,bHat,CovB,LL,w] = nirs.math.fitlme(X(:,lstKeep),beta,Z,obj.robust,false,obj.verbose);
             % this gives the same results as the built in matlab code,
             % however, mine is MUCH faster (at N=22; mine=18s vs matlab=>160s 
             % lme2=fitlmematrix(X(:,lstKeep),beta,Z,[],'dummyVarCoding',obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
-        
+            [ii,jj]=find(isnan(X(:,lstKeep)));
+            ii=unique(ii);
+            w2=w; w2(ii)=[]; X2=X(:,lstKeep); X2(ii,:)=[];
+            A=diag(w2)*X2;
+            ra=condest(A'*A);
             
             if(obj.use_nonparametric_stats)
                disp('Running permutation testing for non-parametric statistics');
@@ -329,8 +335,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.covb=1E6*eye(size(X,2)); %make sure anything not fit will have high variance
             
             G.beta(lstKeep) = Coef;
+            G.beta(end+1)=ra;  
+            warning('remove MixedEffects line 334');
             G.covb(lstKeep,lstKeep) = CovB;
-            G.dfe        = lm1.DFE;
+            G.dfe        = lm1.DFE; 
             
             %             [U,~,~]=nirs.math.mysvd(full([X(:,lstKeep) Z]));
             %             G.dfe=length(beta)-sum(U(:).*U(:));
@@ -338,6 +346,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.probe      = S(1).probe;
             
             G.WhiteningW=W;
+            
+            G.tag.cond=ra;
             
             if(~ismember('source',vars.Properties.VariableNames) & ...
                     ismember('ROI',vars.Properties.VariableNames))

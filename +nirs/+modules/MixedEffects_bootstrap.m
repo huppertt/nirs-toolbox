@@ -27,11 +27,13 @@ classdef MixedEffects_bootstrap < nirs.modules.MixedEffects
             if(obj.replacement)
                 bb=bootstrp(obj.number_iterations,@(x)job.run(x).beta,S,'Options',opt); 
             else
-                bb=jackknife(@(x)job.run(x).beta,S,'Options',opt); 
+                bb=jackknife(@(x)job.run(x).beta ,S,'Options',opt); 
             end
             
             save([obj.savefile '.mat'], 'bb', '-v7.3')
            
+            conds=bb(end,:); %%remove
+            bb(end,:)=[];    %%remove
             beta=mean(bb,1)';
             covB=cov(bb);
             
