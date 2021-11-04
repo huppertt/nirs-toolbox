@@ -56,19 +56,10 @@ for i=1:headsize.count
     end        
 end
 
-% 
-% 
-%     cost=@(dx)mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1);
-%     opt = optimset('MaxFunEvals', 1000,'Display','off');
-%     x=lsqnonlin(cost,dx,[],[],opt);
-% else
-%     cost=@(dx)mad(mask.*reshape(abs(squareform(pdist(pos+reshape(dx,size(pos))))-idealdist),[],1));
-%     opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
-%     x=fminsearch(cost,dx,opt);
-% end
 
 if(~isempty(ver('optim')))
     opt = optimoptions('lsqnonlin', 'MaxFunEvals', 1000,'Display','off');
+   
     if(headsize.count>2)
         cstfcn=@(x)vertcat(cell2mat(cellfun(@(a){a(x)},cost)'));
         s=lsqnonlin(cstfcn,[1 1 1],[.5 .5 .5],[2 2 2],opt);

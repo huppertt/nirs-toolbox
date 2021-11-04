@@ -379,8 +379,9 @@ for cIdx=1:length(obj.conditions)
                             if(isempty(get(h(id),'ZData')))
                                 XYZ(:,3)=0;
                             end
-                            srcPos(link.source(end-id+1),:)=XYZ(1,:);
-                            detPos(link.detector(end-id+1),:)=XYZ(2,:);
+                            srcPos(link.source(id),:)=XYZ(1,:);
+                            detPos(link.detector(id),:)=XYZ(2,:);
+                           
                         end
                         
                         
