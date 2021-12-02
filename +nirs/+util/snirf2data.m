@@ -117,7 +117,7 @@ for i=1:length(snirf.nirs)
             Z(end+1,1)=0;
         end
         % add landmarks
-        if(isfield(snirf.nirs(i).probe,'landmarkLabels'));
+        if(isfield(snirf.nirs(i).probe,'landmarkLabels') & isfield(snirf.nirs(i).probe,'landmarkPos'))
             for j=1:length(snirf.nirs(i).probe.landmarkLabels)
                 Type{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID'):end);
                 Name{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(1:strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID')-1);
@@ -150,6 +150,9 @@ for i=1:length(snirf.nirs)
             end
             if(isfield(snirf.nirs(i).probe,'landmarkLabels'));
                 % add landmarks
+                if(size(snirf.nirs(i).probe.landmarkPos3D,2)>size(snirf.nirs(i).probe.landmarkPos3D,1));
+                    snirf.nirs(i).probe.landmarkPos3D=snirf.nirs(i).probe.landmarkPos3D';
+                end
                 for j=1:length(snirf.nirs(i).probe.landmarkLabels)
                     Type{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID'):end);
                     Name{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(1:strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID')-1);
