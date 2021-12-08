@@ -23,7 +23,8 @@ jobs.Output='dOD';
 jobs = nirs.modules.TrimBaseline( jobs );
 jobs.preBaseline   = 30;
 jobs.postBaseline  = 30;
-jobs = nirs.modules.AR_IRLS(jobs );
+jobs = nirs.modules.GLM(jobs );
+jobs.AddShortSepRegressors=true;
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='SubjStats';
 
@@ -35,7 +36,7 @@ lambda=unique(probe.link.type);
 Slab.prop=nirs.media.tissues.brain(lambda,.7,50);
 Slab.mesh=probe.getmesh();
 Slab.mesh=Slab.mesh(end);
-Slab.mesh=Slab.mesh.reducemesh(.1);
+%Slab.mesh=Slab.mesh.reducemesh(.1);
 
 Slab.probe=probe;
 Jac=Slab.jacobian('spectral');

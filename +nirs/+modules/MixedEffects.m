@@ -335,8 +335,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
             G.covb=1E6*eye(size(X,2)); %make sure anything not fit will have high variance
             
             G.beta(lstKeep) = Coef;
-            G.beta(end+1)=ra;  
-            warning('remove MixedEffects line 334');
+            %G.beta(end+1)=ra;  
+%            warning('remove MixedEffects line 334');
             G.covb(lstKeep,lstKeep) = CovB;
             G.dfe        = lm1.DFE; 
             
