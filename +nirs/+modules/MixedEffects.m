@@ -420,8 +420,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
 %                     end
                     s{end+1}='beta';
                     
-                    %lme2=fitlm(X(:,lstKeep([ll; nll])),yproj,'Intercept',false,'VarNames',s');
-                    lme2=fitlm(X(:,lstKeep(ll)),yproj,'Intercept',false,'VarNames',s');
+%                     lme2=fitlm(X(:,lstKeep([ll; nll])),yproj,'Intercept',false,'VarNames',s');
+                    lme2=fitlm(full(X(:,lstKeep(ll))),yproj,'Intercept',false,'VarNames',s');
                     
                     id=find(ismember(G.variables,vars(ll,:)));
                     for j=1:length(id)
