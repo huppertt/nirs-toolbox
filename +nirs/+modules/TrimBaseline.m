@@ -10,6 +10,7 @@ classdef TrimBaseline < nirs.modules.AbstractModule
         preBaseline  = 30;  % maximum baseline (seconds) at the beginning of scan
         postBaseline = 30;  % maximum baseline (seconds) after final task period ends
         resetTime = false;  % flag indicating whether the time vector should be reset so t(1)=0 (default: false)
+        Trim_Auxillary_Data=true;
     end
     
     methods
@@ -65,6 +66,19 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                 t = t(lst);
                 d = d(lst,:);
                 
+                if(obj.Trim_Auxillary_Data && isa(data(i),'nirs.core.Data') && data(i).auxillary.count>0)
+                    for j=1:data(i).auxillary.count
+                        key= data(i).auxillary.keys{j};
+                        try
+                            dd=data(i).auxillary(key);
+                            dd.data=dd.data(lst,:);
+                            dd.time=dd.time(lst);
+                            data(i).auxillary(key)=dd;
+                        end
+                    end
+                end
+                
+                
                 % Reset time so t(1)=0
                 if obj.resetTime
                     
@@ -79,6 +93,16 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                         end
                     end
                     
+                    if(obj.Trim_Auxillary_Data && isa(data(i),'nirs.core.Data') && data(i).auxillary.count>0)
+                        for j=1:data(i).auxillary.count
+                            key= data(i).auxillary.keys{j};
+                            try
+                                dd=data(i).auxillary(key);
+                                dd.time=dd.time-tmin;
+                                data(i).auxillary(key)=dd;
+                            end
+                        end
+                    end
                 end
                 
                 data(i).data = d;

@@ -24,6 +24,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
         useREML=false;
         nonstationary_noise=false;
         useFstats=false;
+        Pmax='4*Fs';
     end
     methods
         function obj = AR_IRLS( prevJob )
@@ -49,6 +50,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 Fs = data(i).Fs;
                 
                 probe = data(i).probe;
+                
+                Pmax = obj.Pmax;
+                if(isstr(Pmax))
+                    eval(['Pmax=' Pmax ';']);
+                end
+                Pmax=ceil(Pmax);    
                 
                 % make sure data is in order
                 
@@ -101,12 +108,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     lst=find(diag(s)>eps(1)*100);
                     V=V(:,lst);
                     if(obj.useREML)
-                        stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                        stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), Pmax );
                     else
                         if(obj.nonstationary_noise)
-                            stats = nirs.math.ar_irnnls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                            stats = nirs.math.ar_irnnls( d, U(:,lst)*s(lst,lst), Pmax );
                         else
-                            stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                            stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), Pmax );
                         end
                     end
                     stats.beta=V*stats.beta;
@@ -121,15 +128,15 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     
                     % run regression
                     if(obj.useREML)
-                        stats = nirs.math.ar_irls_REML( d, [X C], round(4*Fs) );
+                        stats = nirs.math.ar_irls_REML( d, [X C], Pmax );
                     else
                         if(obj.nonstationary_noise)
-                             stats = nirs.math.ar_irnsls( d, [X C], round(4*Fs) );
+                             stats = nirs.math.ar_irnsls( d, [X C], Pmax );
                         else
                             if(obj.useFstats)
-                                stats = nirs.math.ar_irls_ftest( d, [X C], round(4*Fs) );
+                                stats = nirs.math.ar_irls_ftest( d, [X C], Pmax );
                             else
-                                stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
+                                stats = nirs.math.ar_irls( d, [X C], Pmax );
                             end
                         end
                     end

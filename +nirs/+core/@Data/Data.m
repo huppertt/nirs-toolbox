@@ -261,6 +261,12 @@ classdef Data
                 h=plot(axis_handle, t, real(d) );
             end
             xlabel(axis_handle, 'seconds' );
+            
+            if(ismember('units',obj.probe.link.Properties.VariableNames))
+                ylabel(obj.probe.link.units{1});
+            end
+            
+            
             for i = 1:length(obj.stimulus.keys)
                 legend(axis_handle,obj.stimulus.keys)
             end

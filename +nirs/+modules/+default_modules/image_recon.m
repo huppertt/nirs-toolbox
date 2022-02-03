@@ -24,7 +24,7 @@ jobs = nirs.modules.TrimBaseline( jobs );
 jobs.preBaseline   = 30;
 jobs.postBaseline  = 30;
 jobs = nirs.modules.GLM(jobs );
-jobs.AddShortSepRegressors=true;
+%jobs.AddShortSepRegressors=true;
 jobs = nirs.modules.ExportData(jobs);
 jobs.Output='SubjStats';
 

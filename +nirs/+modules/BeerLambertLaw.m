@@ -4,11 +4,10 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
 % dOD(lambda) = ext(hbo, lambda) * conc(hbo) * distance * PPF + ...
 %         ext(hbr, lambda) * conc(hbr) * distance * PPF;
 %
-% Options: 
-%     tune - number of standard deviations to define an outlier
     
     properties
         PPF = 5 / 50;   % partial pathlength factor 
+       % PPF = @(lambda,data)nirs.media.frontal_DPF_model(lambda,data,'age');
     end
     
     methods
@@ -148,7 +147,9 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     L = p.distances(lst);
                     L=max(L,1);  % avoid issues with the short (0) seperation values
                     
-                    if(length(obj.PPF)==1)
+                    if(isa(obj.PPF,'function_handle'))
+                        PPF = obj.PPF(lambda,data(i));      
+                    elseif(length(obj.PPF)==1)
                         PPF=repmat(obj.PPF,length(lambda),1);
                     else
                         PPF=obj.PPF(:);

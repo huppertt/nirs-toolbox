@@ -415,8 +415,8 @@ classdef ChannelStats
             se = sqrt(diag(obj.covb));
             dfe = obj.dfe .* ones(size(p));
             
-            [~,power] = nirs.math.MDC(obj,.8,.05);
-            
+            [minDiscoverableChange,power] = nirs.math.MDC(obj,.8,.05);
+            RelativePower=min(minDiscoverableChange)./minDiscoverableChange;
             variab=obj.variables;
             
             %             if(isa(obj.probe,'nirs.core.ProbeROI'))
@@ -433,7 +433,7 @@ classdef ChannelStats
             %                 variab.source=[];
             %                 variab.detector=[];
             %             end
-            out = [variab table(beta, se, tstat, dfe, p, q,power)];
+            out = [variab table(beta, se, tstat, dfe, p, q,minDiscoverableChange,RelativePower)];
         end
         
         function out = sorted( obj, colsToSortBy )

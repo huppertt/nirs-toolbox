@@ -7,6 +7,7 @@ classdef Resample < nirs.modules.AbstractModule
     
     properties
         Fs = 4; % new sampling frequency (Hz)
+        Resample_Auxillary_Data = true;
     end
     properties (Hidden=true)
         antialias = [];
@@ -36,6 +37,16 @@ classdef Resample < nirs.modules.AbstractModule
             end
             
             for i = 1:numel(data)
+                if(obj.Resample_Auxillary_Data && isa(data(i),'nirs.core.Data') && data(i).auxillary.count>0)
+                    for j=1:data(i).auxillary.count
+                        key= data(i).auxillary.keys{j};
+                        try
+                            data(i).auxillary(key)=obj.runThis( data(i).auxillary(key));
+                        end
+                    end
+                end
+                
+                
                 if obj.Fs < data(i).Fs
                     
                     % resample data

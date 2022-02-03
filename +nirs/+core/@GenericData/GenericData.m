@@ -135,6 +135,16 @@ classdef GenericData
             end
             xlabel( 'seconds' );
 
+            if(~isempty(obj.link))
+                if(ismember('units',obj.link.Properties.VariableNames))
+                    ylabel(obj.link.units{1});
+                end
+                if(ismember('type',obj.link.Properties.VariableNames))
+                    legend(obj.link.type);
+                end
+            end
+            
+            
             
             % axes limits
             xlim( [min(t) max(t)] );
