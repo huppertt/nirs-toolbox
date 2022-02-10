@@ -38,11 +38,12 @@ classdef simulator < handle
         end
         
         function start(obj)
-            obj.data_output.probe=obj.datasource.probe;
+              obj.data_output.probe=obj.datasource.probe;
             start(obj.timer);
         end
         function stop(obj)
             stop(obj.timer);
+            
         end
     end
     
@@ -50,9 +51,11 @@ classdef simulator < handle
 end
 
 function timer_callback(varargin)
+try
     obj=varargin{1}.UserData;
     idx=varargin{1}.TasksExecuted;
     if(~isempty(obj.data_output))
         obj.data_output.adddata(obj.datasource.data(idx,:),obj.datasource.time(idx));
     end
+end
 end

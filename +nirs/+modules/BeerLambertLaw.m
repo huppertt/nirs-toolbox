@@ -9,7 +9,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
         PPF = 5 / 50;   % partial pathlength factor 
        % PPF = @(lambda,data)nirs.media.frontal_DPF_model(lambda,data,'age');
     end
-    
+   
     methods
 
         function obj = BeerLambertLaw( prevJob )
@@ -134,10 +134,9 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     lst=find(lst);
                     link=[link; p.link(lst(1:2),:)];
                     assert( length(lst) > 1 )
-                    
                     lambda = p.link.type(lst);
+                   
                     ext = nirs.media.getspectra( lambda );
-                    
                     clist = [1 2]; % hbo and hbr; need to fix this
                     
                     % extinction coefficients

@@ -43,6 +43,8 @@ classdef Data < handle
         
         function reset(obj)
             obj.rawdata=[];
+            obj.data=[];
+            obj.time=[];
             obj.probe=obj.rawprobe;
             obj.rawprobe=[];
             obj.stimulus=Dictionary();
@@ -374,6 +376,7 @@ classdef Data < handle
             % data min/max/size
             dmax = max( real(d(:)) );
             dmin = min( real(d(:)) );
+            if(dmin>=dmax); dmin=dmax-1; end;
             dsize = (dmax-dmin);
             
             % plot stim blocks if available
