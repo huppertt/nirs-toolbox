@@ -68,8 +68,9 @@ classdef KalmanFilter < handle
         end
 
         function update_step(obj,ehat,X)
-            obj.S = X*obj.P*X' + obj.E^2;
-            obj.K = obj.P*X'/obj.S;
+            obj.S = X*obj.P*X' + obj.E*obj.E';
+            %obj.K = obj.P*X'/obj.S;
+            obj.K = obj.P*X'*pinv(obj.S);
 
             obj.B = obj.B + obj.K*ehat;
             obj.P = obj.P - obj.K*X*obj.P;  
