@@ -1,21 +1,23 @@
-classdef lslStream < handle
+classdef lslNIRx < handle
     properties
-        Fs;
-        LSLdata_StreamName=[];
-        LSLmarker_StreamName=[];
-        data_output;
-        timeout=10;
+       data_output;
+       data_type={'HbO','Hb'};
     end
     properties(Hidden=true)
+        Fs;
         timer=[];
         LSLdata_Stream=[];
         LSLmarker_Stream=[];
-        liblsl=[];
+        liblsl=[];  
+        LSLdata_StreamName='Aurora';
+        LSLmarker_StreamName=[]; 
+        timeout=10;
+        datalist;
     end
     
     methods
         
-        function obj=lslStream(fs)
+        function obj=lslNIRx(fs)
             if(nargin==1)
                 obj.Fs=fs;
             else
@@ -44,6 +46,37 @@ classdef lslStream < handle
                     %FIRST CHUNK PULLED IS SEEMINGLY EMPTY, THEREFORE PULL
                     %A CHUNK DURING THE INIT:
                     obj.LSLdata_Stream.pull_chunk();
+                    [d,t]=obj.LSLdata_Stream.pull_chunk();
+                    n=(size(d,1)-1)/4;
+                    obj.datalist=[];
+                    type={};
+                    link=obj.data_output.probe.link;
+                    c=0;
+                    if(ismember({'760'},obj.data_type))
+                          obj.datalist=[obj.datalist 1:n];
+                          type=[type; repmat({'760'},n,1)];
+                          c=c+1;
+                    end
+                    if(ismember({'850'},obj.data_type))
+                          obj.datalist=[obj.datalist n+1:2*n];
+                            type=[type; repmat({'850'},n,1)];
+                            c=c+1;
+                    end
+                     if(ismember({'HbO'},obj.data_type))
+                          obj.datalist=[obj.datalist 2*n+1:3*n];
+                            type=[type; repmat({'HbO'},n,1)];
+                            c=c+1;
+                     end
+                     if(ismember({'Hb'},obj.data_type))
+                          obj.datalist=[obj.datalist 3*n+1:4*n];
+                          type=[type; repmat({'Hb'},n,1)];
+                          c=c+1;
+                     end
+                     link=repmat(link,c,1);
+                     link.type=type;
+                     obj.data_output.probe.link=link;
+                     
+                     
                 else
                     warning(['Unable to find data stream: ' obj.LSLdata_StreamName]);
                 end
@@ -78,7 +111,7 @@ function timer_callback(varargin)
     
     if(~isempty(obj.LSLdata_Stream))
         [d,t] = obj.LSLdata_Stream.pull_chunk();
-        d=d(2:end,:)'; %first channel is the frame number
+        d=d(1+obj.datalist,:)'; %first channel is the frame number
         t=t';
         if(~isempty(t) && ~isempty(obj.data_output))
             obj.data_output.adddata(d,t);
