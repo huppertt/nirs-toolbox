@@ -361,7 +361,7 @@ function w = welsch(r)
 w = exp(-(r.^2));
 
 
-
+%  robust_s = statrobustsigma(wfun, radj, xrank, max(mad_s,tiny_s), tune, h);
 function s = statrobustsigma(wfun,r,p,s,t,h)
 %STATROBUSTSIGMA Compute robust sigma estimate for robust regression
 %   Used by robustfit and nlinfit.

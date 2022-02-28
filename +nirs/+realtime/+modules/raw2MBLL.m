@@ -14,8 +14,7 @@ classdef raw2MBLL < nirs.realtime.modules.AbstractModule
             if nargin > 0
                 obj.prevJob = prevJob;
             end
-            obj.hpf.lowpass=[];
-            obj.hpf.highpass=0.001;
+
         end
         
         function obj=resetThis(obj)
