@@ -2,7 +2,10 @@ classdef FixFlatChans < nirs.modules.AbstractModule
 %% FixFlatChans - Replaces flatlined channels with high variance noise.
 %
 % Note: This should be run on raw data (before optical density conversion).
-    
+    properties
+        window_length=3; % smoothing window
+        remove_full_channel=true;
+    end
     methods
         function obj = FixFlatChans( prevJob )
            obj.name = 'Fix Flatlined Channels';
@@ -25,15 +28,24 @@ classdef FixFlatChans < nirs.modules.AbstractModule
                 v = v.^2;
                 
                 % 3s windowed variance
-                f = round(Fs*3);
+                f = round(Fs*obj.window_length);
                 v = filter(f, 1, v);
                 
-                % bad channels
-                bad = find(any(v < 1e-9));
                 
-                % fill with noise
-                d(:,bad) = lognrnd(0, 1, [size(d,1) length(bad)]);
-                d(:,bad) = bsxfun(@plus, d(:,bad),m(bad));
+                
+                for id=1:size(d,2)
+                    % fill with noise
+                    if(obj.remove_full_channel)
+                        % bad channels
+                        if(find(any(v(:,id) < 1e-9)))
+                            d(:,id) = NaN;
+                        end
+                    else
+                        lst=find(v(:,id) < 1e-9);
+                        d(lst,id)=NaN;
+                        
+                    end
+                end
                 data(i).data = d;
             end
         end
