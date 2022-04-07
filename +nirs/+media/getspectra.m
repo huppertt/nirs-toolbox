@@ -25,6 +25,6 @@ function out = getspectra( lambda )
     out(:,2) = interp1(hbr(:,1),hbr(:,2),lambda);       % HbR extinction
     out(:,3) = interp1(water(:,1),water(:,2),lambda); 	% water mua
     out(:,4) = interp1(fat(:,1),fat(:,2),lambda);    	% fat mua
-    % out(:,5) = 519/10 * (lambda/500).^-3;             % cytochrome ???
+    % out(:,5) = 519/10 * (lambda/500).^-3;             % MIE scattering
     
 end

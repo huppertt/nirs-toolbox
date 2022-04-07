@@ -68,7 +68,7 @@ classdef CognitiveDomains < nirs.realtime.modules.AbstractModule
                         for i=1:length(val)
                             obj.linehandles(i)=plot(NaN,NaN);
                         end
-                        legend(obj.models)
+                        legend(obj.model)
                     end
                     
                     disp('Finished training CognitiveDomains model');

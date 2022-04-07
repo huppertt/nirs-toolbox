@@ -25,6 +25,13 @@ classdef AddShortSeperationRegressors < nirs.modules.AbstractModule
                 
                 dd=dd-ones(size(dd,1),1)*mean(dd,1);
                
+                tmp=nirs.core.Data;
+                tmp.time=data(i).time;
+                tmp.data=dd;
+                j=nirs.modules.FixNaNs;
+                tmp=j.run(tmp);
+                dd=tmp.data;
+                
                 if(~obj.scICA)
                     dd=orth(dd);
                 else

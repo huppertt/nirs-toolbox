@@ -56,6 +56,10 @@ classdef AddAuxRegressors < nirs.modules.AbstractModule
                             [aux.time,ia]=unique(aux.time);
                             aux.data=aux.data(ia,:);
                         end
+                        
+                        j=nirs.modules.FixNaNs;
+                        aux=j.run(aux);
+                        
                         for k=1:size(aux.data,2)
                             
                             
