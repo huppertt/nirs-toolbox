@@ -93,11 +93,15 @@ function [S,haserror] = ttest(obj, c, b, names)
     end
     obj = sorted(obj);
     
+    lstGood=find(~isnan(obj.beta));
+    lstHasValues = find(sum(abs( C(:,lstGood)),2)>0);
     % transform beta
-    beta = bsxfun(@minus, C*obj.beta, b);
+    beta=NaN(size(C,1),1);
+    beta(lstHasValues) = bsxfun(@minus, C(lstHasValues,lstGood)*obj.beta(lstGood), b(lstHasValues));
 
     % new covariance
-    covb = C*obj.covb*C';
+    covb=NaN(size(C,1));
+    covb(lstHasValues,lstHasValues) = C(lstHasValues,lstGood)*obj.covb(lstGood,lstGood)*C(lstHasValues,lstGood)';
 
     % output
     S = obj;

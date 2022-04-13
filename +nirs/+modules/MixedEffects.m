@@ -233,6 +233,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             if(obj.weighted)
                 %% check weights
+                
                 dWTW = sqrt(diag(W'*W));
                 
                 % Edit made 3/20/16-  Treat each modality seperately.  This
@@ -248,7 +249,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     %W(dWTW > 100*m,:) = 0;
                     lstBad=[lstBad; find(dWTW(lst) > 100*m)];
                 end
-                
+                lstBad=[lstBad; find(any(isnan(beta),2))];
+                lstBad=unique(lstBad);
                 W(lstBad,:)=[];
                 W(:,lstBad)=[];
                 X(lstBad,:)=[];
@@ -331,7 +333,7 @@ classdef MixedEffects < nirs.modules.AbstractModule
             cnames = repmat(cnames, [nchan 1]);
             
             %% output
-            G.beta=zeros(size(X,2),1);
+            G.beta=nan(size(X,2),1);
             G.covb=1E6*eye(size(X,2)); %make sure anything not fit will have high variance
             
             G.beta(lstKeep) = Coef;

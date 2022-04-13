@@ -198,9 +198,9 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch)
         resid(lstValid,i)=S.resid.*S.w; 
         
         stats.filter{i}=f;
-        sse =  norm(yf - Xf*B)^2;
+        sse =  norm(yf(lstValid) - Xf*B)^2;
          
-        sst =  norm(yf - mean(yf))^2;
+        sst =  norm(yf(lstValid) - mean(yf(lstValid)))^2;
         stats.R2(i)=1-sse./sst;
         
         N=length(y)-size(B,2)-stats.P(i);

@@ -44,8 +44,8 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
             for i = 1:numel(data)
                 % get data
                 d  = data(i).data;
-                d=d-ones(size(d,1),1)*mean(d,1);
-                d=d-ones(size(d,1),1)*mean(d,1);
+                d=d-ones(size(d,1),1)*nanmean(d,1);
+                d=d-ones(size(d,1),1)*nanmean(d,1);
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 

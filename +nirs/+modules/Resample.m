@@ -53,6 +53,19 @@ classdef Resample < nirs.modules.AbstractModule
                     d = data(i).data;
                     t = data(i).time;
                     
+                    [iNan,jNan]=find(isnan(d));
+                    if(~isempty(iNan))
+                        for idx=1:size(d,2)
+                            lst=iNan(find(jNan==idx));
+                            lst2=[1:size(d,1)];
+                            lst2(lst)=[];
+                            if(length(lst2)>3)
+                                d(lst,idx)=interp1(t(lst2),d(lst2,idx),t(lst),'linear','extrap');
+                            end
+                        end
+                    end
+                    
+                    
                     % de-mean the data to avoid edge effects
                     mu = nanmean(d);
                     d = bsxfun(@minus,d,mu);
@@ -80,6 +93,12 @@ classdef Resample < nirs.modules.AbstractModule
                     
                     % restore original mean
                     d = bsxfun(@plus,d,mu);
+                    
+                    if(~isempty(iNan))
+                        iNan=dsearchn(new_t,t(iNan));
+                        
+                        d(sub2ind(size(d),iNan,jNan))=NaN;
+                    end
                     
                     data(i).data = d;
                     data(i).time = new_t;
