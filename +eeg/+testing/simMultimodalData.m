@@ -28,16 +28,16 @@ if nargin < 2 || isempty(stim)
 end
 
 if(nargin<3 || isempty(fwdmodel))
-    mesh=nirs.registration.Colin27.BEM;
+    mesh=nirs.registration.Colin27.BEM_V2;
     fwd.nirs=nirs.forward.ApproxSlab;
     fwd.nirs.Fm=0;
-    fwd.nirs.mesh=mesh.mesh(3);
+    fwd.nirs.mesh=mesh.mesh(end);
     lambda=unique(data.nirs.probe.link.type);
     fwd.nirs.prop=nirs.media.tissues.brain(lambda,.7,50);
     fwd.nirs.probe=data.nirs.probe;
     
     fwd.eeg=eeg.forward.FieldTrip;
-    fwd.eeg.mesh=mesh.mesh(1:3);
+    fwd.eeg.mesh=mesh.mesh([1 3 5]);
     fwd.eeg.probe=data.eeg.probe;
     fwd.eeg.prop=[1 NaN NaN];
 

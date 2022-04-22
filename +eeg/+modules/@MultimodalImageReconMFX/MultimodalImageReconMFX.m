@@ -230,14 +230,15 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 
                 for j=1:length(conds)
                     xlocal=[];
-                     L=Lfwdmodels(key);
+                    L=Lfwdmodels(key);
                     for fIdx=1:length(fldsAll)
-                       
-                        x2=L.(fldsAll{fIdx})*V';
-                        
-                        
-                       xlocal=[xlocal x2]; 
-                      
+                        if(isfield(L,fldsAll{fIdx}))
+                            x2=L.(fldsAll{fIdx})*V';
+                        else
+                            x2=zeros(length(S(i).beta),size(V,1));
+                        end
+                        xlocal=[xlocal x2]; 
+                
                     end
                     
                     xx=[xx; xlocal];
@@ -367,9 +368,13 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 variables = variables(find(ismember(variables.cond,thiscond)),:); 
                 
                 Llocal=[];
-                l=Lfwdmodels(subname);
+                L=Lfwdmodels(subname);
                 for fIdx=1:length(fldsAll)
-                    x2=l.(fldsAll{fIdx});
+                        if(isfield(L,fldsAll{fIdx}))
+                            x2=L.(fldsAll{fIdx})*V';
+                        else
+                            x2=zeros(length(S(i).beta),size(V,1));
+                        end
                      
                     Llocal =[Llocal x2];
                 end
@@ -440,7 +445,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
 
           
                    
-           lstKeep = find(sum(abs(X),1)~=0);
+            lstKeep = find(sum(abs(X),1)~=0);
             if(length(lstKeep)<size(X,2))
                 warning('Some measurements have zero fluence in the forward model');
             end
@@ -461,7 +466,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             
            
             
-            
+            VV=[];
             n=size(V,2);
             for i=1:length(fldsAll)
                 N=[];
@@ -473,6 +478,7 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                     N=blkdiag(N,zeros(n));
                 end
                 VtV{i}=sparse(N);
+                VV=blkdiag(VV,V);
             end
             
             
@@ -510,11 +516,9 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
             Beta0= zeros(size(X,2)+size(Z,2),1);
           
             
-             [lambda,Beta,Stats]=nirs.math.REML(beta,[X(:,lstKeep) Z],Beta0(lstKeep),R,Q);
-            lm2.CoefficientCovariance=eye(size(X,2),size(X,2));
-            lm2.CoefficientCovariance(1:length(lstKeep),1:length(lstKeep))=Stats.tstat.covb;
-            lm2.Coefficients.Estimate=zeros(size(X,2),1);
-            lm2.Coefficients.Estimate(1:length(lstKeep))=Beta;
+            [lambda,Beta,Stats]=nirs.math.REML(beta,[X(:,lstKeep) Z]*VV(lstKeep,:),VV(lstKeep,:)'*Beta0(lstKeep),R,Q);
+            lm2.CoefficientCovariance=Stats.tstat.covb;
+            lm2.Coefficients.Estimate=Beta;
             dfe= Stats.tstat.dfe;
             
              %% fit the model
@@ -555,10 +559,10 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
                 end
             end
             V=iWall*Vall;
-            G.beta=V*lm2.Coefficients.Estimate(lstKeep);
-            [Uu,Su,Vu]=nirs.math.mysvd(CoefficientCovariance(lstKeep,lstKeep));
+            G.beta=V*lm2.Coefficients.Estimate;
+            [Uu,Su,Vu]=nirs.math.mysvd(CoefficientCovariance);
             
-            G.covb_chol = V(:,lstKeep)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
+            G.covb_chol = V(lstKeep,:)*Uu*sqrt(Su);  % Note- SE = sqrt(sum(G.covb_chol.^2,2))
             
             G.dfe        = dfe;
             
