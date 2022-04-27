@@ -1,7 +1,7 @@
 function data = loadgeneric(file)
 
-fileExt  = {'.nirs','.oxy3','.wl1'};
-loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false)};
+fileExt  = {'.nirs','.oxy3','.wl1','.nir'};
+loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadBiopacNIR};
  
 % all files in subdirectory with correct extension
 for i=1:length(fileExt)
