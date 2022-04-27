@@ -96,7 +96,7 @@ while(ischar(lineF))
         if(length(sC)>2&&~isempty(sC{3}))
             header.startCode=str2double(sC{3})/1000;
             if((header.startCodeAlt-header.startCode)>1)
-                warning(sprintf('StartCode Diff %.2f\nMay affect manual marker integrity',(header.startCodeAlt-header.startCode)));
+                %%warning(sprintf('StartCode Diff %.2f\nMay affect manual marker integrity',(header.startCodeAlt-header.startCode)));
             end
         else
             header.startCode=header.startCodeAlt;
