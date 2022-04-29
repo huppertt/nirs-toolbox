@@ -166,7 +166,7 @@ classdef Data
                 
             end
             if(nargin<3 || isempty(adderr))
-                adderr=false;
+                adderr=true;
             end
             
             if(isempty(lstChannels))
@@ -256,7 +256,9 @@ classdef Data
             
             % plot data
             if(~isreal(d) & adderr)
-                h=errorbar(axis_handle, t, real(d),imag(d) );
+                for ii=1:size(d,2)
+                    h(ii,:)=errorbar(axis_handle, t, real(d(:,ii)),imag(d(:,ii)) );
+                end
             else
                 h=plot(axis_handle, t, real(d) );
             end
