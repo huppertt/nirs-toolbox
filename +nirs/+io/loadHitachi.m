@@ -232,7 +232,7 @@ for i=1:dIdx
                 end
                 if(~isempty(v))
                     if(~isempty(str2num(v))) 
-                        v=str2num(v); 
+                        v=str2num(v(:)'); 
                     end
                     val={val{:} v};
                 end

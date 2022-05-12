@@ -35,6 +35,8 @@ end
 
 fname=nir_filename;
 
+fprintf('Loading %s...\n',nir_filename);
+
 fileroot=fname(1:strfind(fname,'.nir')-1);
 
 %Default names for markers, manual markers, and log file
