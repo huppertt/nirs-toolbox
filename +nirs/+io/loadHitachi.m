@@ -1,6 +1,6 @@
 function raw = loadHitachi(filen)
 
-if(~isempty(strfind(filen,'_HBA')))
+if(contains(filen,'_HBA'))
     raw=[];
     disp(['skipping Hitachi hemoglobin file: ' filen]);
     return
@@ -29,20 +29,40 @@ end
 
 % Now put all the data together
 raw=nirs.core.Data;
-raw.demographics('Name')=info{1}.Name';
-if(~isempty(info{1}.Age))
-    raw.demographics('Age')=str2num(info{1}.Age(1:end-1)');
+if (isfield(info{1},'Name'))
+    raw.demographics('Name')=info{1}.Name';
+else
+    raw.demographics('Name')='';
 end
-raw.demographics('Gender')=info{1}.Sex';
-raw.demographics('ID')=info{1}.ID';
-if(~isempty(info{1}.Comment))
+if (isfield(info{1},'Age'))
+    raw.demographics('Age')=str2num(info{1}.Age(1:end-1)');
+else
+    raw.demographics('Age')=nan;
+end
+if (isfield(info{1},'Sex'))
+    raw.demographics('Gender')=info{1}.Sex';
+else
+    raw.demographics('Gender')='';
+end
+if (isfield(info{1},'ID'))
+    raw.demographics('ID')=info{1}.ID';
+else
+    raw.demographics('ID')='';
+end
+if (isfield(info{1},'Comment'))
     raw.demographics('Comment')=info{1}.Comment';
+else
+    raw.demographics('Comment')='';
 end
 %raw.demographics('Patient Info')=info{1}.Patient_Information';
 
 raw.description=fullfile(pwd,filen);
 
-raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Periods;
+if (isfield(info{1},'Sampling_Periods_s'))
+    raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Periods_s;
+elseif(isfield(info{1},'Sampling_Periods'))
+    raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Periods;
+end
 
 for i=1:length(data)
     raw.data=horzcat(raw.data,data{i}(:,1+[1:length(info{i}.Wave_Length)]));
@@ -96,18 +116,98 @@ function [info,data]=parsefile(filen)
 
 % Load the data file
 fid=fopen(filen,'r');
+
 line=fgetl(fid);  % Figure out the number of columns based on the header
-cnt=length(strfind(line,','))+1;
+
+while(~(length(line)==4&&contains(line(1:4),'Data')))
+    line=fgetl(fid);  % Figure out the number of columns based on the header
+end
+
+lineHeader=fgetl(fid);  % Get Header Line
+lineData1=fgetl(fid);  % Get first Data Line
+
+if(sum(lineData1==',')>1)
+    delim=',';
+elseif(sum(lineData1==9)>1)
+    delim=char(9); %tab
+end
+
+cnt=length(strfind(lineData1,delim))+1;
 s=[];
 for i=1:cnt
-s=[s '%s '];
+    s=[s '%s '];
 end
-TData=textscan(fid,s,'delimiter',',');
+
+frewind(fid);
+TData=textscan(fid,s,'delimiter',delim);
 
 %Start of data
 dIdx=find(ismember(TData{1},'Data'))+1;
+%%
 
-ChanIdx=find(ismember(TData{1},'PreScan'));
+frewind(fid);
+%Parse the header
+info = struct;
+for i=1:dIdx
+    fld=fgetl(fid);
+    if(contains(fld,'Data'))
+       continue
+    end
+
+    j=min(strfind(fld,delim));
+    if(~isempty(j))
+        vals=fld(j+1:end);
+        fld=fld(1:j-1);
+        
+        
+        fld(strfind(fld,' '))='_';
+        fld(strfind(fld,'['))='_';
+        fld(strfind(fld,']'))=[];
+        
+        val={};
+        lst=strfind(vals,delim);
+        
+        if(isempty(lst))
+            if(~isempty(str2num(vals))) 
+                vals=str2num(vals); 
+            end
+            val=vals;
+        else
+            lst=[lst length(vals)+1];
+            for jj=1:length(lst)
+                v=vals(1:lst(jj)-1);
+                if(jj<length(lst))
+                vals(1:lst(jj))=[];
+                lst=lst-lst(jj);
+                end
+                if(~isempty(v))
+                    if(~isempty(str2num(v))) 
+                        v=str2num(v); 
+                    end
+                    val={val{:} v};
+                end
+            end
+        end
+        
+       % try; val=vertcat(val{:}); end;
+        
+        info=setfield(info,fld,val');
+        
+        if(~isempty(strfind(fld,'Probe1')) || ~isempty(strfind(fld,'EXT_AD')))
+            break
+        end
+        
+    end
+end
+%%
+
+
+
+
+
+frewind(fid);
+ChanIdx=dIdx+1;
+%find(ismember(TData{1},'PreScan'));
 nChan=ChanIdx-dIdx+1;
 
 
@@ -130,66 +230,23 @@ end
 frewind(fid);
 while(1)
     l=fgetl(fid); 
-    if(~isempty(strfind(l,'PreScan')))
-        break;
-    end
-end;
-
-data=textscan(fid,f,'delimiter',',');
-%% 
-
-data=horzcat(data{lstNum});
-
-
-frewind(fid);
-%Parse the header
-info = struct;
-for i=1:dIdx
-    fld=fgetl(fid);
-    if(~isempty(strfind(fld,'Data')))
-       continue
-    end
-    j=min(strfind(fld,','));
-    if(~isempty(j))
-        vals=fld(j+1:end);
-        fld=fld(1:j-1);
-        
-        
-        fld(strfind(fld,' '))='_';
-        fld(strfind(fld,'['))=[];
-        fld(strfind(fld,']'))=[];
-        
-        val={};
-        lst=strfind(vals,',');
-        
-        if(isempty(lst))
-            if(~isempty(str2num(vals))); vals=str2num(vals); end;
-            val=vals;
-        else
-            lst=[lst length(vals)+1];
-            for jj=1:length(lst)
-                v=vals(1:lst(jj)-1);
-                if(jj<length(lst))
-                vals(1:lst(jj))=[];
-                lst=lst-lst(jj);
-                end
-                if(~isempty(v))
-                    if(~isempty(str2num(v))); v=str2num(v); end;
-                    val={val{:} v};
-                end
-            end
-        end
-        
-       % try; val=vertcat(val{:}); end;
-        
-        info=setfield(info,fld,val');
-        
-        if(~isempty(strfind(fld,'Probe1')) || ~isempty(strfind(fld,'EXT_AD')))
-            break
-        end
-        
+    if(contains(l,'PreScan'))
+        break
     end
 end
+
+if(~isempty(f))
+    data=textscan(fid,f,'delimiter',delim);
+    data=horzcat(data{lstNum});
+else
+    data=[];
+end
+%% 
+
+
+
+
+
 
 end
 
@@ -201,13 +258,13 @@ switch(info.Mode')
     case('3x5')
        m=3;
        n=5;
-    case('3x3');
+    case('3x3')
         m=3;
         n=3;
-    case('4x4');
+    case('4x4')
         m=4;
         n=4;
-    case('3x11');
+    case('3x11')
         m=3;
         n=11;    
     otherwise
@@ -245,7 +302,10 @@ end
 
 WL=reshape(repmat(info.Wavenm',length(sI(:)),1),[],1);
 
-if(iscell(WL)); WL=cell2mat(WL); end;
+if(iscell(WL))
+    WL=cell2mat(WL);
+end
+
 
 link=table([sI(:); sI(:)],[dI(:); dI(:)],WL,'VariableNames',{'source','detector','type'});
 link=sortrows(link,{'detector','source','type'});
