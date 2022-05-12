@@ -1,36 +1,80 @@
 function raw = loadHitachi(filen)
+% Function to load hitachi data from ETG-4000 style fNIRS devices
 
-if(contains(filen,'_HBA'))
-    raw=[];
-    disp(['skipping Hitachi hemoglobin file: ' filen]);
-    return
+ [filedir,filename,file_ext]=fileparts(filen);
+
+file_ext=lower(file_ext);
+
+if(contains(file_ext,'csv'))
+    isDir=false;
+else
+    isDir=true;
 end
 
-fileroot=filen(1:strfind(filen,'.csv')-1);
-if(~isempty(strfind(filen,'_MES')))
-    fileroot=fileroot(1:strfind(fileroot,'_MES')-1);
-elseif(~isempty(strfind(filen,'_EXT')))
-    fileroot=fileroot(1:strfind(fileroot,'_EXT')-1);
-elseif(~isempty(strfind(filen,'_HBA')))
-    fileroot=fileroot(1:strfind(fileroot,'_HBA')-1);
+if(contains(lower(filename),'_mes_'))
+    isMES=true;
+else
+    isMES=false;
+    
+    if(isDir)
+        disp(['Looking for raw file (MES) in directory: ' filedir]);
+    else
+        disp(['Looking for matching raw file (MES) in directory: ' filedir]);
+    end
+end
+
+filename_parts=strsplit(filename,'_');
+% 'sub1_MES_Probe1'
+
+if(length(filename_parts)>=1)
+    subPart=filename_parts{1}; % sub1
+else
+    subPart='';
+end
+
+if(length(filename_parts)>=3)
+    probePart=filename_parts{3}; % Probe1
+else
+    probePart='';
+end
+
+if(isMES)
+    fileMES=dir([filedir '/' filename file_ext]);
+    filenameExt=strrep(filename,'_MES_','_EXT_');
+    fileEXT=dir([filedir '/' filenameExt file_ext]);
+elseif(~isMES&&~isDir)
+    filename=subPart+'_MES_'+probePart+file_ext;
+    filenameExt=subPart+'_EXT_'+probePart+file_ext;
+    fileMES=dir([filedir '/' filename]);
+    fileEXT=dir([filedir '/' filenameExt]);
+elseif(isDir)
+    fileMES=dir([filedir '/*_MES_*.csv']);
+    fileEXT=dir([filedir '/*_EXT_*.csv']);
+end
+
+if(length(fileMES)==0)
+    warning('%s not found!',filename);
 end
 
 %Read Data
-fileMES=dir([fileroot '_MES*.csv']);
-p=fileparts(fileroot);
+
 for i=1:length(fileMES)
-    [info{i},data{i}]=parsefile(fullfile(p,fileMES(i).name));
+    [info{i},data{i},data_marker{i}]=parsefile(fullfile(filedir,fileMES(i).name));
+    info{i}.probe=probePart;
+    info{i}.filename=fileMES(i).name;
 end
+
 %Read Aux 
-fileEXT=dir([fileroot '_EXT*.csv']);
 for i=1:length(fileEXT)
-    [infoEXT{i},dataEXT{i}]=parsefile(fullfile(p,fileEXT(i).name));
+    [infoEXT{i},dataEXT{i}]=parsefile(fullfile(filedir,fileEXT(i).name));
+    infoEXT{i}.probe=probePart;
+    infoEXT{i}.filename=fileMES(i).name;
 end
 
 % Now put all the data together
 raw=nirs.core.Data;
 if (isfield(info{1},'Name'))
-    raw.demographics('Name')=info{1}.Name';
+    raw.demographics('Name')=info{1}.Name(:);
 else
     raw.demographics('Name')='';
 end
@@ -40,17 +84,17 @@ else
     raw.demographics('Age')=nan;
 end
 if (isfield(info{1},'Sex'))
-    raw.demographics('Gender')=info{1}.Sex';
+    raw.demographics('Gender')=info{1}.Sex(:);
 else
     raw.demographics('Gender')='';
 end
 if (isfield(info{1},'ID'))
-    raw.demographics('ID')=info{1}.ID';
+    raw.demographics('ID')=info{1}.ID(:);
 else
     raw.demographics('ID')='';
 end
 if (isfield(info{1},'Comment'))
-    raw.demographics('Comment')=info{1}.Comment';
+    raw.demographics('Comment')=info{1}.Comment(:);
 else
     raw.demographics('Comment')='';
 end
@@ -58,10 +102,11 @@ end
 
 raw.description=fullfile(pwd,filen);
 
-if (isfield(info{1},'Sampling_Periods_s'))
-    raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Periods_s;
-elseif(isfield(info{1},'Sampling_Periods'))
-    raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Periods;
+if (isfield(info{1},'Sampling_Period_s'))
+    raw.time=[0:size(data{1},1)-1]*info{1}.Sampling_Period_s;
+else
+    warning('Sampling period missing, assuming 10hz');
+    raw.time=[0:size(data{1},1)-1]*0.1;
 end
 
 for i=1:length(data)
@@ -69,11 +114,11 @@ for i=1:length(data)
 end
 
 probe=getprobefrominfo(info{i});
-if(2*height(probe.link)==size(raw.data,2) && length(info)==1)
-    info{2}=info{1};
-    info{2}.Probe2=info{2}.Probe1;
-    info{2}=rmfield(info{2},'Probe1');
-end
+% if(2*height(probe.link)==size(raw.data,2) && length(info)==1)
+%     info{2}=info{1};
+%     info{2}.Probe2=info{2}.Probe1;
+%     info{2}=rmfield(info{2},'Probe1');
+% end
     
 % Now deal with the probe
 SrcPos=[]; DetPos=[]; link=table;
@@ -92,15 +137,17 @@ raw.probe=nirs.core.Probe(SrcPos,DetPos,link);
 
 
 % Finally, see if we can deal with the stimulus marks
-MarkChan=find(ismember(info{1}.Probe1,'Mark'));
-marks=data{1}(:,1+MarkChan);
 
-mUniq=unique(marks);
-mUniq(1)=[];  %Remove zero
+marks=data_marker{1};
+
+[mUniq,ia,ic]=unique(marks);
 
 for i=1:length(mUniq)
+    if(mUniq(i)==0)
+        continue;
+    end
     stim=nirs.design.StimulusEvents;
-    stim.onset=raw.time(find(marks==mUniq(i)));
+    stim.onset=raw.time(ic==i);
     stim.dur=ones(size(stim.onset));
     stim.amp=ones(size(stim.onset));
     raw.stimulus(['Mark_' num2str(mUniq(i))])=stim;
@@ -112,15 +159,19 @@ end
 
 
 %% This function parses the data CSV files
-function [info,data]=parsefile(filen)
+function [info,data,mrkData]=parsefile(filen)
+
+fprintf('Loading %s...\n',filen);
 
 % Load the data file
 fid=fopen(filen,'r');
 
+numHeaderLines=1;
 line=fgetl(fid);  % Figure out the number of columns based on the header
 
 while(~(length(line)==4&&contains(line(1:4),'Data')))
     line=fgetl(fid);  % Figure out the number of columns based on the header
+    numHeaderLines=numHeaderLines+1;
 end
 
 lineHeader=fgetl(fid);  % Get Header Line
@@ -132,17 +183,16 @@ elseif(sum(lineData1==9)>1)
     delim=char(9); %tab
 end
 
-cnt=length(strfind(lineData1,delim))+1;
-s=[];
-for i=1:cnt
-    s=[s '%s '];
-end
+headerParts=strsplit(lineHeader,delim);
 
-frewind(fid);
-TData=textscan(fid,s,'delimiter',delim);
+numDataParts=length(headerParts);
+numWv=sum(contains(headerParts,'CH'));
+mrkCol=contains(headerParts,'Mark');
+numCh=numWv/2;
+
 
 %Start of data
-dIdx=find(ismember(TData{1},'Data'))+1;
+dIdx=numHeaderLines;
 %%
 
 frewind(fid);
@@ -191,9 +241,9 @@ for i=1:dIdx
         
        % try; val=vertcat(val{:}); end;
         
-        info=setfield(info,fld,val');
+        info=setfield(info,fld,val);
         
-        if(~isempty(strfind(fld,'Probe1')) || ~isempty(strfind(fld,'EXT_AD')))
+        if(~isempty(strfind(fld,'Probe')) || ~isempty(strfind(fld,'EXT_AD')))
             break
         end
         
@@ -202,25 +252,22 @@ end
 %%
 
 
-
-
-
-frewind(fid);
-ChanIdx=dIdx+1;
-%find(ismember(TData{1},'PreScan'));
-nChan=ChanIdx-dIdx+1;
-
-
 % Get the Data
-data=zeros((length(TData{1})-ChanIdx)/nChan,nChan);
+%data=nan(1e6,numDataParts);
 
-f=[]; lstNum=[];
-for i=1:nChan
-    if(isempty(strfind(TData{1}{ChanIdx+i},':')))
-        f=[f '%f '];
-        lstNum=[lstNum i];
-    else
+% build scan header
+
+dataLineParts=strsplit(lineData1,delim);
+
+f=[]; 
+isNum=true(1,numDataParts);
+for i=1:numDataParts
+    if(contains(dataLineParts{i},':')) % find time segment
         f=[f '%s '];
+
+        isNum(i)=false;
+    else
+        f=[f '%f '];
     end
 end
 
@@ -228,7 +275,7 @@ end
 % This is faster then getting the data from the TData cell
 %% 
 frewind(fid);
-while(1)
+while(1) % skip headers
     l=fgetl(fid); 
     if(contains(l,'PreScan'))
         break
@@ -237,9 +284,13 @@ end
 
 if(~isempty(f))
     data=textscan(fid,f,'delimiter',delim);
-    data=horzcat(data{lstNum});
+    datetimeCol=data{(isNum==1)};
+    mrkData=data{mrkCol};
+    data=horzcat(data{isNum});
 else
+    disp('Data is empty!');
     data=[];
+    mrkData=[];
 end
 %% 
 
@@ -254,7 +305,12 @@ end
 function probe=getprobefrominfo(info)
 
 % figure out what probe this is
-switch(info.Mode')
+
+modeParts=strsplit(info.Mode,'x');
+m=str2num(modeParts{1});
+n=str2num(modeParts{2});
+
+switch(info.Mode)
     case('3x5')
        m=3;
        n=5;
@@ -274,7 +330,7 @@ end
 
 offset=15;
 
-if(isfield(info,'Probe1'))
+if(contains(info.probe,'Probe1'))
     [Y,X,Z]=meshgrid([0:-1:-m+1]*30,offset+[0:n-1]*30,0);
 else % type II
     [Y,X,Z]=meshgrid([-m+1:1:0]*30,-offset+[0:-1:-n+1]*30,0);    
@@ -300,7 +356,7 @@ end
 
 [sI,dI]=meshgrid([1:size(SrcPos,1)],[1:size(DetPos,1)]);
 
-WL=reshape(repmat(info.Wavenm',length(sI(:)),1),[],1);
+WL=reshape(repmat(info.Wave_nm,length(sI(:)),1),[],1);
 
 if(iscell(WL))
     WL=cell2mat(WL);
