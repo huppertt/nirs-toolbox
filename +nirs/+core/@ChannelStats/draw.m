@@ -244,7 +244,9 @@ for iType = 1:length(utypes)
                     figure(f(hind))
                     a=axes;
                 end
-                obj(ii).probe.draw(colors, lineStyles,a);
+                hh=obj(ii).probe.draw(colors, lineStyles,a);
+                
+                set(hh(isnan(vals)),'visible','off');
                 
                 c = colorbar; colormap(cmap); caxis(vrange);
                 

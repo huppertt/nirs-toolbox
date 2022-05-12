@@ -92,7 +92,7 @@ end
 data=[]; var=table;
 for j=1:height(tbl2)
     t=tbl(lst==j,:);
-    
+    covb=Stats.covb(lst==j,lst==j);
     
     for ii=1:stimulus.count
         lst2=find(StimMapping(:,1)==ii);
@@ -103,6 +103,10 @@ for j=1:height(tbl2)
         
         if(strcmp(type,'hrf'))
             H = X(:,lst2)*t.beta(i);
+            se = sqrt(diag(X(:,lst2)*covb(i,i)*X(:,lst2)'));
+            se(se==0)=NaN;
+            H = H + sqrt(-1)*se;
+            
         else
             H = X(:,lst2)*t.tstat(i);
         end
