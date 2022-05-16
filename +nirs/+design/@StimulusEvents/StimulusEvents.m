@@ -66,7 +66,33 @@ classdef StimulusEvents
     end
 
     methods (Hidden = true)
+
+
+        % assignment, i.e. dict('hello') = 1234
+        function obj = subsasgn(obj,s,b)
+            
+            numSubRef=length(s);
+            if strcmp(s(1).type,'()')
+                % Assignment of dictionary item
+                
+                if(numSubRef>1&&~strcmp(s(2).type,'()')) % assigning stim(1).amp vs stim.amp(1) should behave similarly
+                    obj= builtin('subsasgn',obj,s([2,1,3:end]),b);
+                elseif(isempty(b)&&numSubRef==1)
+                    key = s(1).subs;
+                    idx=key{1};
+                    log_idx=true(1,obj.count);
+                    log_idx(idx)=false;
+                    s(1).subs={log_idx};
+                    obj=subsref(obj,s);
+                else
+                   obj = builtin('subsasgn',obj,s,b); 
+                end
+            else
+               	obj = builtin('subsasgn',obj,s,b);
+            end
+        end
         
+        % retrieval;
         function [varargout] = subsref(obj,s)
             varargout=cell(1,1);
             out=cell(1,1);
@@ -80,18 +106,24 @@ classdef StimulusEvents
                         idx=key{1};
                         
                         temp=obj;
-                        try
-                            temp.onset=obj.onset(idx); 
-                        catch
-                            error('Invalid index for stimuli');
-                        end
+
+                        if(length(obj)>1)
+                            temp=temp(idx);
+                        else
+                            try
+                                temp.onset=obj.onset(idx); 
+                            catch ex
+                                warning('Invalid index for stimuli');
+                                throw(ex);
+                            end
+                                
+                            if(length(obj.onset)==length(obj.dur))
+                                temp.dur=obj.dur(idx);
+                            end
                             
-                        if(length(obj.onset)==length(obj.dur))
-                            temp.dur=obj.dur(idx);
-                        end
-                        
-                        if(length(obj.onset)==length(obj.amp))
-                            temp.amp=obj.amp(idx);
+                            if(length(obj.onset)==length(obj.amp))
+                                temp.amp=obj.amp(idx);
+                            end
                         end
 
                         if(numSubRef>1)
