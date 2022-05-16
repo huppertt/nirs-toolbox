@@ -133,7 +133,7 @@ classdef Dictionary
                     str=class(obj.values{i});
                 end
                 
-                disp(['     ' obj.keys{i} '  :  ' str]);
+                disp(['     ' obj.keys{i} '  :  ' str(:)']);
             end
             %disp(tt);
            else
@@ -217,6 +217,7 @@ classdef Dictionary
                     out{k} = obj.values{idx};
                 else
                     out{k} = [];
+                    warning("%s does not exist in Dictionary",keys{k});
                 end
             end
             
@@ -227,29 +228,113 @@ classdef Dictionary
                 out = [];
             end
         end
+
+        function n = numArgumentsFromSubscript(obj,s,indexingContext)
+           if indexingContext == matlab.mixin.util.IndexingContext.Expression
+              n = 1;
+           else
+              if(iscell(s(1).subs))
+                n = length(s(1).subs);
+              else
+                n = 1;
+              end
+           end
+        end
         
         % assignment, i.e. dict('hello') = 1234
         function obj = subsasgn(obj,s,b)
-            if strcmp(s.type,'()')
-                % assert( ischar(s.subs{1}) )
-                newKey      = s.subs{1};
-                newValue    = b;
+            
+            numSubRef=length(s);
+            if strcmp(s(1).type,'()')
+                % Assignment of dictionary item
+                
+                
 
-                obj = obj.put( newKey, newValue );
+                for k=1:length(s(1).subs)
+                    % for each item, assign it to new item b
+                    newKey      = s(1).subs{k};
+                    newValue    = b;
+
+                    if(isempty(newValue)&&iscell(newValue))
+                        % If assignment is empty field is removed from dictionary
+                        % (if its a cell)
+                        % allows easy deletion and empty strings
+                        if(isempty(obj.get(newKey)))
+                            obj.remove(newKey);
+                        end
+                    else
+                        if(numSubRef>1) % If looking into subfields
+                            dictItemToUpdate = obj.get( newKey ); %get the item from the dictionary to update
+                            
+                            if(isempty(dictItemToUpdate))
+                                error('Item "%s" does not exist in dictionary',newKey);
+                            end
+                            
+                            dictItemToUpdate = subsasgn(dictItemToUpdate,s(2:end),b);
+
+                            newValue=dictItemToUpdate;
+                        end
+                        obj = obj.put( newKey, newValue );
+                    end
+
+                end
             else
                	obj = builtin('subsasgn',obj,s,b);
             end
         end
         
         % retrieval; i.e. dict('hello') returns 1234
-        function out = subsref(obj,s)
-            if length(s) == 1 && strcmp(s.type,'()')
-                % assert( ischar(s.subs{1}) )
-                key = s.subs{1};
-                out = obj.get( key );
+        function [varargout] = subsref(obj,s)
+            varargout=cell(1,1);
+            out=cell(1,1);
+
+            numSubRef=length(s);
+            if(numSubRef>=1)
+                switch s(1).type
+                    case '()'
+                        key = s(1).subs;
+                        out{:} = obj.get( key );
+                        % Return 1 output per key
+
+                        if(numSubRef>1)
+                            if(length(key)~=1)
+                                out=out{1};
+                            end
+                            for j=1:length(key)
+                                if(isempty(out{j}))
+                                    error('Dictionary Item is empty!');
+                                end
+                                out{j} = builtin('subsref',out{j},s(2:end));
+                            end
+                        else
+                            if(~iscell(out))
+                                 out={out};
+                            end
+                        end
+                    case '.'
+                        key = s.subs;
+                        if isprop(obj,key)
+                            out{:} = builtin('subsref',obj,s);
+                        else
+                            error('%s is not a property of Dictionary object',key);
+                        end
+                    otherwise
+                        out{:} = builtin('subsref',obj,s);
+                end
             else
-                out = builtin('subsref',obj,s);
+                out{:} = builtin('subsref',obj,s);
             end
+
+
+            if(nargout==0)
+                varargout=out;
+            else
+                for k=1:max(nargout,length(out)) % At least assign the first output
+                    varargout{k}=out{k};
+                end
+            end
+
+            
         end
     end
     
@@ -266,11 +351,6 @@ classdef Dictionary
         
         function out = areUniqueKeys( keys )
             %% areUniqueKeys - returns true if the list of keys are unique
-%             b = {};
-%             for i = 1:length( keys )
-%                b{i} = cast(getByteStreamFromArray(keys{i}),'uint32');
-%             end
-%             out = (length(b) == length(unique(b)));
                 out = (length(keys) == length(unique(keys)));
         end
     end
