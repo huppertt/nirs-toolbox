@@ -8,6 +8,10 @@ classdef StimulusEvents
         metadata=table;
         
     end
+
+    properties( Dependent = true )
+        count % number of stimuli
+    end
     
     methods
         function obj = StimulusEvents( name, onset, dur, amp )
@@ -16,6 +20,11 @@ classdef StimulusEvents
            if nargin > 2, obj.dur   = dur; end
            if nargin > 3, obj.amp   = amp; end
            
+        end
+
+        function count = get.count( obj )
+            %% count - returns the number of items in dictionary
+            count = length(obj.onset);
         end
         
 %         function disp(obj)
@@ -53,7 +62,98 @@ classdef StimulusEvents
             xlabel('time (sec)')
             ylabel(obj.name);
         end
+
+    end
+
+    methods (Hidden = true)
         
+        function [varargout] = subsref(obj,s)
+            varargout=cell(1,1);
+            out=cell(1,1);
+
+            numSubRef=length(s);
+            if(numSubRef>=1)
+                switch s(1).type
+                    case '()'
+                        key = s(1).subs;
+                        
+                        idx=key{1};
+                        
+                        temp=obj;
+                        try
+                            temp.onset=obj.onset(idx); 
+                        catch
+                            error('Invalid index for stimuli');
+                        end
+                            
+                        if(length(obj.onset)==length(obj.dur))
+                            temp.dur=obj.dur(idx);
+                        end
+                        
+                        if(length(obj.onset)==length(obj.amp))
+                            temp.amp=obj.amp(idx);
+                        end
+
+                        if(numSubRef>1)
+                            temp=builtin('subsref',temp,s(2:end));
+                        end
+                        
+                        out={temp};
+                    case '.'
+                        key = s.subs;
+                        if isprop(obj,key)
+                            out{:} = builtin('subsref',obj,s);
+                        else
+                            error('%s is not a property of StimulusEvents object',key);
+                        end
+                    otherwise
+                        out{:} = builtin('subsref',obj,s);
+                end
+            else
+                out{:} = builtin('subsref',obj,s);
+            end
+
+
+            if(nargout==0)
+                varargout=out;
+            else
+                for k=1:max(nargout,length(out)) % At least assign the first output
+                    varargout{k}=out{k};
+                end
+            end
+
+            
+        end
+
+        function obj = plus(obj,obj2)
+            if(strcmp(obj.name,obj2.name))
+               % retain same name 
+            else
+                newName=sprintf('%s_%s',obj.name,obj2.name);
+                fprintf('Merging "%s" and "%s" as "%s"\n',obj.name,obj2.name,newName);
+                obj.name=newName;
+            end
+
+            obj.onset=[obj.onset,obj2.onset];
+            obj.dur=[obj.dur,obj2.dur];
+            obj.amp=[obj.amp,obj2.amp];
+
+            % Resort in time
+            [obj.onset,b_idx]=sort(obj.onset);
+            obj.dur=obj.dur(b_idx);
+            obj.amp=obj.amp(b_idx);
+
+            if(obj.regressor_no_interest~=obj2.regressor_no_interest)
+                warning('Mismatch in regressor_no_interest, using first value');
+            end
+
+            try
+                obj.metadata=[obj.metadata;obj2.metadata];
+            catch
+                error('Unable to merge metadata');
+            end
+        
+        end
         
     end
 end
