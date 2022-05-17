@@ -313,7 +313,7 @@ classdef Dictionary
                         end
                     case '.'
                         key = s.subs;
-                        if isprop(obj,key)
+                        if isprop(obj,key)||ismethod(obj,key)
                             out{:} = builtin('subsref',obj,s);
                         else
                             error('%s is not a property of Dictionary object',key);

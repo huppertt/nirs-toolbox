@@ -16,10 +16,46 @@ classdef StimulusEvents
     methods
         function obj = StimulusEvents( name, onset, dur, amp )
            if nargin > 0, obj.name  = name; end
-           if nargin > 1, obj.onset = onset; end
-           if nargin > 2, obj.dur   = dur; end
-           if nargin > 3, obj.amp   = amp; end
-           
+           if nargin > 1
+               obj.onset = onset;
+
+               if(istable(onset))
+                   inpTable=onset;
+                   varnames=inpTable.Properties.VariableNames;
+
+                   onset_idx=contains(varnames,'onset');
+                   if(any(onset_idx))
+                        obj.onset= inpTable{:,onset_idx};
+                   else
+                       error('Must contain onset values');
+                   end
+
+                   dur_idx=contains(varnames,'dur');
+                   if(any(dur_idx))
+                        obj.dur= inpTable{:,dur_idx};
+                   end
+
+                   amp_idx=contains(varnames,'amp');
+                   if(any(amp_idx))
+                        obj.amp= inpTable{:,amp_idx};
+                   end
+
+                   obj.metadata=inpTable(:,~(onset_idx|dur_idx|amp_idx));
+
+               end
+           end
+
+           if nargin > 2, obj.dur   = dur; else
+               if(isempty(obj.dur))
+                obj.dur=nan(size(obj.onset));
+               end
+           end
+           if nargin > 3, obj.amp   = amp; else
+               if(isempty(obj.amp))
+                obj.amp=ones(size(obj.onset));
+               end
+           end
+
         end
 
         function count = get.count( obj )
@@ -68,7 +104,9 @@ classdef StimulusEvents
     methods (Hidden = true)
 
 
-        % assignment, i.e. dict('hello') = 1234
+        % assignment
+        % override allows setting stimuli as [] to remove
+        % and assignment of individual properties within a stimuli
         function obj = subsasgn(obj,s,b)
             
             numSubRef=length(s);
@@ -77,7 +115,7 @@ classdef StimulusEvents
                 
                 if(numSubRef>1&&~strcmp(s(2).type,'()')) % assigning stim(1).amp vs stim.amp(1) should behave similarly
                     obj= builtin('subsasgn',obj,s([2,1,3:end]),b);
-                elseif(isempty(b)&&numSubRef==1)
+                elseif(isempty(b)&&numSubRef==1) % assigning stimuli to empty removes that index
                     key = s(1).subs;
                     idx=key{1};
                     log_idx=true(1,obj.count);
@@ -103,6 +141,9 @@ classdef StimulusEvents
                     case '()'
                         key = s(1).subs;
                         
+                        if(isempty(key))
+                            key={':'};
+                        end
                         idx=key{1};
                         
                         temp=obj;
@@ -133,7 +174,7 @@ classdef StimulusEvents
                         out={temp};
                     case '.'
                         key = s.subs;
-                        if isprop(obj,key)
+                        if isprop(obj,key)||ismethod(obj,key)
                             out{:} = builtin('subsref',obj,s);
                         else
                             error('%s is not a property of StimulusEvents object',key);
