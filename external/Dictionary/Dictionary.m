@@ -358,6 +358,9 @@ classdef Dictionary
     methods ( Access = private )
         % find index
         function [i, keyexists] = getindex( obj, key )
+            if(iscell(key))
+                key=key{1};
+            end
              b = getByteStreamFromArray(key);
 %             i = uint64(typecast(int32(MyHashLib.jenkinsHash(b)),'uint32'));
 %             
