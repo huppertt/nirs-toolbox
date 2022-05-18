@@ -8,9 +8,9 @@ function varargout=draw( obj, colors, lineStyles, axis_handle )
     %     axis_handle - (optional) handle to axis to the plot to
         
     % sd pairs
-    
+
     [~,unique_pairs_idx]=unique(obj.link(:,[1,2]),'rows');
-    link=obj.link(unique_pairs_idx,1:2);
+    link=obj.link(sort(unique_pairs_idx),1:2);
 
 
     s = obj.srcPos;
