@@ -8,11 +8,10 @@ function varargout=draw( obj, colors, lineStyles, axis_handle )
     %     axis_handle - (optional) handle to axis to the plot to
         
     % sd pairs
-    if isnumeric(obj.link.type)
-        link = obj.link(obj.link.type==obj.link.type(1),1:2);
-    else
-        link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
-    end
+    
+    [~,unique_pairs_idx]=unique(obj.link(:,[1,2]),'rows');
+    link=obj.link(unique_pairs_idx,1:2);
+
 
     s = obj.srcPos;
     d = obj.detPos;
