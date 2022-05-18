@@ -204,26 +204,31 @@ axes(handles.axes_maindata);
 linehandles=data(val).draw;
 set(linehandles,'tag','dataline');
 
-SDcolors=nirs.util.makeSDcolors(data(val).probe.link);
+link_data=data(val).probe.link;
+[~,i_ch_1st,i_ch]=unique(data(val).probe.link(:,[2,1]),'rows');
+SDcolors=nirs.util.makeSDcolors(link_data);
 
 set(linehandles,'visible','off');
+
+LstAll=nan([height(typesAll),1]);
 for idx=1:length(subtype)
     lst=find(ismember(typesAll,subtype{idx}));
-    set(linehandles(lst),'visible','on');
+    set(linehandles(ismember(i_ch,i_ch(lst))),'visible','on');
     for idx2=1:length(lst)
-        set(linehandles(lst(idx2)),'color',SDcolors(idx2,:));
+        set(linehandles(lst(idx2)),'color',SDcolors(lst(idx2),:));
     end
-    LstAll(:,idx)=lst;
+    LstAll(lst)=idx;
 end
 
 for idx=1:length(SDGhandles)
     set(SDGhandles(idx),'tag',['SDG' num2str(idx)]);
     set(SDGhandlesBase(idx),'tag',['SDG' num2str(idx)]);
-    set(SDGhandles(idx),'color',SDcolors(idx,:));
-    linelinks(idx)=linkprop([linehandles(LstAll(idx,:)),SDGhandles(idx)],{'Visible','Color'});
+    set(SDGhandles(idx),'color',SDcolors(i_ch_1st(idx),:));
+    linelinks(idx)=linkprop([linehandles(i_ch==idx);SDGhandles(idx)],{'Visible','Color'});
 end
-for idx=1:size(LstAll,2)
-    linelinks(end+1)=linkprop(linehandles(LstAll(:,idx)),'LineStyle');
+
+for idx=1:length(subtype)
+    linelinks(end+1)=linkprop(linehandles(LstAll==idx),'LineStyle');
 end
 
 set(SDGhandles,'ButtonDownFcn','set(gcbo,''visible'',''off''); nirs_viewer(''updatewin'');');
