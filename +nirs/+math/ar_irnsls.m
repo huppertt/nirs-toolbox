@@ -1,4 +1,4 @@
-function stats = ar_irnsls( d,X,Pmax,tune )
+function stats = ar_irnsls( d,X,Pmax,tune,useGPU)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -53,6 +53,9 @@ function stats = ar_irnsls( d,X,Pmax,tune )
         tune = 4.685;
     end
     
+    if nargin < 5
+        useGPU=false;
+    end
        
     % preallocate stats
     nCond = size(X,2);
@@ -160,11 +163,25 @@ function stats = ar_irnsls( d,X,Pmax,tune )
        % stats.dfe = length(yf)-sum(U(:).*U(:));
         stats.dfe = S.dfe; %-sum(U(:).*U(:));
         
-        %  Satterthwaite estimate of model DOF
-        H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
-        % note trace(A*B) = sum(reshape(A,[],1).*reshape(B',[],1)); 
-        HtH=H'*H;
-        stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);
+        if(useGPU)
+            
+            %  Satterthwaite estimate of model DOF
+            g_Sw=gpuArray(S.w);
+            g_wXf=gpuArray(wXf);
+
+            gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
+            gpuHtH = gpuH' * gpuH;  
+
+            stats.dfe =gather(sum(reshape(gpuH,[],1).*reshape(gpuH,[],1))^2/sum(reshape(gpuHtH,[],1).^2));
+            
+        else
+            %  Satterthwaite estimate of model DOF
+            
+            H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
+            HtH=H'*H;
+            stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);
+
+        end
         %stats.dfe = trace(H'*H)^2/trace(H'*H*H*H');  % same result but 4-6x slower
         
         % moco data & statistics
