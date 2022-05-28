@@ -74,7 +74,7 @@ end
 % Now put all the data together
 raw=nirs.core.Data;
 if (isfield(info{1},'Name'))
-    raw.demographics('Name')=info{1}.Name(:);
+    raw.demographics('Name')=info{1}.Name;
 else
     raw.demographics('Name')='';
 end
@@ -87,7 +87,7 @@ else
     raw.demographics('Age')=nan;
 end
 if (isfield(info{1},'Sex'))
-    raw.demographics('Gender')=info{1}.Sex(:);
+    raw.demographics('Gender')=info{1}.Sex;
 else
     raw.demographics('Gender')='';
 end
@@ -97,7 +97,7 @@ else
     raw.demographics('ID')='';
 end
 if (isfield(info{1},'Comment'))
-    raw.demographics('Comment')=info{1}.Comment(:);
+    raw.demographics('Comment')=info{1}.Comment;
 else
     raw.demographics('Comment')='';
 end
