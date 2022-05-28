@@ -79,7 +79,10 @@ else
     raw.demographics('Name')='';
 end
 if (isfield(info{1},'Age'))
-    raw.demographics('Age')=str2num(info{1}.Age(1:end-1)');
+    ageVar=info{1}.Age;
+    ageVar(ageVar=='y')='';
+
+    raw.demographics('Age')=str2double(ageVar);
 else
     raw.demographics('Age')=nan;
 end
@@ -204,50 +207,40 @@ for i=1:dIdx
        continue
     end
 
-    j=min(strfind(fld,delim));
-    if(~isempty(j))
-        vals=fld(j+1:end);
-        fld=fld(1:j-1);
-        
-        
-        fld(strfind(fld,' '))='_';
-        fld(strfind(fld,'['))='_';
-        fld(strfind(fld,']'))=[];
-        
-        val={};
-        lst=strfind(vals,delim);
-        
-        if(isempty(lst))
-            if(~isempty(str2num(vals))) 
-                vals=str2num(vals); 
-            end
-            val=vals;
-        else
-            lst=[lst length(vals)+1];
-            for jj=1:length(lst)
-                v=vals(1:lst(jj)-1);
-                if(jj<length(lst))
-                vals(1:lst(jj))=[];
-                lst=lst-lst(jj);
-                end
-                if(~isempty(v))
-                    if(~isempty(str2num(v))) 
-                        v=str2num(v(:)'); 
-                    end
-                    val={val{:} v};
-                end
-            end
+    lineParts=strsplit(fld,delim);
+    if(~isempty(lineParts)&&length(lineParts)>1)
+        headerField=lineParts{1};
+
+        headerField(strfind(headerField,' '))='_';
+        headerField(strfind(headerField,'['))='_';
+        headerField(strfind(headerField,']'))=[];
+
+        vals=lineParts(2:end);
+        vals=vals(~ismissing(vals));
+
+        vals_num=str2double(vals);
+        vals_num_idx=find(~isnan(vals_num));
+
+        for z=1:length(vals_num_idx)
+            vals{vals_num_idx(z)}=vals_num(vals_num_idx(z));
         end
+
+        if(length(vals)==1)
+            vals=vals{1};
+        end
+
+        info=setfield(info,headerField,vals);
         
-       % try; val=vertcat(val{:}); end;
-        
-        info=setfield(info,fld,val);
-        
-        if(~isempty(strfind(fld,'Probe')) || ~isempty(strfind(fld,'EXT_AD')))
+        if(~isempty(strfind(headerField,'Probe')) || ~isempty(strfind(headerField,'EXT_AD')))
             break
         end
         
+    else
+        continue;
     end
+    
+
+
 end
 %%
 
