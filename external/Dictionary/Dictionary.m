@@ -245,41 +245,50 @@ classdef Dictionary
         function obj = subsasgn(obj,s,b)
             
             numSubRef=length(s);
-            if strcmp(s(1).type,'()')
-                % Assignment of dictionary item
-                
-                
-
-                for k=1:length(s(1).subs)
-                    % for each item, assign it to new item b
-                    newKey      = s(1).subs{k};
-                    newValue    = b;
-
-                    if(isempty(newValue)&&iscell(newValue))
-                        % If assignment is empty field is removed from dictionary
-                        % (if its a cell)
-                        % allows easy deletion and empty strings
-                        if(isempty(obj.get(newKey)))
-                            obj.remove(newKey);
-                        end
+            if(numSubRef>0)
+                if strcmp(s(1).type,'.')
+                    key = s.subs;
+                    if isprop(obj,key)||ismethod(obj,key)
+                        obj = builtin('subsasgn',obj,s);
                     else
-                        if(numSubRef>1) % If looking into subfields
-                            dictItemToUpdate = obj.get( newKey ); %get the item from the dictionary to update
-                            
-                            if(isempty(dictItemToUpdate))
-                                error('Item "%s" does not exist in dictionary',newKey);
-                            end
-                            
-                            dictItemToUpdate = subsasgn(dictItemToUpdate,s(2:end),b);
-
-                            newValue=dictItemToUpdate;
-                        end
-                        obj = obj.put( newKey, newValue );
+                        s(1).type='()';
+                        s(1).subs={s(1).subs};
                     end
-
                 end
-            else
-               	obj = builtin('subsasgn',obj,s,b);
+                
+                if strcmp(s(1).type,'()')
+                    % Assignment of dictionary item
+                    for k=1:length(s(1).subs)
+                        % for each item, assign it to new item b
+                        newKey      = s(1).subs{k};
+                        newValue    = b;
+    
+                        if(isempty(newValue)&&iscell(newValue))
+                            % If assignment is empty field is removed from dictionary
+                            % (if its a cell)
+                            % allows easy deletion and empty strings
+                            if(isempty(obj.get(newKey)))
+                                obj.remove(newKey);
+                            end
+                        else
+                            if(numSubRef>1) % If looking into subfields
+                                dictItemToUpdate = obj.get( newKey ); %get the item from the dictionary to update
+                                
+                                if(isempty(dictItemToUpdate))
+                                    error('Item "%s" does not exist in dictionary',newKey);
+                                end
+                                
+                                dictItemToUpdate = subsasgn(dictItemToUpdate,s(2:end),b);
+    
+                                newValue=dictItemToUpdate;
+                            end
+                            obj = obj.put( newKey, newValue );
+                        end
+    
+                    end
+                else
+               	    obj = builtin('subsasgn',obj,s,b);
+                end
             end
         end
         
@@ -316,7 +325,26 @@ classdef Dictionary
                         if isprop(obj,key)||ismethod(obj,key)
                             out{:} = builtin('subsref',obj,s);
                         else
-                            error('%s is not a property of Dictionary object',key);
+                            out{:} = obj.get( key );
+                            if(isempty(out))
+                                error('%s is not a property, method, or item of Dictionary object',key);
+                            end
+                            if(numSubRef>1)
+                                key={key};
+                                if(length(key)~=1)
+                                    out=out{1};
+                                end
+                                for j=1:length(key)
+                                    if(isempty(out{j}))
+                                        error('Dictionary Item is empty!');
+                                    end
+                                    out{j} = builtin('subsref',out{j},s(2:end));
+                                end
+                            else
+                                if(~iscell(out))
+                                     out={out};
+                                end
+                            end
                         end
                     otherwise
                         out{:} = builtin('subsref',obj,s);
