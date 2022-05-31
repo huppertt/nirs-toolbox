@@ -97,6 +97,17 @@ end
                 end
                 thisFile.stimulus=stims;
                 
+                %Put the stim if available in Aux
+                if any(d.aux,'all')
+                    for idx=1:size(d.aux,2)
+                        stimname = ['stim_aux' num2str(idx)];
+                        tmp = nirs.util.aux2stim(d.aux(:,idx));
+                        s = nirs.design.vector2event( d.t , tmp , stimname );
+                        stims(stimname)=s;
+                    end
+                end
+                 thisFile.stimulus=stims;
+                
             end
 
             % demographics for group level
