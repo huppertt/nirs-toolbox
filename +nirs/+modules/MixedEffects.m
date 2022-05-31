@@ -376,6 +376,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     cnt=cnt+1;
                 end
             end
+            if(isstring(n{1}))
+                n=cellstr(n);
+            end
             [~,j]=unique(n);
             G.basis=S(1).basis;
             G.basis.stim=Dictionary;
