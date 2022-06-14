@@ -2,11 +2,9 @@ function data = nirstorm2toolbox(sDataIn,events,ChanneMat)
 
 data=nirs.core.Data;
 
-nirs_idx = strcmp({ChanneMat.Channel.Type},'NIRS');
+nirs_idx = strcmp({ChanneMat.Channel.Type},'NIRS') & (sDataIn.ChannelFlag==1)';
 data.data=sDataIn.F(nirs_idx,:)';
 data.time=linspace(sDataIn.Time(1),sDataIn.Time(end),size(data.data,1));
-
-fs = 1 / ( sDataIn.Time(2) - sDataIn.Time(1));
 
 for i=1:length(events)
     s=nirs.design.StimulusEvents;
@@ -21,20 +19,23 @@ for i=1:length(events)
     end
     data.stimulus(s.name)=s;
 end
-
+k = 1;
 for i=1:length( ChanneMat.Channel)
-    if strcmp(ChanneMat.Channel(i).Type, 'NIRS')
-        ml(i,1)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'S')+1:...
+    if nirs_idx(i)
+        ml(k,1)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'S')+1:...
             strfind(ChanneMat.Channel(i).Name,'D')-1));
-        ml(i,2)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'D')+1:...
+        ml(k,2)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'D')+1:...
             strfind(ChanneMat.Channel(i).Name,'W')-1));
-        ml(i,4)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'WL')+2:end));
+        ml(k,4)=str2num(ChanneMat.Channel(i).Name(strfind(ChanneMat.Channel(i).Name,'WL')+2:end));
         
-        SrcPos(ml(i,1),:)=ChanneMat.Channel(i).Loc(:,1)';
-        DetPos(ml(i,2),:)=ChanneMat.Channel(i).Loc(:,2)';
+        SrcPos(ml(k,1),:)=ChanneMat.Channel(i).Loc(:,1)';
+        DetPos(ml(k,2),:)=ChanneMat.Channel(i).Loc(:,2)';
+
+        k = k +1 ;
     end
     
 end
+
 SD.Lambda=ChanneMat.Nirs.Wavelengths';
 [~,ml(:,4)]=ismember(ml(:,4),SD.Lambda);
 
