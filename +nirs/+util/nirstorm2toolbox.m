@@ -1,15 +1,24 @@
-function data = nirstorm2toolbox(sDataIn,events,ChanneMat);
+function data = nirstorm2toolbox(sDataIn,events,ChanneMat)
 
 data=nirs.core.Data;
-data.data=sDataIn.F';
-data.time=linspace(sDataIn.Time(1),sDataIn.Time(2),size(data.data,1));
+
+nirs_idx = strcmp({ChanneMat.Channel.Type},'NIRS');
+data.data=sDataIn.F(nirs_idx,:);
+data.time=linspace(sDataIn.Time(1),sDataIn.Time(end),size(data.data,2));
+
+fs = 1 / ( sDataIn.Time(2) - sDataIn.Time(1));
 
 for i=1:length(events)
     s=nirs.design.StimulusEvents;
     s.name=events(i).label;
     s.onset=events(i).times;
     s.amp=events(i).epochs;
-    s.dur=ones(size(s.onset));
+    
+    if size(events(i).times,1) == 2
+        s.dur=events(i).times(2,:)  - events(i).times(1,:);
+    else
+        s.dur = ones( 1,size(events(i).times,2));
+    end
     data.stimulus(s.name)=s;
 end
 
@@ -30,9 +39,9 @@ SD.Lambda=ChanneMat.Nirs.Wavelengths';
 [~,ml(:,4)]=ismember(ml(:,4),SD.Lambda);
 
 SD.MeasList=ml;
-  SD.SrcPos=SrcPos;
-  SD.DetPos=DetPos;
+SD.SrcPos=SrcPos;
+SD.DetPos=DetPos;
 
 data.probe=nirs.util.sd2probe(SD);
 
-  
+end
