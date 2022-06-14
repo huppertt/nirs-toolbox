@@ -3,15 +3,15 @@ function data = nirstorm2toolbox(sDataIn,events,ChanneMat)
 data=nirs.core.Data;
 
 nirs_idx = strcmp({ChanneMat.Channel.Type},'NIRS');
-data.data=sDataIn.F(nirs_idx,:);
-data.time=linspace(sDataIn.Time(1),sDataIn.Time(end),size(data.data,2));
+data.data=sDataIn.F(nirs_idx,:)';
+data.time=linspace(sDataIn.Time(1),sDataIn.Time(end),size(data.data,1));
 
 fs = 1 / ( sDataIn.Time(2) - sDataIn.Time(1));
 
 for i=1:length(events)
     s=nirs.design.StimulusEvents;
     s.name=events(i).label;
-    s.onset=events(i).times;
+    s.onset=events(i).times(1,:);
     s.amp=events(i).epochs;
     
     if size(events(i).times,1) == 2
