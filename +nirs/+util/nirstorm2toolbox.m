@@ -3,6 +3,8 @@ function data = nirstorm2toolbox(sDataIn,events,ChanneMat)
 data=nirs.core.Data;
 
 nirs_idx = strcmp({ChanneMat.Channel.Type},'NIRS') & (sDataIn.ChannelFlag==1)';
+aux_idx = find(~strcmp({ChanneMat.Channel.Type},'NIRS') & (sDataIn.ChannelFlag==1)');
+
 data.data=sDataIn.F(nirs_idx,:)';
 data.time=linspace(sDataIn.Time(1),sDataIn.Time(end),size(data.data,1));
 
@@ -19,6 +21,7 @@ for i=1:length(events)
     end
     data.stimulus(s.name)=s;
 end
+
 k = 1;
 for i=1:length( ChanneMat.Channel)
     if nirs_idx(i)
@@ -35,6 +38,17 @@ for i=1:length( ChanneMat.Channel)
     end
     
 end
+
+if ~isempty(aux_idx)
+    for j=1:length(aux_idx)
+        st=nirs.core.GenericData;
+        st.data=sDataIn.F(aux_idx(j),:);
+        st.time=data.time;
+        
+        data.auxillary(ChanneMat.Channel(aux_idx(j)).Name)=st;
+    end
+end
+
 
 SD.Lambda=ChanneMat.Nirs.Wavelengths';
 [~,ml(:,4)]=ismember(ml(:,4),SD.Lambda);
