@@ -42,9 +42,9 @@ end
 if ~isempty(aux_idx)
     for j=1:length(aux_idx)
         st=nirs.core.GenericData;
-        st.data=sDataIn.F(aux_idx(j),:);
+        st.data=sDataIn.F(aux_idx(j),:)';
         st.time=data.time;
-        
+        st.description = ChanneMat.Channel(aux_idx(j)).Name;
         data.auxillary(ChanneMat.Channel(aux_idx(j)).Name)=st;
     end
 end
