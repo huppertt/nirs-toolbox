@@ -1,7 +1,7 @@
 function data = nirstorm2toolbox(sDataIn,events,ChanneMat)
 
 data=nirs.core.Data;
-
+data.description = sDataIn.Comment;
 nirs_idx = strcmp({ChanneMat.Channel.Type},'NIRS') & (sDataIn.ChannelFlag==1)';
 aux_idx = find(~strcmp({ChanneMat.Channel.Type},'NIRS') & (sDataIn.ChannelFlag==1)');
 
