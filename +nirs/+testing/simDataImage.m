@@ -77,7 +77,7 @@ end
         probe=nirs.util.registerprobe1020(probe);
         
         lambda=unique(probe.link.type);
-        fwdBEM=nirs.registration.Colin27.BEM(lambda);
+        fwdBEM=nirs.registration.Colin27.BEM_V2(lambda);
         
         % Likewise, this will register a mesh onto your probe.  Note- the mesh is
         % the thing that is warped to mathc the head size (not the probe).
@@ -85,8 +85,8 @@ end
         
         probe.defaultdrawfcn='10-20';
         fwdModel=nirs.forward.ApproxSlab;
-        fwdModel.mesh=fwdBEM.mesh(4);
-        fwdModel.prop=fwdBEM.prop{4};
+        fwdModel.mesh=fwdBEM.mesh(5);
+        fwdModel.prop=fwdBEM.prop{5};
         fwdModel.probe=probe;
         
     

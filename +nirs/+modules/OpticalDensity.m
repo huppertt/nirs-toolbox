@@ -16,7 +16,7 @@ classdef OpticalDensity < nirs.modules.AbstractModule
                 d = data(i).data;
                 
 
-                m = mean( d, 1 );
+                m = nanmean( d, 1 );
                 
                 d=-log(d./(ones(size(d,1),1)*m));
                 

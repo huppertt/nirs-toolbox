@@ -26,7 +26,7 @@ function out = jointTest( obj )
        
        T2 = obj.beta(m)'*pinv(covb)*obj.beta(m);
        
-       n = obj.dfe;
+       n = obj.dfe(1);
        k = sum(m);
        
        %Saitterwaitte estimate of effective DOF

@@ -21,8 +21,8 @@ if(nargin<3 || isempty(freq))
     freq = [Fs*2/length(Y) Fs/2];
 end
 
-Y=Y-ones(size(Y,1),1)*mean(Y,1);
-Y=Y-ones(size(Y,1),1)*mean(Y,1);
+Y=Y-ones(size(Y,1),1)*nanmean(Y,1);
+Y=Y-ones(size(Y,1),1)*nanmean(Y,1);
 
 % TODO: add code to deal with other wavelets, but for now lets use the
 % continuious ones that matlab supports

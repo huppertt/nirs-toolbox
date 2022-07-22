@@ -141,12 +141,13 @@ classdef ProbeROI < nirs.core.Probe
            if nargin < 4
                axis_handle = axes();
            end
-           vals=reshape(vals,length(obj.RegionNames),length(conditions));
+           vals=reshape(vals,length(conditions),length(obj.RegionNames));
            hold(axis_handle,'on');
            
-           h=bar(axis_handle,vals,'grouped');
-           set(gca,'XtickLabel',[]);
-           legend(obj.RegionNames);
+           h=bar(axis_handle,vals','grouped');
+           set(gca,'Xtick',[1:length(obj.RegionNames)]);
+           set(gca,'XtickLabel',obj.RegionNames);
+           legend(conditions);
             if(nargout==1)
                 varargout{1}=h;
             end

@@ -10,6 +10,11 @@ if(nargin<3)
     basis=[];
 end
 
+
+
+
+
+
 if(iscellstr(str) | iscell(str))
     for idx=1:length(str)
         [C(idx,:),haserror(idx)] = nirs.design.contrastvector(str{idx},conditions,basis);
@@ -17,6 +22,10 @@ if(iscellstr(str) | iscell(str))
     haserror=any(haserror);
     return;
 end
+
+
+
+
 
 % remove spaces
 for i=1:length(conditions)
@@ -39,19 +48,32 @@ end
 cnt=1;
 for i=1:length(S)
     slocal=S{i};
-    if(isempty([strfind(slocal,'-') strfind(slocal,'+')]))
+    if(~isempty(strfind(slocal,'x')))
+        multiplier{cnt}=str2num(slocal(1:strfind(slocal,'x')-1));
+        if(isempty(multiplier{cnt}))
+            multiplier{cnt}=1;
+        end
+    elseif(isempty([strfind(slocal,'-') strfind(slocal,'+')]))
         multiplier{cnt}=1;
-    elseif(~isempty(strfind(slocal,'*')))
-        multiplier{cnt}=str2num(slocal(1:strfind(slocal,'*')-1));
     elseif(~isempty(strfind(slocal,'+')))
         multiplier{cnt}=1;
     else
         multiplier{cnt}=-1;
     end
     cond{cnt}=slocal(max([0 strfind(slocal,'-') strfind(slocal,'+') ...
-        strfind(slocal,'*')])+1:end);
+        strfind(slocal,'x')])+1:end);
     cond{cnt}=[cond{cnt}(1:min([strfind(cond{cnt},'[')-1 length(cond{cnt})]))...
         cond{cnt}(min([strfind(cond{cnt},']')+1 length(cond{cnt})+1]):end)];
+    
+%     
+%     for i=1:length(cond)
+%         if~(basis.base.iskey(cond{i}))
+%             cond{i}=cond{i}(1:min(strfind(cond{i},':'))-1);
+%         end
+%     end
+    
+    
+    
     if(isempty(strfind(slocal,'[')))
         indices{cnt}=[];
     else
@@ -176,7 +198,7 @@ for idx=1:length(cond)
     else
         lst=[];
         for i=1:length(indices{idx})
-            l=strfind(cond{idx},':');
+            l=[]; %strfind(cond{idx},':');
             if(isempty(l))
                 l=length(cond{idx});
             else

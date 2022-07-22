@@ -19,7 +19,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'SampleData'),'dir'))
     mkdir(root_dir);
     disp('downloading sample data from HOMER-2 website');
     %% download the dataset
-    urlwrite('http://www.nmr.mgh.harvard.edu/optics/resources/homer2/SampleData.zip', ...
+    urlwrite('http://huppertlab.net/wp-content/uploads/2021/09/demo_homer2.zip', ...
         [root_dir filesep 'demo_homer2.zip']);
     % This command will download the demo_data.zip file from the server.  This
     % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow

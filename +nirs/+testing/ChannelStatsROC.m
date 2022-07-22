@@ -64,6 +64,7 @@ classdef ChannelStatsROC
 
     properties
         simfunc  = @nirs.testing.simData
+        dataset
         artfunc
         pipeline
     end
@@ -95,8 +96,26 @@ classdef ChannelStatsROC
         end
         
         function obj = run(obj, iter)
+            if ~isempty(obj.dataset)
+                if (~ismember("data", fieldnames(obj.dataset)))
+                    error("No data feild in dataset!")
+                end
+                if (~ismember("truth", fieldnames(obj.dataset)))
+                    error("No truth feild in dataset!")
+                end
+                if (iter > length(obj.dataset.data))
+                    warning("Requested number of iterations is greater than data size. Discard excessive iterations.");
+                    iter = length(obj.dataset.data);
+                end
+            end
             for idx = 1:iter
-               [data, truth] = obj.simfunc();
+                if ~isempty(obj.dataset)
+                    data = obj.dataset.data(idx);
+                    truth = obj.dataset.truth(:, idx);
+                else
+                    [data, truth] = obj.simfunc();
+                end
+               
                if ~isempty(obj.artfunc)
                    data = obj.artfunc(data);
                end
@@ -127,9 +146,7 @@ classdef ChannelStatsROC
                    
                    
                    if(ismember('ShortSeperation',data(1).probe.link.Properties.VariableNames))
-                       if(any(data(1).probe.link.ShortSeperation) & ~any(stats(1).probe.link.ShortSeperation))
-                           truth = truth(~data(1).probe.link.ShortSeperation);
-                       elseif(any(stats(1).probe.link.ShortSeperation))
+                      if(any(stats(1).probe.link.ShortSeperation))
                            truth = truth(~data(1).probe.link.ShortSeperation);
                            job=nirs.modules.RemoveShortSeperations;
                            stats=job.run(stats);
@@ -152,12 +169,21 @@ classdef ChannelStatsROC
                    
                    t = []; p = [];
                    for j = 1:length(types)
+                       if(iscellstr(types(i)))
                        lst = strcmp(types(j), stats.variables.type);
+                       else
+                           lst = find(types(j)==stats.variables.type);
+                       end
                        
                        t(:,j) = truth(lst);
                        p(:,j) = stats.p(lst);
                    end
-                   
+                   if(~iscellstr(types(1)))
+                        for i=1:length(types)
+                            tt{i,1}=[num2str(types(i)) 'nm'];
+                        end
+                        types=tt;
+                   end
                    t(:, end+1) = sum(t, 2) > 0;
                    p(:, end+1) = fstats.p;
                    

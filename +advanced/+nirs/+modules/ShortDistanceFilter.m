@@ -25,8 +25,8 @@ classdef ShortDistanceFilter < nirs.modules.AbstractModule
                 if(obj.splittypes)
                     types=unique(data(i).probe.link.type);
                     for tI=1:length(types)
-                        channelLst=find(data(i).probe.link.ShortSeperation & ismember(data(i).probe.link.type,types(i)));
-                        lst=find(~data(i).probe.link.ShortSeperation & ismember(data(i).probe.link.type,types(i)));
+                        channelLst=find(data(i).probe.link.ShortSeperation & ismember(data(i).probe.link.type,types(tI)));
+                        lst=find(~data(i).probe.link.ShortSeperation & ismember(data(i).probe.link.type,types(tI)));
                         d = data(i).data;
                         
                         SS = d(:,channelLst);

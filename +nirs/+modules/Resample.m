@@ -7,6 +7,7 @@ classdef Resample < nirs.modules.AbstractModule
     
     properties
         Fs = 4; % new sampling frequency (Hz)
+        Resample_Auxillary_Data = true;
     end
     properties (Hidden=true)
         antialias = [];
@@ -36,11 +37,34 @@ classdef Resample < nirs.modules.AbstractModule
             end
             
             for i = 1:numel(data)
+                if(obj.Resample_Auxillary_Data && isa(data(i),'nirs.core.Data') && data(i).auxillary.count>0)
+                    for j=1:data(i).auxillary.count
+                        key= data(i).auxillary.keys{j};
+                        try
+                            data(i).auxillary(key)=obj.runThis( data(i).auxillary(key));
+                        end
+                    end
+                end
+                
+                
                 if obj.Fs < data(i).Fs
                     
                     % resample data
                     d = data(i).data;
                     t = data(i).time;
+                    
+                    [iNan,jNan]=find(isnan(d));
+                    if(~isempty(iNan))
+                        for idx=1:size(d,2)
+                            lst=iNan(find(jNan==idx));
+                            lst2=[1:size(d,1)];
+                            lst2(lst)=[];
+                            if(length(lst2)>3)
+                                d(lst,idx)=interp1(t(lst2),d(lst2,idx),t(lst),'linear','extrap');
+                            end
+                        end
+                    end
+                    
                     
                     % de-mean the data to avoid edge effects
                     mu = nanmean(d);
@@ -69,6 +93,12 @@ classdef Resample < nirs.modules.AbstractModule
                     
                     % restore original mean
                     d = bsxfun(@plus,d,mu);
+                    
+                    if(~isempty(iNan))
+                        iNan=dsearchn(new_t,t(iNan));
+                        
+                        d(sub2ind(size(d),iNan,jNan))=NaN;
+                    end
                     
                     data(i).data = d;
                     data(i).time = new_t;

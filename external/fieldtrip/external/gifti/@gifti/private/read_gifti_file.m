@@ -168,7 +168,7 @@ switch s.Encoding
         if isempty(p)
             s.ExternalFileName = fullfile(pwd,[f e]);
         end
-        if false
+        if true
             fid = fopen(s.ExternalFileName,'r');
             if fid == -1
                 error('[GIFTI] Unable to read binary file %s.',s.ExternalFileName);

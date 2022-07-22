@@ -213,9 +213,16 @@ if(isa(data,'nirs.core.Data'))
         d(cnt).description=['ROI average' namesOld{floor((idx-1)/length(types))+1}];
         d(cnt).probe=nirs.core.Probe(NaN(1,3),NaN(1,3),table(repmat(1,length(types),1),...
             repmat(1,length(types),1),types,'VariableNames',{'source','detector','type'}));
-        d(cnt).data = data.data*c;
-        d(cnt).time=data.time;
-        d(cnt).stimulus=data.stimulus;
+       
+        d(cnt).data=nan(size(data.data,1),size(c,2));
+       for ii=1:size(d(cnt).data,1) 
+            lst=find(~isnan(data.data(ii,:)));
+            if(~isempty(lst))
+                d(cnt).data(ii,:) = data.data(ii,lst)*c(lst,:);
+            end
+       end
+       d(cnt).time=data.time;
+       d(cnt).stimulus=data.stimulus;
        d(cnt).demographics=data.demographics;
        d(cnt).auxillary=data.auxillary;
        d(cnt).probe=nirs.core.ProbeROI({names{idx:idx+length(types)-1}});
@@ -478,12 +485,14 @@ else
                 c=c./sum(c);
             end
             
-            
+            broi=nan(size(c,2),size(b,2));
+            se=nan(size(c,2),size(c,2));
             
             cc(lst,(i-1)*length(R)+j)=c;
             vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];
-            broi    = c'*b;
-            se      = sqrt(c'*C*c);
+            lst=find(~isnan(b));
+            broi(lst)    = c(lst,:)'*b(lst,:);
+            se(lst)      = sqrt(c(lst,:)'*C(lst,lst)*c(lst,:));
             t       = broi / se;
             df      = data.dfe;
             p       = 2*tcdf(-abs(t),df);

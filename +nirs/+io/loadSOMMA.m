@@ -1,4 +1,4 @@
-function data = loadDotNirs( filenames )
+function data = loadSOMMA( filenames )
 
 % if a single filename, put it in a cell
 if ischar( filenames )
@@ -41,11 +41,10 @@ for iFile = 1:length(filenames)
                 end
                 
                 try
-                j=nirs.modules.TDDR;
-                j.usePCA=true;
-                data(cnt,1)=j.run( data(cnt,1));
-                
-                data(cnt,1)=SOMMA_ApplyCal(data(cnt,1));
+                 j=nirs.modules.TDDR;
+                 j.usePCA=true;
+                 data(cnt,1)=j.run( data(cnt,1));
+                 data(cnt,1)=SOMMA_ApplyCal(data(cnt,1));
                 end
                 
                 
@@ -65,7 +64,7 @@ end
 function hb = AddStim(hb)
 
 
-lst=find(ismember(nirs.createDemographicsTable(hb).Session,{'F0' 'C0','C1','C12'}));
+lst=find(ismember(nirs.createDemographicsTable(hb).Session,{'F0' 'C0','C1','C12','F1','F12'}));
 for i=1:length(lst)
     
     a=mean(abs(hb(lst(i)).data),2);
@@ -141,7 +140,7 @@ if(isstr(cal))
         'SOMMA_7'
         'SOMMA_8'};
     
-    C=[     0.0366    0.0390    0.0407    0.0417    0.0396    0.0396    0.0389    0.0456
+    C=[ 0.0366    0.0390    0.0407    0.0417    0.0396    0.0396    0.0389    0.0456
         0.0129    0.0152    0.0168    0.0171    0.0162    0.0154    0.0152    0.0174
         0.0046    0.0097    0.0168    0.0156    0.0094    0.0069    0.0128    0.0207
         0.0031    0.0097    0.0113    0.0099    0.0095    0.0095    0.0097    0.0127
@@ -177,43 +176,46 @@ end
 
 for j=1:length(raw);
     clear A;
+    
     types=raw(j).probe.types;
     for i=1:length(types)
         lst = find(raw(j).probe.link.type==types(i));
         Y=abs(raw(j).data(:,lst))'.*(cal(lst,j)*ones(1,size(raw(j).data,1)));
-        
+        w=inv(chol(cov(Y')));
         r = raw(j).probe.distances(lst)/10;
         Y = log(Y.*(r*ones(1,size(Y,2))));
         ll= (abs(mean(Y,2))~=Inf);
         
-        X(:,1)=r;
+        X(:,1)=r*10;
         X(:,2)=1;
-        beta = inv(X(ll,:)'*X(ll,:))*X(ll,:)'*Y(ll,:);
-        %    beta=nirs.math.kalman_rts(Y,X,diag([100 0]));
+        wX=w*X;
+        wY=w*Y;
+        %beta = inv(wX(ll,:)'*wX(ll,:))*wX(ll,:)'*wY(ll,:);
+        beta=nirs.math.kalman_rts(wY(ll,:),wX(ll,:),diag([1000 1]));
         S=-beta(1,:)';
         % Sl^2 = A*(3*A+3*S); Sl^2/3 = A^2 +A*S
         a =3;
         b = 3*mus(i);
         c = S.^2;
-        % A =
+        %A(:,i) =S;
         A(:,i) = (sqrt(4*a*c+b^2)-b)./(2*a);
     end
-    A=nirs.math.kalman_rts(A'/10,[],diag([1 1]))';
-    %types=[660 850];
+    mA=median(A);
+    A=A-ones(size(A,1),1)*mA;
+    A=nirs.math.kalman_rts(A',[],diag([1 1]),X'*w*X)'; %+ones(size(A,1),1)*mA;
+   % types=[850 660];
     E = nirs.media.getspectra(types);
     E=E(:,1:2);
-    h=abs(inv(E'*E)*E'*A')'*1E6;
-    if(mean(h(:,1))<mean(h(:,2)))
-        h=h(:,[2 1]);
-    end
+    h=(inv(E'*E)*E'*A')'*1E6;
+   
     hb(j,1)=raw(j);
     hb(j).data=h;
     hb(j).probe.link=table([1 1]',[1 1]',{'hbo','hbr'}','VariableNames',{'source','detector','type'});
     
-    hb(j).probe.link(3,:)=table(1,1,{'StO2'},'VariableNames',{'source','detector','type'});
-    hb(j).probe.link(4,:)=table(1,1,{'HbT'},'VariableNames',{'source','detector','type'});
-    hb(j).data(:,3)=hb(j).data(:,1)./(hb(j).data(:,1)+hb(j).data(:,2))*100;
-    hb(j).data(:,4)=hb(j).data(:,1)+hb(j).data(:,2);
+%     hb(j).probe.link(3,:)=table(1,1,{'StO2'},'VariableNames',{'source','detector','type'});
+%     hb(j).probe.link(4,:)=table(1,1,{'HbT'},'VariableNames',{'source','detector','type'});
+%     hb(j).data(:,3)=hb(j).data(:,1)./(hb(j).data(:,1)+hb(j).data(:,2))*100;
+%     hb(j).data(:,4)=hb(j).data(:,1)+hb(j).data(:,2);
     
 end
 end
@@ -233,7 +235,10 @@ while(~feof(fid))
     end
     bypass=false;
     if(isempty(strfind(line,'<SYSTEM>')) & isempty(strfind(line,'<SCAN>')))
-        warning(['Header missing: ' filename]);
+        if(length(hdr)==1);
+            warning(['Header missing: ' filename]);
+        end
+         
         bypass=true; cnt=1;
     end
     
@@ -258,7 +263,7 @@ while(~feof(fid))
             line(strfind(line,'"'))=[];
             line=strtrim(line);
             cnt2=cnt2+1;
-            if(~isempty(strfind(line,'MARK')))
+            if(~isempty(strfind(line,'MARK')) | ~isempty(strfind(line,'EVENT')))
                 hdr(end).marks(end+1)=str2num(line(1:strfind(line,',')));
             elseif(~isempty(strfind(line,'</DATA>')))
                 line=strtrim(line(1:strfind(line,'</DATA>')-1));
@@ -375,12 +380,12 @@ lst2=find(d(:,2)==1);
 
 lst1D = find(diff(lst1)>1);
 
-DD = nan(length(lst1D)-1,max(diff(lst1D)),4);
+DD = nan(length(lst1D)-1,max(diff(lst1D)),size(d,2)-2);
 t1=zeros(length(lst1D)-1,1);
 lst1D=[0; lst1D];
 for i=2:length(lst1D)
     a=d(lst1(lst1D(i-1)+1:lst1D(i)),3:end);
-    a(1:5,:)=[]; % a(end-3:end,:)=[];
+    %a(1:5,:)=[]; % a(end-3:end,:)=[];
     DD(i-1,1:size(a,1),:)=a;
     t1(i-1)=mean(d(lst1(lst1D(i-1)+1:lst1D(i)),1));
 end    
@@ -388,12 +393,12 @@ end
 
 lst2D = find(diff(lst2)>1);
 
-DD2 = nan(length(lst2D)-1,max(diff(lst2D)),4);
+DD2 = nan(length(lst2D)-1,max(diff(lst2D)),size(d,2)-2);
 t2=zeros(length(lst2D)-1,1);
 lst2D=[0; lst2D];
 for i=2:length(lst2D)
     a=d(lst2(lst2D(i-1)+1:lst2D(i)),3:end);
-    a(1:5,:)=[]; % a(end-3:end,:)=[];
+   % a(1:5,:)=[]; % a(end-3:end,:)=[];
     DD2(i-1,1:size(a,1),:)=a;
     t2(i-1)=mean(d(lst2(lst2D(i-1)+1:lst2D(i)),1));
 end    

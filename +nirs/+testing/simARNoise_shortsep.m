@@ -4,8 +4,10 @@ function data = simARNoise_shortsep(probe, t, P, sigma, N_files )
     if (nargin < 4 || isempty(sigma)), sigma=.33; end;
     if (nargin < 3  || isempty(P)), P = 10; end
     if (nargin < 2 || isempty(t)), t = (0:1/10:300)'; end
-    if (nargin < 1 || isempty(probe)), probe = defaultProbe(); end
     
+    
+    
+    if (nargin < 1 || isempty(probe)), probe = defaultProbe(); end
     if(strcmp(class(probe),'double'))
         probe = defaultProbe(probe);
     end
@@ -23,9 +25,9 @@ function data = simARNoise_shortsep(probe, t, P, sigma, N_files )
     if(0)
         Slab = nirs.core.Image;
         Slab.dim = [5 5 5];
-        Slab.origin = [-100 -100 0];
+        Slab.origin = [-200 -200 0];
         Slab.description = 'Slab model for FEM/BEM models';
-        Slab.vol = ones(41,41,11);  % SLab from -100:5:100, -100:5:100, 0:5:50
+        Slab.vol = ones(81,81,11);  % SLab from -100:5:100, -100:5:100, 0:5:50
         
         % This command will create a nirs.core.Mesh data type
         % This requires iso2mesh to be installed.
@@ -51,7 +53,12 @@ function data = simARNoise_shortsep(probe, t, P, sigma, N_files )
     else
         load('SlabModel.mat');
         fwdSlab.probe=probe;
-        
+        lambda=probe.types;
+        fwdSlab.prop=nirs.media.tissues.brain(lambda,0.7, 50);
+        if(isa(probe,'nirs.core.Probe1020'))
+            fwdSlab.probe.optodes_registered=probe.optodes;
+        end
+
     end
     
     

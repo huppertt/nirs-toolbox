@@ -21,6 +21,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
 %     trend_func must at least return a constant term unless all baseline periods are
 %     specified explicitly in the stimulus design with BoxCar basis functions
     properties
+        PCA_reduction = 0;
         randomeffectsmodel=true;
     end
     methods
@@ -30,6 +31,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
             obj.name = 'Single Trial GLM Model';
             obj.basis('default') = nirs.design.basis.Canonical();
             obj.goforit=true;
+            
         end
         
         function S = runThis( obj, data )
@@ -114,10 +116,11 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                
                 
                 % run regression
-                if(rank([X C]) < size([X C],2) & obj.goforit)
+                if(obj.PCA_reduction>0 || (rank([X C]) < size([X C],2) & obj.goforit))
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
                     lst=nirs.math.sig_eigens(s,0.05);
+                    lst((1-cumsum(diag(s(1:length(lst),1:length(lst)))./sum(diag(s))))<obj.PCA_reduction)=[];
                     V=V(:,lst);
                     
                     stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );

@@ -115,7 +115,7 @@ classdef Dictionary
         
         function out = iskey( obj, key )
             %% iskey - returns true if key exists
-            
+
             [~,keyexists] = obj.getindex(key);
             out = keyexists;
         end
