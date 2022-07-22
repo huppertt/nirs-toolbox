@@ -23,7 +23,7 @@ if(~exist(filename,'file') || overwrite)
     H5F.close(fid)
 end
 
-
+data=data.sorted({'type','source','detector'});
 [~,snirf] = nirs.util.validateSNIRF(data);
 
 % zero out the nirs fields

@@ -1,4 +1,4 @@
-function stats = ar_irls( d,X,Pmax,tune )
+function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -49,10 +49,12 @@ function stats = ar_irls( d,X,Pmax,tune )
  
     warning('off','stats:statrobustfit:IterationLimit')
     
-    if nargin < 4
+    if nargin < 4 || isempty(tune)
         tune = 4.685;
     end
-    
+    if(nargin<5)
+        nosearch=false;
+    end
        
     % preallocate stats
     nCond = size(X,2);
@@ -67,6 +69,8 @@ function stats = ar_irls( d,X,Pmax,tune )
     stats.P = zeros(nChan,1);           % the final AR model order
     stats.w = zeros(nTime,nChan);       % save the weights
     stats.dfe = nTime - nCond;          % degrees of freedom
+    
+    
 
 %     
 %        yfiltered=[];
@@ -102,7 +106,7 @@ function stats = ar_irls( d,X,Pmax,tune )
             
         % initial fit
         lstValid=~isnan(y);
-        B = X(lstValid,:) \ y(lstValid);
+        B = pinv(X(lstValid,:))* y(lstValid);
         B0 = 1e6*ones(size(B));
         
         % iterative re-weighted least squares
@@ -120,7 +124,12 @@ function stats = ar_irls( d,X,Pmax,tune )
             res = y - X*B;
                         
             % fit the residual to an ar model
-            a = nirs.math.ar_fit(res, Pmax);
+            if(length(Pmax)>1)
+                p=Pmax(i);
+            else
+                p=Pmax;
+            end
+            a = nirs.math.ar_fit(res, p,nosearch);
             
             % create a whitening filter from the coefficients
             f = [1; -a(2:end)];
@@ -189,23 +198,37 @@ function stats = ar_irls( d,X,Pmax,tune )
         resid(lstValid,i)=S.resid.*S.w; 
         
         stats.filter{i}=f;
-        stats.R2(i)=max(1-mad(yf(lstValid)-Xf*B)/mad(yf(lstValid)),0);
+        sse =  norm(yf(lstValid) - Xf*B)^2;
+         
+        sst =  norm(yf(lstValid) - mean(yf(lstValid)))^2;
+        stats.R2(i)=1-sse./sst;
+        
+        N=length(y)-size(B,2)-stats.P(i);
+        stats.logLik(i)=(-N/2)*log(2*pi*sse/N)-N/2;
+       
+        
         end
         
     end   
    
-    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
      
-    
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            a=resid(:,i)-nanmedian(resid(:,i));
-            b=resid(:,j)-nanmedian(resid(:,j));
-            
-            C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+    resid=resid-ones(size(resid,1),1)*nanmedian(resid,1);
+    if(size(resid,2)>400)
+        C=resid'*resid;
+    else
+        for i=1:size(stats.beta,2)
+            for j=i:size(stats.beta,2)
+                a=resid(:,i);
+                b=resid(:,j);
+                C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+                C(j,i)=C(i,j);
+            end
+
         end
     end
     C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
+    
+    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
     
 
     for i=1:size(stats.beta,2)
@@ -214,16 +237,19 @@ function stats = ar_irls( d,X,Pmax,tune )
             covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
             covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
         end
+        disp(i)
     end
     covb=covb/2;
+
     
+%     
 %     figure(1); cla; d=[];
 %     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;
 %     plot(log(squeeze(stats.covb(2,2,:))),'b')
 %     hold on;
 %     plot(log(d),'r--')
 %     pause;
-    
+%     
     stats.covb = real(covb);
 % 
 %     for i=1:size(stats.beta,2)

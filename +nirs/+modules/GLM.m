@@ -5,7 +5,7 @@ classdef GLM < nirs.modules.AbstractGLM
     %     basis       - a Dictionary object containing temporal bases using stim name as key
     %     verbose     - flag to display progress
     %     trend_func  - a function that takes in a time vector and returns trend regressors
-    %     type        - {OLS, NIRS-SPM, or [AR-IRLS]}
+    %     type        - {OLS, NIRS-SPM, or [AR-IRLS]} 
     % Example:
     %     j = nirs.modules.GLM();
     %     j.type = 'AR-IRLS';
@@ -127,7 +127,11 @@ classdef GLM < nirs.modules.AbstractGLM
             if (obj.AddShortSepRegressors)
                 Stim=unique(nirs.getStimNames(data));
                 for ii=1:length(Stim)
+%<<<<<<< shortsep-roc-error
                     Stim{ii}=['^' Stim{ii} '$'];
+%=======
+%                    Stim{ii}=['\<' Stim{ii} '*'];
+%>>>>>>> master
                 end
                 
                 j=nirs.modules.KeepStims(j);
@@ -149,7 +153,9 @@ classdef GLM < nirs.modules.AbstractGLM
                     if(~isempty(strfind(ss,':')))
                         ss(strfind(ss,':'):end)=[];
                     end
-                    
+                    if(ss(1)=='x' & ~ismember(ss,data(idx).stimulus.keys))
+                        ss(1)=[];
+                    end
                     st=data(idx).stimulus(ss);
                     if(~ismember('regressor_no_interest',fields(st)))
                         lst=[lst j];
@@ -177,7 +183,11 @@ classdef GLM < nirs.modules.AbstractGLM
                 end
                 SS=unique(SS);
                 for ii=1:length(SS)
+%<<<<<<< shortsep-roc-error
                     SS{ii}=['^' SS{ii} '$'];
+%=======
+%                    SS{ii}=[SS{ii} '+'];
+%>>>>>>> master
                 end
                 
                 j=nirs.modules.KeepStims;

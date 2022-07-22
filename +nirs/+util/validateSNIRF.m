@@ -30,12 +30,12 @@ for i=1:length(data)
         wavelengths=unique(data(i).probe.link.type);
         
         for k=1:height(data(i).probe.link);
-            snirf.nirs(i).data(1).measurementList(k).sourceIndex=data(i).probe.link.source(k);
-            snirf.nirs(i).data(1).measurementList(k).detectorIndex=data(i).probe.link.detector(k);
-            snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=find(ismember(wavelengths,data(i).probe.link.type(k)));
+            snirf.nirs(i).data(1).measurementList(k).sourceIndex=int16(data(i).probe.link.source(k));
+            snirf.nirs(i).data(1).measurementList(k).detectorIndex=int16(data(i).probe.link.detector(k));
+            snirf.nirs(i).data(1).measurementList(k).wavelengthIndex=int16(find(ismember(wavelengths,data(i).probe.link.type(k))));
             
-            snirf.nirs(i).data(1).measurementList(k).dataType = 1;
-            snirf.nirs(i).data(1).measurementList(k).dataTypeIndex = 1;
+            snirf.nirs(i).data(1).measurementList(k).dataType = int16(1);
+            snirf.nirs(i).data(1).measurementList(k).dataTypeIndex = int16(1);
             if(isnumeric(data(i).probe.link.type(k)))
                 snirf.nirs(i).data(1).measurementList(k).dataTypeLabel='raw';
             else
@@ -122,9 +122,9 @@ for i=1:length(data)
     
     
     snirf.nirs(i).probe.sourcePos2D = data(i).probe.srcPos(:,1:2)';
-    snirf.nirs(i).probe.sourceLabels = {data(i).probe.optodes(ismember(data(i).probe.optodes.Type,'Source'),:).Name{:}}';
+%    snirf.nirs(i).probe.sourceLabels = {data(i).probe.optodes(ismember(data(i).probe.optodes.Type,'Source'),:).Name{:}}';
     snirf.nirs(i).probe.detectorPos2D = data(i).probe.detPos(:,1:2)';
-    snirf.nirs(i).probe.detectorLabels = {data(i).probe.optodes(ismember(data(i).probe.optodes.Type,'Detector'),:).Name{:}}';
+%    snirf.nirs(i).probe.detectorLabels = {data(i).probe.optodes(ismember(data(i).probe.optodes.Type,'Detector'),:).Name{:}}';
     
     if(isa( data(i).probe,'nirs.core.Probe1020'))
         p=data(i).probe.swap_reg;

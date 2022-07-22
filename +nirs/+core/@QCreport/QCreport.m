@@ -572,7 +572,9 @@ classdef QCreport
             % min/max of axes
            
             % plot
+            if ~isempty(s)
             plot(t, s, 'LineWidth', 3 );
+            end
             
             % legend
             l = legend(keys{:});

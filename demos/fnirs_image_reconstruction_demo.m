@@ -163,7 +163,7 @@ j.prior('B')=prior;
 
 ImageStats=j.run(SubjStats);
 
-ImageStats.draw('tstat',[],'p<0.05','beta>.8','superior');
+ImageStats.draw('tstat',[],'p<1','beta>0','superior');
 
 
 % For reference, let's show the truth image too.

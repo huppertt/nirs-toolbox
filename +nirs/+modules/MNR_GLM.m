@@ -100,12 +100,27 @@ classdef MNR_GLM < nirs.modules.AbstractGLM
                 
                 tbl=remove_unrepresented_levels(tbl);
                 
+                lst=[];
+                for ii=1:length(tbl.Properties.VariableNames)
+                    for jj=1:height(tbl)
+                        if(iscell(tbl.(tbl.Properties.VariableNames{ii})(jj)) && ...
+                                isempty(tbl.(tbl.Properties.VariableNames{ii}){jj}))
+                            lst=[lst; jj];
+                        end
+                    end
+                end
+                lst=unique(lst);
+                
                 % add a few more fields to allow more options on the
                 % formula
                 tbl.time=data(i).time;
+                tbl(lst,:)=[];
+                
                 clear Beta Cov stats;    
                 for chIdx=1:size(d,2)
-                    tbl.Y=d(:,chIdx);
+                    dd=d(:,chIdx);
+                    dd(lst)=[];
+                    tbl.Y=dd;
                     if(strcmp(obj.FitMethod,'Repeatedmeas'))
                         r{chIdx}=nirs.math.fitrm(tbl,formula,1,4*data(i).Fs);
                         [Beta(chIdx,:),Cov(:,:,chIdx),stats]=r{chIdx}.stats;

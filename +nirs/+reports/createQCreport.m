@@ -2,14 +2,24 @@ function tbl=createQCreport(raw)
 
 % make summary of info
 tbl=nirs.createDemographicsTable(raw);
+
+if(~ismember({'StudyID'},tbl.Properties.VariableNames))
+    tbl.StudyID=repmat({'Default'},length(raw),1);
+end
+
+
 d.Subjects = unique(tbl.StudyID);
 for i=1:length(d.Subjects)
     lst=find(ismember(tbl.StudyID,d.Subjects{i}));
     d.NumScans(i,1)=length(lst);
     dates={};
     for j=1:length(lst)
+        try
         a=dir(raw(lst(j)).description);
         dates={dates{:} datestr(a(1).datenum,'mmm-dd-yyyy')};
+        catch
+             dates={dates{:} datestr(now,'mmm-dd-yyyy')};
+        end
     end
     ud=unique(dates);
     for j=1:length(ud)

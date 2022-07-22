@@ -14,11 +14,21 @@ if(nargin>1)
         probe1020=headshape;
         headshape=probe1020.get_headsize;
         mesh=probe1020.getmesh;
-         mesh=mesh(end);
+        mesh=mesh(end);
+        if(mesh.labels.count==0)
+            mesh=nirs.registration.Colin27.mesh_V2;
+            probe1020=probe1020.register_mesh2probe(mesh);
+            mesh=probe1020.getmesh;
+            mesh=mesh(end);
+        end
+        
     else
         probe1020=nirs.core.Probe1020([],headshape);
-         mesh=nirs.registration.Colin27.mesh_V2;
-          mesh=mesh(end);
+        mesh=nirs.registration.Colin27.mesh_V2;
+        probe1020=probe1020.register_mesh2probe(mesh);
+        mesh=probe1020.getmesh;
+        mesh=mesh(end);
+        mesh=mesh(end);
        %  mesh=nirs.util.register_headsize
     end
 else

@@ -1,7 +1,7 @@
 classdef FIR
     
     properties
-        nbins = 16;
+        nbins = '16s';
         binwidth   = 1;
         isIRF = true;  
     end

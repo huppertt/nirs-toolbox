@@ -1,14 +1,22 @@
 function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
+% nirs.io.loadDirectory
+    % Searches root folder using the provided hierarchy and optional import
+    % functions and returns an array of Data objects
 
-if nargin < 4,
-    fileExt  = {'.nirs','.oxy3','.wl1','Probe*.csv','_fnirs.csv','nir5','TXT'};
+if nargin < 4
+    fileExt  = {'.nirs','.oxy3','.wl1','Probe*.csv','_fnirs.csv','nir5','TXT','.nir'};
 end
-if nargin < 3 || isempty(loadFunc),
-    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2,@nirs.io.loadNIR5,@nirs.io.loadShimadzu};
+if nargin < 3 || isempty(loadFunc)
+    loadFunc = {@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadHitachi,@nirs.io.loadHitachiV2,@nirs.io.loadNIR5,@nirs.io.loadShimadzu,@nirs.io.loadBiopacNIR};
 end
 
-if(~iscell(fileExt)); fileExt={fileExt}; end;
-if(~iscell(loadFunc)); loadFunc={loadFunc}; end;
+if(~iscell(fileExt)) 
+    fileExt={fileExt}; 
+end
+
+if(~iscell(loadFunc))
+    loadFunc={loadFunc};
+end
 
 % remove trailing file separator
 if rootFolder(end) == filesep
@@ -27,10 +35,12 @@ end
 
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
+
+
 for i=1:length(fileExt)
-    if(~isempty(strfind(rootFolder,'*')))
+    if(contains(rootFolder,'*')) % Wildcard to import all files in all subdirectories)
         files = rdir(fullfile(rootFolder,'*',['*' fileExt{i}]));
-    else
+    else % Import all files in directory but not in subfolders
         files = rdir(fullfile(rootFolder,'**',['*' fileExt{i}]));
     end
     

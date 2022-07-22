@@ -1,6 +1,11 @@
-function export_nirstorm(data,folder)
+function export_nirstorm(data,folder,study)
 % this function will export nirs data from my toolbox into the
 % BrainStorm/NIRStorm format
+
+if(nargin<3)
+    study='@default_study';
+end
+
 
 dbFile = bst_get('BrainstormDbFile');
 bstOptions = load(dbFile);
@@ -24,9 +29,9 @@ pp=fileparts(pp);
 us=unique(subj);
 for i=1:length(us)
    lst=find(ismember(subj,us{i}));
-   save_BS(data(lst),fullfile(bsfolder,folder),us{i});
+   save_BS(data(lst),fullfile(bsfolder,folder),study,us{i});
    save_BS_anat( data(lst),fullfile(bsfolder,folder),us{i});
-   system(['cp -r ' fullfile(pp,'private','nirstorm','data','subj','@*') ' ' fullfile(bsfolder,folder,'data',us{i})]);
+   system(['cp -r ' fullfile(pp,'private','nirstorm','data','subj','@*') ' ' fullfile(bsfolder,folder,'data',study,us{i})]);
 end
 
 system(['cp -r ' fullfile(pp,'private','nirstorm','data','@*') ' ' fullfile(bsfolder,folder,'data')]);
@@ -35,7 +40,10 @@ system(['cp -r ' fullfile(pp,'private','nirstorm','anat','@*') ' ' fullfile(bsfo
 
 
 brainstorm('startjava');
-org.brainstorm.file.Pack.zip(fullfile(bsfolder,folder),fullfile(bsfolder,[folder '.zip']));
+zip(fullfile(bsfolder,[folder '.zip']),{fullfile(bsfolder,folder,'anat') fullfile(bsfolder,folder,'data')});
+%org.brainstorm.file.Pack.zip(fullfile(bsfolder,folder,'anat'),fullfile(bsfolder,[folder '.zip']));
+%org.brainstorm.file.Pack.zip(fullfile(bsfolder,folder,'data'),fullfile(bsfolder,[folder '.zip']));
+
 system(['rm -rf ' fullfile(bsfolder,folder)]); 
  
 ProtocolName = 'NIRSToolbox';
@@ -46,7 +54,7 @@ gui_brainstorm('DeleteProtocol', ProtocolName);
 gui_brainstorm('CreateProtocol', ProtocolName, 0, 0);
 
 brainstorm('start');
-import_subject(fullfile(bsfolder,[folder '.zip']));
+import_protocol(fullfile(bsfolder,[folder '.zip']));
 system(['rm ' fullfile(bsfolder,[folder '.zip'])]);
 
 end
@@ -81,15 +89,15 @@ end
 end
 
 
-function save_BS(data,folder,subjID)
+function save_BS(data,folder,study,subjID)
 
-system(['mkdir -p ' fullfile(folder,'data',subjID)]);     
+system(['mkdir -p ' fullfile(folder,'data',study,subjID)]);     
 
 
 for i=1:length(data)
     
     if(1)
-        fold=fullfile(folder,'data',subjID,'@dataNIRS');
+        fold=fullfile(folder,'data',study,subjID,'@dataNIRS');
         name=['data_' num2str(i-1) 'NIRS'];
         savelink(data(i),fold,name);
     end
@@ -202,7 +210,9 @@ end
 rawdata=struct;
 rawdata.F=data.data';
 rawdata.Std=[];
-[~,rawdata.Comment]=fileparts(data.description);
+try
+    [~,rawdata.Comment]=fileparts(data.description);
+end
 rawdata.ChannelFlag=ones(height(data.probe.link),1);
 rawdata.Time=[data.time(1) data.time(end)];
 rawdata.Datatype='recordings';

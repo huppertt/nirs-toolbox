@@ -52,13 +52,24 @@ classdef AddAuxRegressors < nirs.modules.AbstractModule
                     for j=1:length(idx)
                         
                         aux=data(i).auxillary(data(i).auxillary.keys{idx(j)});
+                        if(length(aux.time)~=length(unique(aux.time)))
+                            [aux.time,ia]=unique(aux.time);
+                            aux.data=aux.data(ia,:);
+                        end
+                        
+                        j=nirs.modules.FixNaNs;
+                        aux=j.run(aux);
+                        
                         for k=1:size(aux.data,2)
-                            dd=[dd interp1(aux.time,aux.data(:,k),data(i).time)];
+                            
+                            
+                            
+                            dd=[dd interp1(aux.time,aux.data(:,k),data(i).time,'linear','extrap')];
                         end
                     end
                     if(obj.normalize)
-                        dd=dd-ones(size(dd,1),1)*mean(dd,1);
-                        dd=dd./(ones(size(dd,1),1)*std(dd,[],1));
+                        dd=dd-ones(size(dd,1),1)*nanmean(dd,1);
+                        dd=dd./(ones(size(dd,1),1)*nanstd(dd,[],1));
                     end
                     dd=orth(dd);
                     for j=1:size(dd,2)

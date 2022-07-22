@@ -50,7 +50,7 @@ classdef GroupAverage < nirs.modules.AbstractModule
             b = [];
             vars = table();
             for i = 1:length(S)
-                
+                S(i)=S(i).sorted;
                 
                 
                 % coefs

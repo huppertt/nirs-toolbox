@@ -28,10 +28,12 @@ offset=0;
 % keys are stimulus names and values are stim objects
 stim_keys = stimulus.keys;
 stim_vals = stimulus.values;
+stim_keys=matlab.lang.makeValidName(stim_keys);
 
 X = []; names = {};
 for iKey = 1:length(stim_keys)
     
+    if(~isempty(stim_vals{iKey}))
     % get stim vector
     stimVector = stim_vals{iKey}.getStimVector( t );
     
@@ -164,6 +166,7 @@ for iKey = 1:length(stim_keys)
     end
     X=setfield(X,stim_keys{iKey},x);
     %X = [X x];
+    end
 end
 
 names = names';

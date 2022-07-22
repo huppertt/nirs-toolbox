@@ -329,29 +329,53 @@ lst2=find(d(:,2)==1);
 
 lst1D = find(diff(lst1)>1);
 
-DD = nan(length(lst1D)-1,max(diff(lst1D)),4);
-t1=zeros(length(lst1D)-1,1);
+DD = nan(length(lst1D)-2,max(diff(lst1D)),4);
+t1=zeros(length(lst1D)-2,1);
 lst1D=[0; lst1D];
-for i=2:length(lst1D)
-    a=d(lst1(lst1D(i-1)+1:lst1D(i)),3:end);
-    a(1:5,:)=[]; % a(end-3:end,:)=[];
-    DD(i-1,1:size(a,1),:)=a;
-    t1(i-1)=mean(d(lst1(lst1D(i-1)+1:lst1D(i)),1));
-end    
-    
+cnt=1;
+for i=3:length(lst1D)
+    a=d(lst1(lst1D(i-1)+1:lst1D(i)),3:6);
+    if(size(a,1)>6)
+        a(1:5,:)=[]; % a(end-3:end,:)=[];
+    DD(cnt,1:size(a,1),:)=a;
+    t1(cnt)=mean(d(lst1(lst1D(i-1)+1:lst1D(i)),1));
+    cnt=cnt+1;
+    end 
+end
+
+
 
 lst2D = find(diff(lst2)>1);
 
-DD2 = nan(length(lst2D)-1,max(diff(lst2D)),4);
-t2=zeros(length(lst2D)-1,1);
+DD2 = nan(length(lst2D)-2,max(diff(lst2D)),4);
+t2=zeros(length(lst2D)-2,1);
 lst2D=[0; lst2D];
-for i=2:length(lst2D)
-    a=d(lst2(lst2D(i-1)+1:lst2D(i)),3:end);
-    a(1:5,:)=[]; % a(end-3:end,:)=[];
-    DD2(i-1,1:size(a,1),:)=a;
-    t2(i-1)=mean(d(lst2(lst2D(i-1)+1:lst2D(i)),1));
-end    
+cnt=1;
+for i=3:length(lst2D)
+    a=d(lst2(lst2D(i-1)+1:lst2D(i)),3:6);
+    if(size(a,1)>6)
+        a(1:5,:)=[]; % a(end-3:end,:)=[];
+    DD2(cnt,1:size(a,1),:)=a;
+    t2(cnt)=mean(d(lst2(lst2D(i-1)+1:lst2D(i)),1));
+    cnt=cnt+1;
+    end 
+end
     
+
+% 
+% 
+% lst2D = find(diff(lst2)>1);
+% 
+% DD2 = nan(length(lst2D)-1,max(diff(lst2D)),4);
+% t2=zeros(length(lst2D)-1,1);
+% lst2D=[0; lst2D];
+% for i=2:length(lst2D)
+%     a=d(lst2(lst2D(i-1)+1:lst2D(i)),3:end);
+%     a(1:5,:)=[]; % a(end-3:end,:)=[];
+%     DD2(i-1,1:size(a,1),:)=a;
+%     t2(i-1)=mean(d(lst2(lst2D(i-1)+1:lst2D(i)),1));
+% end    
+%     
 
 
 % 
@@ -397,7 +421,7 @@ end
 d1=squeeze(nanmedian(DD,2));
 d2=squeeze(nanmedian(DD2,2));
 
-n=min(length(t1),length(t2));
+n=min([length(t1),length(t2),length(d1),length(d2)]);
 d1=d1(1:n,:);
 d2=d2(1:n,:);
 d1=medfilt1(d1,11);

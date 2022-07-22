@@ -32,6 +32,10 @@ if (useMNI || isnumeric(label))
    type = {'customize'}; 
 end
 
+if(ischar(label))
+    label=cellstr(label);
+end
+
 
 if(length(label)>1)
     R=table;
