@@ -110,9 +110,22 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                % chromophore concentrations, regardless of # of wavelengths
                
                % determine number of wavelengths measured
-               nWav = unique(p.link.type);
+               link=p.link;
+
+               [uLambda,~,uLambda_idx] = unique(link.type);
+
+               % If its stored as a cell for some reason, fix this
+               if(any(iscell(uLambda)))
+                    uLambda=str2num(cell2mat(uLambda));
+
+                    link.type=uLambda(uLambda_idx);
+               end
+
+
+               % grab wavelengths
+               extSpectra = [uLambda,nirs.media.getspectra( uLambda )]; % [ wv, hbo, hbr, water, fat]
                
-               
+               %preallocate output array
                if(~ismember('source',p.link.Properties.VariableNames) & ...
                        ismember('ROI',p.link.Properties.VariableNames))
                     nchan = unique([p.link.ROI]);
@@ -127,35 +140,59 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                % initial size of type_chr will likewise be 2 x chan
                type_chr = cell(2,length(nchan));
                
-               link=table;
-               
-                for j = 1:max(idx)
-                    lst = idx == j;
-                    lst=find(lst);
-                    link=[link; p.link(lst(1:2),:)];
-                    assert( length(lst) > 1 )
-                    lambda = p.link.type(lst);
-                   
-                    ext = nirs.media.getspectra( lambda );
-                    clist = [1 2]; % hbo and hbr; need to fix this
+               % Preserve original index
+               link.data_idx=[1:height(link)]';
+
+               % store optode numbers
+               link.opt_idx=idx;
+
+               % store type index
+               link.uLambda_idx=uLambda_idx;
+
+               % bind spectra
+               link.E = extSpectra(link.uLambda_idx,[2,3]); % [ wv, hbo, hbr, water, fat]
+
+               % bind distances
+               link.dist=[p.distances];
+
+               % avoid issues with the short (0) seperation values
+               %    set to 1mm
+               link.dist=max(link.dist,ones(size(link.dist)));
+
+               % drop non-active or other channels
+               link=link(~isnan(link.type)&link.type>0,:);
+            
+
+               numOptodes=max(idx);
+             
+                for j = 1:numOptodes
+                    % For each optode j
+
+                    link_opt=link(link.opt_idx==j,:);
+                    assert( height(link_opt) > 1 )
+
+                    % get data index
+                    d_idx=link_opt.data_idx;
                     
+                    % wavelengths
+                    lambda=link_opt.type;
+                  
                     % extinction coefficients
-                    E = ext(:,clist);
+                    E = link_opt.E;
                     
                     % distances
-                    L = p.distances(lst);
-                    L=max(L,1);  % avoid issues with the short (0) seperation values
+                    L = link_opt.dist;
                     
                     if(isa(obj.PPF,'function_handle'))
                         PPF = obj.PPF(lambda,data(i));      
                     elseif(length(obj.PPF)==1)
-                        PPF=repmat(obj.PPF,length(lambda),1);
+                        PPF=repmat(obj.PPF,length(E),1);
                     else
                         PPF=obj.PPF(:);
                     end
                     
-                    if(length(lambda)>2)
-                        r=mad(d(:,lst)',1,2);
+                    if(length(E)>2)
+                        r=mad(d(:,d_idx)',1,2);
                         r=r-mean(r);
                         s = mad(r, 0) / 0.6745;
                         r = r/s/4.685;
@@ -170,7 +207,7 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     iEL = pinv(EL);
                     
                     % calculates chromophore concentration (uM)
-                    d_chr(:,:,j) = (d(:,lst)*w*iEL') * 1e6;
+                    d_chr(:,:,j) = (d(:,d_idx)*w*iEL') * 1e6;
                     
                     % new channel type
                     type_chr(:,j) = {'hbo','hbr'};
@@ -187,8 +224,10 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 if(~ismember('source',p.link.Properties.VariableNames) & ...
                         ismember('ROI',p.link.Properties.VariableNames))
                     [p.link,idx] = nirs.util.sortrows(p.link,{'ROI','type'});
+                    p.link=p.link(:,{'ROI','type'});
                 else
                     [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
+                    p.link=p.link(:,{'source','detector','type'});
                 end
                 
                 % concatenate the channels (3rd dim) into the columns (2nd dim)
@@ -228,12 +267,12 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                         assert( length(lst) > 1 )
                         
                         lambda = data(i).variables.type(lst);
-                        ext = nirs.media.getspectra( lambda );
+                        extSpectra = nirs.media.getspectra( lambda );
                         
                         clist = [1 2]; % hbo and hbr; need to fix this
                         
                         % extinction coefficients
-                        E = ext(:,clist);
+                        E = extSpectra(:,clist);
                         
                         % distances
                         L = data(i).probe.distances(lst2);

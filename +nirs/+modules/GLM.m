@@ -23,6 +23,7 @@ classdef GLM < nirs.modules.AbstractGLM
     properties
         type;
         AddShortSepRegressors = false;
+        useGPU=false;
         options;
     end
     methods
@@ -97,6 +98,7 @@ classdef GLM < nirs.modules.AbstractGLM
                     j=nirs.modules.OLS(j);
                 case('AR-IRLS');
                     j=nirs.modules.AR_IRLS(j);
+                    j.useGPU=obj.useGPU;
                 case('NIRS-SPM')
                     j=nirs.modules.NIRS_SPM_GLM(j);
                 case('MV-GLM')

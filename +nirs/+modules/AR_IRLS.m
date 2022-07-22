@@ -24,6 +24,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
         useREML=false;
         nonstationary_noise=false;
         useFstats=false;
+        useGPU=false;
         Pmax='4*Fs';
     end
     methods
@@ -108,12 +109,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     lst=find(diag(s)>eps(1)*100);
                     V=V(:,lst);
                     if(obj.useREML)
-                        stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), Pmax );
+                        stats = nirs.math.ar_irls_REML( d, U(:,lst)*s(lst,lst), Pmax ,[],obj.useGPU);
                     else
                         if(obj.nonstationary_noise)
-                            stats = nirs.math.ar_irnnls( d, U(:,lst)*s(lst,lst), Pmax );
+                            stats = nirs.math.ar_irnnls( d, U(:,lst)*s(lst,lst), Pmax ,[], obj.useGPU );
                         else
-                            stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), Pmax );
+                            stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), Pmax ,[],false,obj.useGPU);
                         end
                     end
                     stats.beta=V*stats.beta;
@@ -128,15 +129,15 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                     
                     % run regression
                     if(obj.useREML)
-                        stats = nirs.math.ar_irls_REML( d, [X C], Pmax );
+                        stats = nirs.math.ar_irls_REML( d, [X C], Pmax,[],obj.useGPU );
                     else
                         if(obj.nonstationary_noise)
-                             stats = nirs.math.ar_irnsls( d, [X C], Pmax );
+                             stats = nirs.math.ar_irnsls( d, [X C], Pmax ,[],obj.useGPU);
                         else
                             if(obj.useFstats)
-                                stats = nirs.math.ar_irls_ftest( d, [X C], Pmax );
+                                stats = nirs.math.ar_irls_ftest( d, [X C], Pmax ,[],obj.useGPU);
                             else
-                                stats = nirs.math.ar_irls( d, [X C], Pmax );
+                                stats = nirs.math.ar_irls( d, [X C], Pmax ,[],false,obj.useGPU);
                             end
                         end
                     end
