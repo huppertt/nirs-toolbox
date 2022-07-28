@@ -262,7 +262,6 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
             covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
             covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
         end
-        disp(i)
     end
     covb=covb/2;
 

@@ -158,7 +158,6 @@ List=nirs.modules.pipelineToList(jobs);
 % List is a cell array containing the following jobs
 %     [1x1 nirs.modules.ImportData    ]
 %     [1x1 nirs.modules.RemoveStimless]
-%     [1x1 nirs.modules.FixNaNs       ]
 %     [1x1 nirs.modules.Resample      ]
 %     [1x1 nirs.modules.OpticalDensity]
 %     [1x1 nirs.modules.BeerLambertLaw]
@@ -168,7 +167,7 @@ List=nirs.modules.pipelineToList(jobs);
 %     [1x1 nirs.modules.ExportData    ]
 
 % Let's change the resample module (4th entry)
-List{4}.Fs=5;
+List{3}.Fs=5;
 
 % ANd then store back as a job
 jobs = nirs.modules.listToPipeline(List);
@@ -211,7 +210,7 @@ ROCtest.pipeline=jobs;
 List=nirs.modules.pipelineToList(jobs);
 
 % But, now, lets replace the AR-IRLS with an ordinary least squares
-List{9}=nirs.modules.OLS;
+List{8}=nirs.modules.OLS;
 jobs = nirs.modules.listToPipeline(List);
 ROCtest.pipeline(2)=jobs;
 % Placing a second job in the array will run both jobs for comparision
