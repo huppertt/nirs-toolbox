@@ -1,4 +1,4 @@
-function mesh=HCPdata2_headmodel(SubjectsDIR)
+function data=HCPdata2_headmodel(SubjectsDIR)
 
 
 mesh=nirs.registration.sMRI_segment(fullfile(SubjectsDIR,'mri','T1w_hires.nii.gz'));
@@ -16,6 +16,8 @@ options=struct('base_mesh', 'ico', 'keep_subdivision', true);
 
 [lsv,lsf]=read_surf(fullfile(SubjectsDIR,'surf','lh.sphere.reg'));
 [rsv,rsf]=read_surf(fullfile(SubjectsDIR,'surf','rh.sphere.reg'));
+
+
 
 kl=dsearchn(lsv/100,vertex{end}');
 kr=dsearchn(rsv/100,vertex{end}');
