@@ -1,4 +1,4 @@
-function data=HCPdata2_headmodel(SubjectsDIR)
+function mesh=HCPdata2_headmodel(SubjectsDIR)
 
 
 mesh=nirs.registration.sMRI_segment(fullfile(SubjectsDIR,'mri','T1w_hires.nii.gz'));

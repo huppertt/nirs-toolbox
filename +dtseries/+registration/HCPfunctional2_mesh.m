@@ -21,8 +21,8 @@ kr=dsearchn(rsv/100,vertex{end}');
 
 gr=rdir(fullfile(subjdir,'MNINonLinear','fsaverage_LR32k','*.R.sphere.32k_fs_LR.surf.gii'));
 gl=rdir(fullfile(subjdir,'MNINonLinear','fsaverage_LR32k','*.L.sphere.32k_fs_LR.surf.gii'));
-gr=gifti(gr(1).name);
-gl=gifti(gl(1).name);
+gr=gifti(gr(end).name);
+gl=gifti(gl(end).name);
 
 
 kl2=dsearchn(gl.vertices/100,lsv(kl,:));
@@ -35,7 +35,7 @@ kr2=dsearchn(gr.vertices/100,rsv(kr,:));
 
 taskfile=rdir(fullfile(subjdir,'MNINonLinear','Results',task,[task '_hp200_s' num2str(smIdx) '_level2.feat'],['*_' task '_level2_hp200_s' num2str(smIdx) '.dscalar.nii']))
 
-c=ft_read_cifti(taskfile(1).name);
+c=ft_read_cifti(taskfile(end).name);
 lstl=find(c.brainstructure==1);
 lstr=find(c.brainstructure==2);
 flds=fields(c);
