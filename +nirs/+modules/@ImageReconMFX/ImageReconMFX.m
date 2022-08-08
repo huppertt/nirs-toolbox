@@ -99,13 +99,15 @@ classdef ImageReconMFX < nirs.modules.AbstractModule
             % L2 = U2*S2*V'
             
             % Store back into the forward model
-            Lfwdmodels.values=US;
-            
+            %Lfwdmodels.values=US;
+            for idd=1:length(US);
+                Lfwdmodels(Lfwdmodels.keys{idd})=US{idd}; 
+            end;
             
             %Make sure the probe and data link match
             for idx=1:length(S)
                 sname=S(idx).demographics('subject');
-                if(ismember(sname,Lfwdmodels.keys))
+                if(ismember(sname,Probes.keys))
                     key=sname;
                 else
                     key='default';
