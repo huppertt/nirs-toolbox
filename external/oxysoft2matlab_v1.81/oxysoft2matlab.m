@@ -9,12 +9,12 @@ function [nirs_data, events] = oxysoft2matlab(filename, target, savename, verbos
 % where
 %   filename  -   string or cell, location of the file to be imported. The
 %                 file has to originate from Oxysoft and must be an
-%                 .oxy3 or oxy4-file, or an .oxyproj-file. If specifying an 
-%                 .oxyproj file, all .oxy3-files stored in there are imported.
-%                 If using a cell-array and mixing oxy3/4 and oxyproj files,
-%                 only the common oxy3/4-files are imported.
+%                 .oxy3, oxy4-, or oxy5-file, or an .oxyproj-file. If specifying an
+%                 .oxyproj file, all oxy-files stored in there are imported.
+%                 If using a cell-array and mixing oxy- and oxyproj-files,
+%                 only the common oxy-files are imported.
 %   target    -   string, the target toolbox. Can be 'rawOD', 'oxy/dxy',
-%                 'nirs-spm', 'homer', or 'nap'.
+%                 'nirs-spm', 'nirs' (Homer2), 'snirf' (Homer3) or 'nap'.
 %   savename  -   string or cell, location where the export should be saved.
 %                 Please specify without extension - it is automatically
 %                 added. If empty, data will not be saved. If a cell, has
@@ -111,26 +111,127 @@ function [nirs_data, events] = oxysoft2matlab(filename, target, savename, verbos
 % For more, see help of that function
 %
 %
-% Version 1.56, copyright (c) by Artinis Medical Systems http://www.artinis.com
-% Author Jörn M. Horschig, jorn@artinis.com
+% Version 1.81, copyright (c) by Artinis Medical Systems http://www.artinis.com
+% Author J?rn M. Horschig, jorn@artinis.com
+% Author Kristoffer Dahlsl?tt kristoffer@artinis.com
+% Author Parivash Pourabbasi parivash@artinis.com
+%
+% snirf implementation contributed by
+% Jeonghoon Choi, Boston University, Boas Lab, jchoi00@bu.edu
+% Jay Dubb, Boston University, Boas Lab, jdubb@bu.edu
+%
 % License Creative Commons Attribution-ShareAlike 4.0 International License
 %
 % See also OXYSOFTMNIIMPORT
 
 %%
 % Version history
+% v 1.81    fix - workaround when samplerate instead of sampletime is
+% 09/22/21  present in the meta data.
+%           fix - removing corrupt events to avoid sample array overflow
+%
+% v 1.80    fix - snirf wavelength sort removed
+% 06/24/21  
+%
+% v 1.79    fix - null pointer when no events present avoided
+% 06/18/21  enh - included HDF5 files from Homer3 for snirf format
+%
+% v 1.78    fix - fixing reading events from oxy5
+% 04/20/21
+% 
+% v 1.77    fix - single receiver measurements do not crash anymore
+% 04/15/21
+%
+% v 1.76    fix - corrected unit conversion of absolute concentrations
+% 04/07/21
+%
+% v 1.75    enh - possible to select snirf output file name and location
+% 03/23/21  fix - correction of wavelength inversion in snirf
+%
+% v 1.74    fix - nirs and snirf target formats correctly detected now
+% 03/10/21  
+%
+% v 1.73    fix - circumventing OxySoft bug with double optodetemplate IDs
+% 03/10/21  enh - better description of what tagrets nirs and snirf are
+%
+% v 1.72    fix - OxyMon + X recordings correctly converted for X now
+% 01/19/21
+%
+% v 1.71    fix - reading in correct channel number for oxy5-files
+%           enh - merging FT version of private files
+%           fix - MNI conversion for NIRStorm fixed
+%
+% v 1.70    cos - condition for warning messages for duplicate samples fixed
+% 10/05/20  fix - oxy5 OD values scaling factor corrected
+%
+% v 1.69    enh - added support for .snirf file format (by Jeonghoon Choi)
+% 08/04/20  enh - added support for oxy5-files
+%           fix - multi-channel TSI read-in fixed
+%           fix - circumventing MATLAB bug, leading to abs_H for TSI being
+%                 always set to 0.00045
+%
+% v 1.68    enh - adding support for relative paths for oxy4-conversion
+% 01/03/20        Jan (2020). GetFullPath
+%                 (https://www.mathworks.com/matlabcentral/fileexchange/28249-getfullpath),
+%                 MATLAB Central File Exchange. Retrieved January 3, 2020.
+%
+% v 1.67    enh - adding support for offline PM/PL files
+% 05/29/20        (assuming default muscle/brain measurement parameters)
+%
+% v 1.66    fix - correct computation of channels for ld oxy3->oxy4 converted
+% 11/20/19        data
+%           fix - storing with v7.3 on all formats
+%           fix - wavelength output for multiple devices and 'rawOD' and
+%                 'oxy/dxy' option
+%           fix - order of single- and multistack devices within a single
+%                 measurement stays intact
+%           enh - allow conversion of data with two or more LSL streams
+%
+% v 1.65    fix - ignoring calibration data optode template
+% 08/01/19
+%
+% v 1.64    enh - files incl. big variables (>2gig) will be stored with '-v7.3'
+% 06/26/19
+%
+% v 1.63    enh - smarter way to determine bytes to be read for oxy4-files
+% 06/24/19
+%
+% v 1.62    fix - reverting back to intensity mapping for Homer2
+% 06/13/19  fix - correct extraction of DPF when first template is empty
+%
+% v 1.61    enh - very old oxy3-files supported (H2O)
+% 05/14/19  enh - also extracting event description from oxyproj files
+%           fix - empty template (PortaSync) as first device supported
+%           fix - readout of laser mapping for versions with patch number
+%                 (e.g. Oxysoft 3.2.51.4)
+%           fix - correced DPF readout for multi-system measurements
+%                 (if necessary)
+%
+% v 1.60    fix - manual optodetemplate selection
+% 04/15/19
+%
+% v 1.59    fix - reading out event names (letters) correctly again
+% 04/11/19
+%
+% v 1.58    enh - adding support for EEG only data
+% 04/04/19
+%
+% v 1.57    fix - fixing a compatibility issue with Oxysoft 3.2.27.2
+% 03/29/19  fix - corrected reading in behaviour for long files
+%           enh - improved optodetemplate file finding routine
+%           enh - stratifying private functions with fieldtrip
 %
 % v 1.56    fix - several stability issues / crash preventions
 % 02/01/19  fix - more robust single device multi channel TSI calculation
 %
 % v 1.55    fix - avoiding crash of reading in oxy4 created from oxy3-file
-% 01/18/19  
+% 01/18/19
 %
 % v 1.54    fix - reading in last samples of oxy4-file always
 % 12/21/18  enh - updated MNI import for NIRStorm
 %
 % v 1.53    fix - old oxy3-files supported again (<Oxysoft 3.2)
-% 11/22/18  
+% 11/22/18
 %
 % v 1.52    fix - duplicate samples in oxy4-files deleted if present
 % 11/16/18  enh - returning sample number in rawOD or oxy/dxy output
@@ -146,24 +247,24 @@ function [nirs_data, events] = oxysoft2matlab(filename, target, savename, verbos
 %
 % v 1.49    fix - corrected autodetect path for 64-bit Oxysoft
 % 10/23/18  fix - corrected TSI rounding
-%           fix - AD channels in new data format correctly read in 
+%           fix - AD channels in new data format correctly read in
 %           enh - improving EEG channel support (ADClabel field added/
 %             empty subtemplate supported)
 %
 % v 1.48    fix - circumvent missing endsample crash in oxy4-file
-% 07/27/18  
-%         
+% 07/27/18
+%
 %
 % v 1.47    enh - added support for Brite-offline files
 % 07/23/18  enh - persistent storing of optodetemplate-file location
 %           enh - stratified TSI implementation (minimal effect here)
 %
 % v 1.46    fix - faulty copy of optodetemplateparameters circumvented
-% 07/04/18 
+% 07/04/18
 %
 % v 1.45    fix - fixing crash with empty events
-% 07/03/18  
-%           
+% 07/03/18
+%
 %
 % v 1.44    enh - name of file to be saved predefined on input name
 % 06/22/18  fix - corrected calculation of number of channels in oxy4
@@ -175,7 +276,7 @@ function [nirs_data, events] = oxysoft2matlab(filename, target, savename, verbos
 % v 1.42    fix - multi-system-subtemplate measurements correctly supported
 % 04/13/18
 %
-% v 1.41    enh - added error message for a common error (custom optodetemplate 
+% v 1.41    enh - added error message for a common error (custom optodetemplate
 % 03/29/18  	  definition is erroneous)
 %           fix - improved capability to read in long, multi-device oxy4-files
 %           fix - Better support for multi-template measurements
@@ -192,46 +293,46 @@ function [nirs_data, events] = oxysoft2matlab(filename, target, savename, verbos
 % 10/13/17  fix - y-position offset for multiple templates corrected
 %
 % v 1.37    fix - homer/spm: lower wavelength always preceeding higher one
-% 10/11/17  
+% 10/11/17
 %
 % v 1.36    fix - long event description supported
 % 09/15/17  fix - various smaller bugfixed wrt event parsing
 %
 % v 1.35    fix - supporting multiple optodetemplates in .oxyproj
-% 07/12/17  
+% 07/12/17
 %
 % v 1.34    fix - workaround if optodetemplate undefined
-% 04/27/17  
+% 04/27/17
 %
 % v 1.33    fix - empty oxy3 header info handled properly
 % 04/26/17  fix - optodetemplate parsing fixed
 %
 % v 1.32    fix - more robust optodetemplate-file selection
-% 02/22/17 
+% 02/22/17
 %
 % v 1.31    fix - stable now if no optode template in oxy3
-% 02/20/17 
+% 02/20/17
 %
 % v 1.30    fix - Homer2: added default condition name '1' if no conds
-% 11/21/16  present 
+% 11/21/16  present
 %
 % v 1.29    fix - NIRS-SPM fix w/o oxyproj
-% 11/21/16  
+% 11/21/16
 %
 % v 1.28    fix - works again without using an oxyproj-file
-% 10/31/16  enh - add a message to send a mail for newest version      
+% 10/31/16  enh - add a message to send a mail for newest version
 %
 % v 1.27    enh - oxyproj files can point to a different directory than the
 % 10/27/16        oxy3-file is in to enable working at another computer
 %
 % v 1.26    enh - also reading in optode parameters (DPF etc.) from project
-% 10/10/16  
+% 10/10/16
 %
 % v 1.25    fix - more robust way of extracting event name and descriptions
 % 09/29/16  fix - removing last sample if if was incompletely transferred
 %
 % v 1.24    fix - use event names if not all names have a description
-% 09/13/16  
+% 09/13/16
 %
 % v 1.23    fix - corrected wavelengths counting in multi-Oxymon systems
 % 09/12/16  fix - corrected single event handling nomenclature
@@ -321,7 +422,7 @@ function [nirs_data, events] = oxysoft2matlab(filename, target, savename, verbos
 %% input error handling
 if nargin < 5
   metaProj = [];
-  fprintf('[Artinis] Thank you for using oxysoft2matlab v1.56 (c) Artinis Medical Systems.\n');
+  fprintf('[Artinis] Thank you for using oxysoft2matlab v1.81 (c) Artinis Medical Systems.\n');
   if nargin < 4
     verbose = true;
     if nargin < 3
@@ -334,8 +435,8 @@ end
 if nargin < 1 || isempty(filename)
   w = true;
   while w
-    [filename,pathname] = uigetfile({'*.oxyproj; *.oxy3; *.oxy4', 'Oxysoft Files (*.oxy3, *.oxy4, *.oxyproj)'}, ...
-      'Select one or several .oxy3/.oxy4/.oxyproj-file(s)', ...
+    [filename,pathname] = uigetfile({'*.oxyproj; *.oxy3; *.oxy4; *.oxy5', 'Oxysoft Files (*.oxy3, *.oxy4, *.oxy5, *.oxyproj)'}, ...
+      'Select one or several .oxy3/.oxy4/.oxy5/.oxyproj-file(s)', ...
       'MultiSelect', 'on');
     if isscalar(filename) && filename ==0
       if verbose
@@ -347,8 +448,8 @@ if nargin < 1 || isempty(filename)
       filename = {filename};
     end
     for f=filename
-      if ~strcmp(f{1}(end-4:end), '.oxy3') && ~strcmp(f{1}(end-4:end), '.oxy4') && ~strcmp(f{1}(end-7:end), '.oxyproj')
-        errorbox('Please only select oxy3-, oxy4- or oxyproj-files.')
+      if ~strcmp(f{1}(end-4:end), '.oxy3') && ~strcmp(f{1}(end-4:end), '.oxy4') && ~strcmp(f{1}(end-4:end), '.oxy5') && ~strcmp(f{1}(end-7:end), '.oxyproj')
+        errorbox('Please only select oxy3-, oxy4-, oxy5- or oxyproj-files.')
         w = true;
         break;
       else
@@ -362,30 +463,39 @@ if nargin < 1 || isempty(filename)
 end
 
 % check whether target toolbox is supported
-% supported_targets = {'nirs-spm', 'homer', 'nap', 'fosa', 'p3', 'potato'};
-supported_targets = {'nirs-spm', 'homer', 'nap', 'rawOD', 'oxy/dxy'};
+supported_targets = {'nirs-spm', 'nirs (Homer2)', 'nap', 'rawOD', 'snirf (Homer3)', 'oxy/dxy'};
 if nargin < 2 || isempty(target )
   target_idx = menu('Choose a target toolbox',supported_targets);
   target     = supported_targets{target_idx};
+  if target_idx == 2
+    target = 'nirs'; 
+  elseif target_idx == 5
+    target = 'snirf';
+  end
   drawnow;
   fprintf('[Artinis] Selected target toolbox %s.\n', target);
 end
 
+if strcmp(target, 'homer')
+  error('The ''homer'' option is unspecific since lately, because Homer3 supports ''snirf'' files and Homer2 ''nirs'' files.\nPlease specify either ''nirs'' or ''snirf''.')
+end
+
+supported_targets = {'nirs-spm', 'nirs', 'nap', 'rawOD', 'snirf', 'oxy/dxy'};
 if ~ismember(target, supported_targets)
   tgts = sprintf('''%s'', ', supported_targets{1:end-1});
   tgts = sprintf('%s and ''%s''', tgts(1:end-2), supported_targets{end});
   error('[Artinis] target toolbox cannot be identified. please choose among %s.', tgts);
 end
 
-supported_extensions = {'oxy3','oxy4', 'oxyproj'};
+supported_extensions = {'oxy3','oxy4','oxy5', 'oxyproj'};
 
 measurements = struct('name', '',                                ...
-                  'file', '',                                           ...
-                  'optodeTemplateID', [],                               ...
-                  'optodeParameters', struct('DPF', [], 'position', [], 'absK', [], 'absH', [], 'absH2O', [], 'useH2O', [], 'gradient', []), ...
-                  'events', struct('value', -1, 'onset', inf),          ...
-                  'positions', struct('fid', struct('name', '', 'pos', []), 'rx', struct('name', '', 'pos', []), 'tx', struct('name', '', 'pos', [])), ...
-                  'isoxy3', false);
+  'file', '',                                           ...
+  'optodeTemplateID', [],                               ...
+  'optodeParameters', struct('DPF', [], 'position', [], 'absK', [], 'absH', [], 'absH2O', [], 'useH2O', [], 'gradient', []), ...
+  'events', struct('value', -1, 'description', '', 'onset', inf),          ...
+  'positions', struct('fid', struct('name', '', 'pos', []), 'rx', struct('name', '', 'pos', []), 'tx', struct('name', '', 'pos', [])), ...
+  'isoxy3', false);
 
 if iscell(filename) && numel(filename)>1
   % check whether each file has an extension, does exist and is supported
@@ -441,6 +551,20 @@ if iscell(filename) && numel(filename)>1
           measurements(end).events = [];
           measurements(end).isoxy3 = true;
         end
+      case '.oxy5'
+        % handling the * wildcard here
+        if ismember('*', filename{f})
+          files = dir(fullfile(filepath{f}, [filename{f} extension{f}]));
+          for fl=files'
+            measurements(end+1).file = [fl.name extension{f}];
+            measurements(end).events = [];
+            measurements(end).isoxy3 = true;
+          end
+        else
+          measurements(end+1).file = fullfile(filepath{f}, [filename{f} extension{f}]);
+          measurements(end).events = [];
+          measurements(end).isoxy3 = true;
+        end
         
       otherwise
         exts = sprintf('.%s-, ', supported_extensions{1:end-1});
@@ -465,7 +589,7 @@ if iscell(filename) && numel(filename)>1
         % join the event of this measurement with the other one
         for mi = midx
           % oxy3-files do not have some parameters, they are meta-information of the project
-          measurements(mi).name = measurements(m).name; 
+          measurements(mi).name = measurements(m).name;
           measurements(mi).optodeTemplateID = measurements(m).optodeTemplateID;
           measurements(mi).optodeParameters = measurements(m).optodeParameters;
           % join events of the two (and positions)
@@ -500,7 +624,10 @@ else
   
   % check whether file exists
   if ~exist(fullfile(filepath, [filename extension]), 'file') && ~ismember('*', filename)
-    error('[Artinis] file ''%s'' cannot be located. Please specify a valid filename.', fullfile(filepath, [filename extension]));
+    warning('[Artinis] file ''%s'' cannot be located. Please specify a valid filename.', fullfile(filepath, [filename extension]));
+    nirs_data = [];
+    events = [];
+    return;
   end
   
   measurements = [];
@@ -540,6 +667,22 @@ else
       else
         % all good, single file
       end
+    case '.oxy5'
+      % handling the * wildcard here
+      if ismember('*', filename)
+        files = dir(fullfile(filepath, [filename extension]));
+        
+        if isempty(files)
+          error('[Artinis] There are no oxy5-files in %s. Please specify a valid filename.', filepath);
+        end
+        for f=files'
+          measurements(end+1).file = fullfile(filepath, f.name);
+          measurements(end).events = [];
+          measurements(end).positions = [];
+        end
+      else
+        % all good, single file
+      end
       
     otherwise
       exts = sprintf('.%s-, ', supported_extensions{1:end-1});
@@ -570,7 +713,7 @@ if ~isempty(measurements)
     elseif numel(savename) < nf
       if isempty(savename{1})
         savename = [];
-        savename{nf} = [];      
+        savename{nf} = [];
       else
         savename = [];
         savename{nf} = [f.file '.mat'];
@@ -583,13 +726,20 @@ end
 
 % user interface asking for saving the exported file
 if nargin < 2 || strcmp(savename, 'batch') % yes, <2 - I assume that a user does not know what he does if he does not specify all input arguments
-  [~, savename, ~] = fileparts(filename);  
-  if strcmp(target, 'homer')
+  [~, savename, ~] = fileparts(filename);
+  if strcmp(target, 'nirs')
     [savename,pathname] = uiputfile([savename '.nirs'], sprintf('Choose a destination for saving the export of %s to %s', filename, target));
     if savename == 0
       savename = []; % no saving desired
     else
       savename = savename(1:end-5); % will be added later
+    end
+  elseif strcmp(target, 'snirf')
+    [savename,pathname] = uiputfile([savename '.snirf'], sprintf('Choose a destination for saving the export of %s to %s', filename, target));
+    if savename == 0
+      savename = []; % no saving desired
+    else
+      savename = savename(1:end-6); % will be added later
     end
   else
     [savename,pathname] = uiputfile([savename '.mat'], sprintf('Choose a destination for saving the export of %s to %s', filename, target));
@@ -628,10 +778,14 @@ switch(extension)
   case '.oxy3'
     % import to matlab function
     [rawOD,metaInfo,ADvalues] = readoxy3file(fullfile(filepath, sprintf('%s%s', filename, extension)));
-  
+    
   case '.oxy4'
     % import to matlab function
-    [rawOD,metaInfo,ADvalues,sample] = readoxy4file(fullfile(filepath, sprintf('%s%s', filename, extension)));
+    [rawOD,metaInfo,ADvalues,sample] = readoxy4file(fullfile(filepath, sprintf('%s%s', filename, extension)), false);
+    
+  case '.oxy5'
+    % import to matlab function
+    [rawOD,metaInfo,ADvalues,sample] = readoxy5file(fullfile(filepath, sprintf('%s%s', filename, extension)), false);
     
   otherwise
     error('[Artinis] no support for %s-files, yet. if urgent, please send a mail to support@artinis.com.', extension);
@@ -639,8 +793,8 @@ end
 
 
 % overwrite metaInfo with metaProj
-if ~isempty(metaProj)      
-  if isfield(metaProj, 'optodeTemplateID') && ~isempty(metaProj.optodeTemplateID) 
+if ~isempty(metaProj)
+  if isfield(metaProj, 'optodeTemplateID') && ~isempty(metaProj.optodeTemplateID)
     if isfield(metaInfo, 'optodeTemplateID') && ~isequal(metaProj.optodeTemplateID, metaInfo.optodeTemplateID)
       warning('[Artinis] Preferring optode template found in oxyproj.');
     end
@@ -649,8 +803,8 @@ if ~isempty(metaProj)
     end
     metaInfo.OptodeTemplateID = metaProj.optodeTemplateID;
   end
-
-
+  
+  
   if isfield(metaProj, 'optodeParameters') && ~isempty(metaProj.optodeParameters)
     fprintf('[Artinis] overwriting measurement parameters with settings from project.\n');
     % do not check length here, as there can be more or less subtemplates than originally now!
@@ -729,7 +883,7 @@ if verbose
   end
 end
 
-needsOnlyODs = any(ismember(target, {'homer', 'rawOD'}));
+needsOnlyODs = any(ismember(target, {'nirs', 'snirf', 'rawOD'}));
 
 % concatenate all data
 OD            = [];
@@ -761,93 +915,141 @@ Rx_TxId       = [];
 Rx_TxwLengths = [];
 RxSubTemplateId = [];
 TxSubTemplateId = [];
+DPF = [];
 % note, we'll parse a lot here, in case future-me/-you needs more info
-for d=1:numel(oxyOD2.Sys)
-  OD            = [OD oxyOD2.Sys(d).subtemplate(:).OD];
-  devices       = [devices; metaInfo.Sys(d).nRx metaInfo.Sys(d).nTx 0];
-  nTransmitters = nTransmitters + metaInfo.Sys(d).nTx;
-  nReceivers    = nReceivers+ metaInfo.Sys(d).nRx;
-  if numel(oxyOD2.Sys)>1
-    % concatenate System number here
-    label         = [label strcat(sprintf('S%i-', d),[metaInfo.Sys(d).subtemplate(:).RxTx])];
-    RxLabel       = [RxLabel strcat(sprintf('S%i-', d),metaInfo.Sys(d).Rx.names)];
-    TxLabel       = [TxLabel strcat(sprintf('S%i-', d),metaInfo.Sys(d).Tx.names)];
-  else
-    label         = [label [metaInfo.Sys(d).subtemplate(:).RxTx]];
-    RxLabel       = [RxLabel metaInfo.Sys(d).Rx.names];
-    TxLabel       = [TxLabel metaInfo.Sys(d).Tx.names];
-  end
-  wavelengths   = [wavelengths metaInfo.Sys(d).Wavelength];
-  distance      = [distance metaInfo.Sys(d).subtemplate(:).dist];
-  chanPos       = [chanPos [metaInfo.Sys(d).subtemplate(:).pos]];
-  transPos      = [transPos metaInfo.Sys(d).Tx.pos];
-  receiPos      = [receiPos metaInfo.Sys(d).Rx.pos];
-  
-  % Below Ids are only used for giving unique numbers, thus correct for
-  % multiple systems
-  maxRx         = max([receiId 0]);
-  maxTx         = max([transId 0]);
-  transId       = [transId maxTx+[metaInfo.Sys(d).Tx.unique_id{:}]];
-  receiId       = [receiId maxRx+[metaInfo.Sys(d).Rx.unique_id{:}]];
-  maxRx         = max([RxId 0]);
-  maxTx         = max([TxId 0]);
-  RxId          = [RxId cell2mat([metaInfo.Sys(d).subtemplate(:).iRx])+maxRx];
-  TxId          = [TxId cell2mat([metaInfo.Sys(d).subtemplate(:).iTx])+maxTx];
-  RxSubTemplateId = [RxSubTemplateId metaInfo.Sys(d).Rx.subtemplate];
-  TxSubTemplateId = [TxSubTemplateId metaInfo.Sys(d).Tx.subtemplate];
-  Rx_TxId       = [Rx_TxId [metaInfo.Sys(d).subtemplate(:).cmbs]+...
-    repmat([maxRx; maxTx], 1, size([metaInfo.Sys(d).subtemplate(:).cmbs], 2))];
-  
-  wLengths = vertcat(cell2mat([metaInfo.Sys(d).subtemplate(:).Wavelength]));
-  Rx_TxwLengths = [Rx_TxwLengths; wLengths(:)];
-  
-  if ~needsOnlyODs || isfield(metaInfo.Sys(d).subtemplate(:), 'TSI')
-    [toxyvals, tdxyvals,tTSI,tTSI_FF,tabsO2Hb,tabsHHb] = transformoxy3od([oxyOD2.Sys(d).subtemplate(:).OD],metaInfo.Sys(d),metaInfo.DPF);
-    oxyvals = [oxyvals toxyvals];
-    dxyvals = [dxyvals tdxyvals];
-    if ~isempty(tTSI) && strcmp(target, 'oxy/dxy')
-      absO2Hb = [absO2Hb tabsO2Hb'];
-      absHHb  = [absHHb tabsHHb'];
-      TSI     = [TSI tTSI'];
-      TSI_FF  = [TSI_FF tTSI_FF'];
-      for t=1:numel(metaInfo.Sys(d).subtemplate)
-        if ~isempty( metaInfo.Sys(d).subtemplate(t).TSI)
-          if numel(oxyOD2.Sys)>1
-            % concatenate System number here
-            TSILabel{end+1} = strcat(sprintf('S%i-', d), [metaInfo.Sys(d).subtemplate(t).TSI.RxTx]);
-          else
-            TSILabel{end+1} = metaInfo.Sys(d).subtemplate(t).TSI.RxTx;
+if isfield(oxyOD2, 'Sys')
+  for d=1:numel(oxyOD2.Sys)
+    
+    % skip if empty (Portasync/AD box)
+    if isempty(oxyOD2.Sys(d).subtemplate)
+      continue;
+    end
+    
+    OD            = [OD oxyOD2.Sys(d).subtemplate(:).OD];
+    devices       = [devices; metaInfo.Sys(d).nRx metaInfo.Sys(d).nTx 0];
+    nTransmitters = nTransmitters + metaInfo.Sys(d).nTx;
+    nReceivers    = nReceivers+ metaInfo.Sys(d).nRx;
+    if numel(oxyOD2.Sys)>1
+      % concatenate System number here
+      label         = [label strcat(sprintf('S%i-', d),[metaInfo.Sys(d).subtemplate(:).RxTx])];
+      RxLabel       = [RxLabel strcat(sprintf('S%i-', d),metaInfo.Sys(d).Rx.names)];
+      TxLabel       = [TxLabel strcat(sprintf('S%i-', d),metaInfo.Sys(d).Tx.names)];
+    else
+      label         = [label [metaInfo.Sys(d).subtemplate(:).RxTx]];
+      RxLabel       = [RxLabel metaInfo.Sys(d).Rx.names];
+      TxLabel       = [TxLabel metaInfo.Sys(d).Tx.names];
+    end
+    wavelengths   = [wavelengths metaInfo.Sys(d).Wavelength];
+    distance      = [distance metaInfo.Sys(d).subtemplate(:).dist];
+    chanPos       = [chanPos [metaInfo.Sys(d).subtemplate(:).pos]];
+    transPos      = [transPos metaInfo.Sys(d).Tx.pos];
+    receiPos      = [receiPos metaInfo.Sys(d).Rx.pos];
+    
+    for s=1:numel(metaInfo.Sys(d).subtemplate)
+      DPF           = [DPF [metaInfo.Sys(d).subtemplate(s).DPF{:}]];
+    end
+    
+    % Below Ids are only used for giving unique numbers, thus correct for
+    % multiple systems
+    maxRx         = max([receiId 0]);
+    maxTx         = max([transId 0]);
+    transId       = [transId maxTx+[metaInfo.Sys(d).Tx.unique_id{:}]];
+    receiId       = [receiId maxRx+[metaInfo.Sys(d).Rx.unique_id{:}]];
+    maxRx         = max([RxId 0]);
+    maxTx         = max([TxId 0]);
+    RxId          = [RxId cell2mat([metaInfo.Sys(d).subtemplate(:).iRx])+maxRx];
+    TxId          = [TxId cell2mat([metaInfo.Sys(d).subtemplate(:).iTx])+maxTx];
+    RxSubTemplateId = [RxSubTemplateId metaInfo.Sys(d).Rx.subtemplate];
+    TxSubTemplateId = [TxSubTemplateId metaInfo.Sys(d).Tx.subtemplate];
+    Rx_TxId       = [Rx_TxId [metaInfo.Sys(d).subtemplate(:).cmbs]+...
+      repmat([maxRx; maxTx], 1, size([metaInfo.Sys(d).subtemplate(:).cmbs], 2))];
+    
+    wLengths = vertcat(cell2mat([metaInfo.Sys(d).subtemplate(:).Wavelength]));
+    Rx_TxwLengths = [Rx_TxwLengths; wLengths(:)];
+    
+    if ~needsOnlyODs || isfield(metaInfo.Sys(d).subtemplate(:), 'TSI')
+      [toxyvals, tdxyvals,tTSI,tTSI_FF,tabsO2Hb,tabsHHb] = transformoxy3od([oxyOD2.Sys(d).subtemplate(:).OD],metaInfo.Sys(d),metaInfo.DPF);
+      oxyvals = [oxyvals toxyvals];
+      dxyvals = [dxyvals tdxyvals];
+      if ~isempty(tTSI) && strcmp(target, 'oxy/dxy')
+        absO2Hb = [absO2Hb tabsO2Hb'];
+        absHHb  = [absHHb tabsHHb'];
+        TSI     = [TSI tTSI'];
+        TSI_FF  = [TSI_FF tTSI_FF'];
+        for t=1:numel(metaInfo.Sys(d).subtemplate)
+          if ~isempty( metaInfo.Sys(d).subtemplate(t).TSI)
+            if numel(oxyOD2.Sys)>1
+              % concatenate System number here
+              TSILabel{end+1} = strcat(sprintf('S%i-', d), [metaInfo.Sys(d).subtemplate(t).TSI.RxTx]);
+            else
+              TSILabel{end+1} = metaInfo.Sys(d).subtemplate(t).TSI.RxTx;
+            end
           end
         end
       end
     end
   end
-end
-
-devices(end, 3) = metaInfo.nADC;
-if isfield(metaInfo, 'ADCNames')
-  ADClabel      = metaInfo.ADCNames;
+  
+  devices(end, 3) = metaInfo.nADC;
+  if isfield(metaInfo, 'ADCNames')
+    ADClabel      = metaInfo.ADCNames;
+  else
+    ADClabel = [];
+  end
+  
+  rawvals    = OD;
+  advals     = ADvalues'; % samples x channels as homer and nirs-spm
+  nSamples   = size(rawvals, 1);
+  nChannels  = numel(label); % channels == optode-pairs
+  nDevices   = numel(metaInfo.Device);
+  
+  fs           = 1/metaInfo.SampleTime;
+  nWavelengths = numel(unique(wavelengths));
+  
+  % differential path-length factor
+  DPF_correction = 'none';
+  
+  if unique(length(transId))*2 ~= numel(wavelengths) && ~needsOnlyODs
+    error('[Artinis] more than two laser per transmitter unit cannot be transformed to oxy- and deoxyvalues, yet. If your system had 3 wavelengths. the output of this function will be wrong! Please contact the Artinis support.');
+  end
 else
-  ADClabel = [];
+  warning('No NIRS data found, only exporting AD channels');
+  
+  if isfield(metaInfo, 'ADCNames')
+    ADClabel      = metaInfo.ADCNames;
+  else
+    ADClabel = [];
+  end
+  
+  rawvals = [];
+  oxyvals = [];
+  dxyvals = [];
+  advals     = ADvalues'; % samples x channels as homer and nirs-spm
+  nSamples   = size(advals, 1);
+  label = {};
+  nChannels  = numel(label); % channels == optode-pairs
+  nDevices   = numel(metaInfo.Device);
+  fs           = 1/metaInfo.SampleTime;
+  nWavelengths = 0;
+  
+  % differential path-length factor
+  DPF            = 0;
+  DPF_correction = 'none';
+  
+  
+  Rx_TxwLengths = 0;
+  wLengths = [];
+  distance = 0;
+  RxLabel = {};
+  TxLabel = {};
+  Rx_TxId = [];
+  chanPos = [];
+  transPos = [];
+  receiPos = [];
+  RxId = [];
+  TxId = [];
+  
 end
-
-rawvals    = OD;
-advals     = ADvalues'; % samples x channels as homer and nirs-spm
-nSamples   = size(rawvals, 1);
-nChannels  = numel(label); % channels == optode-pairs
-nDevices   = numel(metaInfo.Device);
-
-fs           = 1/metaInfo.SampleTime;
-nWavelengths = numel(unique(wavelengths));
-
-% differential path-length factor
-DPF            = metaInfo.DPF;
-DPF_correction = 'none';
-
-if unique(length(transId))*2 ~= numel(wavelengths) && ~needsOnlyODs
-  error('[Artinis] more than two laser per transmitter unit cannot be transformed to oxy- and deoxyvalues, yet. If your system had 3 wavelengths. the output of this function will be wrong! Please contact the Artinis support.');
-end
-
 %% create output structure
 nirs_data = [];
 
@@ -883,7 +1085,7 @@ switch(target)
     if exist('sample', 'var')
       nirs_data.sampleNo   = sample';
     end
-    nirs_data.wavelengths  = wLengths;
+    nirs_data.wavelengths  = [Rx_TxwLengths(1:2:end) Rx_TxwLengths(2:2:end)]';
     nirs_data.DPF          = metaInfo.DPF;
     nirs_data.distance     = distance;
     nirs_data.Fs           = fs;
@@ -897,22 +1099,30 @@ switch(target)
     nirs_data.ADlabel      = ADClabel;
     nirs_data.ADvalues     = advals;
     
-    [names, onsets, durations] = parseevents();
+    [names, descr, onsets, durations] = parseevents();
     
     % argout
     nirs_data.events           = [];
     nirs_data.events.names     = names;
+    nirs_data.events.descr     = descr;
     nirs_data.events.onsets    = onsets;
     nirs_data.events.durations = durations;
     
     % argout
     events           = [];
     events.names     = names;
+    events.descr     = descr;
     events.onsets    = onsets;
     events.durations = durations;
     
     if ~isempty(savename) % save as .nirs-file
-      save(savename, 'nirs_data');
+      varinfo=whos('nirs_data');
+      saveopt='';
+      if varinfo.bytes >= 2^31
+        saveopt='-v7.3';
+      end
+      
+      save(savename, 'nirs_data', saveopt);
       if verbose
         fprintf('[Artinis] %s data export stored as %s.\n', target, [savename '.mat']);
       end
@@ -973,14 +1183,14 @@ switch(target)
       nirs_data.wavelength = [nirs_data.wavelength(2) nirs_data.wavelength(1)];
     end
     nirs_data.distance       = distance; % median distance, does not have to be be scalar?
-    nirs_data.DPF            = repmat(DPF, size(nirs_data.wavelength)); % must be nwLengths x 1
+    nirs_data.DPF            = DPF; % must be nwLengths x 1
     nirs_data.DPF_correction = DPF_correction;
     nirs_data.label          = label;
     nirs_data.optodeposition = optoPos3D;
     nirs_data.optodelabel    = optoLab;
     
     % extract events and names
-    [names, onsets, durations] = parseevents;
+    [names, descr, onsets, durations] = parseevents;
     
     % argout
     events           = [];
@@ -991,8 +1201,16 @@ switch(target)
     end
     
     %% SAVING
+    
+    %check if data is biggger than 2 gig, if so store with v7.3 switch
+    varinfo=whos('nirs_data');
+    saveopt='';
+    if varinfo.bytes >= 2^31
+      saveopt='-v7.3';
+    end
+    
     if ~isempty(savename) % save as .mat-file
-      save([savename '_converted_data.mat'], 'nirs_data');
+      save([savename '_converted_data.mat'], 'nirs_data', saveopt);
       if verbose
         fprintf('[Artinis] %s data export stored as %s.\n', target, [savename '_converted_data.mat']);
       end
@@ -1139,7 +1357,180 @@ switch(target)
     axis on;
     grid on;
     
-  case 'homer'
+  case {'snirf'}
+    filename = [savename,'.snirf'];
+    nirs_data = struct('formatVersion', 1.0);%add formatVersion
+    nirs_data.fileformat = 'hdf5';
+    
+    % metaDataTags
+    metaDataTags                    = struct;
+    metaDataTags.SubjectID          = 'default';
+    metaDataTags.MeasurementDate    = datestr(now,29);
+    metaDataTags.MeasurementTime    = datestr(now,'hh:mm:ss');
+    metaDataTags.LengthUnit         = 'mm';
+    metaDataTags.TimeUnit           = 's';
+    metaDataTags.FrequencyUnit      = 'unknown';
+    nirs_data.metaDataTags          = metaDataTags;%put into nirs structure
+    
+    % data
+    data = struct('dataTimeSeries',rawvals,'time',(0:nSamples-1)' ./ fs,'measurementList',struct());%make measurementList
+    data.dataTimeSeries = 1./exp(log(10).* [rawvals(:, 1:2:end) rawvals(:, 2:2:end)]);%change dataTimeSeries to correct values
+    
+    % nirs measlist variable
+    MeasList(1:nChannels, :) = [...
+      Rx_TxId(2, 1:2:size(rawvals, 2))' ...
+      Rx_TxId(1, 1:2:size(rawvals, 2))' ...
+      ones(nChannels, 1) ...
+      ones(nChannels, 1)];
+    MeasList(1+nChannels:2*nChannels, :) = [...
+      Rx_TxId(2, 2:2:size(rawvals, 2))' ...
+      Rx_TxId(1, 2:2:size(rawvals, 2))' ...
+      ones(nChannels, 1) ...
+      2*ones(nChannels, 1)];
+    
+    % snirf conversion of measlist
+    measurementList = struct('sourceIndex', 0,'detectorIndex',0,'wavelengthIndex',0,'dataTypeIndex',0,'dataType',0,'dataTypeLabel','','sourcePower',0,'detectorGain',0,'moduleIndex',0);
+    for i = 1:length(MeasList)
+      tempstruct                  = struct;
+      tempstruct.sourceIndex      = MeasList(i,1);
+      tempstruct.detectorIndex    = MeasList(i,2);
+      tempstruct.wavelengthIndex  = MeasList(i,4);
+      tempstruct.dataType         = 1;
+      tempstruct.dataTypeIndex    = 0;
+      tempstruct.dataTypeLabel    = '';
+      tempstruct.sourcePower      = 0;
+      tempstruct.detectorGain     = 0;
+      tempstruct.moduleIndex      = 0;
+      measurementList(i)          = tempstruct;
+    end
+    
+    data.measurementList = measurementList;
+    nirs_data.data = data;%update to data field so that measurementList is included
+    
+    % stim field
+    % extract events and names same method as nirs
+    [names, descr, onsets, durations] = parseevents;
+    
+    % argout
+    events           = [];
+    events.names     = names;
+    events.onsets    = onsets;
+    events.durations = durations;
+    
+    % get CondNames
+    s = zeros(nSamples, 1);
+    CondNames = {};
+    for i=1:numel(unique(events.names))
+      idx = ismember(events.names, events.names{i});
+      s([events.onsets{idx}], i) = 1;
+      CondNames{i} = events.names{i};
+    end
+    
+    stim = struct('name','','data',[]);
+    for i = 1: numel(CondNames)
+      tempstim        = struct;
+      tempstim.name   = CondNames{i};
+      stemp           = s(:,i);
+      ttemp           = (0:nSamples-1)' ./ fs;
+      k = stemp>0 | stemp==-1 | stemp==-2;
+      tempdata        = [ttemp(k), 5*ones(length(ttemp(k)),1), stemp(k)];
+      tempstim.data   = tempdata;
+      stim(i)         = tempstim;
+    end
+    
+    nirs_data.stim = stim;
+    
+    % aux
+    aux = struct('name','','dataTimeSeries',[],'time',[],'timeOffset',0);
+    if size(advals, 2) == 0
+      advals(:, 1) = 0;
+    end
+    [~,c] = size(advals);
+    for i = 1:c
+      tempaux                 = struct;
+      tempaux.name            = ['aux',num2str(i)];
+      tempaux.dataTimeSeries  = advals(:,i);
+      tempaux.time            = (0:nSamples-1)' ./ fs;
+      tempaux.timeOffset      = 0;
+      aux(i)                  = tempaux;
+    end
+    
+    nirs_data.aux = aux;
+    % probe class
+    probe = struct('wavelengths',[],'wavelengthEmission',[],'sourcePos2D',[],'detectorPos2D',[],'frequencies',1,'timeDelays',0,'timeDelayWidths',0, 'momentOrder',[],'correlationTimeDelays',0,'correlationTimeDelayWidths',0);
+    probe.wavelengths               = [median(Rx_TxwLengths(1:2:end)) median(Rx_TxwLengths(2:2:end))];
+    probe.sourcePos2D               = transPos';
+    probe.detectorPos2D             = receiPos';
+    for ii=1:size(probe.sourcePos2D)
+      probe.sourceLabels{ii}      = ['S',num2str(ii)];
+    end
+    for ii=1:size(probe.detectorPos2D)
+      probe.detectorLabels{ii}    = ['D',num2str(ii)];
+    end
+    
+    nirs_data.probe = probe;
+    
+    % saving hdf5 format snirf file
+    if ~isempty(savename)
+      % open file for saving
+      if exist(filename, 'file')
+        delete(filename);
+      end
+      nirs_data.fid = H5F.create(filename, 'H5F_ACC_TRUNC', 'H5P_DEFAULT', 'H5P_DEFAULT');
+      H5F.close(nirs_data.fid);
+      
+      % Save this object's properties
+      hdf5write_safe(filename, '/formatVersion', nirs_data.formatVersion);%formatVersion writing
+      
+      % probe field writing
+      fn = fieldnames(probe);
+      for k=1:numel(fn)
+        hdf5write_safe(filename, ['/nirs/probe/',fn{k}],probe.(fn{k}));
+      end
+      
+      % data field writing
+      fn = fieldnames(data);
+      for k = 1:length(data)
+        for a = 1:numel(fn)
+          if strcmp(fn{a},'measurementList') == 0% if the field is not measurementList
+            hdf5write_safe(filename,['/nirs/data',num2str(k),'/',fn{a}],data(k).(fn{a}));
+          else
+            % measurementList writing
+            for d = 1:length(data(k).measurementList)
+              fnMl = fieldnames(data(k).measurementList);
+              for z = 1:numel(fnMl)
+                hdf5write_safe(filename,['/nirs/data',num2str(k),'/measurementList',num2str(d),'/',fnMl{z}],data(k).measurementList(d).(fnMl{z}));
+              end
+            end
+          end
+        end
+      end
+      
+      % aux field writing
+      fn = fieldnames(aux);
+      for i = 1:length(aux)
+        for k=1:numel(fn)
+          hdf5write_safe(filename, ['/nirs/aux',num2str(i),'/',fn{k}],aux(i).(fn{k}));
+        end
+      end
+      
+      % metaDataTags field writing
+      fn = fieldnames(metaDataTags);
+      for i = 1:numel(fn)
+        hdf5write_safe(filename, ['/nirs/metaDataTags/',fn{i}],metaDataTags.(fn{i}));
+      end
+      
+      % stim field writing
+      fn = fieldnames(stim);
+      for i = 1:length(stim)
+        for k=1:numel(fn)
+          hdf5write_safe(filename, ['/nirs/stim',num2str(i),'/',fn{k}],stim(i).(fn{k}));
+        end
+      end
+    end
+    
+    
+  case 'nirs'
     
     nirs_data.t               = (0:nSamples-1)' ./ fs;
     nirs_data.d               = rawvals; % difference in OD definition ln vs log
@@ -1155,7 +1546,7 @@ switch(target)
     % each two WLs were the same across lasers
     nirs_data.SD.Lambda       = [median(Rx_TxwLengths(1:2:end)) median(Rx_TxwLengths(2:2:end))];
     swap = nirs_data.SD.Lambda(1) > nirs_data.SD.Lambda(2); % find out whether we are starting with a 760 or 850nm (apparently the order is important to Homer)
-      
+    
     % cannot take nChannels here, because homer wants rawdata
     nirs_data.SD.MeasList     = ones(size(rawvals, 2), 4);
     
@@ -1215,7 +1606,7 @@ switch(target)
     
     
     % extract events and names
-    [names, onsets, durations] = parseevents;
+    [names, descr, onsets, durations] = parseevents;
     
     % argout
     events           = [];
@@ -1253,7 +1644,15 @@ switch(target)
       mL = nirs_data.mL;
       aux = nirs_data.aux;
       savename = [savename '.nirs'];
-      save(savename, '-mat', 'SD','t','d', 's', 'mL', 'aux', 'CondNames');
+      
+      %check if data is biggger than 2 gig, if so store with v7.3 switch
+      varinfo=whos('d');
+      saveopt='';
+      if varinfo.bytes >= 2^31
+        saveopt='-v7.3';
+      end
+      
+      save(savename, 'SD','t','d', 's', 'mL', 'aux', 'CondNames', '-mat', saveopt);
       if verbose
         fprintf('[Artinis] %s data export stored as %s.\n', target, savename);
       end
@@ -1328,15 +1727,22 @@ switch(target)
       naz_Deoxy = nirs_data.naz_Deoxy;
       naz_Total = nirs_data.naz_Total;
       
-      save([savename '_Oxy.mat'], 'naz_Oxy');
+      %check if data is biggger than 2 gig, if so store with v7.3 switch
+      varinfo=whos('nirs_data');
+      saveopt='';
+      if varinfo.bytes >= 2^31*3
+        saveopt='-v7.3';
+      end
+      
+      save([savename '_Oxy.mat'], 'naz_Oxy', saveopt);
       if verbose
         fprintf('[Artinis] %s oxy data export stored as %s.\n', target, [savename '_Oxy.mat']);
       end
-      save([savename '_Deoxy.mat'], 'naz_Deoxy');
+      save([savename '_Deoxy.mat'], 'naz_Deoxy', saveopt);
       if verbose
         fprintf('[Artinis] %s deoxy data export stored as %s.\n', target, [savename '_Deoxy.mat']);
       end
-      save([savename '_Total.mat'], 'naz_Total');
+      save([savename '_Total.mat'], 'naz_Total', saveopt);
       if verbose
         fprintf('[Artinis] %s total data export stored as %s.\n', target, [savename '_Total.mat']);
       end
@@ -1352,7 +1758,7 @@ if verbose
 end
 %% SUBFUNCTION
 
-  function [names, onsets, durations] = parseevents
+  function [names, descr, onsets, durations] = parseevents
     
     if isfield(metaInfo, 'Event')
       
@@ -1371,8 +1777,8 @@ end
       if isfield(metaInfo, 'Name') && ~iscell(metaInfo.Name)
         metaInfo.Name = {metaInfo.Name};
       end
-        
-      useDesc = isfield(metaInfo, 'Description') && (~isfield(metaInfo, 'Name') || numel(metaInfo.Description) == numel(metaInfo.Name) && sum(cellfun(@isempty, metaInfo.Description)) == numel(metaInfo.Name));
+      
+      useDesc = isfield(metaInfo, 'Description') && (~isfield(metaInfo, 'Name') || numel(metaInfo.Description) == numel(metaInfo.Name) && sum(~cellfun(@isempty, metaInfo.Description)) == numel(metaInfo.Name));
       useName = isfield(metaInfo, 'Name') && ~useDesc;
       
       if useDesc
@@ -1387,22 +1793,27 @@ end
         end
         warning('[Artinis] extraction of event character names not possible.');
         [condNames,unused,evpos] = unique(xmlEvents);
-      end      
+      end
       
       % internally, the samples start at 0
       % this means an event at index 1 occured at sample 0
       xmlEvents = xmlEvents+1;
       
       names = condNames;
-      
+      descr = cell(1, numel(names));
       onsets = cell(1, numel(names));
       durations = cell(1, numel(names));
       for j=1:length(evpos)
+        if xmlEvents(j) > metaInfo.nbSamples
+          warning('A corrupt event of type ''%s'' was found and will be removed from the data', condNames{evpos(j)});
+          continue;
+        end
         onsets{evpos(j)} = [onsets{evpos(j)} xmlEvents(j)];
         durations{evpos(j)} = [durations{evpos(j)} -1]; % stick function
       end
     else
       names = {};
+      descr = {};
       onsets = {};
       durations = {};
     end
@@ -1410,6 +1821,7 @@ end
     if isfield(metaProj, 'events') && ~isempty(metaProj.events)
       names = horzcat(names, metaProj.events.names);
       onsets = horzcat(onsets, metaProj.events.onsets);
+      descr = horzcat(descr, metaProj.events.descr);
       durations = horzcat(durations, metaProj.events.durations);
     end
     
