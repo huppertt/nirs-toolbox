@@ -490,18 +490,22 @@ else
             
             cc(lst,(i-1)*length(R)+j)=c;
             vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];
-            lst2=find(~isnan(b));
-            broi    = c(lst2,:)'*b(lst2,:);
-            se      = sqrt(c(lst2,:)'*C(lst2,lst2)*c(lst2,:));
-            t       = broi / se;
+            lst=find(~isnan(b));
+            %             broi(lst)    = c(lst,:)'*b(lst,:);
+            %             se(lst)      = sqrt(c(lst,:)'*C(lst,lst)*c(lst,:));
+            
+            c=c*sum(c)/sum(c(lst)); %---- Ted: need to check here for generalizability
+            
+            broi    = c(lst,:)'*b(lst,:); %---- Ted: check here
+            se      = diag(sqrt(c(lst,:)'*C(lst,lst)*c(lst,:))); %---- Ted: check here
+            
+            t       = broi./se;
             df      = data.dfe;
             p       = 2*tcdf(-abs(t),df);
             
             tmp = cell2table({namesOld(floor((j-1)/length(types))+1),...
                 types(mod(j-1,length(types))+1), uconds{i},  broi, se, df, t, p});
             tmp.Properties.VariableNames = varnames;
-            
-          
             
             tbl = [tbl; tmp];
         end
@@ -540,7 +544,7 @@ else
     ROIstats.description='region of interest stats';
     ROIstats.beta=tbl.Beta;
     ROIstats.dfe=tbl.DF;
-    ROIstats.covb=cc'*covb*cc;
+    ROIstats.covb=cc'*covb*cc; %----- Ted: need to check this line for compatability with NaNs
     ROIstats.demographics=data.demographics;
     ROIstats.basis=data.basis;
     
