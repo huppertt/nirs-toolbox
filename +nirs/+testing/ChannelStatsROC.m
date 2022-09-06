@@ -97,14 +97,14 @@ classdef ChannelStatsROC
         
         function obj = run(obj, iter)
             if ~isempty(obj.dataset)
-                if (~ismember("data", fieldnames(obj.dataset)))
-                    error("No data feild in dataset!")
+                if (~ismember('data', fieldnames(obj.dataset)))
+                    error('No data feild in dataset!')
                 end
-                if (~ismember("truth", fieldnames(obj.dataset)))
-                    error("No truth feild in dataset!")
+                if (~ismember('truth', fieldnames(obj.dataset)))
+                    error('No truth feild in dataset!')
                 end
                 if (iter > length(obj.dataset.data))
-                    warning("Requested number of iterations is greater than data size. Discard excessive iterations.");
+                    warning('Requested number of iterations is greater than data size. Discard excessive iterations.');
                     iter = length(obj.dataset.data);
                 end
             end
@@ -151,6 +151,11 @@ classdef ChannelStatsROC
                            job=nirs.modules.RemoveShortSeperations;
                            stats=job.run(stats);
                        end
+                   end
+                   
+                   if ~isempty(strfind(stats(1).variables.cond,'Aux'))
+                       job=nirs.modules.RemoveAuxFromStats;
+                       stats=job.run(stats);
                    end
                    
                    if(length(truth)>height(data(1).probe.link))
