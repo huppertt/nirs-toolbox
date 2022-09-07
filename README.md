@@ -1,4 +1,4 @@
-# nirs-toolbox
+# nirs-toolboxs
 The Github repository for the AnalyzIR Toolbox
 
 The NIRS toolbox is s a Matlab based analysis program for NIRS that focuses on statistical analysis for functional and resting state studies. Developed an maintained by Dr. Ted Huppert's lab at University of Pittsburgh.
