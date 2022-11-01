@@ -23,6 +23,8 @@ end
 
 for i=1:length(stimname)
 
-    data.stimulus.(stimname{i}).dur(:)=duration(i);
+    if(isfield(data.stimulus,stimname{i}))
+        data.stimulus.(stimname{i}).dur(:)=duration(i);
+    end
     
 end
