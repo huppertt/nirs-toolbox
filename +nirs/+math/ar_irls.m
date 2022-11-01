@@ -236,18 +236,24 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
         
     end   
    
-    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
      
-    
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            a=resid(:,i)-nanmedian(resid(:,i));
-            b=resid(:,j)-nanmedian(resid(:,j));
-            
-            C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+    resid=resid-ones(size(resid,1),1)*nanmedian(resid,1);
+    if(size(resid,2)>400)
+        C=resid'*resid;
+    else
+        for i=1:size(stats.beta,2)
+            for j=i:size(stats.beta,2)
+                a=resid(:,i);
+                b=resid(:,j);
+                C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+                C(j,i)=C(i,j);
+            end
+
         end
     end
     C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
+    
+    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
     
 
     for i=1:size(stats.beta,2)
@@ -258,14 +264,16 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
         end
     end
     covb=covb/2;
+
     
+%     
 %     figure(1); cla; d=[];
 %     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;
 %     plot(log(squeeze(stats.covb(2,2,:))),'b')
 %     hold on;
 %     plot(log(d),'r--')
 %     pause;
-    
+%     
     stats.covb = real(covb);
 % 
 %     for i=1:size(stats.beta,2)

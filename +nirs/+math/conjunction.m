@@ -1,7 +1,7 @@
 function Stats = conjunction(StatsIn,conditions,type,combine)
 % type = {'global','Conj'}
-% Global does not correct for FDR and not a proper logical AND.  See 
-% Nichols et al Valid conjunction inference with the minimum statistic. NeuroImage 25 (2005) 653 ? 660 
+% Global does not correct for FDR and not a proper logical AND.  See
+% Nichols et al Valid conjunction inference with the minimum statistic. NeuroImage 25 (2005) 653 ? 660
 
 
 if(nargin<3)
@@ -14,7 +14,7 @@ end
 
 % combine flag merges HbO and HbR (or whatever types you have).
 if(nargin<4)
-    combine=false; 
+    combine=false;
 end
 
 StatsIn=StatsIn.sorted;
@@ -25,14 +25,27 @@ for i=1:length(StatsIn)
     for j=1:length(conditions)
         if(ismember(conditions{j},StatsIn(i).conditions))
             S=StatsIn(i).ttest(conditions{j});
-            T=[T S.tstat];
-            dfe=[dfe S.dfe];
+            if(isa(S,'nirs.core.ChannelStats'))
+                T=[T S.tstat];
+                dfe=[dfe S.dfe];
+            elseif(isa(S,'nirs.core.sFCStats'))
+                T=[T S.t];
+                dfe=[dfe S.dfe*ones(size(S.t))];
+            else
+                error('unsupported type');
+            end
+            
+            
         end
     end
 end
 
-variab=StatsIn.variables;
+if(isa(S,'nirs.core.ChannelStats'))
+   variab=StatsIn.variables;
+end
+
 if(combine)
+    
     link=StatsIn.probe.link;
     types=unique(link.type);
     T2=[]; dfe2=[];
@@ -56,14 +69,14 @@ end
 Name=[Name(1:end-1) '}'];
 
 
-[minT,id] = min(abs(T),[],2); 
-dfe=dfe(id)';
+[minT,id] = min(abs(T),[],2);
+dfe=reshape(dfe(id)',[],1);
 for i=1:size(T,1)
     minT(i)=T(i,id(i));  % get the sign back
 end
 
 if(strcmp(lower(type),'global'))
-     p = (2*tcdf(-abs(minT),dfe)).^size(T,2);
+    p = (2*tcdf(-abs(minT),dfe)).^size(T,2);
 elseif(strcmp(lower(type),'conj'))
     p = 2*tcdf(-abs(minT),dfe);
 else
@@ -76,11 +89,9 @@ end
 tstat = minT;
 q = reshape( nirs.math.fdr( p(:) )', size(p) );
 
-
 variab=variab(ismember(variab.cond,variab.cond{1}),:);
-
-
 Stats = [variab table(tstat, dfe, p, q)];
+
 Stats.cond=repmat(cellstr(Name),height(Stats),1);
 
 S=table;

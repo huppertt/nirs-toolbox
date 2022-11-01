@@ -55,23 +55,27 @@ mesh(1).transparency=.1;
 mesh(2)=nirs.core.Mesh;
 mesh(2).transparency=.1;
 mesh(3)=nirs.core.Mesh;
-mesh(3).transparency=1;
+mesh(3).transparency=.1;
 
 
 [mesh(1).faces,mesh(1).nodes]=isosurface(seg>0);
 [mesh(2).faces,mesh(2).nodes]=isosurface(seg>1);
 [mesh(3).faces,mesh(3).nodes]=isosurface(seg>2);
 
+TT=[    0.0000   -1.0000   -0.0000
+   -0.0000   -0.0000    1.0000
+    1.0000    0.0000   -0.0000];
+TT(4,4)=1;
 
 for i=1:3
     n=mesh(i).nodes;
     n(:,4)=1;
-    n=n*(mri.hdr.tkrvox2ras)';
+    n=n*(mri.hdr.tkrvox2ras)'*TT;
     mesh(i).nodes=n(:,1:3);
 end
 
 tbl=nirs.util.list_1020pts('?');
-Pos =[-tbl.Z tbl.X tbl.Y];
+Pos =[tbl.X tbl.Y tbl.Z];
 
 [TR, TT] = icp(mesh(1).nodes',Pos');
 Pos=(TR*Pos'+TT*ones(1,size(Pos,1)))';

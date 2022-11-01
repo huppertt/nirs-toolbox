@@ -181,11 +181,18 @@ for i=1:length(snirf.nirs)
         else
             type={};
         end
+
+    tmpdata(ii).probe.link=table(source,detector,type);
+	% add registered optodes distances to probe fixeddistances - added by Peggy Skelly
+	if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+		tmpdata(ii).probe.fixeddistances=tmpdata(ii).probe.swap_reg.distances;
+	end
+	
         for j=1:length(snirf.nirs(i).data(ii).measurementList)
             source(j,1)=snirf.nirs(i).data(ii).measurementList(j).sourceIndex;
             detector(j,1)=snirf.nirs(i).data(ii).measurementList(j).detectorIndex;
-            
-            if(isfield(snirf.nirs(i).probe,'wavelengths'))
+            if(isfield(snirf.nirs(i).probe,'wavelengths') && ...
+                    isfield(snirf.nirs(i).data(ii).measurementList(j),'wavelengthIndex'))
                 type(j,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex);
             else
                 type{j,1}=snirf.nirs(i).data(ii).measurementList(j).dataTypeLabel;
@@ -196,8 +203,18 @@ for i=1:length(snirf.nirs)
         if(isfield(snirf.nirs(i),'stim'))
             for j=1:length(snirf.nirs(i).stim)
                 
-                if(size(snirf.nirs.stim(j).data,1)==3)
+                if(~isfield(snirf.nirs(i).stim(j),'dataLabels') || isempty( snirf.nirs(i).stim(j).dataLabels))
+                    snirf.nirs(i).stim(j).dataLabels={'onset','dur','amp'};
+                end
+                
+                if(size(snirf.nirs.stim(j).data,1)==length(snirf.nirs(i).stim(j).dataLabels) & ...
+                        size(snirf.nirs.stim(j).data,2)~=length(snirf.nirs(i).stim(j).dataLabels))
                     snirf.nirs.stim(j).data=snirf.nirs.stim(j).data';
+                end
+                
+                tbl=struct;
+                for id=1:length(snirf.nirs(i).stim(j).dataLabels)
+                    tbl=setfield(tbl,genvarname(snirf.nirs(i).stim(j).dataLabels{id}),snirf.nirs.stim(j).data(:,id));
                 end
                 
                 st=nirs.design.StimulusEvents;
@@ -205,6 +222,7 @@ for i=1:length(snirf.nirs)
                 st.onset=snirf.nirs.stim(j).data(:,1);
                 st.dur=snirf.nirs.stim(j).data(:,2);
                 st.amp=snirf.nirs.stim(j).data(:,3);
+                st.metadata=struct2table(tbl);
                 tmpdata(ii).stimulus(st.name)=st;
             end
         end

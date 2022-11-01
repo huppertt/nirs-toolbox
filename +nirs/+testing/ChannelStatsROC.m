@@ -64,6 +64,7 @@ classdef ChannelStatsROC
 
     properties
         simfunc  = @nirs.testing.simData
+        dataset
         artfunc
         pipeline
     end
@@ -95,8 +96,26 @@ classdef ChannelStatsROC
         end
         
         function obj = run(obj, iter)
+            if ~isempty(obj.dataset)
+                if (~ismember("data", fieldnames(obj.dataset)))
+                    error("No data feild in dataset!")
+                end
+                if (~ismember("truth", fieldnames(obj.dataset)))
+                    error("No truth feild in dataset!")
+                end
+                if (iter > length(obj.dataset.data))
+                    warning("Requested number of iterations is greater than data size. Discard excessive iterations.");
+                    iter = length(obj.dataset.data);
+                end
+            end
             for idx = 1:iter
-               [data, truth] = obj.simfunc();
+                if ~isempty(obj.dataset)
+                    data = obj.dataset.data(idx);
+                    truth = obj.dataset.truth(:, idx);
+                else
+                    [data, truth] = obj.simfunc();
+                end
+               
                if ~isempty(obj.artfunc)
                    data = obj.artfunc(data);
                end

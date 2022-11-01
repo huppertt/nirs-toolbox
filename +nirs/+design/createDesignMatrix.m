@@ -107,9 +107,9 @@ for iKey = 1:length(stim_keys)
             end
         else
             if basis.iskey( {stim_keys{iKey},type} );
-                basisObj = basis( {{stim_keys{iKey},type}} );
+                basisObj = basis( {stim_keys{iKey},type} );
             elseif basis.iskey({'default',type})
-                basisObj = basis( {{'default',type}} );
+                basisObj = basis( {'default',type} );
             else
                 basisObj = basis( 'default' );
             end

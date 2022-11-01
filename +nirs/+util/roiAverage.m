@@ -490,9 +490,9 @@ else
             
             cc(lst,(i-1)*length(R)+j)=c;
             vvs = [vvs; table(namesOld(floor((j-1)/length(types))+1), types(mod(j-1,length(types))+1),uconds(i),'VariableNames',{'ROI','type','cond'})];
-            lst=find(~isnan(b));
-            broi(lst)    = c(lst,:)'*b(lst,:);
-            se(lst)      = sqrt(c(lst,:)'*C(lst,lst)*c(lst,:));
+            lst2=find(~isnan(b));
+            broi    = c(lst2,:)'*b(lst2,:);
+            se      = sqrt(c(lst2,:)'*C(lst2,lst2)*c(lst2,:));
             t       = broi / se;
             df      = data.dfe;
             p       = 2*tcdf(-abs(t),df);
