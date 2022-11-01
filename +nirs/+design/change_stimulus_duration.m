@@ -22,17 +22,7 @@ if(length(duration)<length(stimname))
 end
 
 for i=1:length(stimname)
-      
-    stimtable=nirs.createStimulusTable(data);
-    stimtable=stimtable(1,:);
-    stimtable.FileIdx=NaN;
-    st=stimtable.(stimname{i});
-    st.onset=NaN;
-    st.dur=duration(i);
-    stimtable.(stimname{i})=st;
-    
-    job=nirs.modules.ChangeStimulusInfo;
-    job.ChangeTable=stimtable;
-    data=job.run(data);
+
+    data.stimulus.(stimname{i}).dur(:)=duration(i);
     
 end
