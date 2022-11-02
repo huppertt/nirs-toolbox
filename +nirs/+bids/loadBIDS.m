@@ -82,7 +82,7 @@ for i=1:length(json_files);
             end
          end
     else
-        error('need to code this');
+        warning('Unable to parse %s, this json format may not be specifically supported by NIRS toolbox at this time',json_files(i).name);
     end
 
     
