@@ -217,7 +217,7 @@ for i=1:length(snirf.nirs)
 
         
         tmpdata(ii).probe.optodes_registered=table(Name,X,Y,Z,Type,Units);
-        tmpdata(ii).probe.optodes=table(Name,X,Y,Z,Type,Units);
+        tmpdata(ii).probe.optodes=table(Name,X,Y,Z*0,Type,Units);
         
         
         fds=fields(snirf.nirs(i).metaDataTags);
