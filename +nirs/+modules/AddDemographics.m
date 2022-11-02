@@ -41,31 +41,47 @@ classdef AddDemographics < nirs.modules.AbstractModule
             else
                 lst = find(~ismember(colNames,obj.varToMatch));
             end
+
+            idx=[];
+            varToMatchA_idx=find(strcmpi(obj.demoTable.Properties.VariableNames,obj.varToMatch));
+            if(isempty(varToMatchA_idx))
+                if obj.allowMissing
+                    warning('All entries missing in demographics table for %s!',obj.varToMatch);
+                else
+                    error('All entries missing in demographics table for %s!',obj.varToMatch);
+                end
+            end
+            
             
             for i = 1:numel(data)
+                    
 
                 if ~iscell(obj.varToMatch)
                     % Make this case-insensitive
-                    varToMatchA=obj.demoTable.Properties.VariableNames{find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch)))};
-                     % row idx of demo table
-
-                     if(isstr(data(i).demographics(obj.varToMatch)) | iscellstr(data(i).demographics(obj.varToMatch)))
-                    idx = find( strcmpi( obj.demoTable.(varToMatchA), data(i).demographics(obj.varToMatch) ) );
-                     else
-                         idx=find(obj.demoTable.(varToMatchA)==data(i).demographics(obj.varToMatch) );
-                     end
+                    if(~isempty(varToMatchA_idx))
+                        varToMatchA=obj.demoTable.Properties.VariableNames{varToMatchA_idx};
+                         % row idx of demo table
+    
+                         if(isstr(data(i).demographics(obj.varToMatch)) | iscellstr(data(i).demographics(obj.varToMatch)))
+                            idx = find( strcmpi( obj.demoTable.(varToMatchA), data(i).demographics(obj.varToMatch) ) );
+                         else
+                             idx=find(obj.demoTable.(varToMatchA)==data(i).demographics(obj.varToMatch) );
+                         end
+                    end
                      
                 else
-                    varToMatchA=obj.demoTable.Properties.VariableNames(find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch))));
-                    % row idx of demo table
-                    T = cell2table(data(i).demographics(obj.varToMatch),'VariableNames',varToMatchA);
-                  %  [~,idx] = ismember(T,obj.demoTable(:,varToMatchA));
-                    idx = find(ismember(obj.demoTable(:,varToMatchA),T));
+                    if(~isempty(varToMatchA_idx))
+                        varToMatchA=obj.demoTable.Properties.VariableNames(find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch))));
+                        % row idx of demo table
+                        T = cell2table(data(i).demographics(obj.varToMatch),'VariableNames',varToMatchA);
+                      %  [~,idx] = ismember(T,obj.demoTable(:,varToMatchA));
+                        idx = find(ismember(obj.demoTable(:,varToMatchA),T));
+                    end
                 end
                 
                
                 
-                if(isempty(idx))
+                if(isempty(idx)&&~isempty(varToMatchA_idx))
                     if obj.allowMissing
                         warning(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
                     else
