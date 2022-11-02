@@ -45,125 +45,180 @@ for i=1:length(snirf.nirs)
                 
             end
         end
-        
-        if(~isfield(snirf.nirs(i).probe,'sourcePos') & isfield(snirf.nirs(i).probe,'sourcePos2D'))
-            snirf.nirs(i).probe.sourcePos=snirf.nirs(i).probe.sourcePos2D;
-        end
-        if(~isfield(snirf.nirs(i).probe,'detectorPos') & isfield(snirf.nirs(i).probe,'detectorPos2D'))
-            snirf.nirs(i).probe.detectorPos=snirf.nirs(i).probe.detectorPos2D;
-        end
-        
-        if(~isfield(snirf.nirs(i).probe,'landmarkPos') & isfield(snirf.nirs(i).probe,'landmarkPos2D'))
-            snirf.nirs(i).probe.landmarkPos=snirf.nirs(i).probe.landmarkPos2D;
-        end
-        
-        if(size(snirf.nirs(i).probe.sourcePos,1)==2)
-            snirf.nirs(i).probe.sourcePos=snirf.nirs(i).probe.sourcePos';
-        end
-        if(size(snirf.nirs(i).probe.detectorPos,1)==2)
-            snirf.nirs(i).probe.detectorPos=snirf.nirs(i).probe.detectorPos';
-            
-        end
-        
-        if(~isfield(snirf.nirs(i).probe,'sourceLabels'))
-            for j=1:size(snirf.nirs(i).probe.sourcePos,1)
-                snirf.nirs(i).probe.sourceLabels{j,1}=['Source-' num2str(j)];
-            end
-        end
-        
-        if(~isfield(snirf.nirs(i).probe,'detectorLabels'))
-            for j=1:size(snirf.nirs(i).probe.detectorPos,1)
-                snirf.nirs(i).probe.detectorLabels{j,1}=['Detector-' num2str(j)];
-            end
-        end
-        
-        if(ischar(snirf.nirs(i).probe.sourceLabels))
-            snirf.nirs(i).probe.sourceLabels={snirf.nirs(i).probe.sourceLabels};
-        end
-        if(ischar(snirf.nirs(i).probe.detectorLabels))
-            snirf.nirs(i).probe.detectorLabels={snirf.nirs(i).probe.detectorLabels};
-        end
-        
-        if(isfield(snirf.nirs(i).probe,'sourcePos3D') && size(snirf.nirs(i).probe.sourcePos3D,1)==3)
-            snirf.nirs(i).probe.sourcePos3D=snirf.nirs(i).probe.sourcePos3D';
-        end
-        if(isfield(snirf.nirs(i).probe,'detectorPos3D') && size(snirf.nirs(i).probe.detectorPos3D,1)==3)
-            snirf.nirs(i).probe.detectorPos3D=snirf.nirs(i).probe.detectorPos3D';
-        end
-        if(isfield(snirf.nirs(i).probe,'landmarkPos') && size(snirf.nirs(i).probe.landmarkPos,1)==2)
-            snirf.nirs(i).probe.landmarkPos=snirf.nirs(i).probe.landmarkPos';
-        end
-        if(isfield(snirf.nirs(i).probe,'landmarkPos3D') && size(snirf.nirs(i).probe.landmarkPos3D,1)==3)
-            snirf.nirs(i).probe.landmarkPos3D=snirf.nirs(i).probe.landmarkPos3D';
-        end
-        
-        
-        %make the optodes
+
+        %Used to make the optodes tables
         Type={}; X=[]; Y=[]; Z=[]; Units={}; Name={};
-        for j=1:length(snirf.nirs(i).probe.sourceLabels)
-            Type{end+1,1}='Source';
-            Name{end+1,1}=snirf.nirs(i).probe.sourceLabels{j};
-            Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
-            X(end+1,1)=snirf.nirs(i).probe.sourcePos(j,1);
-            Y(end+1,1)=snirf.nirs(i).probe.sourcePos(j,2);
-            Z(end+1,1)=0;
-        end
-        for j=1:length(snirf.nirs(i).probe.detectorLabels)
-            Type{end+1,1}='Detector';
-            Name{end+1,1}=snirf.nirs(i).probe.detectorLabels{j};
-            Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
-            X(end+1,1)=snirf.nirs(i).probe.detectorPos(j,1);
-            Y(end+1,1)=snirf.nirs(i).probe.detectorPos(j,2);
-            Z(end+1,1)=0;
-        end
-        % add landmarks
-        if(isfield(snirf.nirs(i).probe,'landmarkLabels') & isfield(snirf.nirs(i).probe,'landmarkPos'))
-            for j=1:length(snirf.nirs(i).probe.landmarkLabels)
-                Type{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID'):end);
-                Name{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(1:strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID')-1);
+
+        % Get best matches for source, detector, landmark positions
+        %    rotate if needed, detect ambiguous 2/3 probe detector
+        %    configurations (if possible)
+        posTypes={'source','detector','landmark'};
+
+        for p = 1:length(posTypes)
+            posType=posTypes{p};
+            posLabelField=strcat(posType,'Labels');
+            posOrigLabelField=strcat(posType,'OrigLabels');
+            posField=strcat(posType,'Pos');
+            pos2DField=strcat(posType,'Pos2D');
+            pos3DField=strcat(posType,'Pos3D');
+            nField=strcat(posType,'N');
+            posCapital=strcat(upper(posType(1)),posType(2:end));
+            n=nan;
+            % Mark if fields need to be transposed
+            rotateFields=nan;
+            %Mark if position field was assigned
+            posFieldPreexists=~isfield(snirf.nirs(i).probe,posField);
+
+            % number of elements most clearly defined by number of labels
+            if(isfield(snirf.nirs(i).probe,posLabelField))
+                n=max(size(snirf.nirs(i).probe.(posLabelField)));
+
+                 % If label exists but is not a cell string, convert it
+                if(ischar(snirf.nirs(i).probe.(posLabelField)))
+                    snirf.nirs(i).probe.(posLabelField)=cellstr(snirf.nirs(i).probe.(posLabelField));
+                end
+            end
+
+           
+
+            % if pos3d for field exists, check if the size matches the
+            % known size, if it needs to be rotated, rotate it
+            %    if nominal position field doesn't exist, use pos3D
+            if(isfield(snirf.nirs(i).probe,pos3DField))
+                sz=size(snirf.nirs(i).probe.(pos3DField));
+                if(isnan(n))
+                    sz_sel=sz(sz~=3);
+                    if(~isempty(sz_sel))
+                        n=sz_sel(1);
+                    else
+                        n=3;
+                    end
+                end
+                
+                if(any(sz==n)&&sz(1)==3&&n~=3)
+                    snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
+                    rotateFields=true;
+                elseif(any(sz==n)&&n~=3)
+                    rotateFields=false;
+                elseif(~any(sz==n))
+                    error('Mismatch between %s and number of elements',pos3DField);
+                end
+
+                if(~isfield(snirf.nirs(i).probe,posField))
+                    snirf.nirs(i).probe.(posField)= snirf.nirs(i).probe.(pos3DField);
+                end
+            end
+
+            % if pos2D for field exists, check if the size matches the
+            % known size, if it needs to be rotated, rotate it
+            %    if nominal position field still doesn't exist, use pos2D
+            if(isfield(snirf.nirs(i).probe,pos2DField))
+                sz=size(snirf.nirs(i).probe.(pos2DField));
+                if(isnan(n))
+                    sz_sel=sz(sz~=2);
+                    if(~isempty(sz_sel))
+                        n=sz_sel;
+                    else
+                        n=2;
+                    end
+                end
+                
+                if(any(sz==n)&&sz(1)==2&&(n~=2||rotateFields))
+                    snirf.nirs(i).probe.(pos2DField)=snirf.nirs(i).probe.(pos2DField)';
+                    rotateFields=true;
+                elseif(any(sz==n)&&n~=2)
+                    rotateFields=false;
+                elseif(~any(sz==n))
+                    error('Mismatch between %s and number of elements',pos2DField);
+                end
+
+                if(~isfield(snirf.nirs(i).probe,posField))
+                    snirf.nirs(i).probe.(posField)= snirf.nirs(i).probe.(pos2DField);
+                end
+
+                if(rotateFields&&isfield(snirf.nirs(i).probe,pos3DField)&&n==3)
+                    % Catch corner case where 2D field is rotated, but 3D
+                        % field was assigned but not rotated originally
+                    snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
+
+                    if(~posFieldPreexists)
+                        snirf.nirs(i).probe.(posField)=snirf.nirs(i).probe.(pos3DField);
+                    end
+                end
+            end
+
+            % if nominal position for field exists, check if the size matches the
+            % known size, if it needs to be rotated, rotate it
+            if(isfield(snirf.nirs(i).probe,posField))
+                sz=size(snirf.nirs(i).probe.(posField));
+                if(isnan(n))
+                    sz_sel=sz(ismember(sz,[2,3]));
+                    if(~isempty(sz_sel))
+                        n=sz_sel(1);
+                    else
+                        n=3;
+                        warning('Assuming %s has 3 elements',posField);
+                    end
+                end
+                
+                if((~all(sz==n)&&sz(1)~=n)||... % if n is known and mismatched rotate
+                        (ismember(n,[2,3])&&(...    %if n is ambiguous 2/3
+                            (~isnan(rotateFields)&&rotateFields&&~posFieldPreexists)))) % , and rotateFields is defined and true, rotate (and preexists)
+                    snirf.nirs(i).probe.(posField)=snirf.nirs(i).probe.(posField)';
+                elseif(ismember(n,[2,3])&&(isnan(rotateFields)||posFieldPreexists)) % if ambiguous and rotate fields not defined, or pre-existing positions
+                    warning('Ambiguous probe configuration (2/3 detectors) please ensure probe coordinates are xyz as columns and element # as rows [X,Y,Z;X2,Y2,Z2]');
+                elseif(~any(sz==n))
+                    error('Mismatch between %s and number of elements',posField);
+                end
+            end
+
+            if(~isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
+                for j=1:n
+                    snirf.nirs(i).probe.(posLabelField){j,1}=[posCapital+'-' num2str(j)];
+                end
+            elseif(isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
+                snirf.nirs(i).probe.(posOrigLabelField)=snirf.nirs(i).probe.(posLabelField);
+                for j=1:n
+                    oldName=snirf.nirs(i).probe.(posLabelField){j};
+                    newNumStr=regexprep(oldName,'\D', '');
+                    if(isempty(newNumStr))
+                        error('%s label must contain a number',posType);
+                    end
+                    snirf.nirs(i).probe.(posLabelField){j,1}=sprintf('%s-%s',posCapital,newNumStr); %NIRS toolbox requires Source-#, Detector-# format
+                end
+            end
+
+            snirf.nirs(i).probe.(nField)=n;
+
+            for j=1:n
+                if(strcmp(posType,'landmark'))
+                    lmName=snirf.nirs(i).probe.(posLabelField){j};
+                    if(contains(lmName,'FID'))
+                        Type{end+1,1}=char(snirf.nirs(i).probe.(posLabelField){j}(strfind(snirf.nirs(i).probe.(posLabelField){j},'FID'):end));
+                        Name{end+1,1}=char(snirf.nirs(i).probe.(posLabelField){j}(1:strfind(snirf.nirs(i).probe.(posLabelField){j},'FID')-1));
+                    else
+                        Type{end+1,1}=posCapital;
+                        Name{end+1,1}=lmName;
+                    end 
+                else
+                    Type{end+1,1}=posCapital; %ex 'Source'
+                    Name{end+1,1}=snirf.nirs(i).probe.(posLabelField){j};
+                end
                 Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
-                X(end+1,1)=snirf.nirs(i).probe.landmarkPos(j,1);
-                Y(end+1,1)=snirf.nirs(i).probe.landmarkPos(j,2);
-                Z(end+1,1)=0;
+                X(end+1,1)=snirf.nirs(i).probe.(posField)(j,1);
+                Y(end+1,1)=snirf.nirs(i).probe.(posField)(j,2);
+                if(size(snirf.nirs(i).probe.(posField),2)==2)
+                    Z(end+1,1)=0;
+                else
+                    Z(end+1,1)=snirf.nirs(i).probe.(posField)(j,3);
+                end
             end
         end
+
         
+        tmpdata(ii).probe.optodes_registered=table(Name,X,Y,Z,Type,Units);
         tmpdata(ii).probe.optodes=table(Name,X,Y,Z,Type,Units);
-        if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
-            %make the optodes_registered
-            Type={}; X=[]; Y=[]; Z=[]; Units={}; Name={};
-            for j=1:length(snirf.nirs.probe.sourceLabels)
-                Type{end+1,1}='Source';
-                Name{end+1,1}=snirf.nirs(i).probe.sourceLabels{j};
-                Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
-                X(end+1,1)=snirf.nirs(i).probe.sourcePos3D(j,1);
-                Y(end+1,1)=snirf.nirs(i).probe.sourcePos3D(j,2);
-                Z(end+1,1)=snirf.nirs(i).probe.sourcePos3D(j,3);
-            end
-            for j=1:length(snirf.nirs(i).probe.detectorLabels)
-                Type{end+1,1}='Detector';
-                Name{end+1,1}=snirf.nirs(i).probe.detectorLabels{j};
-                Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
-                X(end+1,1)=snirf.nirs(i).probe.detectorPos3D(j,1);
-                Y(end+1,1)=snirf.nirs(i).probe.detectorPos3D(j,2);
-                Z(end+1,1)=snirf.nirs(i).probe.detectorPos3D(j,3);
-            end
-            if(isfield(snirf.nirs(i).probe,'landmarkLabels'));
-                % add landmarks
-                if(size(snirf.nirs(i).probe.landmarkPos3D,2)>size(snirf.nirs(i).probe.landmarkPos3D,1));
-                    snirf.nirs(i).probe.landmarkPos3D=snirf.nirs(i).probe.landmarkPos3D';
-                end
-                for j=1:length(snirf.nirs(i).probe.landmarkLabels)
-                    Type{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID'):end);
-                    Name{end+1,1}=snirf.nirs(i).probe.landmarkLabels{j}(1:strfind(snirf.nirs(i).probe.landmarkLabels{j},'FID')-1);
-                    Units{end+1,1}=snirf.nirs(i).metaDataTags.LengthUnit;
-                    X(end+1,1)=snirf.nirs(i).probe.landmarkPos3D(j,1);
-                    Y(end+1,1)=snirf.nirs(i).probe.landmarkPos3D(j,2);
-                    Z(end+1,1)=snirf.nirs(i).probe.landmarkPos3D(j,3);
-                end
-            end
-            tmpdata(ii).probe.optodes_registered=table(Name,X,Y,Z,Type,Units);
-        end
+        
         
         fds=fields(snirf.nirs(i).metaDataTags);
         for f=1:length(fds)
