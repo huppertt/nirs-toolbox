@@ -117,7 +117,6 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                % If its stored as a cell for some reason, fix this
                if(any(iscell(uLambda)))
                     uLambda=str2num(cell2mat(uLambda));
-
                     link.type=uLambda(uLambda_idx);
                end
 
@@ -227,7 +226,11 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                     p.link=p.link(:,{'ROI','type'});
                 else
                     [p.link,idx] = nirs.util.sortrows(p.link,{'source','detector','type'});
-                    p.link=p.link(:,{'source','detector','type'});
+                    if(ismember('ShortSeperation',link.Properties.VariableNames))
+                        p.link=p.link(idx,{'source','detector','type','ShortSeperation'});
+                    else
+                        p.link=p.link(idx,{'source','detector','type'});
+                    end
                 end
                 
                 % concatenate the channels (3rd dim) into the columns (2nd dim)

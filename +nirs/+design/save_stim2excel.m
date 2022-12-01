@@ -6,30 +6,32 @@ for i=1:length(data)
     if(~isempty(data(i).description))
         [~,sheetname]=fileparts(data(i).description);
     else
-        sheetname=['File-' num2str(i)];
+        sheetname=['data-' num2str(i)];
     end
+
+
     keys=data(i).stimulus.keys;
     Array={}; 
     for j=1:length(keys)
        
         st=data(i).stimulus(keys{j});
         if(isa(st,'nirs.design.StimulusEvents'))
-            Array{1,j+3*(j-1)}=[keys{j} '@onset'];
-            Array{1,j+1+3*(j-1)}=[keys{j} '@duration'];
-            Array{1,j+2+3*(j-1)}=[keys{j} '@amplitude'];
+            Array{1,1+3*(j-1)}=[keys{j} '@onset'];
+            Array{1,2+3*(j-1)}=[keys{j} '@duration'];
+            Array{1,3+3*(j-1)}=[keys{j} '@amplitude'];
             
             for k=1:length(st.onset)
-                Array{1+k,j+3*(j-1)}=st.onset(k);
-                Array{1+k,j+1+3*(j-1)}=st.dur(k);
-                Array{1+k,j+2+3*(j-1)}=st.amp(k);
+                Array{1+k,1+3*(j-1)}=st.onset(k);
+                Array{1+k,2+3*(j-1)}=st.dur(k);
+                Array{1+k,3+3*(j-1)}=st.amp(k);
             end
         elseif(isa(st,'nirs.design.StimulusVector'))
-              Array{1,j+3*(j-1)}=[keys{j} '@vector'];
-              Array{1,j+1+3*(j-1)}=[keys{j} '@time'];
+              Array{1,1+3*(j-1)}=[keys{j} '@vector'];
+              Array{1,2+3*(j-1)}=[keys{j} '@time'];
             
             for k=1:length(st.vector)
-                Array{1+k,j+3*(j-1)}=st.vector(k);
-                Array{1+k,j+1+3*(j-1)}=st.time(k);
+                Array{1+k,1+3*(j-1)}=st.vector(k);
+                Array{1+k,2+3*(j-1)}=st.time(k);
             end
             
         end
@@ -50,10 +52,10 @@ for i=1:length(data)
         disp('copied to clipboard');
     else
     
-    if(~isempty(sheetname))
-        sheetname=['File-' num2str(i)];
+    if(isempty(sheetname))
+        sheetname=['data-' num2str(i)];
     end
         
-      nirs.util.write_xls(filename,Array,sheetname);
+      nirs.util.write_xls(filename,cell2table(Array),sheetname);
     end
 end

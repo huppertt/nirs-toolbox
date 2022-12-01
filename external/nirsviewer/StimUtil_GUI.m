@@ -88,6 +88,8 @@ for i=1:length(raw)
         % NIRx data
         lst=strfind(raw(i).description,filesep);
         Filenames{i}=raw(i).description(lst(end-2)+1:lst(end)-1);
+    elseif(~isempty(raw(i).description))
+        Filenames{i}=raw(i).description;
     else
         
         Filenames{i}=['File-' num2str(i)];
@@ -745,22 +747,22 @@ for j=1:length(keys)
     
     st=raw(selected).stimulus(keys{j});
     if(isa(st,'nirs.design.StimulusEvents'))
-        Array{1,j+3*(j-1)}=[keys{j} '_onset'];
-        Array{1,j+1+3*(j-1)}=[keys{j} '_duration'];
-        Array{1,j+2+3*(j-1)}=[keys{j} '_amplitude'];
+        Array{1,1+3*(j-1)}=[keys{j} '_onset'];
+        Array{1,2+3*(j-1)}=[keys{j} '_duration'];
+        Array{1,3+3*(j-1)}=[keys{j} '_amplitude'];
         
         for k=1:length(st.onset)
-            Array{1+k,j+3*(j-1)}=st.onset(k);
-            Array{1+k,j+1+3*(j-1)}=st.dur(k);
-            Array{1+k,j+2+3*(j-1)}=st.amp(k);
+            Array{1+k,1+3*(j-1)}=st.onset(k);
+            Array{1+k,2+3*(j-1)}=st.dur(k);
+            Array{1+k,3+3*(j-1)}=st.amp(k);
         end
     elseif(isa(st,'nirs.design.StimulusVector'))
-        Array{1,j+3*(j-1)}=[keys{j} '_vector'];
-        Array{1,j+1+3*(j-1)}=[keys{j} '_time'];
+        Array{1,1+3*(j-1)}=[keys{j} '_vector'];
+        Array{1,2+3*(j-1)}=[keys{j} '_time'];
         
         for k=1:length(st.vector)
-            Array{1+k,j+3*(j-1)}=st.vector(k);
-            Array{1+k,j+1+3*(j-1)}=st.time(k);
+            Array{1+k,1+3*(j-1)}=st.vector(k);
+            Array{1+k,2+3*(j-1)}=st.time(k);
         end
         
     end

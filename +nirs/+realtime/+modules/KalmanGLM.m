@@ -32,7 +32,9 @@ classdef KalmanGLM < nirs.realtime.modules.AbstractModule
                 
             end
             if(isa(stimulus,'Dictionary'))
-                error('need to code this');
+                if(isempty(stimulus))
+                    X=1;
+                end
             else
                 X=stimulus;
             end

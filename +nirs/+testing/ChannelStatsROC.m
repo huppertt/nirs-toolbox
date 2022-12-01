@@ -68,6 +68,9 @@ classdef ChannelStatsROC
         artfunc
         pipeline
     end
+    properties(Hidden = true)
+        beta
+    end
     
     properties (SetAccess = protected)
        truth
@@ -75,6 +78,7 @@ classdef ChannelStatsROC
        types
     end
     
+
     methods
         % constructor
         function obj = ChannelStatsROC( pipeline, simfunc )
@@ -134,6 +138,7 @@ classdef ChannelStatsROC
                
                T=[];
                P=[];
+               B=[];
                Types={};
                
                for i=1:length(obj.pipeline)
@@ -172,7 +177,7 @@ classdef ChannelStatsROC
                    % multivariate joint hypothesis testing
                    fstats = stats.jointTest();
                    
-                   t = []; p = [];
+                   t = []; p = []; betas=[];
                    for j = 1:length(types)
                        if(iscellstr(types(i)))
                        lst = strcmp(types(j), stats.variables.type);
@@ -182,6 +187,9 @@ classdef ChannelStatsROC
                        
                        t(:,j) = truth(lst);
                        p(:,j) = stats.p(lst);
+          
+                       betas(:,j)=stats.tstat(lst); %stats.beta(lst);
+
                    end
                    if(~iscellstr(types(1)))
                         for i=1:length(types)
@@ -216,13 +224,14 @@ classdef ChannelStatsROC
                    
                    T=[T t];
                    P=[P p];
+                   B=[B betas];
                    Types={Types{:} types{:}};
                    
                end
                
                obj.truth = [obj.truth; T];
                obj.pvals = [obj.pvals; P];
-               
+               obj.beta=[obj.beta; B];
                obj.types = Types;
             
                disp( ['Finished iter: ' num2str(idx)] )
@@ -339,6 +348,7 @@ classdef ChannelStatsROC
             obj.truth=[];
             obj.pvals=[];
             obj.types={};
+            obj.beta=[];
         end
         
         function out = sensitivity( obj, pval )

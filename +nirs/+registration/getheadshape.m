@@ -69,6 +69,11 @@ headshape=Dictionary();
 headshape('lpa-cz-rpa')=LR_arclength;
 headshape('Iz-cz-nas')=AP_arclength;
 headshape('circumference')=headcircum;
+headshape('IS_distance')=IS_distance;
+headshape('LR_distance')=LR_distance;
+headshape('AP_distance')=AP_distance;
+headshape('center-of-mass')=.5*(pt(4,:)+pt(5,:));
+
 
 
 end

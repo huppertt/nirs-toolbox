@@ -14,7 +14,7 @@ if(isa(dataIn,'table'))
     return
 end
 
-if(isa(dataIn,'double'))
+if(isa(dataIn,'double') | isa(dataIn,'single'))
     dataOut(:,4)=1;
     dataOut=dataOut*tform;
     dataOut(:,4)=[];

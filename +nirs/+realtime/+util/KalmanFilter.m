@@ -47,7 +47,7 @@ classdef KalmanFilter < handle
             ehat = y - X*obj.B;
             obj.updateE( ehat );
             
-            if obj.n > 10
+            if obj.n > 0; %10
                 % prediction step
                 obj.prediction_step(F,u);
 

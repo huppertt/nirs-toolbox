@@ -1,0 +1,908 @@
+<div class = rtcContent><div  style = 'margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left; '><span>Unity testing describes a set of tests/scripts to test the integretity of the toolbox and its core data types. Regression testing describes how to run sensitivity/specificity analysis to compare the preformance of various code and options </span></div><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 4px 4px 0px 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Directory to download and unpack the demo data</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(14, 0, 255);">if</span><span >(ismac | isunix)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    root_dir = [</span><span style="color: rgb(167, 9, 245);">'/Users/' </span><span >getenv(</span><span style="color: rgb(167, 9, 245);">'USER'</span><span >) </span><span style="color: rgb(167, 9, 245);">'/Desktop/tmp'</span><span >];</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(14, 0, 255);">else</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    root_dir = [getenv(</span><span style="color: rgb(167, 9, 245);">'UserProfile'</span><span >) </span><span style="color: rgb(167, 9, 245);">'\Desktop\tmp'</span><span >];</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span > </span><span style="color: rgb(14, 0, 255);">end</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% number of iterations to run in ROC tests (more = better; but longer run time)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px 0px 4px 4px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >num_iter = 10;</span></span></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>Unity testing</span></h2><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 4px 4px 0px 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'PART 1:  Unity testing Demo'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="D5B7DB81" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_0" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">PART 1:  Unity testing Demo</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Unity tests are included in the folder +nirs/+testing/+unity</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% These tools devive from the builtin matlab.unittest.* class of objects</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% There are currently two tests included:</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% nirs.testing.unittests.TestProbe-  This tests the Probe data class</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% nirs.testing.unittests.TestChannelStats- This tests the channel stats</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% class</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Any additional tests can be created and added to the same folder.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% To run the unity tests type:</span></span></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(nirs.testing.unittests.runTests);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="B0E354BB" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_1" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="1390" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Running nirs.testing.unittests.TeFinished    1 of    1.
+...
+Done nirs.testing.unittests.TestActivationIndividual
+__________
+
+Running nirs.testing.unittests.TestChannelStats
+........
+Done nirs.testing.unittests.TestChannelStats
+__________
+
+Running nirs.testing.unittests.TestConnectivity
+Spliting condition: Low
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: Medium
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: High
+   1 of 3
+   2 of 3
+   3 of 3
+Finished 1 of 4
+Spliting condition: Low
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: Medium
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: High
+   1 of 3
+   2 of 3
+   3 of 3
+Finished 2 of 4
+Spliting condition: Low
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: Medium
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: High
+   1 of 3
+   2 of 3
+   3 of 3
+Finished 3 of 4
+Spliting condition: Low
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: Medium
+   1 of 3
+   2 of 3
+   3 of 3
+Spliting condition: High
+   1 of 3
+   2 of 3
+   3 of 3
+Finished 4 of 4
+.
+Done nirs.testing.unittests.TestConnectivity
+__________
+
+Running nirs.testing.unittests.TestPreprocessing
+...
+Done nirs.testing.unittests.TestPreprocessing
+__________
+
+Running nirs.testing.unittests.TestProbe
+..
+Done nirs.testing.unittests.TestProbe
+__________
+
+Running nirs.testing.unittests.TestROI
+..
+Done nirs.testing.unittests.TestROI
+__________
+
+  1×19 TestResult array with properties:
+
+    Name
+    Passed
+    Failed
+    Incomplete
+    Duration
+    Details
+
+Totals:
+   19 Passed, 0 Failed, 0 Incomplete.
+   1.6252 seconds testing time.</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% This should give:</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% &gt;&gt; nirs.testing.unittests.runTests</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Running nirs.testing.unittests.TestChannelStats</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% ........</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Done nirs.testing.unittests.TestChannelStats</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% __________</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Running nirs.testing.unittests.TestProbe</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% ..</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Done nirs.testing.unittests.TestProbe</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% __________</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%   1x10 TestResult array with properties:</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     Name</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     Passed</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     Failed</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     Incomplete</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     Duration</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Totals:</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%    10 Passed, 0 Failed, 0 Incomplete.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%    2.1675 seconds testing time.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Note- if you get an error, it may be due to FieldTrip in the matlab path.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%  Fieldtrip overwrites several builtin functions (e.g. "max") and causes</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%  issues because these FieldTrip versions don't actually work the same as</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px 0px 4px 4px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%  the matlab ones.  The solution is to remove Fieldtrip from the path.</span></span></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>The second type of testing is regression testing and will run sensitivity/specificity analysis on nirs.modules</span></h2><div  style = 'margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left; '><span>The regression testing code is included in +nirs/+testing simData.m - code for simulating a random data file simDataSet.m - code for simulating an entire set of subjects/groups randStimDesign.m - code for adding random stimulus events to data simARNoise.m - code for generating AR-noise structure ChannelStatsROC.m - the actual functoin for running the ROC analysis randSplit.m - a helper function for spliting a dataset for boot-strapping roc.m - a helper function for running the reciever operator curve analyis</span></div><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 4px 4px 0px 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'--------------------------------------------------------------------'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="6AC5033E" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_2" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">--------------------------------------------------------------------</div></div></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'PART 2:  Sensitivity-Specificity Demo'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="F1480804" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_3" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">PART 2:  Sensitivity-Specificity Demo</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% The first step is to create the job to run</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=nirs.testing.ChannelStatsROC;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% This defines a class with the following properties</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%   ChannelStatsROC with properties:</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%      simfunc: @nirs.testing.simData</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     pipeline: [1x1 nirs.modules.AR_IRLS]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%        truth: []  - read only (will be populated when run)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%        pvals: []  - read only (will be populated when run)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%        types: []  - read only (will be populated when run)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% This jobs is already setup to run the nirs.modules.AR_IRLS (AR-GLM) code</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% using default simulated data, but these can be modified.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% The first field is the simfunc.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% This defines the data for the simulation</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% The default is the nirs.testing.simData() function with the default</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px 0px 4px 4px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% arguments</span></span></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>SIMDATA Simulates NIRS data by adding a task to baseline noise.</span></h2><div  style = 'margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left; '><span>Args: noise - a raw data file (defualt none) stim - dictionary containing stimulus objects using the stim name as key (default- random) beta - vector of magnitude of response for each stim conditon basis - dictionary containing basis objects using stim condition as key</span></div><div  style = 'margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left; '><span>Example: noise = nirs.testing.simARNoise(); stim = nirs.testing.randStimDesign(noise.time, 2, 7, 3); beta = [3 2 1]';</span></div><div class = 'preformatted-plain' style = 'margin: 10px 3px 10px 55px; padding: 10px 10px 10px 5px; '><div  style = 'border-left: 0px none rgb(33, 33, 33); border-right: 0px none rgb(33, 33, 33); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px; line-height: 15.6px; min-height: 16px; white-space: pre; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 12px; '><span style="white-space: pre"><span >   sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');</span></span></div><div  style = 'border-left: 0px none rgb(33, 33, 33); border-right: 0px none rgb(33, 33, 33); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px; line-height: 15.6px; min-height: 16px; white-space: pre; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 12px; '><span style="white-space: pre"><span >   channels = sd(1:round(end/2),:);</span></span></div><div  style = 'border-left: 0px none rgb(33, 33, 33); border-right: 0px none rgb(33, 33, 33); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px; line-height: 15.6px; min-height: 16px; white-space: pre; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 12px; '><span style="white-space: pre"><span >   [data, truth] = simData( noise, stim, beta, channels )</span></span></div></div><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 4px 4px 0px 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% In this example, let's use some experimental baseline data as our</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px 0px 4px 4px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% baseline noise</span></span></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>download the dataset</span></h2><div  style = 'margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left; '><span>% This command will download the demo_data.zip file from the server. This % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow % The file is about 90Mb in size.</span></div><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 4px 4px 0px 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(14, 0, 255);">if</span><span >(~exist(root_dir,</span><span style="color: rgb(167, 9, 245);">'dir'</span><span >) || ~exist(fullfile(root_dir,</span><span style="color: rgb(167, 9, 245);">'demo_data'</span><span >),</span><span style="color: rgb(167, 9, 245);">'dir'</span><span >))</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    mkdir(root_dir);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    disp(</span><span style="color: rgb(167, 9, 245);">'downloading sample data from bitbucket site'</span><span >);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    urlwrite(</span><span style="color: rgb(167, 9, 245);">'https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip'</span><span >, </span><span style="color: rgb(14, 0, 255);">...</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >        [root_dir filesep </span><span style="color: rgb(167, 9, 245);">'demo_data.zip'</span><span >]);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% This command will download the demo_data.zip file from the server.  This</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% The file is about 90Mb in size.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% unzip the data</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    unzip([root_dir filesep </span><span style="color: rgb(167, 9, 245);">'demo_data.zip'</span><span >],[root_dir filesep]);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% This will unpack a folder called "data" containing two groups (G1 &amp; G2).</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% A script "simulation.m" is included which was used to generate the data</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% (but is not intended to be run).  The data was simulated from a set of</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% experimental resting state NIRS data with simulated evoked responses</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span><span style="color: rgb(0, 128, 19);">% added to it to demostrate this analysis pipeline.</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(14, 0, 255);">else</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >    disp([</span><span style="color: rgb(167, 9, 245);">'Data found in: ' </span><span >root_dir </span><span style="color: rgb(167, 9, 245);">': skipping download'</span><span >]);</span></span></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(14, 0, 255);">end</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="324CF834" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_4" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Data found in: /Users/theodorehuppert/Desktop/tmp: skipping download</div></div></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>load data</span></h2><div  style = 'margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left; '><span>this function loads a whole directory of .nirs files. The second argument tells the function to use the first level of folder names to specify group id and to use the second for subject id.</span></div><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 4px 4px 0px 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >raw = nirs.io.loadDirectory([root_dir filesep </span><span style="color: rgb(167, 9, 245);">'demo_data' </span><span >filesep </span><span style="color: rgb(167, 9, 245);">'data'</span><span >], {</span><span style="color: rgb(167, 9, 245);">'group'</span><span >, </span><span style="color: rgb(167, 9, 245);">'subject'</span><span >});</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="66691E55" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_5" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="1006" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S11/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S12/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S13/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S15/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S17/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S19/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S22/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S23/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S27/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S28/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S29/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S30/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S32/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S36/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S37/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S38/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S4/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S40/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S43/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S44/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S46/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S47/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S48/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S49/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S50/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S55/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S57/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S58/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S62/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S63/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S65/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S66/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S68/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G1/S8/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S1/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S10/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S14/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S16/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S18/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S2/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S20/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S21/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S24/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S25/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S26/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S3/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S31/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S33/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S34/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S35/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S39/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S41/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S42/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S45/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S5/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S51/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S52/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S53/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S54/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S56/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S59/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S6/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S60/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S61/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S64/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S67/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S7/scan.nirs
+Loading /Users/theodorehuppert/Desktop/tmp/demo_data/data/G2/S9/scan.nirs</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Load the default single_subject module</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >jobs = nirs.modules.default_modules.single_subject;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Jobs are nested in each other.  The code pipelinetolist will parse a job</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% to give easier access to its components</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >List=nirs.modules.pipelineToList(jobs);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% List is a cell array containing the following jobs</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.ImportData    ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.RemoveStimless]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.FixNaNs       ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.Resample      ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.OpticalDensity]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.BeerLambertLaw]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.ExportData    ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.TrimBaseline  ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.GLM           ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%     [1x1 nirs.modules.ExportData    ]</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Let's change the resample module (4th entry)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >List{4}.Fs=5;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% ANd then store back as a job</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >jobs = nirs.modules.listToPipeline(List);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Assign the job to the ROCtest pipeline</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.pipeline=jobs;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% FInally run the ROC for # of iterations</span></span></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=ROCtest.run(num_iter);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="DD502732" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_6" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="740" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 1
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 2
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 3
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 4
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 5
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 6
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 7
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 8
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 9
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 10</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.draw;</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="4B416DF0" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_7" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_1.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="2F591623" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_8" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_2.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% This will plot two figures.  </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% FIgure 1- is a ROC curve</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Figure 2- is a plot of the estimated vs. true p-value (ideally a line of</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% slope =1)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% If we make the call again, it will run an additional #iterations and</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% concatinate the results.  The more iterations, the more accurate the</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% solution</span></span></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=ROCtest.run(num_iter);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="529ADA4E" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_9" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="740" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 1
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 2
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 3
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 4
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 5
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 6
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 7
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 8
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 9
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Finished iter: 10</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.draw;</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="5277F885" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_10" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_3.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="D205C458" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_11" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_4.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>Let's try to run this again with the OLS regrssion model</span></h2><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 4px 4px 0px 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'--------------------------------------------------------------------'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="715B0BA3" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_12" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">--------------------------------------------------------------------</div></div></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'PART 3:  Comparision of AR-iRLS and OLS Regression Demo'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="0D0AEAD3" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_13" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">PART 3:  Comparision of AR-iRLS and OLS Regression Demo</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Create a new model</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=nirs.testing.ChannelStatsROC;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Add the data to the pipeline</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Create our job to test</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% First the AR-IRLS job</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >jobs = nirs.modules.default_modules.single_subject;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.pipeline=jobs;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%Then add the OLS job</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >List=nirs.modules.pipelineToList(jobs);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% But, now, lets replace the AR-IRLS with an ordinary least squares</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >List{9}=nirs.modules.OLS;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >jobs = nirs.modules.listToPipeline(List);</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.pipeline(2)=jobs;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Placing a second job in the array will run both jobs for comparision</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=ROCtest.run(num_iter);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="35B850A7" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_14" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="1035" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 1
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 2
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 3
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 4
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 5
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 6
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 7
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 8
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 9
+Import data module skipped: Data provided
+Hb created in workspace
+.......................................Finished    1 of    1.
+SubjStats created in workspace
+Import data module skipped: Data prFinished    1 of    1.
+SubjStats created in workspace
+Finished iter: 10</div></div></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.draw;</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="0489AE0D" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_15" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_5.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="AACDF671" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_16" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_6.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div></div></div></div><h2  style = 'margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left; '><span>Let's finally look at a group-level ROC example</span></h2><div style="background-color: #F5F5F5; margin: 10px 0 10px 0;"><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 4px 4px 0px 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'--------------------------------------------------------------------'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="165A75E0" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_17" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">--------------------------------------------------------------------</div></div></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 6px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >disp(</span><span style="color: rgb(167, 9, 245);">'PART 4:  Group-level ROC Demo'</span><span >);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="FB75F591" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_18" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="17" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">PART 4:  Group-level ROC Demo</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '>&nbsp;</div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%create the ROC class object</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=nirs.testing.ChannelStatsROC;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%create the data simuator (we will use all the defaults here)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.simfunc=@()nirs.testing.simDataSet;  </span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">%Create the pipeline to test (we will use our default group level pipeline)</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.pipeline=nirs.modules.default_modules.group_analysis;</span></span></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% Run the ROC test</span></span></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest=ROCtest.run(num_iter);</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="7426A8AD" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_19" style="width: 1137px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-width="1107" data-height="5170" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 1
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 2
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 3
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 4
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 5
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 6
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 7
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 8
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 9
+Import data module skipped: Data provided
+Hb created in workspace
+.Finished    1 of   30.
+.Finished    2 of   30.
+.Finished    3 of   30.
+.Finished    4 of   30.
+.Finished    5 of   30.
+.Finished    6 of   30.
+.Finished    7 of   30.
+.Finished    8 of   30.
+.Finished    9 of   30.
+.Finished   10 of   30.
+.Finished   11 of   30.
+.Finished   12 of   30.
+.Finished   13 of   30.
+.Finished   14 of   30.
+.Finished   15 of   30.
+.Finished   16 of   30.
+.Finished   17 of   30.
+.Finished   18 of   30.
+.Finished   19 of   30.
+.Finished   20 of   30.
+.Finished   21 of   30.
+.Finished   22 of   30.
+.Finished   23 of   30.
+.Finished   24 of   30.
+.Finished   25 of   30.
+.Finished   26 of   30.
+.Finished   27 of   30.
+.Finished   28 of   30.
+.Finished   29 of   30.
+.Finished   30 of   30.
+SubjStats created in workspace
+GroupStats created in workspace
+Finished iter: 10</div></div></div></div><div class="inlineWrapper"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 1px solid rgb(191, 191, 191); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% And show the results.</span></span></div></div><div class="inlineWrapper outputs"><div  style = 'border-left: 1px solid rgb(191, 191, 191); border-right: 1px solid rgb(191, 191, 191); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(191, 191, 191); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; '><span style="white-space: pre"><span >ROCtest.draw;</span></span></div><div  style = 'color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px; '><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="F476C1AF" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_20" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_7.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div><div class="inlineElement eoOutputWrapper embeddedOutputsFigure" uid="1C2C6132" data-scroll-top="null" data-scroll-left="null" prevent-scroll="true" data-testid="output_21" style="width: 1137px;"><div class="figureElement eoOutputContent"><img class="figureImage figureContainingNode" src="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo_8.png" style="width: 560px; padding-bottom: 0px;"></div><div class="outputLayer selectedOutputDecorationLayer doNotExport"></div><div class="outputLayer activeOutputDecorationLayer doNotExport"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport"></div></div></div></div></div>
+<br>
+<!-- 
+##### SOURCE BEGIN #####
+%% This demo will show how to use the two testing routines included in the nirs-toolbox
+% Unity testing describes a set of tests/scripts to test the integretity of 
+% the toolbox and its core data types. Regression testing describes how to run 
+% sensitivity/specificity analysis to compare the preformance of various code 
+% and options 
+
+% Directory to download and unpack the demo data
+
+if(ismac | isunix)
+    root_dir = ['/Users/' getenv('USER') '/Desktop/tmp'];
+else
+    root_dir = [getenv('UserProfile') '\Desktop\tmp'];
+ end
+
+
+% number of iterations to run in ROC tests (more = better; but longer run time)
+num_iter = 10;
+%% Unity testing
+
+disp('PART 1:  Unity testing Demo');
+
+% Unity tests are included in the folder +nirs/+testing/+unity
+% These tools devive from the builtin matlab.unittest.* class of objects
+% There are currently two tests included:
+%
+% nirs.testing.unittests.TestProbe-  This tests the Probe data class
+%
+% nirs.testing.unittests.TestChannelStats- This tests the channel stats
+% class
+% 
+% Any additional tests can be created and added to the same folder.
+% To run the unity tests type:
+disp(nirs.testing.unittests.runTests);
+% This should give:
+% >> nirs.testing.unittests.runTests
+% Running nirs.testing.unittests.TestChannelStats
+% ........
+% Done nirs.testing.unittests.TestChannelStats
+% __________
+% Running nirs.testing.unittests.TestProbe
+% ..
+% Done nirs.testing.unittests.TestProbe
+% __________
+% 
+%   1x10 TestResult array with properties:
+% 
+%     Name
+%     Passed
+%     Failed
+%     Incomplete
+%     Duration
+% 
+% Totals:
+%    10 Passed, 0 Failed, 0 Incomplete.
+%    2.1675 seconds testing time.
+
+% Note- if you get an error, it may be due to FieldTrip in the matlab path.
+%  Fieldtrip overwrites several builtin functions (e.g. "max") and causes
+%  issues because these FieldTrip versions don't actually work the same as
+%  the matlab ones.  The solution is to remove Fieldtrip from the path.
+%% The second type of testing is regression testing and will run sensitivity/specificity analysis on nirs.modules
+% The regression testing code is included in +nirs/+testing simData.m - code 
+% for simulating a random data file simDataSet.m - code for simulating an entire 
+% set of subjects/groups randStimDesign.m - code for adding random stimulus events 
+% to data simARNoise.m - code for generating AR-noise structure ChannelStatsROC.m 
+% - the actual functoin for running the ROC analysis randSplit.m - a helper function 
+% for spliting a dataset for boot-strapping roc.m - a helper function for running 
+% the reciever operator curve analyis
+
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+disp('PART 2:  Sensitivity-Specificity Demo');
+
+% The first step is to create the job to run
+ROCtest=nirs.testing.ChannelStatsROC;
+% This defines a class with the following properties
+%   ChannelStatsROC with properties:
+%      simfunc: @nirs.testing.simData
+%     pipeline: [1x1 nirs.modules.AR_IRLS]
+%        truth: []  - read only (will be populated when run)
+%        pvals: []  - read only (will be populated when run)
+%        types: []  - read only (will be populated when run)
+
+% This jobs is already setup to run the nirs.modules.AR_IRLS (AR-GLM) code
+% using default simulated data, but these can be modified.
+
+% The first field is the simfunc.
+% This defines the data for the simulation
+% The default is the nirs.testing.simData() function with the default
+% arguments
+%% SIMDATA Simulates NIRS data by adding a task to baseline noise.
+% Args: noise - a raw data file (defualt none) stim - dictionary containing 
+% stimulus objects using the stim name as key (default- random) beta - vector 
+% of magnitude of response for each stim conditon basis - dictionary containing 
+% basis objects using stim condition as key
+% 
+% Example: noise = nirs.testing.simARNoise(); stim = nirs.testing.randStimDesign(noise.time, 
+% 2, 7, 3); beta = [3 2 1]';
+%%
+% 
+%     sd = unique([noise.probe.link.source noise.probe.link.detector], 'rows');
+%     channels = sd(1:round(end/2),:);
+%     [data, truth] = simData( noise, stim, beta, channels )
+%
+
+% In this example, let's use some experimental baseline data as our
+% baseline noise
+%% download the dataset
+% % This command will download the demo_data.zip file from the server. This 
+% % step can be skipped if you already downloaded this. This could take a few 
+% minutes if your internet conenction is slow % The file is about 90Mb in size.
+
+if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
+    mkdir(root_dir);
+    
+    disp('downloading sample data from bitbucket site');
+    urlwrite('https://bitbucket.org/huppertt/nirs-toolbox/downloads/demo_data.zip', ...
+        [root_dir filesep 'demo_data.zip']);
+    % This command will download the demo_data.zip file from the server.  This
+    % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
+    % The file is about 90Mb in size.
+    
+    % unzip the data
+    unzip([root_dir filesep 'demo_data.zip'],[root_dir filesep]);
+    % This will unpack a folder called "data" containing two groups (G1 & G2).
+    % A script "simulation.m" is included which was used to generate the data
+    % (but is not intended to be run).  The data was simulated from a set of
+    % experimental resting state NIRS data with simulated evoked responses
+    % added to it to demostrate this analysis pipeline.
+    
+else
+    disp(['Data found in: ' root_dir ': skipping download']);
+end
+%% load data
+% this function loads a whole directory of .nirs files. The second argument 
+% tells the function to use the first level of folder names to specify group id 
+% and to use the second for subject id.
+
+raw = nirs.io.loadDirectory([root_dir filesep 'demo_data' filesep 'data'], {'group', 'subject'});
+
+ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));
+
+
+% Load the default single_subject module
+jobs = nirs.modules.default_modules.single_subject;
+
+% Jobs are nested in each other.  The code pipelinetolist will parse a job
+% to give easier access to its components
+List=nirs.modules.pipelineToList(jobs);
+% List is a cell array containing the following jobs
+%     [1x1 nirs.modules.ImportData    ]
+%     [1x1 nirs.modules.RemoveStimless]
+%     [1x1 nirs.modules.FixNaNs       ]
+%     [1x1 nirs.modules.Resample      ]
+%     [1x1 nirs.modules.OpticalDensity]
+%     [1x1 nirs.modules.BeerLambertLaw]
+%     [1x1 nirs.modules.ExportData    ]
+%     [1x1 nirs.modules.TrimBaseline  ]
+%     [1x1 nirs.modules.GLM           ]
+%     [1x1 nirs.modules.ExportData    ]
+
+% Let's change the resample module (4th entry)
+List{4}.Fs=5;
+
+% ANd then store back as a job
+jobs = nirs.modules.listToPipeline(List);
+
+% Assign the job to the ROCtest pipeline
+ROCtest.pipeline=jobs;
+
+% FInally run the ROC for # of iterations
+ROCtest=ROCtest.run(num_iter);
+
+ROCtest.draw;
+% This will plot two figures.  
+% FIgure 1- is a ROC curve
+% Figure 2- is a plot of the estimated vs. true p-value (ideally a line of
+% slope =1)
+
+% If we make the call again, it will run an additional #iterations and
+% concatinate the results.  The more iterations, the more accurate the
+% solution
+ROCtest=ROCtest.run(num_iter);
+
+ROCtest.draw;
+%% Let's try to run this again with the OLS regrssion model
+
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+disp('PART 3:  Comparision of AR-iRLS and OLS Regression Demo');
+
+% Create a new model
+ROCtest=nirs.testing.ChannelStatsROC;
+% Add the data to the pipeline
+ROCtest.simfunc=@()nirs.testing.simData(raw(randi(length(raw),1,1)));
+
+% Create our job to test
+% First the AR-IRLS job
+jobs = nirs.modules.default_modules.single_subject;
+ROCtest.pipeline=jobs;
+
+%Then add the OLS job
+List=nirs.modules.pipelineToList(jobs);
+
+% But, now, lets replace the AR-IRLS with an ordinary least squares
+List{9}=nirs.modules.OLS;
+jobs = nirs.modules.listToPipeline(List);
+ROCtest.pipeline(2)=jobs;
+% Placing a second job in the array will run both jobs for comparision
+
+ROCtest=ROCtest.run(num_iter);
+ROCtest.draw;
+%% Let's finally look at a group-level ROC example
+
+disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH');
+disp('PART 4:  Group-level ROC Demo');
+
+%create the ROC class object
+ROCtest=nirs.testing.ChannelStatsROC;
+%create the data simuator (we will use all the defaults here)
+ROCtest.simfunc=@()nirs.testing.simDataSet;  
+%Create the pipeline to test (we will use our default group level pipeline)
+ROCtest.pipeline=nirs.modules.default_modules.group_analysis;
+% Run the ROC test
+ROCtest=ROCtest.run(num_iter);
+% And show the results.
+ROCtest.draw;
+##### SOURCE END #####
+-->
+</div><script type="text/javascript">var css = '/* Styling that is common to warnings and errors is in diagnosticOutput.css */.embeddedOutputsErrorElement {    min-height: 18px;    max-height: 550px;} .embeddedOutputsErrorElement .diagnosticMessage-errorType {    overflow: auto;} .embeddedOutputsErrorElement.inlineElement {} .embeddedOutputsErrorElement.rightPaneElement {} /* Styling that is common to warnings and errors is in diagnosticOutput.css */.embeddedOutputsWarningElement {    min-height: 18px;    max-height: 550px;} .embeddedOutputsWarningElement .diagnosticMessage-warningType {    overflow: auto;} .embeddedOutputsWarningElement.inlineElement {} .embeddedOutputsWarningElement.rightPaneElement {} /* Copyright 2015-2019 The MathWorks, Inc. *//* In this file, styles are not scoped to rtcContainer since they could be in the Dojo Tooltip */.diagnosticMessage-wrapper {    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;    font-size: 12px;} .diagnosticMessage-wrapper.diagnosticMessage-warningType {    color: rgb(255,100,0);} .diagnosticMessage-wrapper.diagnosticMessage-warningType a {    color: rgb(255,100,0);    text-decoration: underline;} .diagnosticMessage-wrapper.diagnosticMessage-errorType {    color: rgb(230,0,0);} .diagnosticMessage-wrapper.diagnosticMessage-errorType a {    color: rgb(230,0,0);    text-decoration: underline;} .diagnosticMessage-wrapper .diagnosticMessage-messagePart,.diagnosticMessage-wrapper .diagnosticMessage-causePart {    white-space: pre-wrap;} .diagnosticMessage-wrapper .diagnosticMessage-stackPart {    white-space: pre;} .embeddedOutputsTextElement,.embeddedOutputsVariableStringElement {    white-space: pre;    word-wrap:  initial;    min-height: 18px;    max-height: 550px;} .embeddedOutputsTextElement .textElement,.embeddedOutputsVariableStringElement .textElement {    overflow: auto;} .textElement,.rtcDataTipElement .textElement {    padding-top: 2px;} .embeddedOutputsTextElement.inlineElement,.embeddedOutputsVariableStringElement.inlineElement {} .inlineElement .textElement {} .embeddedOutputsTextElement.rightPaneElement,.embeddedOutputsVariableStringElement.rightPaneElement {    min-height: 16px;} .rightPaneElement .textElement {    padding-top: 2px;    padding-left: 9px;}'; var head = document.head || document.getElementsByTagName('head')[0], style = document.createElement('style'); head.appendChild(style); style.type = 'text/css'; if (style.styleSheet){ style.styleSheet.cssText = css; } else { style.appendChild(document.createTextNode(css)); }</script><a href="https://fnirsanalysisclub.org/wp-content/uploads/2022/09/code_testing_demo.mlx"><button class="btn btn-sm btn_color_blue pull-right add_margin_10">Download Live Script</button></a>

@@ -12,6 +12,7 @@ classdef Dictionary
     %     isempty - checks if Dictionary is empty
     %     remove  - removes an item from the Dictionary given a key
     %     hash    - (static) returns hash of a key
+    %     toStruct - converts to a Matlab struct
     % 
     % Example:
     %     >> d = Dictionary();
@@ -119,7 +120,14 @@ classdef Dictionary
             [~,keyexists] = obj.getindex(key);
             out = keyexists;
         end
-        
+        function tmp =toStruct(obj)
+            tmp=struct;
+            if(obj.count>0)
+               for i=1:obj.count
+                    tmp=setfield(tmp,obj.keys{i},obj.values{i});
+                end
+            end
+        end
         function disp(obj)
            % tt=table(obj.values{:},'VariableNames',obj.keys);
            if(obj.count>0)

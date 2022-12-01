@@ -174,6 +174,7 @@ classdef StimulusEvents
                         out={temp};
                     case '.'
                         key = s.subs;
+                       
                         if isprop(obj,key)||ismethod(obj,key)
                             out{:} = builtin('subsref',obj,s);
                         else
@@ -207,9 +208,9 @@ classdef StimulusEvents
                 obj.name=newName;
             end
 
-            obj.onset=[obj.onset,obj2.onset];
-            obj.dur=[obj.dur,obj2.dur];
-            obj.amp=[obj.amp,obj2.amp];
+            obj.onset=[obj.onset(:);obj2.onset(:)];
+            obj.dur=[obj.dur(:);obj2.dur(:)];
+            obj.amp=[obj.amp(:);obj2.amp(:)];
 
             % Resort in time
             [obj.onset,b_idx]=sort(obj.onset);

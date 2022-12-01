@@ -37,7 +37,7 @@ NIRS_Stats.draw('tstat',[],'p<0.05')
 % without the MBLL step
 job=nirs.modules.Resample;
 job=nirs.modules.OpticalDensity(job);
-job=nirs.modules.AR_IRLS(job);
+job=nirs.modules.GLM(job);
 NIRS_Stats=job.run(nir_raw);
 NIRS_Stats.probe.defaultdrawfcn='10-20';
 

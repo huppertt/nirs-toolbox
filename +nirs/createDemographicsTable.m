@@ -22,7 +22,8 @@ keys=unique(keys);
         end
         if(isnumeric(a)); a=NaN; end;
         if(iscellstr(a)); a={''}; end;
-            
+        if(isstr(a)); a=''; end;
+        if(ischar(a)); a=''; end;
      for i=1:length(data)
             
         if(~ismember(keys(j),data(i).demographics.keys))
@@ -40,6 +41,7 @@ end
         tbl(i).(flds{f})=[];
        end
         % get demographics
+        clear demo;
         demo = data(i).demographics;
         if(iscell(demo))
            

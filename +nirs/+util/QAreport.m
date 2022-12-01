@@ -60,6 +60,7 @@ elseif(isa(data,'nirs.core.Data'))
         
         d=data.data(:,lst);
         sni=nirs.math.structnoiseindex(d);
+        if(length(lst)>1)
         t=setfield(t,['MedianVar_' tt],median(var(d,[],1)));
         t=setfield(t,['MaxVar_' tt],max(var(d,[],1)));
         t=setfield(t,['MinVar_' tt],min(var(d,[],1)));
@@ -68,6 +69,14 @@ elseif(isa(data,'nirs.core.Data'))
         t=setfield(t,['MaxSNI_' tt],max(sni));
         t=setfield(t,['MinSNI_' tt],min(sni));
         t=setfield(t,['NumBadChannels_' tt],length(find(sni<2)));
+        else
+            t=setfield(t,['Median_' tt],median(d(:)));
+            t=setfield(t,['Var_' tt],var(d(:)))
+            t=setfield(t,['Min_' tt],min(d(:)));
+            t=setfield(t,['Max_' tt],max(d(:)));
+
+            t=setfield(t,['SNI_' tt],median(sni));
+        end
     end
 end
 

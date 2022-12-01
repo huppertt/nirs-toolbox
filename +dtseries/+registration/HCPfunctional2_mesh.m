@@ -29,11 +29,19 @@ kl2=dsearchn(gl.vertices/100,lsv(kl,:));
 kr2=dsearchn(gr.vertices/100,rsv(kr,:));
 
 % Create the surfaces
-[lv,~]=read_surf(fullfile(SubjectsDIR(1).folder,'lh.pial'));
-[rv,~]=read_surf(fullfile(SubjectsDIR(1).folder,'rh.pial'));
+pr=rdir(fullfile(subjdir,'MNINonLinear','fsaverage_LR32k','*.R.pial_MSMAll.32k_fs_LR.surf.gii'));
+pl=rdir(fullfile(subjdir,'MNINonLinear','fsaverage_LR32k','*.L.pial_MSMAll.32k_fs_LR.surf.gii'));
+pr=gifti(pr(end).name);
+pl=gifti(pl(end).name);
+
+lv=pl.vertices;
+rv=pr.vertices;
+
+%[lv,~]=read_surf(fullfile(SubjectsDIR(1).folder,'lh.pial'));
+%[rv,~]=read_surf(fullfile(SubjectsDIR(1).folder,'rh.pial'));
 
 
-taskfile=rdir(fullfile(subjdir,'MNINonLinear','Results',task,[task '_hp200_s' num2str(smIdx) '_level2.feat'],['*_' task '_level2_hp200_s' num2str(smIdx) '.dscalar.nii']))
+taskfile=rdir(fullfile(subjdir,'MNINonLinear','Results',task,[task '_hp200_s' num2str(smIdx) '_level2_MSMAll.feat'],['*_MSMAll.dscalar.nii']))
 
 c=ft_read_cifti(taskfile(end).name);
 lstl=find(c.brainstructure==1);
@@ -45,3 +53,16 @@ for i=1:length(flds)
         data=setfield(data,flds{i},c.(flds{i})([lstl(kl2); lstr(kr2)]));
     end
 end
+
+c=ft_read_cifti(taskfile(end).name);
+lstl=find(c.brainstructure==1);
+lstr=find(c.brainstructure==2);
+flds=fields(c);
+data=struct;
+for i=1:length(flds)
+    if(length(c.(flds{i}))==length(c.brainstructure))
+        data=setfield(data,flds{i},c.(flds{i})([lstl(kl2); lstr(kr2)]));
+    end
+end
+
+data.mesh=nirs.core.Mesh([pl.vertices(lstl(kl2),:); pr.vertices(lstr(kr2)-max(lstl),:)],[face{end}'; face{end}'+length(vertex{end})]);

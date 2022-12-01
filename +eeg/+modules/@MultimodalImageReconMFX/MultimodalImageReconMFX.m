@@ -156,8 +156,9 @@ classdef MultimodalImageReconMFX < nirs.modules.AbstractModule
 %             % L2 = U2*S2*V'
 %             
 %             % Store back into the forward model
-             Lfwdmodels.values=US;
-            
+              for i=1:length(US)
+               Lfwdmodels(Lfwdmodels.keys{i})=US{i};
+            end
             
             %Make sure the probe and data link match
             modltypes={};

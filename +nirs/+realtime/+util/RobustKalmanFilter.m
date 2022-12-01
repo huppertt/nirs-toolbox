@@ -45,6 +45,7 @@ classdef RobustKalmanFilter < nirs.realtime.util.KalmanFilter
             % weights
             if obj.n > 40
                 w = obj.bisquare( ehat,obj.E,obj.tune );
+              
             else
                 w = 1;
             end
@@ -59,7 +60,9 @@ classdef RobustKalmanFilter < nirs.realtime.util.KalmanFilter
     
     methods( Static )
         function w = bisquare( x,sig,c )
-            w = ( (1-(x/sig/c).^2) ) .* ( abs(x/sig) < c );
+            xs=x/sig;
+            w = ( (1-(xs/c).^2) ) .* ( abs(xs) < c );
+            
         end
     end
 end

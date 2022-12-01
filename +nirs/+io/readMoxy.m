@@ -6,8 +6,11 @@ system(['java -jar ' folder filesep 'FitCSVTool.jar -b ' folder filesep 'temp.fi
 delete(fullfile(folder,'temp.fit'));
 
 fid=fopen(fullfile(folder,'fittemp.csv'),'r');
+
 line=fgetl(fid);
+while(~(contains(line,'Definition') & contains(line,'timestamp')));
 line=fgetl(fid);
+end
 ncol=length(strfind(line,','));
 str='%s';
 for i=1:ncol
