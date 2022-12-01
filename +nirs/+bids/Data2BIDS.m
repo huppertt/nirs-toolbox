@@ -6,7 +6,7 @@ if(nargin>3 && ~isempty(session))
     filename=[filename '_ses-' session];
 end
 
-if(nargin<4 || ~isempty(task))
+if(nargin<4 || isempty(task))
     task='func';
 end
 
