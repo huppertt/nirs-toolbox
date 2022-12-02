@@ -1,4 +1,4 @@
-function stats = ar_irnsls( d,X,Pmax,tune,useGPU)
+function stats = ar_irnsls( d,X,Pmax,tune,useGPU,singlePrecision)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -55,6 +55,10 @@ function stats = ar_irnsls( d,X,Pmax,tune,useGPU)
     
     if nargin < 5
         useGPU=false;
+    end
+
+    if nargin <6
+        singlePrecision=false;
     end
        
     % preallocate stats
@@ -165,9 +169,13 @@ function stats = ar_irnsls( d,X,Pmax,tune,useGPU)
         
         if(useGPU)
             
-            %  Satterthwaite estimate of model DOF
-            g_Sw=gpuArray(S.w);
-            g_wXf=gpuArray(wXf);
+            if(singlePrecision)
+                g_Sw=gpuArray(single(S.w));
+                g_wXf=gpuArray(single(wXf));
+            else % double precision
+                g_Sw=gpuArray(S.w);
+                g_wXf=gpuArray(wXf);
+            end
 
             gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
             gpuHtH = gpuH' * gpuH;  

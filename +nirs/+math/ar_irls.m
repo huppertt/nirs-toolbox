@@ -1,4 +1,4 @@
-function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
+function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU, singlePrecision)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -57,6 +57,10 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
     end
     if(nargin<6)
         useGPU=false;
+    end
+
+    if(nargin<7)
+        singlePrecision=false;
     end
        
     % preallocate stats
@@ -180,8 +184,13 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
         if(useGPU)
             
             %  Satterthwaite estimate of model DOF
-            g_Sw=gpuArray(S.w);
-            g_wXf=gpuArray(wXf);
+            if(singlePrecision)
+                g_Sw=gpuArray(single(S.w));
+                g_wXf=gpuArray(single(wXf));
+            else % double precision
+                g_Sw=gpuArray(S.w);
+                g_wXf=gpuArray(wXf);
+            end
 
             gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
             gpuHtH = gpuH' * gpuH;  
@@ -215,7 +224,7 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
         
         % moco data & statistics
         stats.beta(:,i) = B;
-               stats.P(i) = length(a)-1;
+        stats.P(i) = length(a)-1;
         
         L = pinv(Xf'*Xf); % more stable
         Xfall{i}=nan(length(y),size(wXf,2));

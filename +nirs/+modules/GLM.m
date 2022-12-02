@@ -24,6 +24,7 @@ classdef GLM < nirs.modules.AbstractGLM
         type;
         AddShortSepRegressors = false;
         useGPU=false;
+        precisionSingle=false;
         options;
     end
     methods
@@ -96,9 +97,8 @@ classdef GLM < nirs.modules.AbstractGLM
             switch(obj.type)
                 case('OLS')
                     j=nirs.modules.OLS(j);
-                case('AR-IRLS');
+                case('AR-IRLS')
                     j=nirs.modules.AR_IRLS(j);
-                    j.useGPU=obj.useGPU;
                 case('NIRS-SPM')
                     j=nirs.modules.NIRS_SPM_GLM(j);
                 case('MV-GLM')
@@ -116,6 +116,8 @@ classdef GLM < nirs.modules.AbstractGLM
             j.verbose=obj.verbose;
             j.trend_func=obj.trend_func;
             j.goforit=obj.goforit;
+            j.useGPU=obj.useGPU;
+            j.precisionSingle=obj.precisionSingle;
             
             
             if(~isempty(obj.options))
