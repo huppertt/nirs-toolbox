@@ -186,7 +186,7 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU)
             gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
             gpuHtH = gpuH' * gpuH;  
 
-            stats.dfe =gather(sum(reshape(gpuH,[],1).*reshape(gpuH,[],1))^2/sum(reshape(gpuHtH,[],1).^2));
+            stats.dfe =gather(sum(reshape(gpuH,[],1).*reshape(gpuH',[],1))^2/sum(reshape(gpuHtH,[],1).^2));
             
         else
             %  Satterthwaite estimate of model DOF
