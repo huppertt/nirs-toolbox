@@ -68,11 +68,11 @@ warning('off','MATLAB:table:RowsAddedNewVars');
 table=nirs.createDemographicsTable(data);
 if(ismember('Group',table.Properties.VariableNames)) 
     table.group=table.Group;
-    table=rmfield(table,'Group');
+    table.Group=[];
 end
 if(ismember('Subject',table.Properties.VariableNames))
     table.subject=table.Subject;
-    table=rmfield(table,'Subject');
+    table.Subject=[];
 end
 
 if(~ismember('group',table.Properties.VariableNames))
