@@ -66,12 +66,12 @@ handles=guihandles(findobj('tag','figure_nirsview'));
 warning('off','MATLAB:table:RowsAddedNewVars');
 
 table=nirs.createDemographicsTable(data);
-if(ismember('Group',table.Properties.VariableNames)); 
+if(ismember('Group',table.Properties.VariableNames)) 
     table.group=table.Group;
     table=rmfield(table,'Group');
 end
 if(ismember('Subject',table.Properties.VariableNames))
-    table.subject=table.Subjects;
+    table.subject=table.Subject;
     table=rmfield(table,'Subject');
 end
 
