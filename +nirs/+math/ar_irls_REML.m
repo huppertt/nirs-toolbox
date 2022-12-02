@@ -197,10 +197,17 @@ function stats = ar_irls_reml(d,X,Pmax,tune,useGPU,singlePrecision)
             
             
         else
-            %  Satterthwaite estimate of model DOF
+           %  Satterthwaite estimate of model DOF
+            if(singlePrecision)
+                sSw=single(S.w);
+                swXF=single(wXf);
+                H=diag(sSw)-swXF*pinv(swXF'*swXF)*swXF';
+                HtH=H'*H;
+            else % double precision
+                H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
+                HtH=H'*H;
+            end
             
-            H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
-            HtH=H'*H;
             stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);
 
         end
