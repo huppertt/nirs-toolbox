@@ -195,17 +195,20 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU, singlePrecision
             gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
             gpuHtH = gpuH' * gpuH;  
 
-            
             % This order clears up memory using inplace insertion for
             % variables
+            clear gpuH
 
             % Lower/denominator
-            gpuHtH=sum(reshape(gpuHtH,[],1).^2);
-
+            gpuHtH_sumsq=sum(reshape(gpuHtH,[],1).^2);
+            clear gpuHtH
+            
             % Upper/numerator
-            gpuH=sum(reshape(gpuH,[],1).*reshape(gpuH',[],1))^2;
+            gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
+            gpuH_upper=sum(reshape(gpuH,[],1).*reshape(gpuH',[],1))^2;
+            clear gpuH
 
-            stats.dfe =gather(gpuH/gpuHtH);
+            stats.dfe =gather(gpuH_upper/gpuHtH_sumsq);
 
             %stats.dfe =gather(sum(reshape(gpuH,[],1).*reshape(gpuH',[],1))^2/sum(reshape(gpuHtH,[],1).^2));
             

@@ -112,6 +112,7 @@ classdef GLM < nirs.modules.AbstractGLM
                 otherwise
                     error('type not recognized');
             end
+            
             j.basis=obj.basis;
             j.verbose=obj.verbose;
             j.trend_func=obj.trend_func;
