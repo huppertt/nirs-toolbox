@@ -83,7 +83,7 @@ for i=1:length(snirf.nirs)
 
             % if pos3d for field exists, check if the size matches the
             % known size, if it needs to be rotated, rotate it
-            %    if nominal position field doesn't exist, use pos3D
+            % if nominal position field doesn't exist, use pos3D
             if(isfield(snirf.nirs(i).probe,pos3DField))
                 sz=size(snirf.nirs(i).probe.(pos3DField));
                 if(isnan(n))
@@ -138,7 +138,7 @@ for i=1:length(snirf.nirs)
 
                 if(rotateFields&&isfield(snirf.nirs(i).probe,pos3DField)&&n==3)
                     % Catch corner case where 2D field is rotated, but 3D
-                        % field was assigned but not rotated originally
+                    % field was assigned but not rotated originally
                     snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
 
                     if(~posFieldPreexists)
@@ -174,7 +174,7 @@ for i=1:length(snirf.nirs)
 
             if(~isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
                 for j=1:n
-                    snirf.nirs(i).probe.(posLabelField){j,1}=[posCapital+'-' num2str(j)];
+                    snirf.nirs(i).probe.(posLabelField){j}=[posCapital+'-' num2str(j)];
                 end
             elseif(isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
                 snirf.nirs(i).probe.(posOrigLabelField)=snirf.nirs(i).probe.(posLabelField);
@@ -184,7 +184,7 @@ for i=1:length(snirf.nirs)
                     if(isempty(newNumStr))
                         error('%s label must contain a number',posType);
                     end
-                    snirf.nirs(i).probe.(posLabelField){j,1}=sprintf('%s-%s',posCapital,newNumStr); %NIRS toolbox requires Source-#, Detector-# format
+                    snirf.nirs(i).probe.(posLabelField){j}=sprintf('%s-%s',posCapital,newNumStr); %NIRS toolbox requires Source-#, Detector-# format
                 end
             end
 
