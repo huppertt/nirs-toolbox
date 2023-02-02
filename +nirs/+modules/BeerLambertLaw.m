@@ -215,9 +215,12 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
                 
                 % p.link needs to be redefined because there are only 2
                 % observations per optode-pair, not n-many (for n Lambdas)
-%                 keep_ind = sort([1:length(nWav):size(p.link,1),2:length(nWav):size(p.link,1)]);
-%                 p.link = p.link(keep_ind,:);
-                p.link = link;
+                link=p.link;
+                types=unique(link.type); 
+                link=link(ismember(link.type,types(1:size(type_chr,1))),:);
+
+                
+                 p.link = link;
                 p.link.type = reshape(type_chr,size(type_chr,1)*size(type_chr,2),1);
                 
                 if(~ismember('source',p.link.Properties.VariableNames) & ...
