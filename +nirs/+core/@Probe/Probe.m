@@ -119,8 +119,10 @@ classdef Probe
 %             srcPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
 %             
 %              %Convert to mm if needed
-%             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
-%             srcPos(lstCM,:)=srcPos(lstCM,:)*10;
+            lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+            srcPos(lstCM,:)=srcPos(lstCM,:)*10;
+            lstCM=find(ismember(tbl.Units(lst),{'m','meter'}));
+            srcPos(lstCM,:)=srcPos(lstCM,:)*1000;
         end
         
         function detPos = get.detPos(obj)
@@ -152,8 +154,10 @@ classdef Probe
 %             detPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
 %             
 %             %Convert to mm if needed
-%             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
-%             detPos(lstCM,:)=detPos(lstCM,:)*10;
+             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+             detPos(lstCM,:)=detPos(lstCM,:)*10;
+             lstCM=find(ismember(tbl.Units(lst),{'m','meter'}));
+             detPos(lstCM,:)=detPos(lstCM,:)*1000;
         end
         
         function d = get.distances( obj )

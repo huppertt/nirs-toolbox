@@ -174,7 +174,7 @@ for i=1:length(snirf.nirs)
 
             if(~isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
                 for j=1:n
-                    snirf.nirs(i).probe.(posLabelField){j,1}=[posCapital+'-' num2str(j)];
+                    snirf.nirs(i).probe.(posLabelField){j}=[posCapital+'-' num2str(j)];
                 end
             elseif(isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
                 snirf.nirs(i).probe.(posOrigLabelField)=snirf.nirs(i).probe.(posLabelField);
@@ -184,7 +184,7 @@ for i=1:length(snirf.nirs)
                     if(isempty(newNumStr))
                         error('%s label must contain a number',posType);
                     end
-                    snirf.nirs(i).probe.(posLabelField){j,1}=sprintf('%s-%s',posCapital,newNumStr); %NIRS toolbox requires Source-#, Detector-# format
+                    snirf.nirs(i).probe.(posLabelField){j}=sprintf('%s-%s',posCapital,newNumStr); %NIRS toolbox requires Source-#, Detector-# format
                 end
             end
 
@@ -215,10 +215,24 @@ for i=1:length(snirf.nirs)
             end
         end
 
-        
-        tmpdata(ii).probe.optodes_registered=table(Name,X,Y,Z,Type,Units);
-        tmpdata(ii).probe.optodes=table(Name,X,Y,Z*0,Type,Units);
-        
+        mesh=tmpdata(ii).probe.getmesh;
+        tbl=table(Name,X,Y,Z,Type,Units);
+        lst=find(ismember(tbl.Units,{'m','meter'}));
+        tbl.X(lst)=tbl.X(lst)*1000;
+        tbl.Y(lst)=tbl.Y(lst)*1000;
+        tbl.Z(lst)=tbl.Z(lst)*1000;
+          lst=find(ismember(tbl.Units,{'cm'}));
+        tbl.X(lst)=tbl.X(lst)*10;
+        tbl.Y(lst)=tbl.Y(lst)*10;
+        tbl.Z(lst)=tbl.Z(lst)*10;
+        tbl.Units=repmat({'mm'},height(tbl),1);
+        Tform=nirs.registration.cp2tform(tbl,mesh(1).fiducials);
+        tbl=nirs.registration.applytform(tbl,Tform);
+
+        tmpdata(ii).probe.optodes_registered=tbl;
+
+        tmpdata(ii).probe.optodes=table(Name,X,Y,Z,Type,Units);
+        tmpdata(ii).probe.optodes.Z(:)=0;
         
         fds=fields(snirf.nirs(i).metaDataTags);
         for f=1:length(fds)

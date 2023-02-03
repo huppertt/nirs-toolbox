@@ -90,18 +90,18 @@ classdef Probe1020 < nirs.core.Probe
             for i=1:length(lst)
                 sIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
                 srcPos(sIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
-                if(strcmp(tbl.Units(lst(i)),'cm'))
-                    srcPos(sIdx,:)=srcPos(sIdx,:)*10;
-                end
+               
                 found(sIdx)=1;
             end
             srcPos(~found,:)=NaN;
             %
             %             srcPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
             %
-            %              %Convert to mm if needed
-            %             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
-            %             srcPos(lstCM,:)=srcPos(lstCM,:)*10;
+            %Convert to mm if needed
+            lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+            srcPos(lstCM,:)=srcPos(lstCM,:)*10;
+            lstCM=find(ismember(tbl.Units(lst),{'m','meter'}));
+            srcPos(lstCM,:)=srcPos(lstCM,:)*1000;
         end
 
         function detPos = get.detPos3D(obj)
@@ -123,18 +123,18 @@ classdef Probe1020 < nirs.core.Probe
             for i=1:length(lst)
                 dIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
                 detPos(dIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
-                if(strcmp(tbl.Units(lst(i)),'cm'))
-                    detPos(dIdx,:)=detPos(dIdx,:)*10;
-                end
+                
                 found(dIdx)=1;
             end
             detPos(~found,:)=NaN;
 
             %             detPos=[tbl.X(lst) tbl.Y(lst) tbl.Z(lst)];
             %
-            %             %Convert to mm if needed
-            %             lstCM=find(ismember(tbl.Units(lst),{'cm'}));
-            %             detPos(lstCM,:)=detPos(lstCM,:)*10;
+            %Convert to mm if needed
+            lstCM=find(ismember(tbl.Units(lst),{'cm'}));
+            detPos(lstCM,:)=detPos(lstCM,:)*10;
+            lstCM=find(ismember(tbl.Units(lst),{'m','meter'}));
+            detPos(lstCM,:)=detPos(lstCM,:)*1000;
         end
 
         function obj = apply_tform_mesh(obj,tform)
@@ -184,6 +184,7 @@ classdef Probe1020 < nirs.core.Probe
             tbl=table(obj.labels,obj.pts1020(:,1),obj.pts1020(:,2),obj.pts1020(:,3),...
                 'VariableNames',{'Name','X','Y','Z'});
 
+           
             if(~noreg)
                 if(height(mesh(1).fiducials)>3)
                     T = nirs.registration.cp2tform(mesh(1).fiducials,tbl);
@@ -383,7 +384,7 @@ classdef Probe1020 < nirs.core.Probe
                     varg{ii}=varargin{ii};
                 end
                 varargin=varg;
-                
+
                 l=draw3d(obj,varargin{:});
                 if(~isempty(strfind(obj.defaultdrawfcn,'mesh')))
                     axis_handle=[];
@@ -463,12 +464,12 @@ classdef Probe1020 < nirs.core.Probe
                 '2D', '2D probe layout'};
 
             if(~isempty(str))
-               for ii=1:length(allowed)
-                   allowedABC{ii}=strip(sort(allowed{ii,1}));
-               end
-               strABC=strip(sort(str));
-              
-               idx=find(ismember(lower({allowedABC{:}}),lower(strABC)));
+                for ii=1:length(allowed)
+                    allowedABC{ii}=strip(sort(allowed{ii,1}));
+                end
+                strABC=strip(sort(str));
+
+                idx=find(ismember(lower({allowedABC{:}}),lower(strABC)));
             else
                 idx=[];
             end
@@ -612,6 +613,11 @@ classdef Probe1020 < nirs.core.Probe
             DetPos3D=obj.detPos3D;
             SrcPos3D=obj.srcPos3D;
 
+            lst=find(ismember(obj.optodes_registered.Units,{'m','meter'}));
+            Pos(lst,:)=Pos(lst,:)*1000;
+
+            lst=find(ismember(obj.optodes_registered.Units,{'cm'}));
+            Pos(lst,:)=Pos(lst,:)*10;
 
             hold(axis_handle,'on');
             lstS=find(ismember(obj.optodes_registered.Type,'Source'));
@@ -705,7 +711,7 @@ classdef Probe1020 < nirs.core.Probe
             for i=1:size(det_coord,1)
                 surf(axis_handle, x_sph+det_coord(i,1), y_sph+det_coord(i,2), z_sph+det_coord(i,3) ,[],'FaceColor',[0 0 1],'EdgeAlpha',0);
             end
-            
+
             if(addlabels)
                 Pos2=Pos+6*(Pos./(sqrt(Pos(:,1).^2+Pos(:,2).^2+Pos(:,3).^2)*ones(1,3)));
                 for i=1:length(lstS)

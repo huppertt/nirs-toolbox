@@ -1,13 +1,16 @@
 function data = addUUID(data)
 
 % List of possible ways to state the name
-subjNamesAlias={'subject','subjid','name','id'};
+subjNamesAlias={'subject','subjid','name','id','participant_id'};
 
-demographics=nirs.createDemographicsTable(data);
-
+if(isa(data,'table'))
+    demographics=data;
+else
+    demographics=nirs.createDemographicsTable(data);
+end
 if(~ismember('UUID',demographics.Properties.VariableNames))
     % if the data already has a UUID, then keep that
-    
+
     lst=find(ismember(lower(demographics.Properties.VariableNames),subjNamesAlias));
     if(~isempty(lst))
         for i=1:height(demographics)
@@ -26,7 +29,7 @@ if(~ismember('UUID',demographics.Properties.VariableNames))
     demographics(:,lst)=[];
     demographics=[table(UUID) demographics];
     [s,id]=unique(UUID);
-    
+
     for i=1:length(s)
         uuid = char(java.util.UUID.randomUUID);
         lst=find(ismember(UUID,s{i}));
@@ -34,11 +37,13 @@ if(~ismember('UUID',demographics.Properties.VariableNames))
             demographics.UUID{lst(j)}=uuid;
         end
     end
-    
-    for i=1:length(data)
-        data(i).demographics('UUID')=demographics.UUID{i};
+
+    if(isa(data,'table'))
+        data=demographics;
+    else
+        for i=1:length(data)
+            data(i).demographics('UUID')=demographics.UUID{i};
+        end
     end
-    
-end
 
 end

@@ -130,9 +130,9 @@ classdef GLM < nirs.modules.AbstractGLM
                 Stim=unique(nirs.getStimNames(data));
                 for ii=1:length(Stim)
 %<<<<<<< shortsep-roc-error
-                    Stim{ii}=['^' Stim{ii} '$'];
+%                    Stim{ii}=['^' Stim{ii} '$'];
 %=======
-%                    Stim{ii}=['\<' Stim{ii} '*'];
+                    Stim{ii}=['\<' Stim{ii} '*'];
 %>>>>>>> master
                 end
                 
