@@ -8,7 +8,7 @@ delete(fullfile(folder,'temp.fit'));
 fid=fopen(fullfile(folder,'fittemp.csv'),'r');
 
 line=fgetl(fid);
-while(~(contains(line,'Definition') & contains(line,'timestamp')));
+while(~(contains(line,'Data') & contains(line,'record') & contains(line,'timestamp')));
 line=fgetl(fid);
 end
 ncol=length(strfind(line,','));
