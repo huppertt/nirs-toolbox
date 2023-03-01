@@ -1,4 +1,4 @@
-function stats = ar_irls_reml(d,X,Pmax,tune,useGPU)
+function stats = ar_irls_reml(d,X,Pmax,tune,useGPU,singlePrecision)
 % See the following for the related publication: 
 % http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3756568/
 %
@@ -55,6 +55,10 @@ function stats = ar_irls_reml(d,X,Pmax,tune,useGPU)
 
     if nargin < 5
         useGPU=false;
+    end
+
+    if nargin < 6
+        singlePrecision=false;
     end
     
        
@@ -167,19 +171,47 @@ function stats = ar_irls_reml(d,X,Pmax,tune,useGPU)
          if(useGPU)
             
             %  Satterthwaite estimate of model DOF
-            g_Sw=gpuArray(S.w);
-            g_wXf=gpuArray(wXf);
+            if(singlePrecision)
+                g_Sw=gpuArray(single(S.w));
+                g_wXf=gpuArray(single(wXf));
+            else % double precision
+                g_Sw=gpuArray(S.w);
+                g_wXf=gpuArray(wXf);
+            end
 
             gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
             gpuHtH = gpuH' * gpuH;  
 
-            stats.dfe =gather(sum(reshape(gpuH,[],1).*reshape(gpuH,[],1))^2/sum(reshape(gpuHtH,[],1).^2));
+            % This order clears up memory using inplace insertion for
+            % variables
+            clear gpuH
+
+            % Lower/denominator
+            gpuHtH_sumsq=sum(reshape(gpuHtH,[],1).^2);
+            clear gpuHtH
+            
+            % Upper/numerator
+            gpuH=diag(g_Sw)-g_wXf*pinv(g_wXf'*g_wXf)*g_wXf';
+            gpuH_upper=sum(reshape(gpuH,[],1).*reshape(gpuH',[],1))^2;
+            clear gpuH
+
+            stats.dfe =gather(gpuH_upper/gpuHtH_sumsq);
+
+            %stats.dfe =gather(sum(reshape(gpuH,[],1).*reshape(gpuH',[],1))^2/sum(reshape(gpuHtH,[],1).^2));
+            
             
         else
-            %  Satterthwaite estimate of model DOF
+           %  Satterthwaite estimate of model DOF
+            if(singlePrecision)
+                sSw=single(S.w);
+                swXF=single(wXf);
+                H=diag(sSw)-swXF*pinv(swXF'*swXF)*swXF';
+                HtH=H'*H;
+            else % double precision
+                H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
+                HtH=H'*H;
+            end
             
-            H=diag(S.w)-wXf*pinv(wXf'*wXf)*wXf';
-            HtH=H'*H;
             stats.dfe =sum(reshape(H,[],1).*reshape(H',[],1))^2/sum(reshape(HtH,[],1).^2);
 
         end
