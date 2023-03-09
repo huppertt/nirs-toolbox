@@ -84,7 +84,7 @@ for i=1:length(snirf.nirs)
 
             % if pos3d for field exists, check if the size matches the
             % known size, if it needs to be rotated, rotate it
-            %    if nominal position field doesn't exist, use pos3D
+            % if nominal position field doesn't exist, use pos3D
             if(isfield(snirf.nirs(i).probe,pos3DField))
                 sz=size(snirf.nirs(i).probe.(pos3DField));
                 if(isnan(n))

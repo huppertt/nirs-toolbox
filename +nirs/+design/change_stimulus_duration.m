@@ -20,38 +20,18 @@ if(length(data)>1)
     end
     return
 end
-
 if(isempty(stimname))
     stimname=unique(nirs.getStimNames(data));
 end
-
 if(~iscellstr(stimname))
     stimname={stimname};
 end
-
 if(length(duration)<length(stimname))
     duration=duration(1)*ones(length(stimname),1);
 end
-
 for i=1:length(stimname)
-<<<<<<< Updated upstream
-
-    if(isfield(data.stimulus,stimname{i}))
+    if(iskey(data.stimulus,stimname{i}))
         data.stimulus.(stimname{i}).dur(:)=duration(i);
     end
-=======
-      
-    stimtable=nirs.createStimulusTable(data);
-    stimtable=stimtable(1,:);
-    stimtable.FileIdx=NaN;
-    st=stimtable.(stimname{i});
-    %st.onset=NaN;
-    st.dur(:)=duration(i);
-    stimtable.(stimname{i})=st;
-    
-    job=nirs.modules.ChangeStimulusInfo;
-    job.ChangeTable=stimtable;
-    data=job.run(data);
->>>>>>> Stashed changes
     
 end
