@@ -41,7 +41,8 @@ classdef KeepStims < nirs.modules.AbstractModule
             
             for i = 1:numel(data)
                 
-                if(isa(data(i),'nirs.core.Data') || isa(data(i),'eeg.core.Data') || isa(data(i),'dtseries.core.Data'))
+                if(isa(data(i),'nirs.core.Data') || isa(data(i),'eeg.core.Data') || isa(data(i),'dtseries.core.Data') ...
+                        || isa(data(i),'nirs.core.GenericData'))
                     conds=data(i).stimulus.keys;
                     isgoodcond=false(size(conds));
                     for j=1:length(obj.listOfStims)

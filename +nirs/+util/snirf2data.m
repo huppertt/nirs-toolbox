@@ -108,6 +108,7 @@ for i=1:length(snirf.nirs)
                 if(~isfield(snirf.nirs(i).probe,posField))
                     snirf.nirs(i).probe.(posField)= snirf.nirs(i).probe.(pos3DField);
 
+                    
                     if(~isfield(snirf.nirs(i).probe,pos2DField))
                         %This will hit if only the 3D field is provided.
                         %This will make the 2D version look terrible
@@ -117,8 +118,12 @@ for i=1:length(snirf.nirs)
                         for jj=1:length(posTypes)
                             if(isfield(snirf.nirs(i).probe,[posTypes{jj} 'Pos3D']))
                                 p=snirf.nirs(i).probe.([posTypes{jj} 'Pos3D']);
-                                if(size(p,2)~=3)
+                               
+                                if(size(p,2)~=3 & size(p,2)~=4)
                                     p=p';
+                                end
+                                if(size(p,2)==4)
+                                    p=p(:,1:3);
                                 end
                                 ptsAll=[ptsAll; p];
                             end
@@ -134,7 +139,7 @@ for i=1:length(snirf.nirs)
                     else
                         snirf.nirs(i).probe.(posField)= snirf.nirs(i).probe.(pos3DField);
                     end
-
+                    
                 end
             end
 

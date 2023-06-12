@@ -21,13 +21,32 @@ THb=nanmax(THb,[],2);
 
 
 
+lst=find(ismember(headers,'Lap'));
+Lap=nan(length(time),length(lst));
+for i=1:length(lst)
+    Lap(:,i)=data(:,lst(i));
+end
+
+data=nirs.core.Data;
+
+
+Lap=nanmax(Lap,[],2);
+events=find(diff(Lap)>0);
+if(~isempty(events))
+    stim=nirs.design.StimulusEvents;
+    stim.name='laps';
+    stim.onset=time(events);
+    stim.dur=5*ones(length(events),1);
+    stim.amp=ones(length(events),1);
+    data.stimulus('laps')=stim;
+end
+
 
 SmO2(SmO2==0)=NaN;
 SmO2(SmO2==-9999)=NaN;
 THb(THb==0)=NaN;
 THb(THb==-9999)=NaN;
 
-data=nirs.core.Data;
 data.time=time;
 data.data=[SmO2 THb];
 data.description=filename;

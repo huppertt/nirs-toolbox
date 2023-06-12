@@ -43,7 +43,8 @@ classdef RenameStims < nirs.modules.AbstractModule
                 lst = idx == i;
                 
                 if any(lst)
-                    if(isa(data(i),'nirs.core.Data') || isa(data(i),'eeg.core.Data'))
+                    if(isa(data(i),'nirs.core.Data') || isa(data(i),'eeg.core.Data') ||...
+                            isa(data(i),'nirs.core.GenericData'))
                     keys = names(lst)';
                     values = data(i).stimulus.values;
 
@@ -55,7 +56,7 @@ classdef RenameStims < nirs.modules.AbstractModule
                     end
 
                     data(i).stimulus = Dictionary(ukeys, uvals);
-                    elseif(isa(data(i),'nirs.core.ChannelStats') || isa(data(i),'eeg.core.ChannelStats'))
+                    elseif(isa(data(i),'nirs.core.ChannelStats') || isa(data(i),'eeg.core.ChannelStats') )
                         [loca,locb]=ismember(data(i).variables.cond,{obj.listOfChanges{:,1}}); 
                         for jj=1:length(loca)
                             if(loca(jj))

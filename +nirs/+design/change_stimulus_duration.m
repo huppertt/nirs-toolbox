@@ -34,24 +34,24 @@ if(length(duration)<length(stimname))
 end
 
 for i=1:length(stimname)
-<<<<<<< Updated upstream
+%<<<<<<< Updated upstream
 
-    if(isfield(data.stimulus,stimname{i}))
+    if(ismember(stimname{i},data.stimulus.keys))
         data.stimulus.(stimname{i}).dur(:)=duration(i);
     end
-=======
+%=======
       
-    stimtable=nirs.createStimulusTable(data);
-    stimtable=stimtable(1,:);
-    stimtable.FileIdx=NaN;
-    st=stimtable.(stimname{i});
-    %st.onset=NaN;
-    st.dur(:)=duration(i);
-    stimtable.(stimname{i})=st;
-    
-    job=nirs.modules.ChangeStimulusInfo;
-    job.ChangeTable=stimtable;
-    data=job.run(data);
->>>>>>> Stashed changes
+%     stimtable=nirs.createStimulusTable(data);
+%     stimtable=stimtable(1,:);
+%     stimtable.FileIdx=NaN;
+%     st=stimtable.(stimname{i});
+%     %st.onset=NaN;
+%     st.dur(:)=duration(i);
+%     stimtable.(stimname{i})=st;
+%     
+%     job=nirs.modules.ChangeStimulusInfo;
+%     job.ChangeTable=stimtable;
+%     data=job.run(data);
+% >>>>>>> Stashed changes
     
 end

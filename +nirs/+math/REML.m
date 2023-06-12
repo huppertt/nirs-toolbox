@@ -188,7 +188,7 @@ else
         end
         
         if(isdiag(Ce))
-            iCe=diag(1./diag(Ce));
+            iCe=spdiags(1./diag(Ce),0,size(Ce,1),size(Ce,2));
         else
             %      iCe=blkdiag(inv(Ce(1:end/2,1:end/2)),inv(Ce(1+end/2:end,1+end/2:end)));
             iCe = pinv(full(Ce));

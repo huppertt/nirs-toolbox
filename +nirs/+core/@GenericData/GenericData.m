@@ -16,7 +16,8 @@ classdef GenericData
         description
         data               % channel time series in columns
         link;             % object describing geometry
-        time               % vector of time points
+        time;               % vector of time points
+        stimulus;
       end
     
     properties( Dependent = true )
@@ -40,6 +41,8 @@ classdef GenericData
             if nargin > 1, obj.time         = time;         end
             if nargin > 2, obj.link        = link;        end
             if nargin > 3, obj.description  = description;  end
+            obj.stimulus=Dictionary;
+
         end
         
         
@@ -121,12 +124,56 @@ classdef GenericData
             dmax = max( real(d(:)) );
             dmin = min( real(d(:)) );
             dsize = (dmax-dmin);
+            legendNames={};
+
+            % plot stim blocks if available
+            s = []; k = obj.stimulus.keys;
+            for i = 1:length( obj.stimulus.keys )
+                try
+                    s = [s obj.stimulus.values{i}.getStimVector( t )];
+                    legendNames{end+1}=obj.stimulus.keys{i};
+                end
+            end
+            if ~isempty(s)
+                axis_handle=gca;
+                if(~isa(s,'ordinal') & ~isa(s,'categorical'))
+                    for j=1:size(s,2)
+                        s(:,j)=s(:,j)./(ones(size(s(:,j)))*max(s(:,j)));
+                    end
+
+
+                    % min/max of axes
+                    pmin = dmin - 0.2*dsize;
+                    pmax = dmin - 0.05*dsize;
+
+                    % adjust amplitude so stims are visible
+                    s = (pmax-pmin)*s + pmin ;
+                    % plot
+                    plot(axis_handle, t, s, 'LineWidth', 3 );
+
+                    % legend
+                    l = legend(axis_handle,k{:});
+                    set(l,'Interpreter', 'none');
+                    dmax = max( dmax,max(s(:)));
+                    dmin = min( dmin,min(s(:)));
+                    dsize = (dmax-dmin);
+                else
+                    m=get(axis_handle,'Position');
+                    aa=axes('parent',get(axis_handle,'parent'),'Position',[m(1) m(2) m(3) m(4)/8]);
+                    plot(aa, t, s, 'LineWidth', 3 );
+                    set(aa,'YTickLabel',categories(s));
+                    set(axis_handle,'Position',[m(1) m(2)+m(4)/8 m(3) m(4)*7/8]);
+                    set(axis_handle,'Xtick',[]);
+                end
+           end
             
-          
-                % min/max of axes
-             	pmin = dmin - 0.1*dsize;
-                pmax = dmax + 0.1*dsize;
-            
+           for i=1:length(lstChannels)
+               legendNames{end+1}=obj.link.type{lstChannels(i)};
+           end
+            % min/max of axes
+            pmin = dmin - 0.1*dsize;
+            pmax = dmax + 0.1*dsize;
+
             % plot data
             if(~isreal(d) & adderr)
                 h=errorbar( t, real(d),imag(d) );
@@ -140,7 +187,7 @@ classdef GenericData
                     ylabel(obj.link.units{1});
                 end
                 if(ismember('type',obj.link.Properties.VariableNames))
-                    legend(obj.link.type);
+                    legend(legendNames);
                 end
             end
             

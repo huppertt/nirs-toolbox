@@ -7,7 +7,7 @@ if(~ischar(strold))
 end
 
 if(nargin<2)
-    extened=true;
+    extended=true;
 end
 
 if(extended)

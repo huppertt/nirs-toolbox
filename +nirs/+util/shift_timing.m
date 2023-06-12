@@ -10,15 +10,17 @@ for i=1:data.stimulus.count
     else
         st.time=st.time+shift;
     end
-     data.stimulus(key)=st;
+    data.stimulus(key)=st;
 end
 
-for i=1:data.auxillary.count
-    key=data.auxillary.keys{i};
-    aux=data.auxillary(key);
-    if(isa(aux,'nirs.core.GenericData'))
-        aux.time=aux.time+shift;
-        data.auxillary(key)=aux;
+if(isa(data,'nirs.core.Data'))
+    for i=1:data.auxillary.count
+        key=data.auxillary.keys{i};
+        aux=data.auxillary(key);
+        if(isa(aux,'nirs.core.GenericData'))
+            aux.time=aux.time+shift;
+            data.auxillary(key)=aux;
+        end
     end
 end
 

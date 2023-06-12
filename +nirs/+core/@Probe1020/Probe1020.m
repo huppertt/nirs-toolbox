@@ -338,6 +338,8 @@ classdef Probe1020 < nirs.core.Probe
 
             if(~isempty(strfind(obj.defaultdrawfcn,'10-20 map')));
                 l=draw1020interp(obj,varargin{:});
+            elseif(~isempty(strfind(obj.defaultdrawfcn,'10-20 ball')));
+                l=draw1020_dots(obj,varargin{:});
             elseif( ~isempty(strfind(lower(obj.defaultdrawfcn),'ball')) & ~isempty(strfind(lower(obj.defaultdrawfcn),'3d')))
                 if(strfind(obj.defaultdrawfcn,'('))
                     v=obj.defaultdrawfcn(strfind(obj.defaultdrawfcn,'(')+1:end);
@@ -435,6 +437,8 @@ classdef Probe1020 < nirs.core.Probe
                 '10-20 map zoom', '10-20 mercator with underlain image';...
                 '10-20 label','10-20 mercator projection map';...
                 '10-20 map zoom label', '10-20 mercator with underlain image';...
+                '10-20 ball','10-20 with underlying circles for heat maps';...
+                '10-20 ball zoom','10-20 with underlying circles for heat maps with restricted view';...
                 '3D', '3D line drawing ';...
                 '3D mesh', '3D line drawing overlain on mesh';...
                 '3D mesh (frontal)', '3D line drawing overlain on mesh';...
@@ -570,6 +574,61 @@ classdef Probe1020 < nirs.core.Probe
                 obj.mesh=mesh;
             end
 
+        end
+
+        function varargout = draw1020_dots(obj,colors, lineStyles, axis_handle)
+            if isnumeric(obj.link.type)
+                link = obj.link(obj.link.type==obj.link.type(1),1:2);
+            else
+                link = obj.link(strcmp(obj.link.type,obj.link.type(1)),1:2);
+            end
+            n = height(link);
+            if nargin < 2 || isempty(colors)
+                colors = repmat([0.3 0.5 1], [n 1]);
+            elseif size(colors,1) == 1
+                colors = repmat(colors, [n 1]);
+            end
+
+            if nargin < 3 || isempty(lineStyles)
+                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 6}, [n 1]);
+            elseif size(lineStyles, 1) == 1
+                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 6}, [n 1]);
+            end
+
+            if nargin < 4
+                axis_handle = axes();
+            end
+
+            h=draw1020(obj,[],[],axis_handle);
+            for i=1:length(h)
+                mpt(i,:)=[mean(get(h(i),'XData')) mean(get(h(i),'YData'))];
+            end
+            hold on;
+            [~,lst]=sort(sum(colors.^2,2),'descend');
+
+            for ii=1:length(h)
+                for i=1000:-100:1;
+                    scatter(mpt(lst(ii),1),mpt(lst(ii),2),'filled','SizeData',i,...
+                        'MarkerFaceAlpha',.1,'MarkerEdgeAlpha',0,...
+                        'CData',colors(lst(ii),:));
+                end
+            end
+
+
+       %     s=bubblechart(mpt(lst,1),mpt(lst,2),.03,colors(lst,:));
+            h=draw1020(obj,[],[],axis_handle);
+            set(h,'Color',[.3 .3 .3]);
+
+            if(obj.zoom)
+                dx=(max(x)-min(x))/20;
+                dy=(max(y)-min(y))/20;
+                set(gca,'Xlim',[min(x)-dx max(x)+dx]);
+                set(gca,'Ylim',[min(y)-dy max(y)+dy]);
+            end
+    
+            if(nargout>0)
+                varargout{1}=h;
+            end
         end
 
         function varargout=draw3d(obj,colors, lineStyles, axis_handle,addlabels)
@@ -787,7 +846,16 @@ classdef Probe1020 < nirs.core.Probe
             Pos(:,2)=obj.optodes_registered.Y(lst);
             Pos(:,3)=obj.optodes_registered.Z(lst);
 
+
+            [x,y]=obj.convert2d(obj.pts1020);
+            dx=-x(find(ismember(obj.labels,'Cz')));
+            dy=-y(find(ismember(obj.labels,'Cz')));
+
             [x,y]=obj.convert2d(Pos);
+            x=x+dx;
+            y=y+dy;
+         
+
             xylink = [];
             xycolors = [];
             for i=1:height(link)
@@ -801,9 +869,12 @@ classdef Probe1020 < nirs.core.Probe
                 for j = 1:length(source)
                     s=source(j);
                     d=detector(j);
+                  
                     xylink(end+1,1)=mean(x([lstS(s) lstD(d)]));
                     xylink(end,2)=mean(y([lstS(s) lstD(d)]));
                     xycolors(end+1,:) = colors(i,:);
+                    
+            
                 end
             end
 

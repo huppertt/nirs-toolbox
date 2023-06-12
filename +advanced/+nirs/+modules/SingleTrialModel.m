@@ -22,7 +22,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
 %     specified explicitly in the stimulus design with BoxCar basis functions
     properties
         PCA_reduction = 0;
-        randomeffectsmodel=true;
+        randomeffectsmodel=false;
     end
     methods
         function obj = SingleTrialModel( prevJob )
@@ -63,6 +63,12 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 
                 % split the conditions to create the random effects model
                 keys=data(i).stimulus.keys;
+                if(obj.randomeffectsmodel)
+                        stimulus=data(i).stimulus;
+                    else
+                        stimulus=Dictionary;
+                end
+
                 ttests={}; cnt=1;
                 for k=1:length(keys)
                     name=keys{k};
@@ -81,11 +87,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                     stim=data(i).stimulus(name);
                     disp(['Split ' name ' into ' num2str(length(stim.onset)) ' trials']);
                     
-                    if(obj.randomeffectsmodel)
-                        stimulus=data(i).stimulus;
-                    else
-                        stimulus=Dictionary;
-                    end
+                    
                     for l=1:length(stim.onset)
                         stim=data(i).stimulus(name);
                         stim.dur([1:l-1 l+1:end])=[];
@@ -104,9 +106,9 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                             cnt=cnt+1;
                         end
                     end
-                    data(i).stimulus=stimulus;
+                    
                 end
-                
+                data(i).stimulus=stimulus;
                 
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
