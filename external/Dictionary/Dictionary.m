@@ -83,6 +83,8 @@ classdef Dictionary
             obj = obj.rehash();
         end
         
+                  
+        
         function count = get.count( obj )
             %% count - returns the number of items in dictionary
             count = length(obj.keys);

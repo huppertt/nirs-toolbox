@@ -21,6 +21,8 @@ switch class(stats)
         Coefs = stats.PredictorNames;
         
         for i = 1:length(Coefs)
+            if(~ismember(Coefs{i},stats.Variables.Properties.VariableNames))
+
             clear cond xvar;
             predictors = strsplit(Coefs{i},':');
             for j = 1:length(predictors)
@@ -32,6 +34,9 @@ switch class(stats)
             end
             if ~exist('xvar','var')
                 continue;
+            end
+            else
+                xvar=Coefs{i};
             end
             if ~exist('cond','var')
                 if isfield(stats.Variables,'cond')

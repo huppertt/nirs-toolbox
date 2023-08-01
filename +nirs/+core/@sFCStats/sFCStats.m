@@ -19,6 +19,7 @@ classdef sFCStats
     
     properties
         type            % connectivity model from +nirs/+sFC/
+        variables       % table describing regression coefficients
         description     % description of data (e.g. filename)      
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info

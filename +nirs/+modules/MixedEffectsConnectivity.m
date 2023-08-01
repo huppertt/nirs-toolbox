@@ -17,6 +17,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
         dummyCoding = 'full';
         centerVars = true;
         robust = false;
+        include_diagnostics=false;
     end
     
     methods
@@ -100,6 +101,22 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             % Fit the model
             [Coef,~,StdErr] = nirs.math.fitlme(X,D,Z,obj.robust,false,false);
             
+            if(obj.include_diagnostics)
+                if(obj.robust)
+                    robustflag='on';
+                else
+                    robustflag='off';
+                end
+                varnames=lm.CoefficientNames'; %VariableNames(find(lm.VariableInfo.InModel))';
+                varnames{end+1}='corr';
+                for idx=1:size(D,2)
+                    models{idx} = fitlm(X,D(:,idx),'linear','RobustOpts',robustflag,'Intercept',false,'VarNames',varnames);
+                end
+                assignin('base','ME_Conn_models',models);
+                disp('Diagnostics variable created in workspace named: ME_Conn_models')
+            end
+             
+
             % Get results into correct layout
             Coef = permute(reshape(Coef,[size(Coef,1) sqrt(n) sqrt(n)]),[2 3 1]);
             StdErr = permute(reshape(StdErr,[size(StdErr,1) size(StdErr,2) sqrt(n) sqrt(n)]),[3 4 1 2]);
@@ -131,6 +148,8 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             G.R=tanh(Coef);
             G.ZstdErr = StdErr;
             G.dfe=lm.DFE;
+
+            G.variables.model=models;
             
         end
     end
