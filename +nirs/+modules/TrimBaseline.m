@@ -41,6 +41,11 @@ classdef TrimBaseline < nirs.modules.AbstractModule
                 % get stim vectors from stims
                 o=[];
                 du=[];
+                if(isempty(stims))
+                    warning('TrimBaseline called on file with no events');
+                    return;
+                end
+
                 for j = 1:length(stims)
                     if(isa(stims{j},'nirs.design.StimulusEvents'))
                         o=[o; stims{j}.onset(:)];

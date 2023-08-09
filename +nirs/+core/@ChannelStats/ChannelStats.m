@@ -407,6 +407,21 @@ classdef ChannelStats
         end
         
         function out = table( obj )
+
+            if(length(obj)>1)
+                out=[];
+                for i=1:length(obj)
+                    s=obj(i).table;
+                    d=nirs.createDemographicsTable(obj(i));
+                    d.scanIdx={['scan-' num2str(i)]};
+                    d=repmat(d,height(s),1);
+                    s=[d s];
+                    out=[out; s];
+                end
+                return;
+            end
+
+
             %% table - returns a table of the regression stats
             beta = obj.beta;
             tstat = obj.tstat;

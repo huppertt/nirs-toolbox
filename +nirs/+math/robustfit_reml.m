@@ -223,15 +223,15 @@ for i=1:ncomp
     formula=[formula '+X' num2str(i)];
 end
 for i=1:ncomp
-    formula=[formula '+(1|X2' num2str(i) ')'];
+    formula=[formula '+(1|Z' num2str(i) ')'];
 end
 
 % This is the dumbest thing, but matlab will throw an error if the
 % length(#)< length(unique(#)) where it rounds to only 5 digits for floats.    
-X2=X;
-tbl2=array2table(X2);
+Z=X;
+tbl2=array2table(Z);
 for i=1:ncomp
-    tbl2.(['X2' num2str(i)])=strtrim(cellstr(num2str(tbl2.(['X2' num2str(i)]))));
+    tbl2.(['Z' num2str(i)])=strtrim(cellstr(num2str(tbl2.(['Z' num2str(i)]))));
 end
 
 
