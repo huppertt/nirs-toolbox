@@ -10,7 +10,7 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
     properties
         StO2_baseline=.70;
         HbT_baseline=50; % baseline uM HbT
-        PPF=.1;  % PPF term used in the MBLL (because I need to remove this for the SO2 calculation)
+    %    PPF=.1;  % PPF term used in the MBLL (because I need to remove this for the SO2 calculation)
     end
     
     methods
@@ -41,7 +41,7 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                         HbO2=data(i).data(:,iHbO);
                         HbR=data(i).data(:,iHbR);
                         HbT(:,j)=HbO2+HbR;
-                        TOI(:,j)=(obj.HbT_baseline.*obj.StO2_baseline+HbO2*obj.PPF)./max(obj.HbT_baseline+HbO2*obj.PPF+HbR*obj.PPF,1);
+                        TOI(:,j)=(obj.HbT_baseline.*obj.StO2_baseline+HbO2)./max(obj.HbT_baseline+HbO2+HbR,1);
                         
                     end
                     linkTOI=link;
@@ -62,21 +62,21 @@ classdef CalculateTotalHb < nirs.modules.AbstractModule
                         %HbT is easy
                         c=zeros(1,height(data(i).variables));
                         c([iHbO iHbR])=1;
-                        betaHbT(j,1)=c*data(i).beta*obj.PPF;
-                        CovHbT(j,j)=c*data(i).covb*c'*obj.PPF^2;
+                        betaHbT(j,1)=c*data(i).beta; %*obj.PPF;
+                        CovHbT(j,j)=c*data(i).covb*c'; %*obj.PPF^2;
                         
                         % SO2 is much harder
                         %SO2=(obj.HbT_baseline.*obj.StO2_baseline+HbO2*obj.PPF)./max(obj.HbT_baseline+HbO2*obj.PPF+HbR*obj.PPF,1)-obj.StO2_baseline;
-                        betaSO2(j,1)=(obj.HbT_baseline.*obj.StO2_baseline+data(i).beta(iHbO)*obj.PPF)./...
-                            max(obj.HbT_baseline+data(i).beta(iHbO)*obj.PPF+data(i).beta(iHbR)*obj.PPF,1)-obj.StO2_baseline;
+                        betaSO2(j,1)=(obj.HbT_baseline.*obj.StO2_baseline+data(i).beta(iHbO))./...
+                            max(obj.HbT_baseline+data(i).beta(iHbO)+data(i).beta(iHbR),1)-obj.StO2_baseline;
                         
                         % (HbO0+dHbO)/(HbO0+dHbO+HbR0+dHbR) =>
                         % [(HbO0+dHbO+HbR0+dHbR)*SE(HbO2) -
                         % (HbO0+dHbO)*SE(HbT)]/ (HbO0+dHbO+HbR0+dHbR)^2
-                        SEHbO=sqrt(data(i).covb(iHbO,iHbO))*obj.PPF;
+                        SEHbO=sqrt(data(i).covb(iHbO,iHbO));
                         SEHbT=sqrt(CovHbT(j,j));
-                        HbO=(obj.HbT_baseline.*obj.StO2_baseline+data(i).beta(iHbO)*obj.PPF);
-                        HbT=max(obj.HbT_baseline+data(i).beta(iHbO)*obj.PPF+data(i).beta(iHbR)*obj.PPF,1);
+                        HbO=(obj.HbT_baseline.*obj.StO2_baseline+data(i).beta(iHbO));
+                        HbT=max(obj.HbT_baseline+data(i).beta(iHbO)+data(i).beta(iHbR),1);
                         
                         CovSO2(j,j)= ((HbT*SEHbO+HbO*SEHbT)./HbT.^2).^2;
                         
