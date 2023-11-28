@@ -5,6 +5,7 @@ classdef KalmanFilter < handle
     end
     
     properties%( SetAccess = protected ) 
+        resid; % current value of residual
         B;      % parameters
         E  = 0; % measurement noise
         Em = 0;
@@ -46,7 +47,7 @@ classdef KalmanFilter < handle
         	% update measurement noise
             ehat = y - X*obj.B;
             obj.updateE( ehat );
-            
+            obj.resid=ehat;
             if obj.n > 0; %10
                 % prediction step
                 obj.prediction_step(F,u);

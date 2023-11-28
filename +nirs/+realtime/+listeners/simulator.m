@@ -35,7 +35,7 @@ classdef simulator < handle
             else
                 obj.datasource=feval(data);
             end
-            obj.Fs=obj.datasource.Fs;
+            obj.Fs=floor(obj.datasource.Fs);
 
             onsets=cell(0,2);
             offsets=cell(0,2);
@@ -73,12 +73,13 @@ try
     idx=varargin{1}.TasksExecuted;
     if(~isempty(obj.data_output))
         obj.data_output.adddata(obj.datasource.data(idx,:),obj.datasource.time(idx));
-        lstOn=find((vertcat(obj.stimevents.onsets{:,1})>obj.datasource.time(idx)-1/obj.Fs) & (vertcat(obj.stimevents.onsets{:,1})<obj.datasource.time(idx)+1/obj.Fs));
-        lstOff=find((vertcat(obj.stimevents.offsets{:,1})>obj.datasource.time(idx)-1/obj.Fs) & (vertcat(obj.stimevents.offsets{:,1})<obj.datasource.time(idx)+1/obj.Fs));
-
+        lstOn=find((vertcat(obj.stimevents.onsets{:,1})>=obj.datasource.time(idx)-1/obj.Fs) & (vertcat(obj.stimevents.onsets{:,1})<obj.datasource.time(idx)+1/obj.Fs));
+        lstOff=find((vertcat(obj.stimevents.offsets{:,1})>=obj.datasource.time(idx)-1/obj.Fs) & (vertcat(obj.stimevents.offsets{:,1})<obj.datasource.time(idx)+1/obj.Fs));
+        
         if(~isempty(lstOn) & ~isempty(lstOff))
             obj.data_output.addevent(obj.stimevents.onsets{lstOn,2},obj.datasource.time(idx),1/obj.Fs,1);
         elseif(~isempty(lstOn))
+            disp(lstOn);
             obj.data_output.addeventStart(obj.stimevents.onsets{lstOn,2},obj.datasource.time(idx),1);
         elseif(~isempty(lstOff))
             obj.data_output.addeventEnd(obj.stimevents.offsets{lstOff,2},obj.datasource.time(idx),1);

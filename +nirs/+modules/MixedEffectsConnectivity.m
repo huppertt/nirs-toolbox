@@ -149,7 +149,8 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             G.ZstdErr = StdErr;
             G.dfe=lm.DFE;
 
-            G.variables.model=models;
+            
+            %G.variables.model=models;
             
         end
     end

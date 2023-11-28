@@ -221,7 +221,12 @@ classdef BeerLambertLaw < nirs.modules.AbstractModule
 
                 
                  p.link = link;
-                p.link.type = reshape(type_chr,size(type_chr,1)*size(type_chr,2),1);
+
+                 l=reshape(type_chr,size(type_chr,1)*size(type_chr,2),1);
+                 for idi=1:length(l); ii(idi)=isempty(l{idi}); end;
+                l={l{find(~ii)}}';
+
+                p.link.type = l;
                 
                 if(~ismember('source',p.link.Properties.VariableNames) & ...
                         ismember('ROI',p.link.Properties.VariableNames))

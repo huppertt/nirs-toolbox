@@ -14,7 +14,6 @@ if(nargin<2)
     bandpass=[0.5 2.5];
 end
 
-
 [B1,A1]=butter(1,bandpass*2/fs);
 
 sci=zeros(height(link),1);
