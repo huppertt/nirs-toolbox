@@ -208,7 +208,7 @@ for i=1:length(snirf.nirs)
 
             if(~isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
                 for j=1:n
-                    snirf.nirs(i).probe.(posLabelField){j}=[posCapital+'-' num2str(j)];
+                    snirf.nirs(i).probe.(posLabelField){j}=[posCapital '-' num2str(j)];
                 end
             elseif(isfield(snirf.nirs(i).probe,posLabelField)&&~strcmp(posType,'landmark'))
                 snirf.nirs(i).probe.(posOrigLabelField)=snirf.nirs(i).probe.(posLabelField);

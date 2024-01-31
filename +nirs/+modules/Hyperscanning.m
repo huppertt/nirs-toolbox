@@ -109,6 +109,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))]';
                     for id=1:size(dataA,2)
                         dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
+                    end
+                     for id=1:size(dataB,2)
                         dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
                     end
                     dataA=dataA(1:length(time),:);
@@ -117,7 +119,11 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= data(idxA).description;
-                connStats(i).probe = nirs.util.createhyperscanprobe(data(idxA).probe);
+                if(isa(data(idxA).probe,'nirs.core.Probe1020'))
+                    connStats(i).probe = nirs.core.ProbeHyperscan1020([data(idxA).probe,data(idxB).probe]);
+                else
+                    connStats(i).probe = nirs.core.ProbeHyperscan([data(idxA).probe,data(idxB).probe]);
+                end
                 connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
                 connStats(i).R=[];
                 if obj.estimate_null

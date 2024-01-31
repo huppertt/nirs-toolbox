@@ -221,6 +221,8 @@ X = weights * X;
 Y = weights * Y;
 Z = weights * Z;
 
+Lambda = makeLFromTheta(theta,nZ,'isotropic');
+
 Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
 Iq = spdiags(ones(nZ,1),0,nZ,nZ);
 
@@ -331,3 +333,28 @@ sa_resid = sort(abs(resid));
 sigma = nanmedian(sa_resid(num_params:end)) / 0.6745;
 resid_s = resid ./ sigma;
 end
+
+
+
+function Lambda = makeLFromTheta(theta,nZ,type)
+
+Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
+% 
+% switch(type)
+%     case 'isotropic'
+%         Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
+% end
+ 
+ % 
+ % % (2) Get slme.Psi, set current theta and set sigma = 1.
+ %            Psi = slme.Psi;
+ %            Psi = setUnconstrainedParameters(Psi,theta);
+ %            Psi = setSigma(Psi,1);
+ % 
+ %            % (3) Get lower triangular Cholesky factor of D matrix in Psi.
+ %            % Lambda has size q by q where q = size(Z,2).
+ %            Lambda = getLowerTriangularCholeskyFactor(Psi);
+
+            
+end
+

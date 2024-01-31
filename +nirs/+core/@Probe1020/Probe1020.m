@@ -680,9 +680,11 @@ classdef Probe1020 < nirs.core.Probe
 
             hold(axis_handle,'on');
             lstS=find(ismember(obj.optodes_registered.Type,'Source'));
-            scatter3(axis_handle,Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r')
+            ss=scatter3(axis_handle,Pos(lstS,1),Pos(lstS,2),Pos(lstS,3),'filled','MarkerFaceColor','r');
             lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
-            scatter3(axis_handle,Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b')
+            sd=scatter3(axis_handle,Pos(lstD,1),Pos(lstD,2),Pos(lstD,3),'filled','MarkerFaceColor','b');
+            set(sd,'Tag','DetectorOptodes');
+            set(ss,'Tag','SourceOptodes');
 
 
             if(addlabels)
@@ -765,10 +767,13 @@ classdef Probe1020 < nirs.core.Probe
             src_coord = Pos(lstS,:);
             det_coord = Pos(lstD,:);
             for i=1:size(src_coord,1)
-                surf(axis_handle, x_sph+src_coord(i,1), y_sph+src_coord(i,2), z_sph+src_coord(i,3) ,[],'FaceColor',[1 0 0],'EdgeAlpha',0);
+                ss=surf(axis_handle, x_sph+src_coord(i,1), y_sph+src_coord(i,2), z_sph+src_coord(i,3) ,[],'FaceColor',[1 0 0],'EdgeAlpha',0);
+                set(ss,'Tag','SourceOptodes');
             end
             for i=1:size(det_coord,1)
-                surf(axis_handle, x_sph+det_coord(i,1), y_sph+det_coord(i,2), z_sph+det_coord(i,3) ,[],'FaceColor',[0 0 1],'EdgeAlpha',0);
+                sd=surf(axis_handle, x_sph+det_coord(i,1), y_sph+det_coord(i,2), z_sph+det_coord(i,3) ,[],'FaceColor',[0 0 1],'EdgeAlpha',0);
+                 set(sd,'Tag','DetectorOptodes');
+            
             end
 
             if(addlabels)
@@ -985,9 +990,11 @@ classdef Probe1020 < nirs.core.Probe
 
                 xop=x; yop=y;
                 lstS=find(ismember(obj.optodes_registered.Type,'Source'));
-                scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r','parent',axis_handle)
+                ss=scatter(x(lstS)+dx,y(lstS)+dy,'filled','MarkerFaceColor','r','parent',axis_handle);
                 lstD=find(ismember(obj.optodes_registered.Type,'Detector'));
-                scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b','parent',axis_handle)
+                sd=scatter(x(lstD)+dx,y(lstD)+dy,'filled','MarkerFaceColor','b','parent',axis_handle);
+                set(sd,'Tag','DetectorOptodes');
+                set(ss,'Tag','SourceOptodes');
 
                 if(addlabels)
                     for i=1:length(lstS)

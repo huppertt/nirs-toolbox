@@ -49,9 +49,10 @@ classdef Canonical
                 
                 out = [filter(h, 1, s) filter(ha, 1, s) filter(hb, 1, s)];
                 
-                % orthogonalize
-                out(:,2) = out(:,2) - out(:,1) * (out(:,1)\out(:,2)); % Regress canonical from temporal
-                out(:,3) = out(:,3) - out(:,1:2) * (out(:,1:2)\out(:,3)); % Regress canonical+temporal from dispersion
+                % orthogonalize                     % Note- changed to pinv
+                %                                       to avoid num stability issues
+                out(:,2) = out(:,2) - out(:,1) * pinv(out(:,1))*out(:,2); % Regress canonical from temporal
+                out(:,3) = out(:,3) - out(:,1:2) * pinv(out(:,1:2))*out(:,3); % Regress canonical+temporal from dispersion
        
             end
             

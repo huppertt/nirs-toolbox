@@ -21,11 +21,12 @@ idx4=find(ismember(lower(tbl1020.Name),'nas'));
 idx5=find(ismember(lower(tbl1020.Name),'iz'));
 
 for i=1:headsize.count
-    val=headsize(keys{i});
+    val=double(headsize(keys{i}));
     str=lower(keys{i});
     str(strfind(str,' '))=[];
         
-    if(~isempty(strfind(str,'circ')))
+    if(~isempty(strfind(str,'circ')) || ...
+            ~isempty(strfind(str,'circumference')))
             %a=obj.LR_distance/2;
             %b=obj.AP_distance/2;
            
