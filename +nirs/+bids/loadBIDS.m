@@ -25,6 +25,8 @@ json_files=rdir(fullfile(folder,'**','*.json'));
 json_files=json_files(id);
 
 
+
+
 for i=1:length(json_files);
     
     if(verbose)
@@ -61,6 +63,13 @@ for i=1:length(json_files);
         if(~strcmp(NewName,OldName))
             tbl.(NewName)=tbl.(OldName);
             tbl.(OldName)=[];
+        end
+        lst=find(~ismember(tbl.(NewName),currect_demo.(NewName)));
+        % If the name doesn't match the participants_id info
+        for idx=1:length(lst)
+            file=strrep(snirf_files(lst(idx)).name,[folder filesep],'');
+            subjid=file(1:min(strfind(file,filesep))-1);
+            data(lst(idx)).demographics(NewName)=subjid;
         end
 
 

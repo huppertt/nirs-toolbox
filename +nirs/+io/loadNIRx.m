@@ -99,7 +99,11 @@ if(~isempty(file))
     raw.probe=probe;
     
 else
-    [s,d]=find(info.S_D_Mask);
+    if(isfield(info,'S_D_Mask'))
+        [s,d]=find(info.S_D_Mask);
+    else
+        [s,d]=find(info.Channel_Mask);
+    end
     [s,a]=sort(s); d=d(a);
     
     link=table(s,d,...
@@ -108,7 +112,7 @@ else
         probe.link=link;
     end
     
-    if(info.Wavelengths==2)
+    if(~isfield(info,'Wavelengths') || info.Wavelengths==2)
         % not sure why
         info.Wavelengths=[780 850];
     end
@@ -129,7 +133,12 @@ else
     raw.probe=probe;
     
     kk=find(ismember(probe.link.type,probe.link.type(1)));
-    lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
+    if(~isfield(info,'SDkey'))
+        lst=[1:length(kk)];
+    else
+        lst=find(ismember(info.SDkey(:,2:3),[probe.link.source(kk) probe.link.detector(kk)],'rows'));
+    end
+    
     for idx=1:length(info.Wavelengths)
         file = dir(fullfile(folder,['*.wl' num2str(idx)]));
         
@@ -140,8 +149,11 @@ else
         d = dlmread(fullfile(folder,file(1).name));
         raw.data=[raw.data d(:,lst)];
     end
-    
-    raw.time=[0:size(raw.data,1)-1]/info.SamplingRate;
+    if(isfield(info,'SamplingRate'))
+        raw.time=[0:size(raw.data,1)-1]/info.SamplingRate;
+    else
+         raw.time=[0:size(raw.data,1)-1]/info.Sampling_rate;
+    end
 end
 
 raw.probe.fixeddistances=raw.probe.swap_reg.distances;

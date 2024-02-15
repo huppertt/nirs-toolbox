@@ -6,7 +6,8 @@ classdef Connectivity < nirs.modules.AbstractModule
         corrfcn;  % function to use to compute correlation (see +nirs/+sFC for options)
         divide_events;  % if true will parse into multiple conditions
         min_event_duration;  % minimum duration of events
-        ignore;
+        ignore;  % time at transitions (on/off) to ignore (only valid if dividing events)
+        AddShortSepRegressors = false;
     end
     methods
         function obj = Connectivity( prevJob )
@@ -18,11 +19,18 @@ classdef Connectivity < nirs.modules.AbstractModule
            if nargin > 0
                obj.prevJob = prevJob;
            end
-           obj.citation='Santosa, H., Aarabi, A., Perlman, S. B., & Huppert, T. J. (2017). Characterization and correction of the false-discovery rates in resting state connectivity using functional near-infrared spectroscopy. Journal of Biomedical Optics, 22(5), 055002-055002.';
-           
+           obj.citation{1}='Santosa, H., Aarabi, A., Perlman, S. B., & Huppert, T. J. (2017). Characterization and correction of the false-discovery rates in resting state connectivity using functional near-infrared spectroscopy. Journal of Biomedical Optics, 22(5), 055002-055002.';
+           obj.citation{2}='Lanka, Pradyumna, Heather Bortfeld, and Theodore J. Huppert. "Correction of global physiology in resting-state functional near-infrared spectroscopy." Neurophotonics 9.3 (2022): 035003-035003.';
         end
         
         function connStats = runThis( obj, data )
+            if(obj.AddShortSepRegressors)
+                disp('removing short-seperation noise');
+                job=advanced.nirs.modules.ShortDistanceFilter;
+                data=job.run(data);
+            end
+
+
             for i = 1:numel(data)
                 
                

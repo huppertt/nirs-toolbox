@@ -46,7 +46,7 @@ if(strcmp(class(probe),'nirs.core.Probe1020'))
     fprintf(fid,'\t},\n');
     fprintf(fid,'\t"AnatomicalLandmarkCoordinateSystem": "%s",\n','T1w');
     fprintf(fid,'\t"AnatomicalLandmarkCoordinateUnits": "%s",\n','mm');
-    fprintf(fid,'\t"IntendedFor": "%s",\n',['anat/T1w.nii.gz']);
+    fprintf(fid,'\t"IntendedFor": "%s"\n',['anat/T1w.nii.gz']);
     fprintf(fid,'}');
     fclose(fid);
 elseif(strcmp(class(probe),'eeg.core.Probe'))

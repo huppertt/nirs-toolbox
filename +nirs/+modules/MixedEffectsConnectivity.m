@@ -31,7 +31,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
         function G = runThis( obj, S )
             
             % demographics info
-            demo = nirs.createDemographicsTable2( S );
+            demo = nirs.createDemographicsTable( S );
             
             if(isempty(demo))
                 for idx=1:length(S)
@@ -149,7 +149,8 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             G.ZstdErr = StdErr;
             G.dfe=lm.DFE;
 
-            G.variables.model=models;
+            
+            %G.variables.model=models;
             
         end
     end

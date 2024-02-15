@@ -117,8 +117,8 @@ classdef GLM < nirs.modules.AbstractGLM
             j.verbose=obj.verbose;
             j.trend_func=obj.trend_func;
             j.goforit=obj.goforit;
-            j.useGPU=obj.useGPU;
-            j.precisionSingle=obj.precisionSingle;
+            try; j.useGPU=obj.useGPU; end;
+            try; j.precisionSingle=obj.precisionSingle; end;
             
             
             if(~isempty(obj.options))

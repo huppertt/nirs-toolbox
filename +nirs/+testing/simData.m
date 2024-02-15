@@ -44,7 +44,14 @@ if nargin < 3 || isempty(beta)
     beta = 7*ones( length(stim.keys), 1 );
 elseif(isstr(beta))
     snr = str2num(beta(strfind(beta,'SNR:')+4:end));
-    beta=snr*sqrt(var(noise.data(:)));
+    if(ismember('ShortSeperation',noise.probe.link.Properties.VariableNames))
+        lst=find(~noise.probe.link.ShortSeperation);
+    else
+        lst=1:height(noise.probe.link);
+    end
+    
+    inn=nirs.math.innovations(noise.data(:,lst),8);
+    beta=snr*sqrt(var(reshape(inn,[],1)));
 end
 
 if length(beta) == length(stim.keys)
@@ -74,7 +81,11 @@ if nargin < 4 || isempty(channels)
     end
     sd=unique(sd,'rows');
     sd=sd(randperm(size(sd,1)),:);
-    channels = sd(1:round(end/2),:);
+    if(rand(1)>=0.5)
+        channels = sd(1:round(end/2),:);
+    else
+        channels = sd(round(end/2)+1:end,:);
+    end
 else
     if(ismember('ShortSeperation',noise.probe.link.Properties.VariableNames))
         lstSS=find(noise.probe.link.ShortSeperation);

@@ -3,9 +3,12 @@ classdef KalmanGLM < nirs.realtime.modules.AbstractModule
        Pmax=8;
        Q=0;
        returntype='tstat'; % or beta
+       number_conditions=1;
    end
    properties(Hidden=true)
-        kfarirls;  
+        kfarirls; 
+        Fs=1;
+        lastT=[];
    end
     
     methods
@@ -21,19 +24,32 @@ classdef KalmanGLM < nirs.realtime.modules.AbstractModule
         end
         
         function [d,t,probe,stimulus] = updateThis(obj,d,t,probe,stimulus)
-            
+            try
             nchan=height(probe.link);
             if(isempty(obj.kfarirls))
+                obj.lastT=t;
                 for i=1:nchan
                     modelkf=nirs.realtime.util.RobustKalmanFilter(obj.Q);
                     arkf=nirs.realtime.util.KalmanAR(obj.Pmax);
                     obj.kfarirls{i,1}=nirs.realtime.util.KalmanARWLS(modelkf,arkf);
                 end
-                
+            else
+                obj.Fs=1./(t-obj.lastT);
+                obj.lastT=t;
             end
+
+
             if(isa(stimulus,'Dictionary'))
                 if(isempty(stimulus))
-                    X=1;
+                    X=zeros(1,number_conditions+1);
+                    X(end)=1;
+                else
+                    X=nirs.design.createDesignMatrix(stimulus,[t-1/obj.Fs t]);
+                    if(size(X,2)<obj.number_conditions+1)
+                        X(:,end+1:obj.number_conditions+1)=0;
+                    end
+                    X(:,end)=1;
+                    X=X(end,:);
                 end
             else
                 X=stimulus;
@@ -46,7 +62,8 @@ classdef KalmanGLM < nirs.realtime.modules.AbstractModule
                     d(i)=obj.kfarirls{i}.B();
                 end
             end
-            
+            end
+
             
         end
         

@@ -44,10 +44,8 @@ if(nargin<5 || isempty(flip))
     flip=[1 1];
 end
 
-if(ismember('hyperscan',obj.probe.link.Properties.VariableNames))
-	obj.R(1:end/2,1:end/2,:) = nan;
-    obj.R(end/2+1:end,end/2+1:end,:) = nan;
-end
+
+
 
 for cIdx=1:length(obj.conditions)
     tbl=obj.table;
@@ -83,6 +81,21 @@ for cIdx=1:length(obj.conditions)
 
     pval=tbl.pvalue;
     qval=tbl.qvalue;
+    
+
+    if(isa(obj.probe,'nirs.core.ProbeHyperscan'))
+
+        % mask within subject
+        mask=ones(height(obj.probe.link));
+        for i=1:length(obj.probe.SubjectLabels)
+            lstt=find(ismember(obj.probe.link.SubjectLabel,obj.probe.SubjectLabels{i}));
+            mask(lstt,lstt)=0;
+        end
+        values(find(mask==0))=NaN;
+        pval(find(mask==0))=NaN;
+        qval=nirs.math.BenjaminiHochberg(pval);
+    end
+
     
     % significance mask
     if nargin < 4 || isempty(thresh)
@@ -162,187 +175,9 @@ for cIdx=1:length(obj.conditions)
     
     f(cIdx)=figure;
     
-    if(ismember('hyperscan',obj.probe.link.Properties.VariableNames))
-
-        % Draw a hyperscan brain
+   
         
-        
-        for ii=1:length(utypesOrigin)
-            for jj=1:length(utypesDest)
-                if(strcmp(utypesOrigin(ii),utypesDest(jj)))
-                    h1=subplot(2,length(utypesOrigin),ii,'Parent',f(cIdx));
-                    s1=p.draw([],[],h1);
-                    cb=colorbar(h1,'EastOutside');
-                    set(cb,'visible','off');
-                    h2=subplot(2,length(utypesOrigin),length(utypesOrigin)+ii,'Parent',f(cIdx));
-                    s2=p.draw([],[],h2);
-                    cb=colorbar(h2,'EastOutside');
-                    set(cb,'visible','off');
-                    
-                    set(s1,'color',[.5 .5 .5]);
-                    set(s2,'color',[.5 .5 .5]);
-                    
-                    set(h2,'Units','normalized');
-                    set(h1,'Units','normalized');
-                    
-                    if(flip(1)==1);
-                        set(h1,'Ydir','reverse');
-                        set(h1,'Xdir','reverse');
-                    else
-                        set(h1,'Ydir','normal');
-                        set(h1,'Xdir','normal');
-                    end
-                    if(flip(2)==1);
-                        set(h2,'Ydir','reverse');
-                        set(h2,'Xdir','reverse');
-                    else
-                        set(h2,'Ydir','normal');
-                        set(h2,'Xdir','normal');
-                    end
-                    
-                    p.link=p.link(ismember(p.link.type,p.link.type{1}),:);
-                                       
-                    lst=find(strcmp(typesOrigin,utypesOrigin(ii)) & ...
-                        strcmp(typesDest,utypesDest(jj)));
-                                        
-                    vals = values(lst);
-                    
-                    % this mask
-                    m = mask(lst);
-                    d = tbl(lst,:);
-                    
-                    ax=axes('parent',f(cIdx),'Units','normalized','Position',[h1.Position(1) h2.Position(2) h1.Position(3) h1.Position(2)+h1.Position(4)-h2.Position(2)],...
-                        'visible','off','Xlim',[-100 100],'Ylim',[-100 100]);
-                    hold(ax,'on');
-                    axis(ax,'off');
-                    
-                    if any(m)
-                    
-                        link = p.link;
-                        link.X(:,1) = nan;
-                        link.Y(:,1) = nan;
-                        
-                        hh=getframe(ax);
-                        hh=getframe(ax); % For some reason the image is sometimes distorted the first time, but never the 2nd
-                        hh=hh.cdata;
-                        for i=1:length(s1)
-                            xdata = get(s1(i),'XData');
-                            ydata = get(s1(i),'YData');
-                            
-                            s=scatter(h1,xdata(2),ydata(2),'filled','r','Sizedata',40);
-                            hh2=getframe(ax);
-                            [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            opt1PosX=median(b)/size(hh2.cdata,2)*210-105;
-                            opt1PosY=median(a)/size(hh2.cdata,1)*200-100;
-                            delete(s);
-
-                            s=scatter(h1,xdata(1),ydata(1),'filled','r','Sizedata',40);
-                            hh2=getframe(ax);
-                            [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            opt2PosX=median(b)/size(hh2.cdata,2)*210-105;
-                            opt2PosY=median(a)/size(hh2.cdata,1)*200-100;
-                            delete(s);
-
-                            link.X(i) = (opt1PosX + opt2PosX) / 2;
-                            link.Y(i) = (opt1PosY + opt2PosY) / 2;
-                        end
-                        for i=1:length(s2)
-                            xdata = get(s2(i),'XData');
-                            ydata = get(s2(i),'YData');
-                            
-                            s=scatter(h2,xdata(2),ydata(2),'filled','r','Sizedata',40);
-                            hh2=getframe(ax);
-                            [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            opt1PosX=median(b)/size(hh2.cdata,2)*210-105;
-                            opt1PosY=median(a)/size(hh2.cdata,1)*200-100;
-                            delete(s);
-
-                            s=scatter(h2,xdata(1),ydata(1),'filled','r','Sizedata',40);
-                            hh2=getframe(ax);
-                            [a,b]=find(abs(sum(hh-hh2.cdata,3))>0);
-                            opt2PosX=median(b)/size(hh2.cdata,2)*210-105;
-                            opt2PosY=median(a)/size(hh2.cdata,1)*200-100;
-                            delete(s);
-                            
-                            link.X(length(s1)+i) = (opt1PosX + opt2PosX) / 2;
-                            link.Y(length(s1)+i) = (opt1PosY + opt2PosY) / 2;
-                        end
-
-                        % map to colors
-                        idx = bsxfun(@minus, vals', z);
-                        [~, idx] = min(abs(idx), [], 1);
-                        colors = cmap(idx, :);
-                        h2=[];
-
-                        % Draw lines with largest magnitude on top
-                        [~,sorted_ind] = sort(abs(vals));
-                        vals = vals(sorted_ind);
-                        m = m(sorted_ind);
-                        colors = colors(sorted_ind,:);
-                        d = d(sorted_ind,:);
-                    end
-                                       
-                    for idx=1:length(vals)
-                        if(m(idx))
-                            
-                            if iscell(d.SourceOrigin)
-                                source_origin = d.SourceOrigin{idx};
-                                source_dest = d.SourceDest{idx};
-                                detector_origin = d.DetectorOrigin{idx};
-                                detector_dest = d.DetectorDest{idx};
-                            else
-                                source_origin = d.SourceOrigin(idx);
-                                source_dest = d.SourceDest(idx);
-                                detector_origin = d.DetectorOrigin(idx);
-                                detector_dest = d.DetectorDest(idx);
-                            end
-                                
-                            for xidx = 1:length(source_origin)
-                                for yidx = 1:length(source_dest)
-                                    origin_ind = find(link.source == source_origin(xidx) & link.detector == detector_origin(xidx));
-                                    dest_ind = find(link.source == source_dest(yidx) & link.detector == detector_dest(yidx));
-
-                                    X_origin = link.X( origin_ind );
-                                    Y_origin = link.Y( origin_ind );
-                                    X_dest = link.X( dest_ind );
-                                    Y_dest = link.Y( dest_ind );
-
-                                    h2(end+1)=plot(ax,[X_origin X_dest],[Y_origin Y_dest],'Color',colors(idx,:));
-                                end
-                            end
-                        end
-                    end
-
-                    set(ax,'YDir','reverse');
-                    set(h2,'Linewidth',4)
-                    axis(ax,'off');
-                    
-                    pos=get(ax,'Position');
-                    cb=colorbar(ax,'EastOutside');
-                    set(ax,'Position',pos);
-                    if ~any(m)
-                        colormap(ax,[0 0 0]);
-                        set(cb,'ytick',[0 1],'yticklabel',{'','n.s.'})
-                        ylabel(cb,' ');
-                    else
-                        colormap(ax,cmap);
-                        ylabel(cb,clabel);
-                    end
-                    caxis(ax,[vrange(1), vrange(2)]);
-                    
-                    if strcmp( utypesOrigin{ii} , utypesDest{ii} )
-                        title( utypesOrigin(ii) );
-                    else
-                        title( [utypesOrigin{ii} ' - ' utypesDest{ii} ] );
-                    end
-                    
-                end
-            end
-        end
-        
-        
-        
-    else
+    
         cnt=1;
         for ii=1:length(utypesOrigin)
             for jj=1:length(utypesDest)
@@ -368,22 +203,26 @@ for cIdx=1:length(obj.conditions)
                         
                         h=obj.probe.draw([],[],sp);
                         set(h,'Color', [.7 .7 .7]);
-                        
-                        srcPos=obj.probe.srcPos;
-                        detPos=obj.probe.detPos;
-                        
-                        link=obj.probe.link;
-                        link=link(ismember(link.type,link.type(1)),:);
-                        for id=1:length(h)
-                            XYZ=[get(h(id),'XData')' get(h(id),'YData')' get(h(id),'ZData')'];
-                            if(isempty(get(h(id),'ZData')))
-                                XYZ(:,3)=0;
+                        axes(sp);
+                        if(isa(obj.probe,'nirs.core.ProbeHyperscan1020') |...
+                                isa(obj.probe,'nirs.core.ProbeHyperscan'))
+                            srcPos=obj.probe.srcPos_drawing;
+                            detPos=obj.probe.detPos_drawing;
+
+                        else
+
+                            link=obj.probe.link;
+                            link=link(ismember(link.type,link.type(1)),:);
+                            for id=1:length(h)
+                                XYZ=[get(h(id),'XData')' get(h(id),'YData')' get(h(id),'ZData')'];
+                                if(isempty(get(h(id),'ZData')))
+                                    XYZ(:,3)=0;
+                                end
+                                srcPos(link.source(id),:)=XYZ(1,:);
+                                detPos(link.detector(id),:)=XYZ(2,:);
+
                             end
-                            srcPos(link.source(id),:)=XYZ(1,:);
-                            detPos(link.detector(id),:)=XYZ(2,:);
-                           
                         end
-                        
                         
                         posOrig=(srcPos(tbl.SourceOrigin(lst),:)+...
                             detPos(tbl.DetectorOrigin(lst),:))/2;
@@ -396,48 +235,20 @@ for cIdx=1:length(obj.conditions)
                         Z=[posOrig(:,3) posDest(:,3)];
                         
                        
-                        
-                        
-% %                        Draw the probe
-%                         link=obj.probe.link;
-%                         s=obj.probe.srcPos;
-%                         d=obj.probe.detPos;
-%                         for iChan = 1:size(link,1)
-%                             iSrc = link.source(iChan);
-%                             iDet = link.detector(iChan);
-%                             
-%                             x = [s(iSrc,1) d(iDet,1)]';
-%                             y = [s(iSrc,2) d(iDet,2)]';
-%                             
-%                             h3 = line(x, y, 'Color', [.7 .7 .7]);
-%                         end
-%                         
                         h2=[];
                         for idx=1:length(vals)
                             if(m(idx))
-                                h2(end+1)=line(X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:));
+                                h2(end+1)=line(sp,X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:));
+                                set(h2(end),'Tag','fNIRS_ConnLine');
                             end
                         end
-%                         
-%                         for i = 1:size(s,1)
-%                             x = s(i,1);
-%                             y = s(i,2);
-%                             text(x, y,['S' num2str(i)], 'FontSize', 14);
-%                         end
-%                         
-%                         for i = 1:size(d,1)
-%                             x = d(i,1);
-%                             y = d(i,2);
-%                             text(x, y,['D' num2str(i)], 'FontSize', 14);
-%                         end
-%                         axis off;
-%                         axis tight;
-                        title([utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
+
+                       % title(sp,[utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
                         
                     else
                         
                         figure(f(cIdx));
-                        subplot(length(utypesOrigin),1,cnt);
+                        sp=subplot(length(utypesOrigin),1,cnt);
                         
                         LabelsOrig=strcat(repmat('src-',length(lst),1),num2str(tbl.SourceOrigin(lst)),...
                             repmat(':det-',length(lst),1), num2str(tbl.DetectorOrigin(lst)));
@@ -446,26 +257,25 @@ for cIdx=1:length(obj.conditions)
                             repmat(':det-',length(lst),1), num2str(tbl.DetectorDest(lst)));
                         [LabelsDet,i]=unique(LabelsDet,'rows');
                         [LabelsOrig,j]=unique(LabelsOrig,'rows');
-                        
-                        
+                                                
                         vals=reshape(vals(:).*m,length(i),length(j));
-                        imagesc(vals,[vrange]);
+                        imagesc(sp,vals,[vrange]);
                         colorbar;
-                        set(gca,'XTick',[1:length(i)]);
-                        set(gca,'YTick',[1:length(j)]);
+                        set(sp,'XTick',[1:length(i)]);
+                        set(sp,'YTick',[1:length(j)]);
                         
-                        set(gca,'YTickLabel',{LabelsDet})
-                        set(gca,'XTickLabel',{LabelsOrig})
-                        set(gca,'XtickLabelRotation',90);
-                        title([utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
+                        set(sp,'YTickLabel',{LabelsDet})
+                        set(sp,'XTickLabel',{LabelsOrig})
+                        set(sp,'XtickLabelRotation',90);
+                        title(sp,[utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
                     end
                     cnt=cnt+1;
                 end
             end
             
         end
-    end
+    
     set(f(cIdx),'Name',obj.conditions{cIdx},'NumberTitle','off')
-    supertitle(f(cIdx),obj.conditions{cIdx});
+    %supertitle(f(cIdx),obj.conditions{cIdx});
 end
 

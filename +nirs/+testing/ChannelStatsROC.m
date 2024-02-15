@@ -145,6 +145,7 @@ classdef ChannelStatsROC
                    truth = truth_save;
                    if(iscell(obj.pipeline))
                        stats = obj.pipeline{i}.run(data);
+                       
                    else
                     stats = obj.pipeline(i).run(data);
                    end
@@ -179,7 +180,7 @@ classdef ChannelStatsROC
                    
                    t = []; p = []; betas=[];
                    for j = 1:length(types)
-                       if(iscellstr(types(i)))
+                       if(iscellstr(types(j)))
                        lst = strcmp(types(j), stats.variables.type);
                        else
                            lst = find(types(j)==stats.variables.type);

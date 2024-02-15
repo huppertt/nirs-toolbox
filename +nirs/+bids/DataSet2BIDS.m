@@ -78,6 +78,11 @@ else
         Session{i,1}=[];
     end
 end
+% 
+ demo.UUID=[];
+% demo.SubjID=[];
+ demo.MeasurementTime=[];
+ demo.MeasurementDate=[];
 
 
 [demo2,~,lst]=unique(demo);
@@ -93,7 +98,7 @@ for i=1:length(demo2.Properties.VariableNames)
     if(isempty(demo2.Properties.VariableUnits))
        demo2.Properties.VariableUnits=repmat({' '},length(demo2.Properties.VariableNames),1);
     end
-    fprintf(fid,'\t{"%s": {\n\t\t"Description": "%s",\n\t\t"Units": "%s"}\n\t}',...
+    fprintf(fid,'\t"%s": {\n\t\t"Description": "%s",\n\t\t"Units": "%s"}\n\t',...
         demo2.Properties.VariableNames{i},...
         demo2.Properties.VariableDescriptions{i},...
         demo2.Properties.VariableUnits{i});
