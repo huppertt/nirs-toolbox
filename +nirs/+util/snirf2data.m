@@ -99,6 +99,9 @@ for i=1:length(snirf.nirs)
                 if(any(sz==n)&&sz(1)==3&&n~=3)
                     snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
                     rotateFields=true;
+                elseif(any(sz==n)&&sz(1)==4&&n~=4) % rotate landmarks
+                    snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
+                    rotateFields=true;
                 elseif(any(sz==n)&&n~=3)
                     rotateFields=false;
                 elseif(~any(sz==n))
@@ -128,11 +131,21 @@ for i=1:length(snirf.nirs)
                                 ptsAll=[ptsAll; p];
                             end
                         end
+
                         pts=snirf.nirs(i).probe.(pos3DField);
+
+                        if(size(pts,2)~=3 & size(pts,2)~=4)
+                            pts=pts';
+                        end
+                        if(size(pts,2)==4)
+                            pts=pts(:,1:3);
+                        end
+
                         r = -2.4;
                         R=mean(sqrt(sum(pts.^2,2)));
                         x=-r*R.*(pts(:,1)./abs(pts(:,3)-r*R));
                         y=r*R.*(pts(:,2)./abs(pts(:,3)-r*R));
+
                         snirf.nirs(i).probe.(pos2DField)(:,1)=x;
                         snirf.nirs(i).probe.(pos2DField)(:,2)=y;
                         snirf.nirs(i).probe.(pos2DField)(:,3)=0;
@@ -170,7 +183,7 @@ for i=1:length(snirf.nirs)
                     snirf.nirs(i).probe.(posField)= snirf.nirs(i).probe.(pos2DField);
                 end
 
-                if(rotateFields&&isfield(snirf.nirs(i).probe,pos3DField)&&n==3)
+                if(rotateFields&&isfield(snirf.nirs(i).probe,pos3DField)&&(n==3))
                     % Catch corner case where 2D field is rotated, but 3D
                     % field was assigned but not rotated originally
                     snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
@@ -255,6 +268,7 @@ for i=1:length(snirf.nirs)
                 if(isfield(snirf.nirs(i).probe,[posField '3D']))
                     if(strcmp(posType,'landmark'))
                         lmName=snirf.nirs(i).probe.(posLabelField){j};
+
                         if(contains(lmName,'FID'))
                             Type3D{end+1,1}=char(snirf.nirs(i).probe.(posLabelField){j}(strfind(snirf.nirs(i).probe.(posLabelField){j},'FID'):end));
                             Name3D{end+1,1}=char(snirf.nirs(i).probe.(posLabelField){j}(1:strfind(snirf.nirs(i).probe.(posLabelField){j},'FID')-1));
