@@ -19,7 +19,7 @@ function printAll( obj, fmax, thresh, folder, ext )
     
     h=obj.draw(fmax, thresh);
     
-    for i = fliplr(1:length(obj.conditions))
+    for i = fliplr(1:n)
         for j = fliplr(1:length(utypes))
             
             f=intersect(h,findobj('name',[utypes{j} ' : ' obj.conditions{i}]));
