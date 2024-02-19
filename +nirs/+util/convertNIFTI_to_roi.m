@@ -1,4 +1,4 @@
-function roi = convertNIFTI_to_roi(probe,BrainMap)
+function [roi,BrainMap] = convertNIFTI_to_roi(probe,BrainMap)
 
 if(isstr(BrainMap))
     name=BrainMap;
@@ -25,6 +25,12 @@ roi=probe.link;
 roi.type=[];
 roi.weight=weights;
 roi.Name=repmat({name},height(roi),1);
+
+figure;
+probe.draw3d;
+hold on;
+mesh.draw(BrainMap);
+
 
 return
 

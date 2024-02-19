@@ -137,7 +137,7 @@ classdef GLM < nirs.modules.AbstractGLM
 %=======
                     Stim{ii}=['\<' Stim{ii} '*'];
 %>>>>>>> master
-                end
+                end  
                 
                 j=nirs.modules.KeepStims(j);
                 j.regex=true;
