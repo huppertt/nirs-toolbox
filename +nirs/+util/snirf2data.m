@@ -349,17 +349,23 @@ for i=1:length(snirf.nirs)
 
         tmpdata(ii).probe.link=table(source,detector,type);
 
+        linkIndex=1;
         for j=1:length(snirf.nirs(i).data(ii).measurementList)
-            source(j,1)=snirf.nirs(i).data(ii).measurementList(j).sourceIndex;
-            detector(j,1)=snirf.nirs(i).data(ii).measurementList(j).detectorIndex;
 
             if(isfield(snirf.nirs(i).probe,'wavelengths') && ...
                     isfield(snirf.nirs(i).data(ii).measurementList(j),'wavelengthIndex') && ...
                     ~isnan(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex))
-                type{j,1}=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex);
+                type(linkIndex,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex);
             else
-                type{j,1}=snirf.nirs(i).data(ii).measurementList(j).dataTypeLabel;
+                % skip invalid links in link table
+                continue;
             end
+
+
+            source(linkIndex,1)=snirf.nirs(i).data(ii).measurementList(j).sourceIndex;
+            detector(linkIndex,1)=snirf.nirs(i).data(ii).measurementList(j).detectorIndex;
+
+            linkIndex=linkIndex+1;
         end
         tmpdata(ii).probe.link=table(source,detector,type);
 
