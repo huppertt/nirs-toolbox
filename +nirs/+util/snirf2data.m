@@ -330,6 +330,18 @@ for i=1:length(snirf.nirs)
                 Tform=nirs.registration.cp2tform(tbl,mesh(1).fiducials);
                 tbl=nirs.registration.applytform(tbl,Tform);
                 tmpdata(ii).probe.optodes_registered=tbl;
+            else
+                % store converted positions
+                srcTable=tbl(strcmp(tbl.Type,'Source'),:);
+                detTable=tbl(strcmp(tbl.Type,'Detector'),:);
+
+                srcArr = [srcTable.X,srcTable.Y,srcTable.Z];
+                detArr = [detTable.X,detTable.Y,detTable.Z];
+
+
+                tmpdata(ii).probe.optodes=tbl;
+                %tmpdata(ii).probe.srcPos =srcArr;
+                %tmpdata(ii).probe.detPos= detArr;
             end
         end
 
