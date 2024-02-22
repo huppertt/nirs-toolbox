@@ -27,11 +27,11 @@ for i=1:length(snirf.nirs)
         end
 
 
-        if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
-            tmpdata(ii).probe=nirs.core.Probe1020;
-        else
+        %if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+         %   tmpdata(ii).probe=nirs.core.Probe1020;
+        %else
             tmpdata(ii).probe=nirs.core.Probe;
-        end
+        %end
 
         if(~isfield(snirf.nirs(i).data(ii).measurementList(1),'dataTypeLabel'))
             for j=1:length(snirf.nirs(ii).data.measurementList)
@@ -324,10 +324,13 @@ for i=1:length(snirf.nirs)
 
 
 
-            mesh=tmpdata(ii).probe.getmesh;
-            Tform=nirs.registration.cp2tform(tbl,mesh(1).fiducials);
-            tbl=nirs.registration.applytform(tbl,Tform);
-            tmpdata(ii).probe.optodes_registered=tbl;
+            if(isa(tmpdata(ii).probe,'nirs.core.Probe1020'))
+                % this only sets all the registered points to 0
+                mesh=tmpdata(ii).probe.getmesh;
+                Tform=nirs.registration.cp2tform(tbl,mesh(1).fiducials);
+                tbl=nirs.registration.applytform(tbl,Tform);
+                tmpdata(ii).probe.optodes_registered=tbl;
+            end
         end
 
         fds=fields(snirf.nirs(i).metaDataTags);
@@ -371,7 +374,7 @@ for i=1:length(snirf.nirs)
 
     	% add registered optodes distances to probe fixeddistances - added by Peggy Skelly
         % Needed to move to after link was assigned.
-    	if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+    	if(isa(tmpdata(ii).probe,'nirs.core.Probe1020'))
     		tmpdata(ii).probe.fixeddistances=tmpdata(ii).probe.swap_reg.distances;
     	end
 
