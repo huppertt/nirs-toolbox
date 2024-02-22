@@ -112,7 +112,7 @@ else
         probe.link=link;
     end
     
-    if(~isfield(info,'Wavelengths') || info.Wavelengths==2)
+    if(~isfield(info,'Wavelengths') || (isscalar(info.Wavelengths) && info.Wavelengths==2))
         % not sure why
         info.Wavelengths=[780 850];
     end
