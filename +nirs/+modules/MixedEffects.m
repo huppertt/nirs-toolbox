@@ -144,7 +144,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
             
             nRE=max(1,length(strfind(obj.formula,'|')));
             warning('off','stats:LinearMixedModel:IgnoreCovariancePattern');
-            
+
+            conds=unique(tmp.cond);
+            for i=1:length(conds);
+                tmp.(conds{i})=1*ismember(tmp.cond,conds{i});
+            end;
+
             obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
@@ -315,6 +320,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     end
                     [CoefNull(:,iter),~,~,~,~] = nirs.math.fitlme(W*Xnull,...
                         beta(randperm(length(beta))),Z,obj.robust,false,obj.verbose);
+                    
+                    % [CN(:,iter),~,~,~,~] = nirs.math.fitlme(W*Xnull,...
+                    %     beta,Z,obj.robust,false,obj.verbose);
+
                 end;
             end
             

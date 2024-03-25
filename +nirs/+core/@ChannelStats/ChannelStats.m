@@ -53,6 +53,7 @@ classdef ChannelStats
         categoricalvariableInfo;
         WhiteningW;
         tag;
+        UserData;
     end
     
     

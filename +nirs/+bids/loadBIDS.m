@@ -1,11 +1,16 @@
 function data = loadBIDS(folder,verbose)
 
 if(nargin<2)
-    verbose=false;
+    verbose=true;
 end
 
+if(verbose)
+    disp('Searhing directory for SNIRF files');
+end
 snirf_files = rdir(fullfile(folder,'**','*.snirf'));
-
+if(verbose)
+    disp([num2str(length(snirf_files)) ' files found']);
+end
 for i=1:length(snirf_files)
     if(verbose)
         disp(['Loading ' snirf_files(i).name]);
@@ -83,6 +88,14 @@ for i=1:length(json_files);
     elseif(contains(json_files(i).name,'event'))
          for id=1:length(snirf_files)
             if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_event'))))
+
+                if(~iscellstr(tbl.name))
+                    if(isnumeric(tbl.name))
+                        tbl.name=cellstr(num2str(tbl.name));
+                    else
+                        tbl.name=cellstr(tbl.name);
+                    end
+                end
                 names=unique(tbl.name);
                 for nI=1:length(names)
                     stim=nirs.design.StimulusEvents;

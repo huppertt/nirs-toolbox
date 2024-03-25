@@ -20,6 +20,7 @@ classdef ProbeHyperscan
 
     properties
         SubjectLabels;
+        show_labels=false;;
     end
 
     properties( Dependent = true )
@@ -82,6 +83,24 @@ classdef ProbeHyperscan
                 end
 
             end
+
+        end
+
+        function obj=resize_images(obj,resize)
+            % Because we are often dealing with parent-child, it is useful
+            % to be able to resize the drawing without effecting the data
+
+            % example:  probeHS=probeHS.resize_images([1 .8]);  makes the
+            % 2nd subject 80% the size of the first
+
+            if(length(resize)<length(obj.RotateMatrix))
+                resize=repmat(resize,length(obj.RotateMatrix),1);
+            end
+
+            for i=1:length(obj.RotateMatrix)
+                obj.RotateMatrix{i}(1:3,1:3)=obj.RotateMatrix{i}(1:3,1:3)*resize(i);
+            end
+
 
         end
 
@@ -254,7 +273,7 @@ classdef ProbeHyperscan
             elseif(nargout>0)
                 varargout{1}=pp.draw(varargin{:});
             end
-
+            
         end
 
 

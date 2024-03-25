@@ -50,6 +50,32 @@ classdef ProbeHyperscan1020 < nirs.core.ProbeHyperscan
 
     methods
       
+        function obj = set_mesh(obj,mesh)
+            if(~iscell(mesh))
+                mesh={mesh};
+            end
+            if(length(mesh)~=length(obj.originalprobe))
+                mesh=repmat(mesh,length(obj.originalprobe),1);
+            end
+
+            for i=1:length(obj.originalprobe)
+                obj.originalprobe(i)=obj.originalprobe(i).set_mesh(mesh{i});
+            end
+        end
+        function obj = SetFiducialsVisibility(obj,flag)
+            for i=1:length(obj.originalprobe)
+                obj.originalprobe(i)=obj.originalprobe(i).SetFiducialsVisibility(flag);
+            end
+        end
+
+        function mesh = getmesh(obj)
+             for i=1:length(obj.originalprobe)
+                 mesh{i}=obj.originalprobe(i).getmesh;
+             end
+        end
+
+
+        
         function detPos_drawing = get.detPos_drawing(obj)
             detPos_drawing=[];
             c=get(gca,'children');
@@ -223,9 +249,21 @@ classdef ProbeHyperscan1020 < nirs.core.ProbeHyperscan
                         obj.originalprobe(i).draw(varargin{:});
                     elseif(nargout>0)
                         varargout{i}=obj.originalprobe(i).draw(varargin{:});
-
-
                     end
+                    if(obj.show_labels)
+                        % make sure text is always above the object
+                        ang=atan2(norm(cross([1 0 0],[0 1 0]*obj.RotateMatrix{i}(1:3,1:3))),dot([1 0 0],[0 1 0]*obj.RotateMatrix{1}(1:3,1:3)));
+
+                        if(contains(lower(obj.defaultdrawfcn),'3d'))
+                            com=[mean(get(varargin{3},'Xlim')) mean(get(varargin{3},'Ylim')) 1.5*max(get(varargin{3},'Zlim'))];
+                        else
+                            com=[mean(get(varargin{3},'Xlim')) 1.5*max(get(varargin{3},'Ylim')) 0];
+                        end
+                        text(varargin{3},com(1),com(2),com(3),obj.SubjectLabels{i},...
+                            'FontWeight','bold','FontSize',16,'Rotation',ang/pi*180,...
+                            'HorizontalAlignment','center');
+                    end
+
                     % rescale(i,1)=mean(obj.originalprobe(i).optodes.X);
                     % rescale(i,2)=mean(obj.originalprobe(i).optodes.Y);
                     c=get(varargin{3},'children');

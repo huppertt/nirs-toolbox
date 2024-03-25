@@ -32,6 +32,10 @@ classdef Data
         Fs = 0;             % sampling frequency in Hz
     end
 
+     properties (Hidden = true )
+         UserData;
+     end
+
     methods
         function obj = Data( data, time, probe, Fm, stimulus, demographics, description )
             %% Data - Creates a Data object.
