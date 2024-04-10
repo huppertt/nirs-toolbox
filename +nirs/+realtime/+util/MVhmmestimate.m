@@ -70,6 +70,14 @@ if nargin > 2
     [varargin{:}] = convertStringsToChars(varargin{:});
 end
 
+if(isa(seq,'nirs.core.Data'))
+    seq=seq.data;
+end
+if(size(seq,1)==length(states))
+    seq=seq';
+end
+
+
 pseudoEcounts = false;
 pseudoTRcounts = false;
 tr = [];

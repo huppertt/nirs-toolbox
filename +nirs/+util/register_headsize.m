@@ -53,7 +53,7 @@ for i=1:headsize.count
           XYZ(idx3,:)-.5*(XYZ(idx1,:)-XYZ(idx2,:));
           cost{i}=@(s)abs(arcdistance(.5*norm(s.*a),norm(s.*b))-val);
     else
-        warning('head size key not recognized');
+%        warning('head size key not recognized');
     end        
 end
 

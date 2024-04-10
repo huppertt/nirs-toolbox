@@ -22,6 +22,7 @@ classdef ShortDistanceFilter < nirs.modules.AbstractModule
            
            
             for i = 1:numel(data)
+                disp([num2str(i) ' of ' num2str(numel(data))])
                 if(obj.splittypes)
                     types=unique(data(i).probe.link.type);
                     for tI=1:length(types)

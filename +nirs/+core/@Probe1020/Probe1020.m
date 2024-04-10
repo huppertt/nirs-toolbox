@@ -283,11 +283,20 @@ classdef Probe1020 < nirs.core.Probe
 
 
 
-        function headsize=get_headsize(obj)
+        function headsize=get_headsize(obj,full)
+            if(nargin<2)
+                full=false;
+            end
             headsize=Dictionary();
             headsize('lpa-cz-rpa')=obj.LR_arclength;
             headsize('Iz-cz-nas')=obj.AP_arclength;
             headsize('circumference')=obj.headcircum;
+
+            if(full)
+                headsize('AP_distance')=obj.AP_distance;
+                headsize('LR_distance')=obj.LR_distance;
+                headsize('IS_distance')=obj.IS_distance;
+            end
 
         end
         function varargout=draw(obj,varargin)

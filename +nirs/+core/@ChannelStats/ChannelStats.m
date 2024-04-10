@@ -131,10 +131,13 @@ classdef ChannelStats
         end
         
         
-        function scatterplot(obj,channelIdx,confinterval)
+        function scatterplot(obj,channelIdx,confinterval,seperateplot)
             
-            if(nargin<3)
+            if(nargin<3 || isempty(confinterval))
                 confinterval=.95;
+            end
+            if(nargin<4)
+                seperateplot=false;
             end
             
             
@@ -211,35 +214,63 @@ classdef ChannelStats
             % first plot the catgorical
             
             lst=find(categoricalvariableInfo.IsCategorical);
-            name=categoricalvariableInfo.Range{lst(1)}';
-            if(~strcmp(categoricalvariableInfo.Row{1},'cond'))
-                for ii=1:length(name)
-                    name{ii}=[categoricalvariableInfo.Row{1} '_' name{ii}];
-                end
-            end
-            for i=2:length(lst)
-                n2=categoricalvariableInfo.Range{lst(i)}';
-                if(~strcmp(categoricalvariableInfo.Row{i},'cond'))
-                    for ii=1:length(n2)
-                        n2{ii}=[categoricalvariableInfo.Row{i} '_' n2{ii}];
+            for id=1: height(categoricalvariableInfo)
+                if(~categoricalvariableInfo.IsCategorical(id))
+                    if(categoricalvariableInfo.Range{id}(1)==0 & categoricalvariableInfo.Range{id}(2)==1)
+                        lst=[lst id];
                     end
                 end
-                name2=repmat(n2,length(name),1);
-                
-                
-                name=repmat(name,length(n2),1);
-                name=horzcat(name,name2);
             end
-            
-            
-            figure;
-            set(groot,'defaultTextInterpreter','none')
-            subplot(mm,m2,1);
-            hold on;
-            a=-999; b=999;
-           
+
+            if(~isempty(lst))
+                if(categoricalvariableInfo.IsCategorical(lst(1)))
+
+                    name=categoricalvariableInfo.Range{lst(1)}';
+                    if(~strcmp(categoricalvariableInfo.Row{1},'cond'))
+                        for ii=1:length(name)
+                            name{ii}=[categoricalvariableInfo.Row{1} '_' name{ii}];
+                        end
+                    end
+                else
+                    name=cellstr(categoricalvariableInfo.Row{lst(1)});
+                end
+                for i=2:length(lst)
+                    if(categoricalvariableInfo.IsCategorical(lst(i)))
+                        n2=categoricalvariableInfo.Range{lst(i)}';
+                        if(~strcmp(categoricalvariableInfo.Row{i},'cond'))
+                            for ii=1:length(n2)
+                                n2{ii}=[categoricalvariableInfo.Row{i} '_' n2{ii}];
+                            end
+                        end
+                    
+                    name2=repmat(n2,length(name),1);
+
+
+                    name=repmat(name,length(n2),1);
+                    else
+                        name2=cellstr(categoricalvariableInfo.Row{lst(i)});
+                    end
+                    name=horzcat(name,name2);
+
+                end
+            end
+
+            if(~seperateplot)
+                figure;
+                set(groot,'defaultTextInterpreter','none')
+                subplot(mm,m2,1);
+                hold on;
+                a=-999; b=999;
+            else
+                figure;
+                set(groot,'defaultTextInterpreter','none')
+                hold on;
+                a=-999; b=999;
+            end
+
             cnt=1; xlabels={};
             for i=1:length(obj.conditions)
+                
                 s=strsplit(obj.conditions{i},':');
                 
                 found=false;
@@ -333,10 +364,19 @@ classdef ChannelStats
                 end
                 
                 lst=find(ismember(model.Coefficients.Row,matlab.lang.makeValidName(lstNonCat{i})));
-                lst2=find(abs(modelvals.(model.Coefficients.Row{lst}))>eps(1));
+                lst2=find(abs(modelvals.(model.Coefficients.Row{lst}))>eps(100));
                 
-                subplot(mm,m2,1+i);
+                 if(~seperateplot)
+                      subplot(mm,m2,1+i);
                      hold on;
+                 else
+
+                   figure;
+                    set(groot,'defaultTextInterpreter','none')
+                    hold on;
+                 end
+
+               
                
                 if(~isempty(EB))
                     e=nirs.util.scattererrorbar(modelvals.(name)(lst2),modelvals.beta(lst2),EB(lst2));
