@@ -416,7 +416,11 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 G.categoricalvariableInfo=lm1.VariableInfo(lm1.VariableInfo.InModel,:);
                 
                 vars=G.variables;
-                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                if(isa(G.probe,'nirs.core.ProbeROI'))
+                    [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
+                else
+                    [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                end
                 models=cell(height(G.variables),1);
                 for idx=1:max(lst)
                     ll=find(lst == idx);
