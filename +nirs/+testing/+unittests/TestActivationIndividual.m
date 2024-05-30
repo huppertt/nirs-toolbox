@@ -37,12 +37,13 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             stim('Medium') = nirs.design.StimulusEvents('Medium',[5 80 112],[12 15 16],[1 1 1]);
             stim('High') = nirs.design.StimulusEvents('High',[50 60 134],[6 10 7],[1 1 1]);
             
-            beta = [20 60 120]';
+            beta = [60 90 120]';
             
             %% Generate data
             rng('default');
             noise = nirs.testing.simARNoise(probe,time);
-            raw = nirs.testing.simData(noise,stim,beta);
+            channels=[1 1; 1 2];
+            raw = nirs.testing.simData(noise,stim,beta,channels);
             
             %% Randomize probe link sequence
             rand_inds = randperm(height(raw.probe.link));

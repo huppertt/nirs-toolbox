@@ -56,7 +56,7 @@ end
 
 if length(beta) == length(stim.keys)
     % oxy; deoxy
-    b = [beta; -beta/2];
+    b = [beta(:)'; -beta(:)'/2];
 else
     b = beta;
 end
