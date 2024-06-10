@@ -27,11 +27,11 @@ for i=1:length(snirf.nirs)
         end
 
 
-        if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
-            tmpdata(ii).probe=nirs.core.Probe1020;
-        else
+        %if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+         %   tmpdata(ii).probe=nirs.core.Probe1020;
+        %else
             tmpdata(ii).probe=nirs.core.Probe;
-        end
+        %end
 
         if(~isfield(snirf.nirs(i).data(ii).measurementList(1),'dataTypeLabel'))
             for j=1:length(snirf.nirs(ii).data.measurementList)
@@ -99,6 +99,9 @@ for i=1:length(snirf.nirs)
                 if(any(sz==n)&&sz(1)==3&&n~=3)
                     snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
                     rotateFields=true;
+                elseif(any(sz==n)&&sz(1)==4&&n~=4) % rotate landmarks
+                    snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
+                    rotateFields=true;
                 elseif(any(sz==n)&&n~=3)
                     rotateFields=false;
                 elseif(~any(sz==n))
@@ -128,11 +131,21 @@ for i=1:length(snirf.nirs)
                                 ptsAll=[ptsAll; p];
                             end
                         end
+
                         pts=snirf.nirs(i).probe.(pos3DField);
+
+                        if(size(pts,2)~=3 & size(pts,2)~=4)
+                            pts=pts';
+                        end
+                        if(size(pts,2)==4)
+                            pts=pts(:,1:3);
+                        end
+
                         r = -2.4;
                         R=mean(sqrt(sum(pts.^2,2)));
                         x=-r*R.*(pts(:,1)./abs(pts(:,3)-r*R));
                         y=r*R.*(pts(:,2)./abs(pts(:,3)-r*R));
+
                         snirf.nirs(i).probe.(pos2DField)(:,1)=x;
                         snirf.nirs(i).probe.(pos2DField)(:,2)=y;
                         snirf.nirs(i).probe.(pos2DField)(:,3)=0;
@@ -170,7 +183,7 @@ for i=1:length(snirf.nirs)
                     snirf.nirs(i).probe.(posField)= snirf.nirs(i).probe.(pos2DField);
                 end
 
-                if(rotateFields&&isfield(snirf.nirs(i).probe,pos3DField)&&n==3)
+                if(rotateFields&&isfield(snirf.nirs(i).probe,pos3DField)&&(n==3))
                     % Catch corner case where 2D field is rotated, but 3D
                     % field was assigned but not rotated originally
                     snirf.nirs(i).probe.(pos3DField)=snirf.nirs(i).probe.(pos3DField)';
@@ -255,6 +268,7 @@ for i=1:length(snirf.nirs)
                 if(isfield(snirf.nirs(i).probe,[posField '3D']))
                     if(strcmp(posType,'landmark'))
                         lmName=snirf.nirs(i).probe.(posLabelField){j};
+
                         if(contains(lmName,'FID'))
                             Type3D{end+1,1}=char(snirf.nirs(i).probe.(posLabelField){j}(strfind(snirf.nirs(i).probe.(posLabelField){j},'FID'):end));
                             Name3D{end+1,1}=char(snirf.nirs(i).probe.(posLabelField){j}(1:strfind(snirf.nirs(i).probe.(posLabelField){j},'FID')-1));
@@ -310,10 +324,25 @@ for i=1:length(snirf.nirs)
 
 
 
-            mesh=tmpdata(ii).probe.getmesh;
-            Tform=nirs.registration.cp2tform(tbl,mesh(1).fiducials);
-            tbl=nirs.registration.applytform(tbl,Tform);
-            tmpdata(ii).probe.optodes_registered=tbl;
+            if(isa(tmpdata(ii).probe,'nirs.core.Probe1020'))
+                % this only sets all the registered points to 0
+                mesh=tmpdata(ii).probe.getmesh;
+                Tform=nirs.registration.cp2tform(tbl,mesh(1).fiducials);
+                tbl=nirs.registration.applytform(tbl,Tform);
+                tmpdata(ii).probe.optodes_registered=tbl;
+            else
+                % store converted positions
+                srcTable=tbl(strcmp(tbl.Type,'Source'),:);
+                detTable=tbl(strcmp(tbl.Type,'Detector'),:);
+
+                srcArr = [srcTable.X,srcTable.Y,srcTable.Z];
+                detArr = [detTable.X,detTable.Y,detTable.Z];
+
+
+                tmpdata(ii).probe.optodes=tbl;
+                %tmpdata(ii).probe.srcPos =srcArr;
+                %tmpdata(ii).probe.detPos= detArr;
+            end
         end
 
         fds=fields(snirf.nirs(i).metaDataTags);
@@ -335,21 +364,29 @@ for i=1:length(snirf.nirs)
 
         tmpdata(ii).probe.link=table(source,detector,type);
 
+        linkIndex=1;
         for j=1:length(snirf.nirs(i).data(ii).measurementList)
-            source(j,1)=snirf.nirs(i).data(ii).measurementList(j).sourceIndex;
-            detector(j,1)=snirf.nirs(i).data(ii).measurementList(j).detectorIndex;
+
             if(isfield(snirf.nirs(i).probe,'wavelengths') && ...
-                    isfield(snirf.nirs(i).data(ii).measurementList(j),'wavelengthIndex'))
-                type(j,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex);
+                    isfield(snirf.nirs(i).data(ii).measurementList(j),'wavelengthIndex') && ...
+                    ~isnan(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex))
+                type(linkIndex,1)=snirf.nirs(i).probe.wavelengths(snirf.nirs(i).data(ii).measurementList(j).wavelengthIndex);
             else
-                type{j,1}=snirf.nirs(i).data(ii).measurementList(j).dataTypeLabel;
+                % skip invalid links in link table
+                continue;
             end
+
+
+            source(linkIndex,1)=snirf.nirs(i).data(ii).measurementList(j).sourceIndex;
+            detector(linkIndex,1)=snirf.nirs(i).data(ii).measurementList(j).detectorIndex;
+
+            linkIndex=linkIndex+1;
         end
         tmpdata(ii).probe.link=table(source,detector,type);
 
     	% add registered optodes distances to probe fixeddistances - added by Peggy Skelly
         % Needed to move to after link was assigned.
-    	if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+    	if(isa(tmpdata(ii).probe,'nirs.core.Probe1020'))
     		tmpdata(ii).probe.fixeddistances=tmpdata(ii).probe.swap_reg.distances;
     	end
 

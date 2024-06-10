@@ -7,6 +7,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         divide_events;  % if true will parse into multiple conditions
         min_event_duration;  % minimum duration of events
         link;
+        linkVariable = 'hyperscan'; % hyperscan variable from nirx
         symetric;
         verbose;
         ignore;  % seconds at start/end of each scan or block to ignore
@@ -42,8 +43,8 @@ classdef Hyperscanning < nirs.modules.AbstractModule
             if(isempty(obj.link))
                 % NIRx files have a hyperscan variable upon loading that I
                 % can use here
-                if(ismember('hyperscan',nirs.createDemographicsTable(data).Properties.VariableNames))
-                    hyperscanfiles=nirs.createDemographicsTable(data).hyperscan;
+                if(ismember(obj.linkVariable,nirs.createDemographicsTable(data).Properties.VariableNames))
+                    hyperscanfiles=nirs.createDemographicsTable(data).(obj.linkVariable);
                     
                     for i=1:length(hyperscanfiles); if(isempty(hyperscanfiles{i})); hyperscanfiles{i}=''; end; end;
                     uniquefiles=unique(hyperscanfiles);
