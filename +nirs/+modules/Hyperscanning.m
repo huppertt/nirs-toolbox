@@ -38,13 +38,22 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         end
         
         function connStats = runThis( obj, data )
+            if(~iscell(obj.linkVariable))
+                obj.linkVariable={obj.linkVariable};
+            end
             
             
+
             if(isempty(obj.link))
                 % NIRx files have a hyperscan variable upon loading that I
                 % can use here
-                if(ismember(obj.linkVariable,nirs.createDemographicsTable(data).Properties.VariableNames))
-                    hyperscanfiles=nirs.createDemographicsTable(data).(obj.linkVariable);
+                tbl=nirs.createDemographicsTable(data);
+                [tbl,idx]=sortrows(tbl,obj.linkVariable);
+                data=data(idx);
+                
+
+                if(ismember(obj.linkVariable{1},nirs.createDemographicsTable(data).Properties.VariableNames))
+                    hyperscanfiles=nirs.createDemographicsTable(data).(obj.linkVariable{1});
                     
                     for i=1:length(hyperscanfiles); if(isempty(hyperscanfiles{i})); hyperscanfiles{i}=''; end; end;
                     uniquefiles=unique(hyperscanfiles);
@@ -54,12 +63,17 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                         lst=find(ib==i);
                         ScanA(i,1)=lst(1);
                         ScanB(i,1)=lst(2);
+                        if(length(obj.linkVariable)>1)
+                            relationship{i,1}=tbl(lst,:).(obj.linkVariable{2});
+                        else
+                            relationship{i,1}=[];
+                        end
                     end
                     
                     OffsetA = zeros(size(ScanA));  % The time shift of the "A" files (in sec)
                     OffsetB = zeros(size(ScanB));  % The time shift of the "B" files (in sec)
                     
-                    link = table(ScanA,ScanB,OffsetA,OffsetB);
+                    link = table(ScanA,ScanB,OffsetA,OffsetB,relationship);
                     obj.link=link;
                 else
                     warning('link variable must be specified');
@@ -120,10 +134,20 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= data(idxA).description;
-                if(isa(data(idxA).probe,'nirs.core.Probe1020'))
-                    connStats(i).probe = nirs.core.ProbeHyperscan1020([data(idxA).probe,data(idxB).probe]);
+                if(ismember('relationship',obj.link.Properties.VariableNames))
+                    relationship=obj.link(i,:).relationship{1};
+                    if(isa(data(idxA).probe,'nirs.core.Probe1020'))
+                        connStats(i).probe = nirs.core.ProbeHyperscan1020([data(idxA).probe,data(idxB).probe],relationship);
+                    else
+                        connStats(i).probe = nirs.core.ProbeHyperscan([data(idxA).probe,data(idxB).probe],relationship);
+                    end
+
                 else
-                    connStats(i).probe = nirs.core.ProbeHyperscan([data(idxA).probe,data(idxB).probe]);
+                    if(isa(data(idxA).probe,'nirs.core.Probe1020'))
+                        connStats(i).probe = nirs.core.ProbeHyperscan1020([data(idxA).probe,data(idxB).probe]);
+                    else
+                        connStats(i).probe = nirs.core.ProbeHyperscan([data(idxA).probe,data(idxB).probe]);
+                    end
                 end
                 connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
                 connStats(i).R=[];

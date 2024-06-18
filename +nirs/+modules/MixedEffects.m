@@ -150,6 +150,20 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 tmp.(conds{i})=1*ismember(tmp.cond,conds{i});
             end;
 
+            NoInter=[];
+            if(~isempty(strfind(obj.formula,'{')))
+                % the formula has variables of no interest
+                lstt=sort([strfind(obj.formula,'{') strfind(obj.formula,'}')]);
+                cnt=1;
+                for ii=1:2:length(lstt)
+                NoInter{cnt}=obj.formula([lstt(ii)+1:lstt(ii+1)-1]);
+                cnt=cnt+1;
+                end
+                obj.formula=strrep(obj.formula,'{',' ');
+                obj.formula=strrep(obj.formula,'}',' ');
+            end
+
+
             obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
@@ -451,7 +465,54 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 
             end
             
-            
+            %Remove variables of no interest
+            if(~isempty(NoInter))
+                
+                PredictorNames=lm1.PredictorNames;
+
+                for idd=1:length(PredictorNames);
+                    if(~isnumeric(tmp.(PredictorNames{idd})))
+                        upred=unique(tmp.(PredictorNames{idd}));
+                        NoInter=repmat(NoInter,length(upred)*2,1);
+                        for ii=1:length(upred)
+                            for jj=1:size(NoInter,2)
+                                NoInter{ii,jj}=strrep(NoInter{ii,jj},PredictorNames{idd},upred{ii});
+                            end
+                        end
+                        for ii=1:length(upred)
+                            for jj=1:size(NoInter,2)
+                                NoInter{ii+length(upred),jj}=strrep(NoInter{ii+length(upred),jj},PredictorNames{idd},[PredictorNames{idd} '_' upred{ii}]);
+                            end
+                        end
+                        NoInter=unique(NoInter(:));
+                    end
+                end
+                
+
+
+                cnames=unique(cnames);
+                remove={};
+                for i=1:length(NoInter); 
+                    ss=strsplit(NoInter{i},':'); 
+                    for jj=1:length(cnames)
+                        flag=true;
+                        for ii=1:length(ss)
+                            flag=flag & contains(cnames{jj},ss{ii});
+                        end
+                        if(flag)
+                            remove{end+1}=cnames{jj};
+                            disp(['Removing condition of no interest: ' remove{end}]);
+                        end
+                    end
+                end;
+                if(~isempty(remove))
+                    job=nirs.modules.DiscardStims;
+                    job.listOfStims=remove;
+                    G=job.run(G);
+
+                end
+            end
+
         end
     end
     

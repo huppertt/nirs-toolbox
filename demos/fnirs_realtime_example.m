@@ -12,7 +12,7 @@ job = nirs.realtime.modules.MotionCorrect(job);
 data.updatefunction=job;
 
 % we could update the data manually using
-% >> data.updatedata(randn(1,numchan),time)
+%% data.updatedata(randn(1,numchan),time)
 
 listener = nirs.realtime.listeners.simulator;
 listener.datasource = nirs.testing.simData;  % where to get the simulation data from

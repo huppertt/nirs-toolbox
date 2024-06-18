@@ -216,11 +216,21 @@ classdef Probe1020 < nirs.core.Probe
         end
 
 
-        function obj=SetFiducialsVisibility(obj,flag)
+        function obj=SetFiducials_Visibility(obj,flag)
             if(nargin<2)
                 flag=false;
             end
-            obj.mesh(1).fiducials.Draw(:)=flag;
+            obj.mesh=obj.mesh.set_fiducial_visibility(flag);
+        end
+
+        function obj=SetMesh_Transparency(obj,transparency,lst)
+            if(nargin<2)
+                transparency=0;
+            end
+            if(nargin<3)
+                lst=[1:length(obj.mesh)-1];
+            end
+            obj.mesh(lst)=obj.mesh(lst).set_transparency(transparency);
         end
 
 

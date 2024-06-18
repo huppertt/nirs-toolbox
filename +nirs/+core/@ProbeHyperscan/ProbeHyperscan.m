@@ -251,7 +251,7 @@ classdef ProbeHyperscan
                 ltmp=obj.originalprobe(i).link;
                 ltmp.source=ltmp.source+curSrc;
                 ltmp.detector=ltmp.detector+curDet;
-                ltmp.SubjectLabel=repmat(obj.SubjectLabels{i},height(ltmp),1);
+                ltmp.SubjectLabel=repmat(cellstr(obj.SubjectLabels{i}),height(ltmp),1);
                 curDet=max(ltmp.detector);
                 curSrc=max(ltmp.source);
                 link=[link; ltmp];

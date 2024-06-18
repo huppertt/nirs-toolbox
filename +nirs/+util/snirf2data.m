@@ -27,11 +27,11 @@ for i=1:length(snirf.nirs)
         end
 
 
-        %if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
-         %   tmpdata(ii).probe=nirs.core.Probe1020;
-        %else
+        if(isfield(snirf.nirs(i).probe,'sourcePos3D'))
+           tmpdata(ii).probe=nirs.core.Probe1020;
+        else
             tmpdata(ii).probe=nirs.core.Probe;
-        %end
+        end
 
         if(~isfield(snirf.nirs(i).data(ii).measurementList(1),'dataTypeLabel'))
             for j=1:length(snirf.nirs(ii).data.measurementList)
@@ -241,6 +241,12 @@ for i=1:length(snirf.nirs)
 
 
                 if(isfield(snirf.nirs(i).probe,[posField '2D']))
+                    if(size(snirf.nirs(i).probe.([posField '2D']),1)~=n && ...
+                            size(snirf.nirs(i).probe.([posField '2D']),2)==n)
+                        snirf.nirs(i).probe.([posField '2D'])=snirf.nirs(i).probe.([posField '2D'])';
+                    end
+
+
                     if(strcmp(posType,'landmark'))
                         lmName=snirf.nirs(i).probe.(posLabelField){j};
                         if(contains(lmName,'FID'))
@@ -266,6 +272,11 @@ for i=1:length(snirf.nirs)
                     end
                 end
                 if(isfield(snirf.nirs(i).probe,[posField '3D']))
+                      if(size(snirf.nirs(i).probe.([posField '3D']),1)~=n && ...
+                            size(snirf.nirs(i).probe.([posField '3D']),2)==n)
+                        snirf.nirs(i).probe.([posField '3D'])=snirf.nirs(i).probe.([posField '3D'])';
+                      end
+
                     if(strcmp(posType,'landmark'))
                         lmName=snirf.nirs(i).probe.(posLabelField){j};
 
@@ -384,37 +395,57 @@ for i=1:length(snirf.nirs)
         end
         tmpdata(ii).probe.link=table(source,detector,type);
 
+        if(isa(tmpdata(ii).probe,'nirs.core.Probe1020') && ...
+                all([tmpdata(ii).probe.detPos3D(:); tmpdata(ii).probe.srcPos3D(:)]==0))
+            %This isn't really a 3D probe
+            probe=nirs.core.Probe;
+            probe.optodes=tmpdata(ii).probe.optodes;
+            probe.link=tmpdata(ii).probe.link;
+            tmpdata(ii).probe=probe;
+        end
+        if(all(tmpdata(ii).probe.distances<10))
+            warning('Optode positions appear to be in cm (but labeled mm).  Converting');
+            tmpdata(ii).probe.optodes.X=10*tmpdata(ii).probe.optodes.X;
+            tmpdata(ii).probe.optodes.Y=10*tmpdata(ii).probe.optodes.Y;
+            tmpdata(ii).probe.optodes.Z=10*tmpdata(ii).probe.optodes.Z;
+        end
+
+
     	% add registered optodes distances to probe fixeddistances - added by Peggy Skelly
         % Needed to move to after link was assigned.
     	if(isa(tmpdata(ii).probe,'nirs.core.Probe1020'))
     		tmpdata(ii).probe.fixeddistances=tmpdata(ii).probe.swap_reg.distances;
-    	end
+        end
+
 
 
         if(isfield(snirf.nirs(i),'stim'))
             for j=1:length(snirf.nirs(i).stim)
+                if(length(snirf.nirs.stim(j).data)>2)
+                    if(~isfield(snirf.nirs(i).stim(j),'dataLabels') || isempty( snirf.nirs(i).stim(j).dataLabels))
+                        snirf.nirs(i).stim(j).dataLabels={'onset','dur','amp'};
+                    end
 
-                if(~isfield(snirf.nirs(i).stim(j),'dataLabels') || isempty( snirf.nirs(i).stim(j).dataLabels))
-                    snirf.nirs(i).stim(j).dataLabels={'onset','dur','amp'};
+                    if(size(snirf.nirs.stim(j).data,1)==length(snirf.nirs(i).stim(j).dataLabels) & ...
+                            size(snirf.nirs.stim(j).data,2)~=length(snirf.nirs(i).stim(j).dataLabels))
+                        snirf.nirs.stim(j).data=snirf.nirs.stim(j).data';
+                    end
+
+                    tbl=struct;
+                    for id=1:length(snirf.nirs(i).stim(j).dataLabels)
+                        tbl=setfield(tbl,genvarname(snirf.nirs(i).stim(j).dataLabels{id}),snirf.nirs.stim(j).data(:,id));
+                    end
+
+                    st=nirs.design.StimulusEvents;
+                    st.name=snirf.nirs.stim(j).name;
+                    st.onset=snirf.nirs.stim(j).data(:,1);
+                    st.dur=snirf.nirs.stim(j).data(:,2);
+                    st.amp=snirf.nirs.stim(j).data(:,3);
+                    st.metadata=struct2table(tbl);
+                    tmpdata(ii).stimulus(st.name)=st;
+                else
+                    warning(['Invalid stim events in: ' snirf.nirs.stim(j).name]);
                 end
-
-                if(size(snirf.nirs.stim(j).data,1)==length(snirf.nirs(i).stim(j).dataLabels) & ...
-                        size(snirf.nirs.stim(j).data,2)~=length(snirf.nirs(i).stim(j).dataLabels))
-                    snirf.nirs.stim(j).data=snirf.nirs.stim(j).data';
-                end
-
-                tbl=struct;
-                for id=1:length(snirf.nirs(i).stim(j).dataLabels)
-                    tbl=setfield(tbl,genvarname(snirf.nirs(i).stim(j).dataLabels{id}),snirf.nirs.stim(j).data(:,id));
-                end
-
-                st=nirs.design.StimulusEvents;
-                st.name=snirf.nirs.stim(j).name;
-                st.onset=snirf.nirs.stim(j).data(:,1);
-                st.dur=snirf.nirs.stim(j).data(:,2);
-                st.amp=snirf.nirs.stim(j).data(:,3);
-                st.metadata=struct2table(tbl);
-                tmpdata(ii).stimulus(st.name)=st;
             end
         end
 

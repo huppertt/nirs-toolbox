@@ -61,7 +61,7 @@ classdef TestActivationIndividual < matlab.unittest.TestCase
             %% Calculate activation
             canon = nirs.design.basis.Canonical();
             canon.incDeriv = true;
-            
+            canon.keepDerivs = true;
             basis = Dictionary();
             basis('default') = canon;
             

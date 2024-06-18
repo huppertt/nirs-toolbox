@@ -5,7 +5,7 @@ if(nargin<2)
 end
 
 if(verbose)
-    disp('Searhing directory for SNIRF files');
+    disp('Searching directory for SNIRF files');
 end
 snirf_files = rdir(fullfile(folder,'**','*.snirf'));
 if(verbose)

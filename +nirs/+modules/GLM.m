@@ -199,6 +199,23 @@ classdef GLM < nirs.modules.AbstractGLM
                 j.listOfStims=SS;
                 j.regex=true;
                 S(idx)=j.run(S(idx));
+
+                if(isa(obj.basis('default'),'nirs.design.basis.Canonical') && ...
+                        obj.basis('default').incDeriv && ~obj.basis('default').keepDerivs)
+                    ListChanges={};
+                    ListTests={};
+                    for i=1:length(StimNew)
+                        if(contains(StimNew{i},':01'))
+                            ListChanges{end+1}=strrep(StimNew{i},':01','');
+                            ListTests{end+1}=[strrep(StimNew{i},':01','') '[1]'];
+                        end
+                    end
+                    desc=S(idx).description;
+                    S(idx)=S(idx).ttest(ListTests,[],ListChanges);
+                    S(idx).description=desc;
+                end
+
+
             end
             
             

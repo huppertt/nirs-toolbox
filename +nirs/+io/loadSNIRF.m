@@ -1,6 +1,13 @@
-function data = loadSNIRF(filename)
+function data = loadSNIRF(filename,verbose)
 % this function reads in a nir5 (hdf5) formated data file
 
+if(nargin<2)
+    verbose=true;
+end
+
+if(verbose)
+    disp(['Loading SNIRF file: ' filename]);
+end
 
 info=hdf5info(filename);
 

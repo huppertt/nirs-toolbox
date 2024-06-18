@@ -10,6 +10,7 @@ classdef Canonical
         duration    = 32;
         
         incDeriv = false;
+        keepDerivs = false; % if false, the derivatives are of no interest
     end
     
     methods

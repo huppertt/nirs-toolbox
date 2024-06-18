@@ -77,7 +77,22 @@ classdef Dictionary
                 obj.keys        = keys;
                 obj.values      = vals;
             elseif nargin == 1
-                error('Constructor takes zero or two arguments.')
+                if(isa(keys,'struct'))
+                    tmp=keys;
+                    keys=fields(keys);
+                    for i=1:length(keys)
+                        vals{i,1}=getfield(tmp,keys{i});
+                    end
+                    assert( length(keys)==length(vals) ...
+                    && iscell(vals) ...
+                    && iscell(keys) ...
+                    && Dictionary.areUniqueKeys(keys) )  
+
+                obj.keys        = keys;
+                obj.values      = vals;
+                else
+                    error('Constructor takes zero or two arguments.')
+                end
             end
             
             obj = obj.rehash();
