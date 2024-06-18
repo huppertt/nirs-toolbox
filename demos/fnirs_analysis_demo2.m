@@ -78,7 +78,7 @@ List=nirs.modules.pipelineToList(job);
 
 % You can modify the pipeline using the List array
 % E.g. to change the resample function (3rd entry)
-List{4}.Fs=.5;
+List{3}.Fs=.5;
 
 % Let's also play with the GLM options (8th entry)
 
@@ -112,17 +112,17 @@ basis.binwidth=1;
 basis.nbins=8;
 
 % Now, we need to store this basis back
-List{9}.basis('Default')=basis;
+List{8}.basis('Default')=basis;
 
 % The basis set "default" is used to specifiy the model for any task that
 % doesn't explicitly have its own basis set.  
 % We can assign different basis sets to each condition like this
-List{9}.basis('A')=basis;
+List{8}.basis('A')=basis;
 
 % And for sake of example, let's pretend the B condition was longer and we
 % want to use a 20sec window instead
 basis.nbins=10;
-List{9}.basis('B')=basis;
+List{8}.basis('B')=basis;
 
 % Now, we can reconstruct the pipeline using  
 job = nirs.modules.listToPipeline(List);

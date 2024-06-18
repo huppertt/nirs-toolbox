@@ -226,7 +226,7 @@ disp(List);
 
 % we can edit the List and convert back.  Here, let's lower the sample rate
 % to make this run faster
-List{4}.Fs=0.5;  % change the sample rate of the Resample module
+List{3}.Fs=0.5;  % change the sample rate of the Resample module
 % note the GLM runs like O(n^2) so this will be ~100x faster to run but at the
 % loss of statistical power (ok for this demo, but I usually run at 5Hz for real studies).
 
