@@ -1,0 +1,41 @@
+clc
+raw = nirs.testing.simData
+
+raw = 
+
+  <a href="matlab:helpPopup nirs.core.Data" style="font-weight:bold">Data</a> with properties:
+
+     description: []
+            data: [3001×32 double]
+           probe: [1×1 nirs.core.Probe]
+            time: [3001×1 double]
+              Fm: 0
+       auxillary: [1×1 Dictionary]
+        stimulus: [1×1 Dictionary]
+    demographics: [1×1 Dictionary]
+              Fs: 10
+
+raw.draw
+raw.draw(1)
+raw.draw([1 10])
+ls ~/Desktop/nirs-toolbox/external/matlab/
+add_matlab_toolboxes.m		remove_matlab_toolboxes.m
+add_toolbox.m			toolbox.zip
+
+clc
+raw=nirs.testing.simData
+
+raw = 
+
+  <a href="matlab:helpPopup nirs.core.Data" style="font-weight:bold">Data</a> with properties:
+
+     description: []
+            data: [3001×32 double]
+           probe: [1×1 nirs.core.Probe]
+            time: [3001×1 double]
+              Fm: 0
+       auxillary: [1×1 Dictionary]
+        stimulus: [1×1 Dictionary]
+    demographics: [1×1 Dictionary]
+              Fs: 10
+
