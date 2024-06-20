@@ -177,7 +177,7 @@ try;
     X=struct2array(X);
 catch
     X=struct2table(X);
-    X = X.A;
+    X = table2array(X);
 end
 
 
