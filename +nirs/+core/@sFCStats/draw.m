@@ -93,7 +93,10 @@ for cIdx=1:length(obj.conditions)
         end
         values(find(mask==0))=NaN;
         pval(find(mask==0))=NaN;
-        qval=nirs.math.BenjaminiHochberg(pval);
+        qval(find(mask==0))=NaN;
+        %qval=pval;
+        %lstt=find(~isnan(pval));
+        %qval(lstt)=nirs.math.BenjaminiHochberg(pval(lstt));
     end
 
     
@@ -242,7 +245,10 @@ for cIdx=1:length(obj.conditions)
                                 set(h2(end),'Tag','fNIRS_ConnLine');
                             end
                         end
-
+                        
+                        colormap(cmap);
+                        colorbar(sp);
+                        caxis(vrange);
                        % title(sp,[utypesOrigin{ii} ' --> ' utypesDest{jj}], 'Interpreter','none')
                         
                     else

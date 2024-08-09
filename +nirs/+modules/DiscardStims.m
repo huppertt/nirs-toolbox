@@ -27,7 +27,9 @@ classdef DiscardStims < nirs.modules.AbstractModule
                     cond=data(i).conditions;
                     lst=find(~ismember(cond,obj.listOfStims));
                     data(i).R=data(i).R(:,:,lst);
-                    data(i).dfe=data(i).dfe(lst);
+                    if(length(data(i).dfe)>1)
+                        data(i).dfe=data(i).dfe(lst);
+                    end
                     data(i).conditions={data(i).conditions{lst}};
                 else
                     cond=data(i).conditions;

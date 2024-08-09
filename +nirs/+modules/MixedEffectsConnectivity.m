@@ -85,6 +85,19 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             D(D==Inf)=1/eps(1);
             D(D==-Inf)=-1/eps(1);
             
+            NoInter=[];
+            if(~isempty(strfind(obj.formula,'{')))
+                % the formula has variables of no interest
+                lstt=sort([strfind(obj.formula,'{') strfind(obj.formula,'}')]);
+                cnt=1;
+                for ii=1:2:length(lstt)
+                    NoInter{cnt}=obj.formula([lstt(ii)+1:lstt(ii+1)-1]);
+                    cnt=cnt+1;
+                end
+                obj.formula=strrep(obj.formula,'{',' ');
+                obj.formula=strrep(obj.formula,'}',' ');
+            end
+
             formula=obj.formula;
             formula=['corr ' formula(strfind(formula,'~'):end)];
             nRE=length(strfind(obj.formula,'|'));
@@ -110,6 +123,7 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 varnames=lm.CoefficientNames'; %VariableNames(find(lm.VariableInfo.InModel))';
                 varnames{end+1}='corr';
                 for idx=1:size(D,2)
+                    warning('off','stats:statrobustfit:IterationLimit');
                     models{idx} = fitlm(X,D(:,idx),'linear','RobustOpts',robustflag,'Intercept',false,'VarNames',varnames);
                 end
                 assignin('base','ME_Conn_models',models);
@@ -151,6 +165,54 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
 
             
             %G.variables.model=models;
+
+             %Remove variables of no interest
+            if(~isempty(NoInter))
+                
+                PredictorNames=lm.PredictorNames;
+                tmp=vars;
+                for idd=1:length(PredictorNames);
+                    if(~isnumeric(tmp.(PredictorNames{idd})))
+                        upred=unique(tmp.(PredictorNames{idd}));
+                        NoInter=repmat(NoInter,length(upred)*2,1);
+                        for ii=1:length(upred)
+                            for jj=1:size(NoInter,2)
+                                NoInter{ii,jj}=strrep(NoInter{ii,jj},PredictorNames{idd},upred{ii});
+                            end
+                        end
+                        for ii=1:length(upred)
+                            for jj=1:size(NoInter,2)
+                                NoInter{ii+length(upred),jj}=strrep(NoInter{ii+length(upred),jj},PredictorNames{idd},[PredictorNames{idd} '_' upred{ii}]);
+                            end
+                        end
+                        NoInter=unique(NoInter(:));
+                    end
+                end
+                
+                cnames = G.conditions(:);
+
+                cnames=unique(cnames);
+                remove={};
+                for i=1:length(NoInter); 
+                    ss=strsplit(NoInter{i},':'); 
+                    for jj=1:length(cnames)
+                        flag=true;
+                        for ii=1:length(ss)
+                            flag=flag & contains(cnames{jj},ss{ii});
+                        end
+                        if(flag)
+                            remove{end+1}=cnames{jj};
+                            disp(['Removing condition of no interest: ' remove{end}]);
+                        end
+                    end
+                end;
+                if(~isempty(remove))
+                    job=nirs.modules.DiscardStims;
+                    job.listOfStims=remove;
+                    G=job.run(G);
+
+                end
+            end
             
         end
     end
