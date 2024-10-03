@@ -1,3 +1,4 @@
+
 classdef AR_IRLS < nirs.modules.AbstractGLM
     %% AR_IRLS - Performs first-level per file GLM analysis.
     %
