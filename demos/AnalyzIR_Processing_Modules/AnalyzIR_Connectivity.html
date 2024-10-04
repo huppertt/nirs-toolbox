@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge,IE=9,chrome=1"><meta name="generator" content="MATLAB 2023a"><title>Untitled</title><style type="text/css">.rtcContent { padding: 30px; } .S0 { margin: 3px 10px 5px 4px; padding: 0px; line-height: 20px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 20px; font-weight: 700; text-align: left;  }
+.S1 { margin: 2px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left;  }
+.CodeBlock { background-color: #F5F5F5; margin: 10px 0 10px 0; }
+.S2 { border-left: 1px solid rgb(217, 217, 217); border-right: 1px solid rgb(217, 217, 217); border-top: 1px solid rgb(217, 217, 217); border-bottom: 0px none rgb(33, 33, 33); border-radius: 4px 4px 0px 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px;  }
+.S3 { border-left: 1px solid rgb(217, 217, 217); border-right: 1px solid rgb(217, 217, 217); border-top: 0px none rgb(33, 33, 33); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 0px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px;  }
+.S4 { border-left: 1px solid rgb(217, 217, 217); border-right: 1px solid rgb(217, 217, 217); border-top: 0px none rgb(33, 33, 33); border-bottom: 1px solid rgb(217, 217, 217); border-radius: 0px; padding: 0px 45px 4px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px;  }
+.S5 { color: rgb(33, 33, 33); padding: 10px 0px 6px 17px; background: rgb(255, 255, 255) none repeat scroll 0% 0% / auto padding-box border-box; font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px; overflow-x: hidden; line-height: 17.234px;  }
+/* Styling that is common to warnings and errors is in diagnosticOutput.css */.embeddedOutputsErrorElement {    min-height: 18px;    max-height: 550px;}
+.embeddedOutputsErrorElement .diagnosticMessage-errorType {    overflow: auto;}
+.embeddedOutputsErrorElement.inlineElement {}
+.embeddedOutputsErrorElement.rightPaneElement {}
+/* Styling that is common to warnings and errors is in diagnosticOutput.css */.embeddedOutputsWarningElement {    min-height: 18px;    max-height: 550px;}
+.embeddedOutputsWarningElement .diagnosticMessage-warningType {    overflow: auto;}
+.embeddedOutputsWarningElement.inlineElement {}
+.embeddedOutputsWarningElement.rightPaneElement {}
+/* Copyright 2015-2022 The MathWorks, Inc. *//* In this file, styles are not scoped to rtcContainer since they could be in the Dojo Tooltip */.diagnosticMessage-wrapper {    font-family: Menlo, Monaco, Consolas, "Courier New", monospace;    font-size: 12px;}
+.diagnosticMessage-wrapper.diagnosticMessage-warningType {    color: var(--mw-color-matlabWarning);}
+.diagnosticMessage-wrapper.diagnosticMessage-warningType a {    color: var(--mw-color-matlabWarning);    text-decoration: underline;}
+.rtcThemeDefaultOverride .diagnosticMessage-wrapper.diagnosticMessage-warningType,.rtcThemeDefaultOverride .diagnosticMessage-wrapper.diagnosticMessage-warningType a {    color: var(--mw-color-matlabWarning) !important;}
+.diagnosticMessage-wrapper.diagnosticMessage-errorType {    color: var(--mw-color-matlabErrors);}
+.diagnosticMessage-wrapper.diagnosticMessage-errorType a {    color: var(--mw-color-matlabErrors);    text-decoration: underline;}
+.rtcThemeDefaultOverride .diagnosticMessage-wrapper.diagnosticMessage-errorType,.rtcThemeDefaultOverride .diagnosticMessage-wrapper.diagnosticMessage-errorType a {    color: var(--mw-color-matlabErrors) !important;}
+.diagnosticMessage-wrapper .diagnosticMessage-messagePart,.diagnosticMessage-wrapper .diagnosticMessage-causePart {    white-space: pre-wrap;}
+.diagnosticMessage-wrapper .diagnosticMessage-stackPart {    white-space: pre;}
+.embeddedOutputsTextElement,.embeddedOutputsVariableStringElement {    white-space: pre;    word-wrap:  initial;    min-height: 18px;    max-height: 550px;}
+.embeddedOutputsTextElement .textElement,.embeddedOutputsVariableStringElement .textElement {    overflow: auto;}
+.textElement,.rtcDataTipElement .textElement {    padding-top: 2px;}
+.embeddedOutputsTextElement.inlineElement,.embeddedOutputsVariableStringElement.inlineElement {}
+.inlineElement .textElement {}
+.embeddedOutputsTextElement.rightPaneElement,.embeddedOutputsVariableStringElement.rightPaneElement {    min-height: 16px;}
+.rightPaneElement .textElement {    padding-top: 2px;    padding-left: 9px;}
+.S6 { border-left: 1px solid rgb(217, 217, 217); border-right: 1px solid rgb(217, 217, 217); border-top: 1px solid rgb(217, 217, 217); border-bottom: 0px none rgb(33, 33, 33); border-radius: 0px; padding: 6px 45px 0px 13px; line-height: 18.004px; min-height: 0px; white-space: nowrap; color: rgb(33, 33, 33); font-family: Menlo, Monaco, Consolas, "Courier New", monospace; font-size: 14px;  }
+.S7 { margin: 10px 10px 9px 4px; padding: 0px; line-height: 21px; min-height: 0px; white-space: pre-wrap; color: rgb(33, 33, 33); font-family: Helvetica, Arial, sans-serif; font-style: normal; font-size: 14px; font-weight: 400; text-align: left;  }
+.embeddedOutputsMatrixElement,.eoOutputWrapper .matrixElement {    min-height: 18px;    box-sizing: border-box;}
+.embeddedOutputsMatrixElement .matrixElement,.eoOutputWrapper  .matrixElement,.rtcDataTipElement .matrixElement {    position: relative;}
+.matrixElement .variableValue,.rtcDataTipElement .matrixElement .variableValue {    white-space: pre;    display: inline-block;    vertical-align: top;    overflow: hidden;}
+.embeddedOutputsMatrixElement.inlineElement {}
+.embeddedOutputsMatrixElement.inlineElement .topHeaderWrapper {    display: none;}
+.embeddedOutputsMatrixElement.inlineElement .veTable .body {    padding-top: 0 !important;    max-height: 100px;}
+.inlineElement .matrixElement {    max-height: 300px;}
+.embeddedOutputsMatrixElement.rightPaneElement {}
+.rightPaneElement .matrixElement,.rtcDataTipElement .matrixElement {    overflow: hidden;    padding-left: 9px;}
+.rightPaneElement .matrixElement {    margin-bottom: -1px;}
+.embeddedOutputsMatrixElement .matrixElement .valueContainer,.eoOutputWrapper .matrixElement .valueContainer,.rtcDataTipElement .matrixElement .valueContainer {    white-space: nowrap;    margin-bottom: 3px;}
+.embeddedOutputsMatrixElement .matrixElement .valueContainer .horizontalEllipsis.hide,.embeddedOutputsMatrixElement .matrixElement .verticalEllipsis.hide,.eoOutputWrapper .matrixElement .valueContainer .horizontalEllipsis.hide,.eoOutputWrapper .matrixElement .verticalEllipsis.hide,.rtcDataTipElement .matrixElement .valueContainer .horizontalEllipsis.hide,.rtcDataTipElement .matrixElement .verticalEllipsis.hide {    display: none;}
+.embeddedOutputsVariableMatrixElement .matrixElement .valueContainer.hideEllipses .verticalEllipsis, .embeddedOutputsVariableMatrixElement .matrixElement .valueContainer.hideEllipses .horizontalEllipsis {    display:none;}
+.embeddedOutputsMatrixElement .matrixElement .valueContainer .horizontalEllipsis,.eoOutputWrapper .matrixElement .valueContainer .horizontalEllipsis {    margin-bottom: -3px;}
+.eoOutputWrapper .embeddedOutputsVariableMatrixElement .matrixElement .valueContainer {    cursor: default !important;}
+.embeddedOutputsVariableElement {    white-space: pre-wrap;    word-wrap: break-word;    min-height: 18px;    max-height: 250px;    overflow: auto;}
+.variableElement {}
+.embeddedOutputsVariableElement.inlineElement {}
+.inlineElement .variableElement {}
+.embeddedOutputsVariableElement.rightPaneElement {    min-height: 16px;}
+.rightPaneElement .variableElement {    padding-top: 2px;    padding-left: 9px;}
+.outputsOnRight .embeddedOutputsVariableElement.rightPaneElement .eoOutputContent {    /* Remove extra space allocated for navigation border */    margin-top: 0;    margin-bottom: 0;}
+.variableNameElement {    margin-bottom: 3px;    display: inline-block;}
+/* * Ellipses as base64 for HTML export. */.matrixElement .horizontalEllipsis,.rtcDataTipElement .matrixElement .horizontalEllipsis {    display: inline-block;    margin-top: 3px;    /* base64 encoded version of images-liveeditor/HEllipsis.png */    width: 30px;    height: 12px;    background-repeat: no-repeat;    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAJCAYAAADO1CeCAAAAJUlEQVR42mP4//8/A70xw0i29BUDFPxnAEtTW37wWDqakIa4pQDvOOG89lHX2gAAAABJRU5ErkJggg==");}
+.matrixElement .verticalEllipsis,.textElement .verticalEllipsis,.rtcDataTipElement .matrixElement .verticalEllipsis,.rtcDataTipElement .textElement .verticalEllipsis {    margin-left: 35px;    /* base64 encoded version of images-liveeditor/VEllipsis.png */    width: 12px;    height: 30px;    background-repeat: no-repeat;    background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAZCAYAAAAIcL+IAAAALklEQVR42mP4//8/AzGYgWyFMECMwv8QddRS+P//KyimlmcGUOFoOI6GI/UVAgDnd8Dd4+NCwgAAAABJRU5ErkJggg==");}</style></head><body><div class = rtcContent><h2  class = 'S0'><span>nirs.modules.Connectivity</span></h2><div  class = 'S1'><span>This module run connectivity analysis. </span></div><div  class = 'S1'><span>By default, this module use AR-whitened robust correlation. This analysis model was corrected for both serially correlated noise (due to systemic physiology) and heavy-tailed noise due to motion artifacts by using a robust statistical (outlier rejection) algorithm on the basis of bisquare weighting [1]. This previously validated model has been demonstrated to show better sensitivity-specificity characteristics and statistically address both increased false discovery rates introduced by serially correlated noise due to physiology in fNIRS and outliers related to motion [2, 3]. We can also utililze short-separation (SS) measurement, if SS data is available [4].</span></div><div  class = 'S1'><span style=' font-weight: bold;'></span></div><div  class = 'S1'><span style=' font-weight: bold;'>Example Usage (1): </span></div><div class="CodeBlock"><div class="inlineWrapper"><div  class = 'S2'><span style="white-space: pre"><span >raw = nirs.testing.simData_connectivity_shortsep;</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'>&nbsp;</div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.Resample();</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job.Fs = 1; </span><span style="color: rgb(0, 128, 19);">%For speed</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.OpticalDensity(job);</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.BeerLambertLaw(job);</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >hb = job.run(raw);</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'>&nbsp;</div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.Connectivity();</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job.AddShortSepRegressors = true; </span><span style="color: rgb(0, 128, 19);">%false if the SS-data is not available</span></span></div></div><div class="inlineWrapper outputs"><div  class = 'S4'><span style="white-space: pre"><span >ConnStats1 = job.run(hb);</span></span></div><div  class = 'S5'><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="F70BA2EE" prevent-scroll="true" data-testid="output_0" style="width: 909px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-previous-available-width="879" data-previous-scroll-height="46" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">removing short-seperation noise
+1 of 1
+................................Finished 1 of 1</div></div></div></div><div class="inlineWrapper"><div  class = 'S6'>&nbsp;</div></div><div class="inlineWrapper outputs"><div  class = 'S4'><span style="white-space: pre"><span >ConnStats1.conditions </span><span style="color: rgb(0, 128, 19);">%only has 1 condition: Rest</span></span></div><div  class = 'S5'><div class="inlineElement eoOutputWrapper embeddedOutputsVariableStringElement" uid="8AA43661" prevent-scroll="true" data-testid="output_1" style="width: 909px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-previous-available-width="879" data-previous-scroll-height="35" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><span class="variableNameElement" style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">ans = <span class="headerElement" style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">1×1 cell array</span></span></div><div style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">    {'rest'}
+</div></div></div></div></div></div><div  class = 'S7'><span style=' font-weight: bold;'></span></div><div  class = 'S1'><span style=' font-weight: bold;'>Example Usage (2):</span></div><div  class = 'S1'><span>This example shows how to run connectivity analysis for each condition or block</span></div><div class="CodeBlock"><div class="inlineWrapper"><div  class = 'S2'><span style="white-space: pre"><span >raw = nirs.testing.simData([], @(t)nirs.testing.blockedStimDesign(t,80,0,3));</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span style="color: rgb(0, 128, 19);">% task-based 80s duration, 0s between onset, and 3 conditions</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'>&nbsp;</div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.Resample();</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job.Fs = 1; </span><span style="color: rgb(0, 128, 19);">%For speed</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.OpticalDensity(job);</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.BeerLambertLaw(job);</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >hb = job.run(raw);</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'>&nbsp;</div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job = nirs.modules.Connectivity();</span></span></div></div><div class="inlineWrapper"><div  class = 'S3'><span style="white-space: pre"><span >job.divide_events = true;</span></span></div></div><div class="inlineWrapper outputs"><div  class = 'S4'><span style="white-space: pre"><span >ConnStats2 = job.run(hb);</span></span></div><div  class = 'S5'><div class="inlineElement eoOutputWrapper embeddedOutputsTextElement" uid="BEC7AC55" prevent-scroll="true" data-testid="output_2" style="width: 909px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="textElement eoOutputContent" data-previous-available-width="879" data-previous-scroll-height="105" data-hashorizontaloverflow="false" style="max-height: 261px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">Spliting condition: A
+   1 of 1
+Spliting condition: B
+   1 of 1
+Spliting condition: C
+   1 of 1
+Finished 1 of 1</div></div></div></div><div class="inlineWrapper"><div  class = 'S6'>&nbsp;</div></div><div class="inlineWrapper outputs"><div  class = 'S4'><span style="white-space: pre"><span >ConnStats2.conditions </span><span style="color: rgb(0, 128, 19);">%only has 3 conditions: 'A', 'B', and 'C'</span></span></div><div  class = 'S5'><div class="inlineElement eoOutputWrapper embeddedOutputsTextMatrixElement embeddedOutputsVariableMatrixElement" uid="DF04CBB1" prevent-scroll="true" data-testid="output_3" data-width="879" style="width: 909px; white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="matrixElement veSpecifier saveLoad eoOutputContent" style="white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="veVariableName variableNameElement" style="width: 879px; white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="headerElementClickToInteract" style="white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><span style="white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">ans = </span><span class="veVariableValueSummary headerElement" style="white-space: normal; font-style: italic; color: rgb(97, 97, 97); font-size: 12px;">1×3 cell</span></div></div><div class="valueContainer" data-layout="{&quot;totalRows&quot;:&quot;1&quot;,&quot;totalColumns&quot;:&quot;3&quot;}" style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"><div class="variableValue" style="width: 246px; white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;">'A'         'B'         'C'         <br></div><div class="horizontalEllipsis hide" style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"></div><div class="verticalEllipsis hide" style="white-space: pre; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"></div></div></div><div class="outputLayer selectedOutputDecorationLayer doNotExport" style="white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"></div><div class="outputLayer activeOutputDecorationLayer doNotExport" style="white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"></div><div class="outputLayer scrollableOutputDecorationLayer doNotExport" style="white-space: normal; font-style: normal; color: rgb(33, 33, 33); font-size: 12px;"></div></div></div></div></div><div  class = 'S7'><span></span></div><div  class = 'S1'><span style=' font-weight: bold;'>References</span></div><div  class = 'S1'><span>[1] Santosa H, Aarabi A, Perlman SB, Huppert TJ. Characterization and correction of the false-discovery rates in resting state connectivity using functional near-infrared spectroscopy. J Biomed Opt. 2017 May 1;22(5):55002. doi: 10.1117/1.JBO.22.5.055002. PMID: 28492852; PMCID: PMC5424771. </span><a href = "https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5424771/"><span>https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5424771/</span></a><span> </span></div><div  class = 'S1'><span>[2] Huppert TJ. Commentary on the statistical properties of noise and its implication on general linear models in functional near-infrared spectroscopy. Neurophotonics. 2016 Jan;3(1):010401. doi: 10.1117/1.NPh.3.1.010401. Epub 2016 Mar 2. PMID: 26989756; PMCID: PMC4773699. </span><a href = "https://pubmed.ncbi.nlm.nih.gov/26989756/"><span>https://pubmed.ncbi.nlm.nih.gov/26989756/</span></a><span> </span></div><div  class = 'S1'><span>[3] Santosa H, Zhai X, Fishburn F, Huppert T. The NIRS Brain AnalyzIR Toolbox. Algorithms. 2018 May;11(5):73. doi: 10.3390/a11050073. Epub 2018 May 16. PMID: 38957522; PMCID: PMC11218834. </span><a href = "https://pubmed.ncbi.nlm.nih.gov/38957522/"><span>https://pubmed.ncbi.nlm.nih.gov/38957522/</span></a><span> </span></div><div  class = 'S1'><span>[4] Lanka P, Bortfeld H, Huppert TJ. Correction of global physiology in resting-state functional near-infrared spectroscopy. Neurophotonics. 2022 Jul;9(3):035003. doi: 10.1117/1.NPh.9.3.035003. Epub 2022 Aug 18. PMID: 35990173; PMCID: PMC9386281. </span><a href = "https://pubmed.ncbi.nlm.nih.gov/35990173/"><span>https://pubmed.ncbi.nlm.nih.gov/35990173/</span></a><span> </span></div>
+<br>
+<!-- 
+##### SOURCE BEGIN #####
+%% nirs.modules.Connectivity
+% This module run connectivity analysis. 
+% 
+% By default, this module use AR-whitened robust correlation. This analysis 
+% model was corrected for both serially correlated noise (due to systemic physiology) 
+% and heavy-tailed noise due to motion artifacts by using a robust statistical 
+% (outlier rejection) algorithm on the basis of bisquare weighting [1]. This previously 
+% validated model has been demonstrated to show better sensitivity-specificity 
+% characteristics and statistically address both increased false discovery rates 
+% introduced by serially correlated noise due to physiology in fNIRS and outliers 
+% related to motion [2, 3]. We can also utililze short-separation (SS) measurement, 
+% if SS data is available [4].
+% 
+% 
+% 
+% *Example Usage (1):* 
+
+raw = nirs.testing.simData_connectivity_shortsep;
+
+job = nirs.modules.Resample();
+job.Fs = 1; %For speed
+job = nirs.modules.OpticalDensity(job);
+job = nirs.modules.BeerLambertLaw(job);
+hb = job.run(raw);
+
+job = nirs.modules.Connectivity();
+job.AddShortSepRegressors = true; %false if the SS-data is not available
+ConnStats1 = job.run(hb);
+
+ConnStats1.conditions %only has 1 condition: Rest
+%% 
+% 
+% 
+% *Example Usage (2):*
+% 
+% This example shows how to run connectivity analysis for each condition or 
+% block
+
+raw = nirs.testing.simData([], @(t)nirs.testing.blockedStimDesign(t,80,0,3));
+% task-based 80s duration, 0s between onset, and 3 conditions
+
+job = nirs.modules.Resample();
+job.Fs = 1; %For speed
+job = nirs.modules.OpticalDensity(job);
+job = nirs.modules.BeerLambertLaw(job);
+hb = job.run(raw);
+
+job = nirs.modules.Connectivity();
+job.divide_events = true;
+ConnStats2 = job.run(hb);
+
+ConnStats2.conditions %only has 3 conditions: 'A', 'B', and 'C'
+%% 
+% 
+% 
+% *References*
+% 
+% [1] Santosa H, Aarabi A, Perlman SB, Huppert TJ. Characterization and correction 
+% of the false-discovery rates in resting state connectivity using functional 
+% near-infrared spectroscopy. J Biomed Opt. 2017 May 1;22(5):55002. doi: 10.1117/1.JBO.22.5.055002. 
+% PMID: 28492852; PMCID: PMC5424771. <https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5424771/ 
+% https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5424771/> 
+% 
+% [2] Huppert TJ. Commentary on the statistical properties of noise and its 
+% implication on general linear models in functional near-infrared spectroscopy. 
+% Neurophotonics. 2016 Jan;3(1):010401. doi: 10.1117/1.NPh.3.1.010401. Epub 2016 
+% Mar 2. PMID: 26989756; PMCID: PMC4773699. <https://pubmed.ncbi.nlm.nih.gov/26989756/ 
+% https://pubmed.ncbi.nlm.nih.gov/26989756/> 
+% 
+% [3] Santosa H, Zhai X, Fishburn F, Huppert T. The NIRS Brain AnalyzIR Toolbox. 
+% Algorithms. 2018 May;11(5):73. doi: 10.3390/a11050073. Epub 2018 May 16. PMID: 
+% 38957522; PMCID: PMC11218834. <https://pubmed.ncbi.nlm.nih.gov/38957522/ https://pubmed.ncbi.nlm.nih.gov/38957522/> 
+% 
+% [4] Lanka P, Bortfeld H, Huppert TJ. Correction of global physiology in resting-state 
+% functional near-infrared spectroscopy. Neurophotonics. 2022 Jul;9(3):035003. 
+% doi: 10.1117/1.NPh.9.3.035003. Epub 2022 Aug 18. PMID: 35990173; PMCID: PMC9386281. 
+% <https://pubmed.ncbi.nlm.nih.gov/35990173/ https://pubmed.ncbi.nlm.nih.gov/35990173/>
+##### SOURCE END #####
+-->
+</div></body></html>
