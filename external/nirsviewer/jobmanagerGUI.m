@@ -61,13 +61,14 @@ guidata(hObject, handles);
 % UIWAIT makes jobmanagerGUI wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
-[browser,container]=javacomponent(jObject,[],handles.figure1);
-set(container,'units',get(handles.uipanel1,'units'),'position',get(handles.uipanel1,'position'));
-set(handles.uipanel1,'visible','off');
-set(container,'UserData',browser);
-set(container,'tag','jobmanager_browser')
-browser.setHtmlText('Click on avaliable modules to see help info');
+warning('off','MATLAB:ui:javacomponent:FunctionToBeRemoved');
+% jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
+% [browser,container]=javacomponent(jObject,[],handles.figure1);
+% set(container,'units',get(handles.uipanel1,'units'),'position',get(handles.uipanel1,'position'));
+% set(handles.uipanel1,'visible','off');
+% set(container,'UserData',browser);
+% set(container,'tag','jobmanager_browser')
+% browser.setHtmlText('Click on avaliable modules to see help info');
 return
 
 % --- Outputs from this function are returned to the command line.
@@ -91,15 +92,18 @@ function listbox_avaliable_Callback(hObject, eventdata, handles)
 %        contents{get(hObject,'Value')} returns selected item from listbox_avaliable
 
 info=get(handles.listbox_avaliable,'UserData');
-html=help2html(['nirs.modules.' info{get(handles.listbox_avaliable,'value'),1}]);
-delete(findobj('tag','jobmanager_browser'));
+html=help(['nirs.modules.' info{get(handles.listbox_avaliable,'value'),1}]);
 
-jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
-[browser,container]=javacomponent(jObject,[],handles.figure1);
-set(container,'units',get(handles.uipanel1,'units'),'position',get(handles.uipanel1,'position'));
-set(handles.uipanel1,'visible','off');
-set(container,'tag','jobmanager_browser')
-browser.setHtmlText(html);
+set(handles.text_html,'String',html);
+
+% delete(findobj('tag','jobmanager_browser'));
+% 
+% jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
+% [browser,container]=javacomponent(jObject,[],handles.figure1);
+% set(container,'units',get(handles.uipanel1,'units'),'position',get(handles.uipanel1,'position'));
+% set(handles.uipanel1,'visible','off');
+% set(container,'tag','jobmanager_browser')
+% browser.setHtmlText(html);
 
 return
 
@@ -412,7 +416,9 @@ set(hObject,'Userdata',jobs);
 
 import javax.swing.*
 import javax.swing.tree.*;
+warning('off','MATLAB:uitreenode:DeprecatedFunction');
 root = uitreenode('v0','jobs', 'jobs', [], false);
+warning('off','MATLAB:uitree:DeprecatedFunction');
 [mtree,container] = uitree('v0', 'Root', root);
 
 set(container,'units',get(hObject,'units'));

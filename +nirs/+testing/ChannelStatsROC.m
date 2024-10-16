@@ -145,6 +145,7 @@ classdef ChannelStatsROC
                    truth = truth_save;
                    if(iscell(obj.pipeline))
                        stats = obj.pipeline{i}.run(data);
+                       
                    else
                     stats = obj.pipeline(i).run(data);
                    end

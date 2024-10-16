@@ -77,7 +77,22 @@ classdef Dictionary
                 obj.keys        = keys;
                 obj.values      = vals;
             elseif nargin == 1
-                error('Constructor takes zero or two arguments.')
+                if(isa(keys,'struct'))
+                    tmp=keys;
+                    keys=fields(keys);
+                    for i=1:length(keys)
+                        vals{i,1}=getfield(tmp,keys{i});
+                    end
+                    assert( length(keys)==length(vals) ...
+                    && iscell(vals) ...
+                    && iscell(keys) ...
+                    && Dictionary.areUniqueKeys(keys) )  
+
+                obj.keys        = keys;
+                obj.values      = vals;
+                else
+                    error('Constructor takes zero or two arguments.')
+                end
             end
             
             obj = obj.rehash();
@@ -113,6 +128,8 @@ classdef Dictionary
                    obj.indices(lst) = obj.indices(lst) - 1;
                end
             end
+
+            obj = obj.rehash();
             
         end
         
@@ -182,6 +199,30 @@ classdef Dictionary
     methods (Hidden = true)
         % put new items
         function obj = put( obj, newKeys, newVals )
+
+            if(isnumeric(newVals)&&isempty(newVals))
+                if ischar(newKeys)
+                    newKeys = {newKeys};
+                end
+                
+                for k = 1:length(newKeys)
+                   [i, keyexists] = obj.getindex(newKeys{k});
+                   if keyexists
+                       idx = obj.indices(i);
+                       
+                       obj.keys(idx)    = [];
+                       obj.values(idx)  = [];
+                       obj.indices(i)   = 0;
+    
+                       lst = obj.indices > idx;
+                       obj.indices(lst) = obj.indices(lst) - 1;
+                   end
+                end
+
+                obj = obj.rehash();
+
+                return;
+            end
             
             if ~iscell(newKeys)
                 newKeys = {newKeys};
@@ -432,8 +473,8 @@ classdef Dictionary
             end
             obj.indices = zeros(obj.TABLE_SIZE,1,'uint32');
             for k = 1:length(obj.keys)
-                   i = obj.getindex(obj.keys{k});
-                   obj.indices(i) = k;
+               i = obj.getindex(obj.keys{k});
+               obj.indices(i) = k;
             end
         end
     end

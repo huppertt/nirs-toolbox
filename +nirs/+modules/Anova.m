@@ -215,7 +215,7 @@ classdef Anova < nirs.modules.AbstractModule
             G.F=[];
             G.df1=[];
             G.df2=[];
-            lme2 = fitlmematrix(X(:,lstKeep),beta, Z,[], 'dummyVarCoding',...
+            lme2 = fitlmematrix(full(X(:,lstKeep)),beta, full(Z),[], 'dummyVarCoding',...
                 obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
             a=lme2.anova();

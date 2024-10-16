@@ -29,6 +29,9 @@ classdef RunMatlabCode < nirs.modules.AbstractModule
                 if(~obj.rungroup)
                     for i = 1:numel(data)
                         data(i)=feval(obj.FunctionHandle,data(i));
+                        if(isa(data,'nirs.core.Data') && isa(data(i).data,'nirs.core.ChannelStats'))
+                            data=data.data;
+                        end
                     end
                 else
                     data=feval(obj.FunctionHandle,data);

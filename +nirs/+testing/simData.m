@@ -56,7 +56,7 @@ end
 
 if length(beta) == length(stim.keys)
     % oxy; deoxy
-    b = [beta; -beta/2];
+    b = [beta(:)'; -beta(:)'/2];
 else
     b = beta;
 end
@@ -135,7 +135,11 @@ if(~(iscellstr(link.type) && any(ismember(link.type,{'hbo','hbr'}))))
         
         % add to channels according to MBLL
         for j = 1:length(lst)
-            Yact = [Xhbo*e(j,1)*l(j) Xhbr*e(j,2)*l(j)] * b * 5/50 * 1e-6;
+            Yact=zeros(size(Xhbo,1),1);
+            for ii=1:size(Xhbo,2)
+                Yact = [Xhbo(:,ii)*e(j,1)*l(j) Xhbr(:,ii)*e(j,2)*l(j)] * b(:,ii) * 5/50 * 1e-6;
+                
+            end
             Y(:,lst(j)) = Y(:,lst(j)) + Yact;
         end
         

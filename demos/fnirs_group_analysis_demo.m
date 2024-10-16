@@ -21,7 +21,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
     mkdir(root_dir);
     disp('downloading sample data from bitbucket.org site');
     %% download the dataset
-    urlwrite('http://huppertlab.net/wp-content/uploads/2020/06/demo_data.zip', ...
+    urlwrite('http://huppertlab.net/wp-content/uploads/2024/05/demo_data.zip', ...
         [root_dir filesep 'demo_data.zip'])
     % This command will download the demo_data.zip file from the server.  This
     % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
@@ -226,7 +226,7 @@ disp(List);
 
 % we can edit the List and convert back.  Here, let's lower the sample rate
 % to make this run faster
-List{4}.Fs=0.5;  % change the sample rate of the Resample module
+List{3}.Fs=0.5;  % change the sample rate of the Resample module
 % note the GLM runs like O(n^2) so this will be ~100x faster to run but at the
 % loss of statistical power (ok for this demo, but I usually run at 5Hz for real studies).
 

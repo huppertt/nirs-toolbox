@@ -1,4 +1,4 @@
-function roi = convertNIFTI_to_roi(probe,BrainMap)
+function [roi,BrainMap] = convertNIFTI_to_roi(probe,BrainMap)
 
 if(isstr(BrainMap))
     name=BrainMap;
@@ -6,6 +6,9 @@ if(isstr(BrainMap))
 else
     name='custom';
 end
+
+% Only get the positive value from nifti file
+BrainMap = max(BrainMap,0);
 
 mesh=probe.getmesh;
 mesh=mesh(end);
@@ -25,6 +28,12 @@ roi=probe.link;
 roi.type=[];
 roi.weight=weights;
 roi.Name=repmat({name},height(roi),1);
+
+figure;
+probe.draw3d;
+hold on;
+mesh.draw(BrainMap);
+
 
 return
 

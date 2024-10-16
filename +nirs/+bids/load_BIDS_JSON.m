@@ -10,7 +10,8 @@ if(info{1}=='{' & info{2}(1)=='{')
     info={info{2:end-1}};
 end
 info=strcat(info{:});
-info=strrep(info,'""','","');
+info=strrep(info,'""','""');
+info=strrep(info,'},{',',');
 
 info=jsondecode(info);
 

@@ -186,7 +186,10 @@ classdef Probe
                     d(i,1) = mean(sqrt(sum(vec.^2,2)));
                 end
             else
-                vec = obj.srcPos(isrc,:) - obj.detPos(idet,:);
+                % only get source/detector pairs from link table
+                validSrcPairs = (isrc>0.&idet>0);
+
+                vec = obj.srcPos(isrc(validSrcPairs),:) - obj.detPos(idet(validSrcPairs),:);
                 d = sqrt( sum( vec.^2,2 ) );
             end
             

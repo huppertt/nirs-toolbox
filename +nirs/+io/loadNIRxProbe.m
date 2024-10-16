@@ -160,7 +160,7 @@ else
 end
 
 try
-    if(norm(mean(probeInfo.geom.NIRxHead.ext1020sys.coords3d*10))>25)
+    if (norm(mean(probeInfo.geom.NIRxHead.ext1020sys.coords3d*10))>300)
         % this is an intermediate version of the NIRx format where the head
         % is not in MNI space
         tbl=table(probeInfo.geom.NIRxHead.ext1020sys.labels',probeInfo.geom.NIRxHead.ext1020sys.coords3d(:,1)*10,...

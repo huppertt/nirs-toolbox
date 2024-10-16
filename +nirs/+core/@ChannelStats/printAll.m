@@ -1,12 +1,17 @@
-function printAll( obj, vtype, vrange, thresh, folder, ext )
+function printAll( obj, vtype, vrange, thresh, folder, ext, conditionNames )
     %% PRINTALL - draws and saves figures to a folder
     % 
     % Args:
     %     vtype, vrange, thresh  -  same as draw function
     %     folder  -  directory to save to
     %     ext     -  file extension of images (eps, tif, or jpg)
+    %     conditionNames - cell array of names for each condition to
+    %               override automatic name generation based on conditions with
+    %                (should match 1xn conditions)
 
     n = length(obj.conditions);
+
+    
     
     I = eye(n);
     
@@ -18,8 +23,16 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
     if isnumeric(utypes)
         utypes = arrayfun(@(x) {num2str(x)}, utypes);
     end
+
+    if(nargin<7)
+        for i = 1:n
+            conditionNames{i}=obj.conditions{i};
+        end
+    elseif(size(conditionNames,1)~=n)
+        error('ConditionNames must match the number of conditions');
+    end
     
-    for i = 1:length(obj.conditions)
+    for i = 1:n
         %conddata = obj.ttest(I(i,:));
         h = obj.draw(vtype, vrange, thresh,[],{obj.conditions{i}});
         for j = length(utypes):-1:1
@@ -45,7 +58,7 @@ function printAll( obj, vtype, vrange, thresh, folder, ext )
                 error('File extension not recognized.')
             end
             
-            fname = [obj.conditions{i} '_' utypes{j} '.' ext];
+            fname = [conditionNames{i} '_' utypes{j} '.' ext];
             fname = [folder filesep strjoin(strsplit(fname, ':'), '__')];
             print(f,ptype, fname)
             

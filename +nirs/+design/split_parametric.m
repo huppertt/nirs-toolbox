@@ -70,7 +70,7 @@ cond(strfind(cond,'>'))=[];
 
 % Its probably just easier to brute force our way through this.  I hate
 % coding like this, but ...
-
+sign=1;
 stim = d.stimulus(cond);
 if(isa(stim,'nirs.design.StimulusEvents'))
 

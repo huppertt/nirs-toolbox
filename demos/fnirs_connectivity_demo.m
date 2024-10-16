@@ -92,7 +92,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'demo_data'),'dir'))
     mkdir(root_dir);
     disp('downloading sample data from bitbucket.org site');
     %% download the dataset
-    urlwrite('http://huppertlab.net/wp-content/uploads/2020/06/demo_data.zip', ...
+    urlwrite('http://huppertlab.net/wp-content/uploads/2024/05/demo_data.zip', ...
         [root_dir filesep 'demo_data.zip'])
     % This command will download the demo_data.zip file from the server.  This
     % step can be skipped if you already downloaded this. This could take a few minutes if your internet conenction is slow
@@ -383,7 +383,7 @@ job.corrfcn=@(data)nirs.sFC.corr(data,false);
 % This is the normal Correlation model
 HyperStats = job.run(hb);
 
-job.corrfcn=@(data)nirs.sFC.ar_corr(data,8,true)
+job.corrfcn=@(data)nirs.sFC.ar_corr(data,16,true)
 % This is the AR-whitened robust regression version
 HyperStats_AR = job.run(hb);
 % This will take about a minute per linked scan, but will be worth the
@@ -393,12 +393,14 @@ HyperStats_AR = job.run(hb);
 % Since these two files were randomly chosen from a dataset that was NOT
 % hyerscanning, we expect no connections
 
+
 FD=0; FD_AR=0;
 for i=1:length(HyperStats)
     FD=nnz(1*(HyperStats(i).p<0.05))+FD;
     FD_AR=nnz(1*(HyperStats_AR(i).p<0.05))+FD_AR;
 end
-cnt=140^2/2*length(HyperStats);  % This happens to be 140x140 in size (1/2 full)
+
+cnt=(140^2-140)*length(HyperStats);  % This happens to be 140x140 in size (1/2 full)
 
 disp(['FDR for correlation model: ' num2str(FD/cnt*100) '%']);
 disp(['FDR for AR-Robust Correlation model: ' num2str(FD_AR/cnt*100) '%']);

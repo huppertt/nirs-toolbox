@@ -20,6 +20,9 @@ for id=1:length(data)
     end
     try
         [~,~,alldata]=xlsread(filename,sheetname);
+        if(any(ismember({alldata{1,:}},{'Array1','Array2','Array3'})))
+            alldata=alldata(2:end,:);
+        end
     catch
         if(strcmp(MException.last.identifier,'MATLAB:xlsread:WorksheetNotOpened'))
             disp(['No worksheet for: ' sheetname]);

@@ -171,6 +171,23 @@ classdef sFCStats
          
         function out = table( obj )
             %% table - returns a table of the regression stats
+               
+            if(length(obj)>1)
+                out=[];
+                cnt=[];
+                for id=1:length(obj)
+                    tt=obj(id).table;
+                    out=[out; tt];
+                    cnt(id)=height(tt);
+                end
+                out2=[];
+                for id=1:length(obj)
+                    out2=[out2; repmat(nirs.createDemographicsTable(obj(id)),cnt(id),1)];
+                end
+                out=[out2 out];
+                return;
+            end
+
             link=obj.probe.link;
             
             if(~iscellstr(link.type))

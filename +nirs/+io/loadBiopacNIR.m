@@ -282,13 +282,24 @@ if(~isempty(markers)&&size(markers.data,2)>1)
     [ua,~,uc]=unique(markers.data(:,2:3),'rows');
     stim=cell(length(ua),1);
 
+    if(size(markers.data,2)>=3)
+        hasDuration = true;
+    else
+        hasDuration = false;
+    end
+
     for i=1:length(ua)
         idx=(uc==i);
         stimCount=nnz(idx);
+        if(hasDuration)
+            markerDuration = markers.data(idx,2)';
+        else
+            markerDuration = zeros(stimCount,1);
+        end
         stim{i}=nirs.design.StimulusEvents(...
             sprintf('Mark%i_%i',ua(i,2),ua(i,1)),... %name
             markers.data(idx,1)',... %onset
-            zeros(stimCount,1),... %duration
+            markerDuration,... %duration
             ones(stimCount,1)); %amplitude
         if(isfield(log_info,'MarkerDict'))
             dictIdx=strcmp(log_info.MarkerDict.Source,sprintf('Mark%i',ua(i,2)))...

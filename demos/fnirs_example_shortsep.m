@@ -13,7 +13,7 @@ if(~exist(root_dir,'dir') || ~exist(fullfile(root_dir,'NIRx_data_SS'),'dir'))
     mkdir(root_dir);
     disp('downloading sample data from bitbucket.org site');
     %% download the dataset
-    urlwrite('http://huppertlab.net/wp-content/uploads/2020/06/NIRx_data_SS.zip', ...
+    urlwrite('http://huppertlab.net/wp-content/uploads/2024/05/NIRx_data_SS.zip', ...
         [root_dir filesep 'NIRx_data_SS.zip'])
     % This command will download the NIRx_data_SS.zip file from the server.  
     % This step can be skipped if you already downloaded this. 

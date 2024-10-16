@@ -145,7 +145,7 @@ function pushbutton_add_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton_add (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fileext={'.nirs','.oxy3','.wl1','Probe*.csv'};
+fileext={'.snirf','.nirs','.oxy3','.wl1','Probe*.csv'};
 
 tempdata=get(handles.figure1,'Userdata');
 if(isempty(tempdata)); tempdata=nirs.core.Data.empty; end;
@@ -279,15 +279,21 @@ end
 fileIdx=eventdata.Indices(1);
 str=evalc('disp(tempdata(fileIdx))');
 
-html=help2html(str);
+for i=1:10; str=strrep(str,char([32 32]),char(32)); str=strrep(str,char([10 10]),char(10)); end;
+str=strrep(str,'</a>','');
+str=strrep(str,'" style="font-weight:bold">','');
+str=strrep(str,'<a href="matlab:helpPopup','');
+set(handles.edit_datamsg,'String',textwrap(handles.edit_datamsg,{str}));
 
-delete(findobj('tag','data_browser'));
-jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
-[browser,container]=javacomponent(jObject,[],handles.figure1);
-set(container,'units',get(handles.edit_datamsg,'units'),'position',get(handles.edit_datamsg,'position'));
-set(handles.edit_datamsg,'visible','off');
-set(container,'tag','data_browser')
-browser.setHtmlText(html);
+% html=help2html(str);
+% 
+% delete(findobj('tag','data_browser'));
+% jObject=com.mathworks.mlwidgets.html.HTMLBrowserPanel;
+% [browser,container]=javacomponent(jObject,[],handles.figure1);
+% set(container,'units',get(handles.edit_datamsg,'units'),'position',get(handles.edit_datamsg,'position'));
+% set(handles.edit_datamsg,'visible','off');
+% set(container,'tag','data_browser')
+% browser.setHtmlText(html);
 
 return
 

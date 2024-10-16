@@ -50,6 +50,31 @@ classdef Mesh
                 'VariableNames',{'Draw'})]];
         end
         
+        function obj = set_fiducial_visibility(obj,visibility)
+            if(length(obj)>1)
+                for i=1:length(obj)
+                    if(~isempty(obj(i).fiducials))
+                        obj(i).fiducials.Draw(:)=visibility;
+                    end
+                end
+            else
+                if(~isempty(obj.fiducials))
+                    obj.fiducials.Draw(:)=visibility;
+                end
+            end
+        end
+
+
+        function obj = set_transparency(obj,transparency)
+            if(length(obj)>1)
+                for i=1:length(obj)
+                    obj(i).transparency=transparency;
+                end
+            else
+                obj.transparency=transparency;
+            end
+        end
+
         function obj = reducemesh(obj,fract)
             %This function reduces a mesh using the iso2mesh tools
             
