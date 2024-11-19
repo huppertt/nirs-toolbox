@@ -86,11 +86,11 @@ if(isa(stim,'nirs.design.StimulusEvents'))
             break;
         end
 
-        if(~isempty(strfind(eqn,'1')))
+        if(~isempty(strfind(eqn,'(1')))
             newstim{end+1}=stim;
             newstim{end}.name = stim.name;
             newstim{end}.amp = ones(size(stim.amp));
-            eqn(strfind(eqn,'1'))=[];
+            eqn(strfind(eqn,'1+'))=[];
             cnt=cnt+1;
         end
 
@@ -229,10 +229,10 @@ if(isa(stim,'nirs.design.StimulusEvents'))
                         unmeta=unique(metaval);
                         for ii=1:length(unmeta)
                             newstim{end+1}=stim;
-                            newstim{end}.name = [stim.name '_' meta '_' unmeta{ii}];
-                            newstim{end}.onset=newstim{end}.onset(ismember(meta,unmeta{ii}));
-                            newstim{end}.dur=newstim{end}.dur(ismember(meta,unmeta{ii}));
-                            newstim{end}.amp=newstim{end}.amp(ismember(meta,unmeta{ii}));
+                            newstim{end}.name = deblank([stim.name '_' meta '_' char(unmeta(ii))]);
+                            newstim{end}.onset=newstim{end}.onset(ismember(metaval,unmeta(ii)));
+                            newstim{end}.dur=newstim{end}.dur(ismember(metaval,unmeta(ii)));
+                            newstim{end}.amp=newstim{end}.amp(ismember(metaval,unmeta(ii)));
 
                         end
                     end

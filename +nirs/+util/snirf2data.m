@@ -404,7 +404,7 @@ for i=1:length(snirf.nirs)
             tmpdata(ii).probe=probe;
         end
         if(all(tmpdata(ii).probe.distances<10))
-            warning('Optode positions appear to be in cm (but labeled mm).  Converting');
+            %warning('Optode positions appear to be in cm (but labeled mm).  Converting');
             tmpdata(ii).probe.optodes.X=10*tmpdata(ii).probe.optodes.X;
             tmpdata(ii).probe.optodes.Y=10*tmpdata(ii).probe.optodes.Y;
             tmpdata(ii).probe.optodes.Z=10*tmpdata(ii).probe.optodes.Z;

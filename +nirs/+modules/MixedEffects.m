@@ -22,6 +22,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
         verbose=false;
         use_nonparametric_stats=false;
     end
+    properties(Hidden=true)
+        conditional_tests ={}
+    end
     
    
     methods
@@ -149,6 +152,10 @@ classdef MixedEffects < nirs.modules.AbstractModule
             for i=1:length(conds);
                 tmp.(conds{i})=1*ismember(tmp.cond,conds{i});
             end;
+
+            if(~isempty(obj.conditional_tests))
+                tmp=nirs.design.add_conditional_table_items(tmp,obj.conditional_tests);
+            end
 
             NoInter=[];
             if(~isempty(strfind(obj.formula,'{')))
@@ -517,5 +524,6 @@ classdef MixedEffects < nirs.modules.AbstractModule
     end
     
 end
+
 
 

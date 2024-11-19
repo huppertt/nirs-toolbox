@@ -1,9 +1,13 @@
-function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt )
+function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt,forceloadall )
 % nirs.io.loadDirectory
     % Searches root folder using the provided hierarchy and optional import
     % functions and returns an array of Data objects
 
-if nargin < 4
+if nargin<5
+    forceloadall=false;
+end
+
+if nargin < 4 || isempty(fileExt)
     fileExt  = {'snirf','.wl1','.nirs','.oxy3','.oxy4','_MES_*.csv','_fnirs.csv','nir5','TXT','.nir'};
 end
 if nargin < 3 || isempty(loadFunc)
@@ -37,6 +41,8 @@ end
 data = nirs.core.Data.empty;
 
 
+filesLoaded={};
+
 for i=1:length(fileExt)
     if(contains(rootFolder,'*')) % Wildcard to import all files in all subdirectories)
         files = rdir(fullfile(rootFolder,'*',['*' fileExt{i}]));
@@ -45,11 +51,19 @@ for i=1:length(fileExt)
     end
     
     for iFile = 1:length( files )
-        
+         [p,f,e]=fileparts(files(iFile).name);
+
+        ufilenm=fullfile(p,f);
+        if(ismember(ufilenm,filesLoaded) & ~forceloadall)
+            continue;
+        end
+
         % load using load function
         try
-%            disp(['loading: ' files(iFile).name]);
+           
+             disp(['loading: ' files(iFile).name]);
             tmp = loadFunc{i}( files(iFile).name );
+            filesLoaded{end+1}= ufilenm;
         catch
             if(~strcmp(fileExt{i},'TXT'))
                 warning(['error reading file: ' files(iFile).name]);
