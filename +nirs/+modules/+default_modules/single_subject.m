@@ -1,4 +1,4 @@
-dddddddddfunction jobs = single_subject
+function jobs = single_subject
 jobs=nirs.modules.ImportData();
 jobs.Input='raw';
 jobs=nirs.modules.RemoveStimless(jobs);

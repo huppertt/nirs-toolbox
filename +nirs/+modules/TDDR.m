@@ -23,8 +23,8 @@ methods
 
                     if(obj.usePCA)
                         [U,S,V]=nirs.math.mysvd(data(i).data);
-                         U=nirs.math.tddr( U , data(i).Fs,obj.split_PosNeg );
-                          data(i).data=U*S*V';
+                        U=nirs.math.tddr( U , data(i).Fs,obj.split_PosNeg );
+                        data(i).data=U*S*V';
                         
                     else
                         data(i).data = nirs.math.tddr( data(i).data , data(i).Fs ,obj.split_PosNeg);

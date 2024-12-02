@@ -7,6 +7,9 @@ classdef AnovaN < nirs.modules.AbstractModule
         model = 'linear';
         sstype=3;
     end
+    properties(Hidden=true)
+        conditional_tests ={}
+    end
 
     methods
         function obj = AnovaN( prevJob )
@@ -48,6 +51,11 @@ classdef AnovaN < nirs.modules.AbstractModule
             sd.Properties.VariableNames = {'source', 'detector', 'type'};    
            end
            
+            if(~isempty(obj.conditional_tests))
+                vars=nirs.design.add_conditional_table_items(vars,obj.conditional_tests);
+            end
+
+
             vars=vars(:,find(ismember(vars.Properties.VariableNames,obj.variables)));
             
              % preallocate group stats
