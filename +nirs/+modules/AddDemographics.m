@@ -43,7 +43,7 @@ classdef AddDemographics < nirs.modules.AbstractModule
             end
 
             idx=[];
-            varToMatchA_idx=find(strcmpi(obj.demoTable.Properties.VariableNames,obj.varToMatch));
+            varToMatchA_idx=find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch)));
             if(isempty(varToMatchA_idx))
                 if obj.allowMissing
                     warning('All entries missing in demographics table for %s!',obj.varToMatch);
@@ -56,7 +56,7 @@ classdef AddDemographics < nirs.modules.AbstractModule
             for i = 1:numel(data)
                     
 
-                if ~iscell(obj.varToMatch)
+                if ~iscell(obj.varToMatch) || length(obj.varToMatch)==1
                     % Make this case-insensitive
                     if(~isempty(varToMatchA_idx))
                         varToMatchA=obj.demoTable.Properties.VariableNames{varToMatchA_idx};
@@ -73,7 +73,7 @@ classdef AddDemographics < nirs.modules.AbstractModule
                     if(~isempty(varToMatchA_idx))
                         varToMatchA=obj.demoTable.Properties.VariableNames(find(ismember(lower(obj.demoTable.Properties.VariableNames),lower(obj.varToMatch))));
                         % row idx of demo table
-                        T = cell2table(data(i).demographics(obj.varToMatch),'VariableNames',varToMatchA);
+                        T = cell2table(data(i).demographics(obj.varToMatch{:}),'VariableNames',varToMatchA);
                       %  [~,idx] = ismember(T,obj.demoTable(:,varToMatchA));
                         idx = find(ismember(obj.demoTable(:,varToMatchA),T));
                     end
