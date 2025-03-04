@@ -177,12 +177,12 @@ classdef sFCStats
                 cnt=[];
                 for id=1:length(obj)
                     tt=obj(id).table;
-                    out=[out; tt];
+                    out=nirs.util.safe_table_vcat(out,tt);
                     cnt(id)=height(tt);
                 end
                 out2=[];
                 for id=1:length(obj)
-                    out2=[out2; repmat(nirs.createDemographicsTable(obj(id)),cnt(id),1)];
+                    out2=nirs.util.safe_table_vcat(out2,repmat(nirs.createDemographicsTable(obj(id)),cnt(id),1));
                 end
                 out=[out2 out];
                 return;

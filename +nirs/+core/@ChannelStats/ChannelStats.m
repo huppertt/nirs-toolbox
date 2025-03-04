@@ -457,7 +457,7 @@ classdef ChannelStats
                     d.scanIdx={['scan-' num2str(i)]};
                     d=repmat(d,height(s),1);
                     s=[d s];
-                    out=[out; s];
+                    out=nirs.util.safe_table_vcat({out,s});
                 end
                 return;
             end
