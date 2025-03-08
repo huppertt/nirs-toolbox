@@ -97,8 +97,13 @@ end
                 end
                 thisFile.stimulus=stims;
                 
-                %Put the stim if available in Aux
-                if any(d.aux,'all')
+                % First check if there is any stims load from s, 
+                % also check if the aux is 2 dimensional, if yes, then it
+                % is a TECHEN .nirs file
+                % otherwise, the aux could be the accelerometer data (3 dimendional) from NIRx
+                % which is already handled below
+                % then put the stim if available in aux          
+                if length(stims.keys)==0 && any(d.aux,'all') && length(size(d.aux))==2 % modified by Frank Hu, 03/08/2025
                     for idx=1:size(d.aux,2)
                         stimname = ['stim_aux' num2str(idx)];
                         tmp = nirs.util.aux2stim(d.aux(:,idx));
