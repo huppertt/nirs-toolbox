@@ -22,6 +22,8 @@ end
             continue;
         end
         disp(['Loading ' filenames{iFile}]);
+        % aux_stim_checkmark indicates whether aux is stim or aux variable
+        aux_stim_checkmark=0; 
         try
             % load data as a struct
             d = load( filenames{iFile}, '-mat' );
@@ -103,7 +105,8 @@ end
                 % otherwise, the aux could be the accelerometer data (3 dimendional) from NIRx
                 % which is already handled below
                 % then put the stim if available in aux          
-                if length(stims.keys)==0 && any(d.aux,'all') && length(size(d.aux))==2 % modified by Frank Hu, 03/08/2025
+                if length(stims.keys)==0 && any(d.aux,'all') && length(size(d.aux))==2
+                    aux_stim_checkmark=1;
                     for idx=1:size(d.aux,2)
                         stimname = ['stim_aux' num2str(idx)];
                         tmp = nirs.util.aux2stim(d.aux(:,idx));
@@ -135,7 +138,9 @@ end
                 thisFile.auxillary('brainsight')=d.brainsight;
             end
             
-            if(isfield(d,'aux') || isfield(d,'aux10')) && (~isempty(d.aux))
+            % aux_stim_checkmark make sure the aux variable is not loaded
+            % as stimulus
+            if(isfield(d,'aux') || isfield(d,'aux10')) && (~isempty(d.aux)) && aux_stim_checkmark==0
                 if(isfield(d,'aux'))
                     a=d.aux;
                 else
