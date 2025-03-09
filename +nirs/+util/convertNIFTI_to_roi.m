@@ -8,7 +8,7 @@ else
 end
 
 % Only get the positive value from nifti file
-BrainMap = max(BrainMap,0);
+% BrainMap = max(BrainMap,0);
 
 mesh=probe.getmesh;
 mesh=mesh(end);

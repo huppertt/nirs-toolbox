@@ -1,5 +1,10 @@
 function out=safe_table_vcat(tbls,tbl2)
 
+if(isempty(tbls))
+    out=tbl2;
+    return
+end
+
 if(~iscell(tbls) & nargin==2)
     tbls={tbls; tbl2};
 end
