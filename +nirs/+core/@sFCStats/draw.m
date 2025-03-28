@@ -241,7 +241,7 @@ for cIdx=1:length(obj.conditions)
                         h2=[];
                         for idx=1:length(vals)
                             if(m(idx))
-                                h2(end+1)=line(sp,X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:));
+                                h2(end+1)=line(sp,X(idx,:),Y(idx,:),Z(idx,:),'Color',colors(idx,:),'linewidth',3);
                                 set(h2(end),'Tag','fNIRS_ConnLine');
                             end
                         end
