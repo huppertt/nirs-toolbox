@@ -85,10 +85,22 @@ classdef Probe1020 < nirs.core.Probe
 
             tbl=sortrows(optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Source'));
-
+  
+            % Check if labeling is zero-based (python) or 1-based
+            Idx=nan(height(tbl),1); 
+            for i=1:height(tbl); 
+                try; 
+                    Idx(i)=str2num(tbl.Name{i}(strfind(tbl.Name{i},'-')+1:end)); 
+                end; 
+            end;
+            if(nanmin(Idx)==0)
+                add1=1;
+            else
+                add1=0;
+            end
             found=[];
             for i=1:length(lst)
-                sIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
+                sIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end))+add1;
                 srcPos(sIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
                
                 found(sIdx)=1;
@@ -119,9 +131,22 @@ classdef Probe1020 < nirs.core.Probe
             tbl=sortrows(optodes,{'Type','Name'});
             lst=find(ismember(tbl.Type,'Detector'));
 
+            % Check if labeling is zero-based (python) or 1-based
+            Idx=nan(height(tbl),1); 
+            for i=1:height(tbl); 
+                try; 
+                    Idx(i)=str2num(tbl.Name{i}(strfind(tbl.Name{i},'-')+1:end)); 
+                end; 
+            end;
+            if(nanmin(Idx)==0)
+                add1=1;
+            else
+                add1=0;
+            end
+
             found=[];
             for i=1:length(lst)
-                dIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end));
+                dIdx=str2num(tbl.Name{lst(i)}(strfind(tbl.Name{lst(i)},'-')+1:end))+add1;
                 detPos(dIdx,:)=[tbl.X(lst(i)) tbl.Y(lst(i)) tbl.Z(lst(i))];
                 
                 found(dIdx)=1;
