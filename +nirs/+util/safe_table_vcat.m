@@ -1,5 +1,10 @@
 function out=safe_table_vcat(tbls,tbl2)
 
+if(isempty(tbls))
+    out=tbl2;
+    return
+end
+
 if(~iscell(tbls) & nargin==2)
     tbls={tbls; tbl2};
 end
@@ -44,11 +49,11 @@ for i=1:length(tbls)
                 if(ischar(tbls{i}.(flds{j})))
                     tbls{i}.(flds{j})=cellstr(tbls{i}.(flds{j}));
                 else
-                    tmp=cell(height(tbls{i}),1)
+                    tmp=cell(height(tbls{i}),1);
                     for k=1:height(tbls{i}.(flds{j}))
                         tmp{k}=tbls{i}.(flds{j})(k);
                     end
-                    tbls{i}.(flds{j})=tmp
+                    tbls{i}.(flds{j})=tmp;
                 end
             end
         end
