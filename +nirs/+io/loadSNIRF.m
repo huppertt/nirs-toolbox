@@ -16,7 +16,7 @@ names=nirs.util.hdf5getnames(filename);
 
 array=cell(length(names),2);
 for i=1:length(names)
-   
+    disp([num2str(i) ' of ' num2str(length(names))])
     array{i,1}=names{i};
     try
     array{i,2}=hdf5read(filename,names{i});

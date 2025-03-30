@@ -167,8 +167,10 @@ classdef GenericData
                 end
            end
             
-           for i=1:length(lstChannels)
-               legendNames{end+1}=obj.link.type{lstChannels(i)};
+           if(~isempty(obj.link))
+               for i=1:length(lstChannels)
+                   legendNames{end+1}=obj.link.type{lstChannels(i)};
+               end
            end
             % min/max of axes
             pmin = dmin - 0.1*dsize;
