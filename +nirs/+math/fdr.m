@@ -1,18 +1,23 @@
 function q = fdr( p )
 % See http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3530395/
+
+    % number of hypothesis tests
+    m = length(p);
+    if m < 100
+        % Benjamini-Hochberg Procedure
+        q = nirs.math.BenjaminiHochberg(p);
+        return
+    end
+
     s = size(p);
     
     % sort the p values
     [p, I] = sort(p(:));
 
-    % number of hypothesis tests
-    m = length(p);
 
-    if m < 100
-        % Benjamini-Hochberg Procedure
-        pi0 = 1;
+    
         
-    elseif m < 1000
+    if m < 1000
         % Storey's method w/ point estimate
         pi0 = 0.5 / ( 1 - p(round(end/2)) );
         
