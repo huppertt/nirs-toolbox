@@ -1,4 +1,4 @@
-classdef connectivity_GLM < nirs.modules.AbstractGLM
+classdef Hyperscanning_GLM < nirs.modules.AbstractGLM
     %% GLM- this is a wrapper for the OLS, AR-IRLS, and SPM-NIRS regression programs%
     %
     % Options:
@@ -24,10 +24,12 @@ classdef connectivity_GLM < nirs.modules.AbstractGLM
         type;
         method = 'Pearson';  % WaveletMag([.05 .1]), WaveletPhase([.05 .1]);
         AddShortSepRegressors = false;
+        link;
+        linkVariable = 'hyperscan'; % hyperscan variable from nirx
         options;
     end
     methods
-        function obj = connectivity_GLM( prevJob )
+        function obj = Hyperscanning_GLM( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
             
             obj.name = 'GLM model';
@@ -83,31 +85,73 @@ classdef connectivity_GLM < nirs.modules.AbstractGLM
         end
         
         function S = runThis( obj, data )
-            
+             
+            if(~iscell(obj.linkVariable))
+                obj.linkVariable={obj.linkVariable};
+             end
+
+            if(isempty(obj.link))
+                % NIRx files have a hyperscan variable upon loading that I
+                % can use here
+                tbl=nirs.createDemographicsTable(data);
+                [tbl,idx]=sortrows(tbl,obj.linkVariable);
+                data=data(idx);
+
+
+                if(ismember(obj.linkVariable{1},nirs.createDemographicsTable(data).Properties.VariableNames))
+                    hyperscanfiles=nirs.createDemographicsTable(data).(obj.linkVariable{1});
+
+                    for i=1:length(hyperscanfiles); if(isempty(hyperscanfiles{i})); hyperscanfiles{i}=''; end; end;
+                    uniquefiles=unique(hyperscanfiles);
+                    [ia,ib]=ismember(hyperscanfiles,uniquefiles);
+
+                    for i=1:length(uniquefiles)
+                        lst=find(ib==i);
+                        ScanA(i,1)=lst(1);
+                        ScanB(i,1)=lst(2);
+                        if(length(obj.linkVariable)>1)
+                            relationship{i,1}=tbl(lst,:).(obj.linkVariable{2});
+                        else
+                            relationship{i,1}=[];
+                        end
+                    end
+
+                    OffsetA = zeros(size(ScanA));  % The time shift of the "A" files (in sec)
+                    OffsetB = zeros(size(ScanB));  % The time shift of the "B" files (in sec)
+
+                    link = table(ScanA,ScanB,OffsetA,OffsetB,relationship);
+                    obj.link=link;
+                else
+                    warning('link variable must be specified');
+                    S=nirs.core.ChannelStats;
+                    return
+                end
+            end
+
             if (obj.AddShortSepRegressors)
-                
                 j=nirs.modules.AddShortSeperationRegressors();
                 j=nirs.modules.RemoveShortSeperations(j);
             else
                 j=nirs.modules.Assert;
                 j.condition=@(data)isa(data,'nirs.core.Data');
             end
+            data=j.run(data);
             
             switch(obj.type)
                 case('OLS')
-                    j=nirs.modules.OLS(j);
+                    j=nirs.modules.OLS;
                 case('AR-IRLS');
-                    j=nirs.modules.AR_IRLS(j);
+                    j=nirs.modules.AR_IRLS;
                 case('NIRS-SPM')
-                    j=nirs.modules.NIRS_SPM_GLM(j);
+                    j=nirs.modules.NIRS_SPM_GLM;
                 case('MV-GLM')
-                    j=nirs.modules.MultiVarGLM(j);
+                    j=nirs.modules.MultiVarGLM;
                 case('Nonlinear')
-                    j=nirs.modules.nonlin_GLM(j);
+                    j=nirs.modules.nonlin_GLM;
                 case('Ordinal')
-                    j=nirs.modules.MMR_GLM(j);
+                    j=nirs.modules.MMR_GLM;
                 case('RepeatedMeasures')
-                    j=nirs.modules.repeatedMeas_GLM(j);
+                    j=nirs.modules.repeatedMeas_GLM;
                 otherwise
                     error('type not recognized');
             end
@@ -135,15 +179,50 @@ classdef connectivity_GLM < nirs.modules.AbstractGLM
                 j.regex=true;
                 j.listOfStims=Stim;
             end
-            
-           
-            for i=1:length(data)
-                data2(i)=make_ts(data(i),obj.method);
+
+            for i=1:height(obj.link)
+
+                idxA = obj.link.ScanA(i);
+                idxB = obj.link.ScanB(i);
+
+                dataA = data(idxA).data;
+                timeA = data(idxA).time+obj.link.OffsetA(i);
+                dataB = data(idxB).data;
+                timeB = data(idxB).time+obj.link.OffsetB(i);
+
+                % Make sure we are using the same time base
+                if isequal(timeA,timeB)
+                    time = timeA;
+                else
+                    time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))]';
+                    for id=1:size(dataA,2)
+                        dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
+                    end
+                    for id=1:size(dataB,2)
+                        dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
+                    end
+                    dataA=dataA(1:length(time),:);
+                    dataB=dataB(1:length(time),:);
+                end
+
+                data2(i)=make_ts(dataA,dataB, ...
+                    data(idxA).probe,data(idxB).probe,data(idxA).Fs,obj.method);
+                data2(i).time=data(idxA).time;
+                data2(i).stimulus=data(idxA).stimulus;
+                keys=data(idxB).stimulus.keys;
+                for ii=1:length(keys)
+                    if(contains(keys{ii},'SS_PCA'))
+                        data2(i).stimulus(strrep(keys{ii},'PCA','PCA_B'))=data(idxB).stimulus(keys{ii});
+                    end
+                end
+
+                data2(i).demographics=data(idxA).demographics; % For now
+
+
+
             end
-            
-            
-            S=j.run(data2);
-            
+
+                S=j.run(data2);
             
             for idx=1:length(S)
                 [~,Stim]=nirs.design.createDesignMatrix(data(idx).stimulus,data(idx).time,obj.basis);
@@ -203,14 +282,14 @@ classdef connectivity_GLM < nirs.modules.AbstractGLM
     
 end
 
-function data2= make_ts(data,method)
+function data2= make_ts(dataA,dataB,probeA,probeB,Fs,method)
 
 cnt=1;
 link=struct;
 if(strcmp(method,'Pearson'))
-    for a=1:size(data.data,2)
-        for b=a+1:size(data.data,2)
-            dd(:,cnt)=data.data(:,a).*data.data(:,b);
+    for a=1:size(dataA,2)
+        for b=1:size(dataB,2)
+            dd(:,cnt)=dataA(:,a).*dataB(:,b);
             cnt=cnt+1;
         end
     end
@@ -221,15 +300,18 @@ elseif(contains(method,'Wavelet'))
     str=strrep(str,'Mag','');
     str=strrep(str,'Phase','');
     freqband = str2num(str);
-    freqband=freqband/data.Fs;
-    for i=1:size(data.data,2);
-        [wt(:,:,i),f]=cwt(data.data(:,i));
+    freqband=freqband/Fs;
+    for i=1:size(dataA,2);
+        [wtA(:,:,i),f]=cwt(dataA(:,i));
+    end;
+    for i=1:size(dataB,2);
+        [wtB(:,:,i),f]=cwt(dataB(:,i));
     end;
 
     cnt=1;
-    for i=1:size(data.data,2);
-        for j=i+1:size(data.data,2);
-            WCOH(:,:,cnt)=wt(:,:,i).*conj(wt(:,:,j));
+    for i=1:size(dataA,2);
+        for j=1:size(dataB,2);
+            WCOH(:,:,cnt)=wtA(:,:,i).*conj(wtB(:,:,j));
             cnt=cnt+1;
         end
     end
@@ -248,23 +330,23 @@ end
 
 cnt=1;
 lst=[];
-for a=1:size(data.data,2)
-    for b=a+1:size(data.data,2)
-        link.source{cnt,1}=['src-' num2str(data.probe.link.source(a)) ':' ...
-            'det-' num2str(data.probe.link.detector(a))];
-        link.detector{cnt,1}=['src-' num2str(data.probe.link.source(b)) ':' ...
-            'det-' num2str(data.probe.link.detector(b))];
-        if(iscell(data.probe.link.type))
-            if(data.probe.link.type{a}==data.probe.link.type{b})
-                link.type{cnt,1}=data.probe.link.type{a};
+for a=1:size(dataA,2)
+    for b=1:size(dataB,2)
+        link.source{cnt,1}=['src-' num2str(probeA.link.source(a)) ':' ...
+            'det-' num2str(probeA.link.detector(a))];
+        link.detector{cnt,1}=['src-' num2str(probeB.link.source(b)) ':' ...
+            'det-' num2str(probeB.link.detector(b))];
+        if(iscell(probeA.link.type))
+            if(probeA.link.type{a}==probeB.link.type{b})
+                link.type{cnt,1}=probeA.link.type{a};
                
             else
                 lst=[lst; cnt];
                 link.type{cnt,1}=' ';
             end
         else
-            if(data.probe.link.type(a)==data.probe.link.type(b))
-                link.type(cnt,1)=data.probe.link.type(a);
+            if(probeA.link.type(a)==probeB.link.type(b))
+                link.type(cnt,1)=probeA.link.type(a);
             else
                 lst=[lst; cnt];
                 link.type(cnt,1)=NaN;
@@ -274,7 +356,8 @@ for a=1:size(data.data,2)
         cnt=cnt+1;
     end;
 end;
-data2=data;
+data2=nirs.core.Data;
+data2.probe=probeA;
 data2.data=dd;
 data2.probe.link=struct2table(link);
 data2.probe.link(lst,:)=[];

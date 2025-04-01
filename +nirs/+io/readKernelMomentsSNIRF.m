@@ -3,11 +3,12 @@ function data=readKernelMomentsSNIRF(filename)
 % nirs-toolbox nirs.core.Data structure
 
 
+
 warning('off','MATLAB:fopen:FopenAllStagedRemoval')
 snirfdata=SnirfLoad(filename);
 
 data = nirs.core.Data;
-
+data.description=filename;
 data.demographics=Dictionary(snirfdata.metaDataTags.tags);
 data.demographics('SNIRF Format')=snirfdata.formatVersion;
 
@@ -36,8 +37,6 @@ for auxIdx=1:length(snirfdata.aux)
 end
 
 data.auxillary('eeg') = getEEGfromAux(data);
-
-
 
 
 data.time=snirfdata.data.time;
@@ -98,7 +97,56 @@ probe1020.optodes=struct2table(optodes);
 
 data.probe=probe1020;
 
-return
+
+function link=getML_link(snirfdata)
+
+warning('off','MATLAB:structOnObject')
+s=struct(snirfdata.data.measurementList(1));
+for i=1:length(snirfdata.data.measurementList);
+    s(i)=struct(snirfdata.data.measurementList(i));
+end;
+link=struct2table(s);
+
+% remove empty
+flds=link.Properties.VariableNames;
+for i=1:length(flds)
+    try
+        if(isempty(vertcat(link.(flds{i}){:})))
+            link.(flds{i})=[];
+        end
+    end
+    try
+        if(isempty(vertcat(link.(flds{i})(:))))
+            link.(flds{i})=[];
+        end
+    end
+end
+link.supportedFomats=[];
+link.err=[];
+
+type=[];
+for i=1:height(link);
+    if(link.dataType==301);
+        dataType=301;
+        type(i,1)=snirfdata.probe.wavelengths(link.wavelengthIndex(i));
+        moment(i,1)=link.dataTypeIndex(i);
+    elseif(link.dataType==99999);
+        dataType=99999;
+        type{i,1}=link.dataTypeLabel{i};
+    end
+
+end
+
+link2.source=link.sourceIndex;
+link2.detector=link.detectorIndex;
+link2.type=type;
+if(dataType==301)
+    link2.moment=moment;
+end
+link=struct2table(link2);
+
+
+
 
 function eegdata = getEEGfromAux(data)
 
@@ -125,43 +173,6 @@ eegdata.stimulus=data.stimulus;
 eegdata.demographics=data.demographics;
 
 eegdata.probe=eeg.core.Probe(eegpos);
-
-return
-
-
-function link=getML_link(snirfdata)
-
-warning('off','MATLAB:structOnObject')
-s=struct(snirfdata.data.measurementList(1));
-for i=1:length(snirfdata.data.measurementList);
-    s(i)=struct(snirfdata.data.measurementList(i));
-end;
-link=struct2table(s);
-
-% remove empty
-flds=link.Properties.VariableNames;
-for i=1:length(flds)
-    try
-        isempty(vertcat(link.(flds{i}){:}));
-        link.(flds{i})=[];
-    end
-end
-link.supportedFomats=[];
-link.err=[];
-
-type=[];
-for i=1:height(link);
-    if(link.dataType==301);
-        type(i,1)=snirfdata.probe.wavelengths(link.wavelengthIndex(i));
-        moment(i,1)=link.dataTypeIndex(i);
-    end
-end
-
-link2.source=link.sourceIndex;
-link2.detector=link.detectorIndex;
-link2.type=type;
-link2.moment=moment;
-link=struct2table(link2);
 
 return
 
