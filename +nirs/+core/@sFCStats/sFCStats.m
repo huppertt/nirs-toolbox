@@ -196,7 +196,7 @@ classdef sFCStats
             
             [i,j]=meshgrid(1:height(link),1:height(link));
            
-            if(isa(obj.probe,'nirs.core.ProbeROI'))
+            if(isa(obj.probe,'nirs.core.ProbeROI') || ismember('ROI',link.Properties.VariableNames))
                 ROIFrom=link.ROI(i);
                 typeFrom=link.type(i);
                 

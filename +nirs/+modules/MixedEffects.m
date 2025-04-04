@@ -355,11 +355,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 disp(['Finished solving: time elapsed ' num2str(toc) 's']);
                 
             end
-           
-            for idx=1:length(cnames);
-                cnames{idx}=cnames{idx}(max([0 min(strfind(cnames{idx},'_'))])+1:end);
-                %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end;
-            end;
+             
+            % for idx=1:length(cnames);
+            %     cnames{idx}=cnames{idx}(max([0 min(strfind(cnames{idx},'_'))])+1:end);
+            %     %if(cnames{idx}(1)=='_'); cnames{idx}(1)=[]; end;
+            % end;
+            
             cnames = repmat(cnames, [nchan 1]);
             
             %% output

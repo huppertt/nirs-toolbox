@@ -249,11 +249,16 @@ classdef ProbeHyperscan
             curDet=0;
             for i=1:length(obj.originalprobe)
                 ltmp=obj.originalprobe(i).link;
-                ltmp.source=ltmp.source+curSrc;
-                ltmp.detector=ltmp.detector+curDet;
+                if(ismember('ROI',ltmp.Properties.VariableNames))
+                    ltmp.ROI=strcat(ltmp.ROI,[':' obj.SubjectLabels{i}]);
+                else
+                    ltmp.source=ltmp.source+curSrc;
+                    ltmp.detector=ltmp.detector+curDet;
+                    curDet=max(ltmp.detector);
+                    curSrc=max(ltmp.source);
+                end
                 ltmp.SubjectLabel=repmat(cellstr(obj.SubjectLabels{i}),height(ltmp),1);
-                curDet=max(ltmp.detector);
-                curSrc=max(ltmp.source);
+
                 link=[link; ltmp];
             end
 
