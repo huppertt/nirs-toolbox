@@ -1,13 +1,24 @@
-function data = loadSNIRF(filename,verbose)
+function data = loadSNIRF(filename,verbose,legacy)
 % this function reads in a nir5 (hdf5) formated data file
 
-if(nargin<2)
+if(nargin<2 || isempty(verbose))
     verbose=true;
+end
+
+if(nargin<3)
+    legacy=true;
 end
 
 if(verbose)
     disp(['Loading SNIRF file: ' filename]);
 end
+
+if(~legacy)
+    data = nirs.io.readSNIRFnew(filename);
+    return
+end
+
+
 
 info=hdf5info(filename);
 
@@ -114,3 +125,4 @@ end
 
 
 return
+

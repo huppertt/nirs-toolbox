@@ -83,9 +83,17 @@ classdef AddDemographics < nirs.modules.AbstractModule
                 
                 if(isempty(idx)&&~isempty(varToMatchA_idx))
                     if obj.allowMissing
-                        warning(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
+                        n=data(i).demographics(obj.varToMatch);
+                        if(isnumeric(n))
+                            n=num2str(n);
+                        end
+                        warning(['Missing entry: ' n]);
                     else
-                        error(['Missing entry: ' data(i).demographics(obj.varToMatch)]);
+                        n=data(i).demographics(obj.varToMatch);
+                        if(isnumeric(n))
+                            n=num2str(n);
+                        end
+                        error(['Missing entry: ' n]);
                     end
                 end
                 if(numel(idx)>1)
