@@ -24,13 +24,18 @@ classdef DiscardStims < nirs.modules.AbstractModule
                 if(isa(data(i),'nirs.core.Data') | isa(data(i),'eeg.core.Data') | isa(data(i),'nirs.core.GenericData'))
                     data(i).stimulus = data(i).stimulus.remove( obj.listOfStims );
                 elseif(isa(data(i),'nirs.core.sFCStats'))
-                    cond=data(i).conditions;
-                    lst=find(~ismember(cond,obj.listOfStims));
-                    data(i).R=data(i).R(:,:,lst);
-                    if(length(data(i).dfe)>1)
-                        data(i).dfe=data(i).dfe(lst);
+                    tbl=data(i).probe.connections;
+                    lst=find(ismember(tbl.type,obj.listOfStims));
+                    lst2=find(ismember(data(i).conditions,obj.listOfStims));
+                    data(i).R(lst)=[];
+                    if(length(data(i).dfe)==length(data(i).conditions))
+                        data(i).dfe(lst2)=[]
                     end
-                    data(i).conditions={data(i).conditions{lst}};
+                    data(i).probe.connections(lst,:)=[];
+                    if(isempty(data(i).ZstdErr))
+                        data(i).ZstdErr(:,lst2,:)=[];
+                        data(i).ZstdErr(:,:,lst2)=[];
+                    end
                 else
                     cond=data(i).conditions;
                     cond={cond{~ismember(cond,obj.listOfStims)}};

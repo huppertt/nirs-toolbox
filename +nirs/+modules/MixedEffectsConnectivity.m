@@ -56,7 +56,12 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             end
             
             % Let's do this per channel for now
-            n=size(S(1).R,1)*size(S(1).R,2);
+            connections=[];
+            for i=1:length(S)
+                connections=[connections; S(i).probe.connections];
+            end
+            connections=unique(connections);
+            n=height(connections);
             
             if(isa(S(1),'nirs.core.sFCStats'))
                 fld='Z';
@@ -64,15 +69,16 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 fld='F';
             end
             
-            D=zeros(length(S),n);
+            D=NaN(length(S),n);
             cond={};
             cnt=1;
             demoall=demo(1,:);
-            mask = triu(true(sqrt(n)),1);
             for i=1:length(S)
-                
+                [~,idA]=ismember(S(i).probe.connections,connections);
+                tbl=S(i).table;
                 for cIdx=1:length(S(i).conditions)
-                    D(cnt,:)=real(reshape(S(i).(fld)(:,:,cIdx),[],1));
+                    lst=find(ismember(tbl.condition,S(i).conditions{cIdx}));
+                    D(cnt,idA)=real(tbl.(fld)(lst));
                     cond{cnt,1}=S(i).conditions{cIdx};
                     bind = strfind(cond{cnt,1},'◄');
                     if ~isempty(bind)
@@ -82,6 +88,21 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                     cnt=cnt+1;
                 end
             end
+            % 
+            % mask = triu(true(sqrt(n)),1);
+            % for i=1:length(S)
+            % 
+            %     for cIdx=1:length(S(i).conditions)
+            %         D(cnt,:)=real(reshape(S(i).(fld)(:,:,cIdx),[],1));
+            %         cond{cnt,1}=S(i).conditions{cIdx};
+            %         bind = strfind(cond{cnt,1},'◄');
+            %         if ~isempty(bind)
+            %             cond{cnt,1} = cond{cnt,1}(1:bind-2);
+            %         end
+            %         demoall(cnt,:)=demo(i,:);
+            %         cnt=cnt+1;
+            %     end
+            % end
             D(D==Inf)=1/eps(1);
             D(D==-Inf)=-1/eps(1);
             
@@ -132,8 +153,8 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
              
 
             % Get results into correct layout
-            Coef = permute(reshape(Coef,[size(Coef,1) sqrt(n) sqrt(n)]),[2 3 1]);
-            StdErr = permute(reshape(StdErr,[size(StdErr,1) size(StdErr,2) sqrt(n) sqrt(n)]),[3 4 1 2]);
+            Coef = Coef(:); %permute(reshape(Coef,[size(Coef,1) sqrt(n) sqrt(n)]),[2 3 1]);
+            StdErr = permute(StdErr,[3 1 2]); % permute(reshape(StdErr,[size(StdErr,1) size(StdErr,2) sqrt(n) sqrt(n)]),[3 4 1 2]);
             
             CoefficientNames=lm.CoefficientNames;
             
@@ -155,13 +176,20 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 CoefficientNames{i} = strjoin( CoeffParts , ':' );
             end
             
-            G.conditions = CoefficientNames;
+            %G.conditions = CoefficientNames;
             G.description = 'Group Level Connectivity';
-            G.probe=S(1).probe;           
-            [n,m]=size(S(1).R);
+            G.probe=S(1).probe;   
+
+            Cnames=reshape(repmat(CoefficientNames',height(connections),1),[],1);
+            connections=repmat(connections,length(CoefficientNames),1);
+            connections.type=Cnames;
+            G.probe.connections=connections;
+            %[n,m]=size(S(1).R);
             G.R=tanh(Coef);
             G.ZstdErr = StdErr;
             G.dfe=lm.DFE;
+
+            
 
             
             %G.variables.model=models;

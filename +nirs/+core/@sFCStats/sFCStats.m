@@ -23,7 +23,7 @@ classdef sFCStats
         description     % description of data (e.g. filename)      
         probe           % Probe object describing measurement geometry
         demographics    % Dictionary containing demographics info
-        conditions;
+        
         % Results storage
         R               % correlation value (depends on model)
         dfe          	% degrees of freedom
@@ -40,12 +40,16 @@ classdef sFCStats
         t               %holds t-statistic value
         ishyperscan
         ishypersymm
-        numunique
+        conditions;
+        %numunique
     end
-    properties (Hidden = true, Dependent = true)
-        uniqueinds
-    end
+    % properties (Hidden = true, Dependent = true)
+    %     uniqueinds
+    % end
     methods
+        function conditions=get.conditions(obj)
+            conditions=unique(obj.probe.connections.type);
+        end
          function ishyperscan = get.ishyperscan(obj)
              ishyperscan = any(strcmpi(obj.probe.link.Properties.VariableNames,'hyperscan'));
          end
@@ -59,27 +63,29 @@ classdef sFCStats
          function t = get.t(obj)
 
              dfe(1:length(obj.conditions)) = obj.dfe;
-             
+             tbl=obj.probe.connections;
              for idx=1:length(obj.conditions)
+                 lst=find(ismember(tbl.type,obj.conditions{idx}));
 
                  n = dfe(idx);
                  
                  if(isempty(obj.ZstdErr))
-                     t(:,:,idx)=obj.R(:,:,idx).*sqrt((n-2)./(1-obj.R(:,:,idx).^2));
+                     t(lst,1)=obj.R(lst).*sqrt((n-2)./(1-obj.R(lst).^2));
                  else
-                     t(:,:,idx)=obj.Z(:,:,idx)./sqrt(obj.ZstdErr(:,:,idx,idx));
+                     t(lst,1)=obj.Z(lst)./sqrt(squeeze(obj.ZstdErr(:,idx,idx)));
                  end
              end
          end
          
          function p = get.p(obj)
-             for idx=1:length(obj.conditions)
-                 
-                 p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe));
-                 p(:,:,idx)=tril(p(:,:,idx),-1)+tril(p(:,:,idx),-1)'+eye(size(p(:,:,idx)));
-                 
-              
-             end
+             p=2*nirs.math.tpvalue(-abs(obj.t(:)),max(obj.dfe));
+             % for idx=1:length(obj.conditions)
+             % 
+             %     p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe));
+             %     p(:,:,idx)=tril(p(:,:,idx),-1)+tril(p(:,:,idx),-1)'+eye(size(p(:,:,idx)));
+             % 
+             % 
+             % end
          end
          
          function ishypersymm = get.ishypersymm(obj)
@@ -91,49 +97,50 @@ classdef sFCStats
             end
          end
          
-         function uniqueinds = get.uniqueinds(obj)
-            p=obj.p;
-            
-            % Select upper triangle of whole matrix or of upper-right quadrant
-            if(obj.ishypersymm)
-                mask=repmat(triu(true(size(p,1)),size(p,1)/2),1,1,size(p,3));
-            else
-                mask=repmat(triu(true(size(p,1)),1),1,1,size(p,3));
-            end
-            
-            % Mask out within-subject portion
-            if(obj.ishyperscan)
-                mask(1:end/2,1:end/2,:) = false;
-                mask(end/2+1:end,end/2+1:end,:) = false;
-            end
-            
-            uniqueinds=find(mask);
-            
-         end
-         
-         function numunique = get.numunique(obj)
-             numunique = length(obj.uniqueinds);
-         end
-         
+         % function uniqueinds = get.uniqueinds(obj)
+         %    p=obj.p;
+         % 
+         %    % Select upper triangle of whole matrix or of upper-right quadrant
+         %    if(obj.ishypersymm)
+         %        mask=repmat(triu(true(size(p,1)),size(p,1)/2),1,1,size(p,3));
+         %    else
+         %        mask=repmat(triu(true(size(p,1)),1),1,1,size(p,3));
+         %    end
+         % 
+         %    % Mask out within-subject portion
+         %    if(obj.ishyperscan)
+         %        mask(1:end/2,1:end/2,:) = false;
+         %        mask(end/2+1:end,end/2+1:end,:) = false;
+         %    end
+         % 
+         %    uniqueinds=find(mask);
+         % 
+         % end
+         % 
+         % function numunique = get.numunique(obj)
+         %     numunique = length(obj.uniqueinds);
+         % end
+         % 
          function q = get.q(obj)
                         
             p=obj.p;
-            q=ones(size(p));
-            lst = obj.uniqueinds;
-            
-            q(lst)=nirs.math.BenjaminiHochberg(p(lst));
-           
-            if(obj.ishypersymm)
-                for i=1:size(q,3)
-                    hyper = q(1:end/2,end/2+1:end,i);
-                    hyper = min(hyper,hyper');
-                    q(1:end/2,end/2+1:end,i) = hyper;
-                end
-            end
-
-            for i=1:size(q,3)
-                q(:,:,i)=min(q(:,:,i),q(:,:,i)');
-            end
+            q=nirs.math.BenjaminiHochberg(p);
+            % q=ones(size(p));
+            % lst = obj.uniqueinds;
+            % 
+            % q(lst)=nirs.math.BenjaminiHochberg(p(lst));
+            % 
+            % if(obj.ishypersymm)
+            %     for i=1:size(q,3)
+            %         hyper = q(1:end/2,end/2+1:end,i);
+            %         hyper = min(hyper,hyper');
+            %         q(1:end/2,end/2+1:end,i) = hyper;
+            %     end
+            % end
+            % 
+            % for i=1:size(q,3)
+            %     q(:,:,i)=min(q(:,:,i),q(:,:,i)');
+            % end
             
          end
          
@@ -188,14 +195,17 @@ classdef sFCStats
                 return;
             end
 
-            link=obj.probe.link;
+            link=obj.probe.link_probe;
             
             if(~iscellstr(link.type))
                 link.type=arrayfun(@(x){num2str(x)},link.type);
             end
             
-            [i,j]=meshgrid(1:height(link),1:height(link));
-           
+            %[i,j]=meshgrid(1:height(link),1:height(link));
+            i = obj.probe.connections.start;
+            j = obj.probe.connections.end;
+            
+
             if(isa(obj.probe,'nirs.core.ProbeROI'))
                 ROIFrom=link.ROI(i);
                 typeFrom=link.type(i);
@@ -220,16 +230,24 @@ classdef sFCStats
                 sourceTo=link.source(j);
                 detectorTo=link.detector(j);
                 typeTo=link.type(j);
-                out=table;
-                for i=1:length(obj.conditions)
-                    cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
-                    out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+                cond = obj.probe.connections.type;
+                out=table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                         [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                        reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
-                        reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
+                        obj.R(:),obj.Z(:),...
+                        obj.t(:),obj.p(:),obj.q(:),...
                         'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
-                        'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
-                end
+                        'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'});
+
+                % out=table;
+                % for i=1:length(obj.conditions)
+                %     cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
+                %     out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+                %         [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
+                %         reshape(obj.R(lst),size(cond)),reshape(obj.Z(lst),size(cond)),...
+                %         reshape(obj.t(lst),size(cond)),reshape(obj.p(lst),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
+                %         'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
+                %         'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
+                % end
             end
         end
         

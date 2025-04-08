@@ -430,6 +430,19 @@ for i=1:length(snirf.nirs)
                             size(snirf.nirs.stim(j).data,2)~=length(snirf.nirs(i).stim(j).dataLabels))
                         snirf.nirs.stim(j).data=snirf.nirs.stim(j).data';
                     end
+                    % When the data is 3x3, there is confusion on which way
+                    % this array was supposed to go.  COmpute the variance
+                    % over the so-called duration and amp columns and
+                    % assume that duration more consistent (lower variance)
+                    % then onset times.
+                    if(size(snirf.nirs.stim(j).data,1)==3 & size(snirf.nirs.stim(j).data,2)==3)
+                        v1=var(snirf.nirs.stim(j).data,[],1);
+                        v2=var(snirf.nirs.stim(j).data,[],2);
+                        if(v1(2)>v2(2) & v1(3)>v2(3))
+                            snirf.nirs.stim(j).data=snirf.nirs.stim(j).data';
+                        end
+                    end
+                    
 
                     tbl=struct;
                     for id=1:length(snirf.nirs(i).stim(j).dataLabels)

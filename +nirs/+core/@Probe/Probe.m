@@ -17,22 +17,23 @@ classdef Probe
     %     draw   - displays a visualization of the probe geometry
     
     properties
-        
         optodes    % table describing the src/det and any additional probe points
-        link        % table describing the connections of source/detector pairs
-	end
+      end
     
     properties( Dependent = true )
         distances   % (dependent) returns measurement distances
         srcPos      % nsrc x 3 array of source positions (mm)
         detPos      % ndet x 3 array of detector positions (mm)
         types
+        link        % table describing the connections of source/detector pairs
     end
     
     properties(Hidden = true)
         fixeddistances
+        link_probe
     end
     
+   
     methods
         function obj = Probe( srcPos, detPos, link )
             %% Probe - Creates a probe object.
@@ -84,6 +85,13 @@ classdef Probe
             obj.optodes=table(Names,Pos(:,1),Pos(:,2),Pos(:,3),Type,Units,...
                 'VariableNames',{'Name','X','Y','Z','Type','Units'});
             
+        end
+
+        function link = get.link(obj)
+            link=obj.get_link_local;
+        end
+        function obj=set.link(obj,link)
+            obj.link_probe=obj.set_link_local(link);
         end
 
         function types = get.types(obj)
@@ -240,6 +248,14 @@ classdef Probe
             
             
             obj.link(:,[1 2]) = obj.link(:, [2 1]);
+        end
+    end
+    methods (Access = protected)
+        function link = get_link_local(obj)
+            link = obj.link_probe;
+        end
+        function link = set_link_local(obj,link)
+            link = link;
         end
     end
 end

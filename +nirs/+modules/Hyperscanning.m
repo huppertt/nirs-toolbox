@@ -255,6 +255,48 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                         
                 end
                 
+                connections=[];
+                cnt=1;
+                for ii=1:length(connStats(i).conditions)
+                    for id=1:height(connStats(i).probe.originalprobe(1).link);
+                        for jd=1:height(connStats(i).probe.originalprobe(1).link);
+                            connections.start(cnt,1)=1;
+                            connections.start(cnt,2)=id;
+                            connections.end(cnt,1)=1;
+                            connections.end(cnt,2)=jd;
+                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            cnt=cnt+1;
+                        end
+                        for jd=1:height(connStats(i).probe.originalprobe(2).link);
+                            connections.start(cnt,1)=1;
+                            connections.start(cnt,2)=id;
+                            connections.end(cnt,1)=2;
+                            connections.end(cnt,2)=jd;
+                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            cnt=cnt+1;
+                        end
+                    end
+                    for id=1:height(connStats(i).probe.originalprobe(2).link);
+                        for jd=1:height(connStats(i).probe.originalprobe(1).link);
+                            connections.start(cnt,1)=2;
+                            connections.start(cnt,2)=id;
+                            connections.end(cnt,1)=1;
+                            connections.end(cnt,2)=jd;
+                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            cnt=cnt+1;
+                        end
+                        for jd=1:height(connStats(i).probe.originalprobe(2).link);
+                            connections.start(cnt,1)=2;
+                            connections.start(cnt,2)=id;
+                            connections.end(cnt,1)=2;
+                            connections.end(cnt,2)=jd;
+                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            cnt=cnt+1;
+                        end
+                    end
+                end
+                connStats(i).probe.connections=struct2table(connections);
+                connStats(i).R=connStats(i).R(:);
                 fprintf('Finished processing dyad %i of %i (%5.4g%%)\n',i,height(obj.link),100*i/height(obj.link));
                 
             end

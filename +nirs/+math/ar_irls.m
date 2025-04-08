@@ -284,14 +284,30 @@ function [stats,resid] = ar_irls( d,X,Pmax,tune,nosearch,useGPU, singlePrecision
     end
     C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
     
-    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
     
+    if(length(Xfall)>200)
+        covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
+    
+         Xf=zeros(size(Xfall{1})); for i=1:length(Xfall); Xf=Xf+Xfall{i}; end;
+         Xf=Xf/length(Xfall);
+         
+         ixtx=pinv(Xf'*Xf);
+         for i=1:size(stats.beta,2)
+           for j=i:size(stats.beta,2)
+               covb(:,:,i,j) =covb(:,:,i,j)+ixtx*C(i,j);
+               covb(:,:,j,i) =covb(:,:,j,i)+ixtx'*C(j,i);  % done to ensure symmetry
+            end
+        end
 
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            lstV=~isnan(sum(Xfall{i},2)+sum(Xfall{j},2));
-            covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
-            covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
+    else
+        covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
+        for i=1:size(stats.beta,2)
+            for j=1:size(stats.beta,2)
+                lstV=~isnan(sum(Xfall{i},2)+sum(Xfall{j},2));
+                ixtx=pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:));
+                covb(:,:,i,j) =covb(:,:,i,j)+ixtx*C(i,j);
+                covb(:,:,j,i) =covb(:,:,j,i)+ixtx'*C(j,i);  % done to ensure symmetry
+            end
         end
     end
     covb=covb/2;

@@ -55,36 +55,43 @@ function S = ttest(obj, c, b, names)
     
     ncon = size(c,2);
     dfe = zeros(1,ncon);
-    Z = zeros([size(obj.R,1) size(obj.R,2) ncon]);
+    tbl=obj.table;
+    for i=1:length(obj.conditions)
+        Z(:,i)=tbl(ismember(tbl.condition,obj.conditions{i}),:).Z;
+    end
+
     if(~isempty(obj.ZstdErr))
-        ZstdErr = zeros([size(obj.R,1) size(obj.R,2) ncon ncon]);
+        ZstdErr = obj.ZstdErr;
     else
         ZstdErr = [];
     end
     
     for cIdx=1:ncon
         
-        tmpC = permute(c(:,cIdx),[3 2 1]);
-        
-        Z(:,:,cIdx) = sum( bsxfun( @times , obj.Z , tmpC ) , 3);
+        Z2(:,cIdx) = Z*c(:,cIdx);
        
         if(~isempty(obj.ZstdErr))
-
-            tmpCT = permute(tmpC,[1 2 4 3]);
-            ZstdErr(:,:,cIdx,cIdx) = sum(sum( bsxfun( @times , bsxfun( @times , obj.ZstdErr , tmpC ) , tmpCT ) ,4),3);
-
+            for i=1:size(ZstdErr,1)
+                ZstdErr2(i,cIdx,cIdx) = c(:,cIdx)'*squeeze(ZstdErr(i,:,:))*c(:,cIdx);
+            end
         end
         
         dfe(1,cIdx) = sum(bsxfun(@times,abs(c(:,cIdx))',obj.dfe),2) ./ sum(abs(c(:,cIdx)));
         
     end
     
-    Z = bsxfun( @minus , Z , b );
+    connections=obj.probe.connections;
+    connections=connections(ismember(connections.type,connections.type{1}),:);
     
+    cnames=repmat(names,height(connections),1);
+    connections=repmat(connections,length(names),1);
+    connections.type=cnames;
+
     S=obj;
-    S.R=tanh(Z);
-    S.ZstdErr=ZstdErr;
-    S.conditions=names;
+    S.probe.connections=connections;
+    S.R=tanh(Z2(:));
+    S.ZstdErr=ZstdErr2;
+    %S.conditions=names;
     S.dfe=dfe;
     
     S.description = 'T-test';

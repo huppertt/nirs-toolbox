@@ -33,12 +33,17 @@ classdef Connectivity < nirs.modules.AbstractModule
 
             for i = 1:numel(data)
                 
-               
+                connections=[];
                 connStats(i)=nirs.core.sFCStats();
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= ['Connectivity model of ' data(i).description];
-                connStats(i).probe=data(i).probe;
+                connStats(i).probe=nirs.core.ProbeConnections(...
+                    data(i).probe.srcPos,data(i).probe.detPos,data(i).probe.link);
                 connStats(i).demographics=data(i).demographics;
+
+                connections.start=reshape(repmat(1:height(data(i).probe.link),height(data(i).probe.link),1),[],1);
+                connections.end=reshape(repmat(1:height(data(i).probe.link),height(data(i).probe.link),1)',[],1);
+                connections=struct2table(connections);
      
                 mask={}; cond={};
                 if(obj.divide_events)
@@ -67,7 +72,7 @@ classdef Connectivity < nirs.modules.AbstractModule
                             
                             connStats(i).dfe(cnt)=sum(dfe);
                             connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
-                            connStats(i).conditions{cnt}=stim.keys{idx};
+                            conditions{cnt}=stim.keys{idx};
                             cnt=cnt+1;
                         else
                             disp(['Skipping condition: ' stim.keys{idx} ...
@@ -85,10 +90,29 @@ classdef Connectivity < nirs.modules.AbstractModule
                     
                     connStats(i).dfe=dfe;
                     connStats(i).R=r;
-                    connStats(i).conditions=cellstr('rest');
+                   conditions=cellstr('rest');
                 end
-                
-                
+                conditions=reshape(conditions,[],1);
+
+                type=reshape(repmat(conditions',height(connections),1),[],1);
+                connections=repmat(connections,length(conditions));
+                connections.type=type;
+                connStats(i).probe.connections=connections;
+                connStats(i).R=connStats(i).R(:);
+
+                tbl=connStats(i).table;
+                if(iscell(tbl.TypeOrigin))
+                    lst=find(tbl.SourceOrigin==tbl.SourceDest &...
+                    tbl.DetectorOrigin==tbl.DetectorDest &...
+                    strcmp(tbl.TypeOrigin,tbl.TypeDest));
+                else
+                    lst=find(tbl.SourceOrigin==tbl.SourceDest &...
+                    tbl.DetectorOrigin==tbl.DetectorDest &...
+                    tbl.TypeOrigin==tbl.TypeDest);
+                end
+                connStats(i).probe.connections(lst,:)=[];
+                connStats(i).R(lst)=[];
+
                 disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
             end
         end

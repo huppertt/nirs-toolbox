@@ -20,7 +20,8 @@ classdef ProbeHyperscan
 
     properties
         SubjectLabels;
-        show_labels=false;;
+        show_labels=false;
+        connections;
     end
 
     properties( Dependent = true )
@@ -44,7 +45,7 @@ classdef ProbeHyperscan
         function obj = ProbeHyperscan(probe,SubjectLabels,RotateMatrix)
 
 
-            if(nargin>1)
+            if(nargin>1 && ~isempty(SubjectLabels))
                 obj.SubjectLabels=SubjectLabels;
             else
                 for i=1:length(probe)
@@ -77,12 +78,32 @@ classdef ProbeHyperscan
                     T(4,2)=cos(a);
                     obj.RotateMatrix{i}=[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1]'*[cos(a) -sin(a) 0 0; sin(a) cos(a) 0 0; 0 0 1 0; 0 0 0 1]*T;
 
-
-
-
                 end
 
             end
+            obj.connections=[];
+            obj.connections.start(1)=1;
+            obj.connections.end(1)=1;
+            obj.connections.type(1)=1;
+            obj.connections=struct2table(obj.connections);
+            obj.connections(1,:)=[];
+            % cnt=1;
+            % for i=1:length(obj.originalprobe)
+            %     for j=1:length(obj.originalprobe)
+            %         if(i~=j)
+            %             for i2=1:height(obj.originalprobe(i).link)
+            %                 for j2=1:height(obj.originalprobe(j).link)
+            %                     obj.connections.start(cnt,1)=i;
+            %                     obj.connections.start(cnt,2)=i2;
+            %                     obj.connections.end(cnt,1)=j;
+            %                     obj.connections.end(cnt,2)=j2;
+            %                     cnt=cnt+1;
+            %                 end
+            %             end
+            % 
+            %         end
+            %     end
+            % end
 
         end
 
@@ -210,32 +231,32 @@ classdef ProbeHyperscan
                 opttmp.X=xyz(:,1);
                 opttmp.Y=xyz(:,2);
                 opttmp.Z=xyz(:,3);
-                opttmp.SubjectLabel=repmat(obj.SubjectLabels{i},height(opttmp),1);
+                opttmp.SubjectLabel=repmat({obj.SubjectLabels{i}},height(opttmp),1);
 
                 ltmp=obj.originalprobe(i).link;
-                ltmp.source=ltmp.source+curSrc;
-                ltmp.detector=ltmp.detector+curDet;
+                ltmp.source=ltmp.source; %+curSrc;
+                ltmp.detector=ltmp.detector; %+curDet;
 
 
                 for j=1:height(opttmp)
                     if(ismember(opttmp.Type{j},{'Source'}))
                         n=opttmp.Name{j};
                         n=str2num(strrep(n,'Source-',''));
-                        n=['0000' num2str(n+curSrc)];
+                        n=['0000' num2str(n)]; %+curSrc)];
                         n=['Source-' n(end-3:end)];
                         opttmp.Name{j}=n;
 
                     elseif(ismember(opttmp.Type{j},{'Detector'}))
                         n=opttmp.Name{j};
                         n=str2num(strrep(n,'Detector-',''));
-                        n=['0000' num2str(n+curDet)];
+                        n=['0000' num2str(n)]; %+curDet)];
                         n=['Detector-' n(end-3:end)];
                         opttmp.Name{j}=n;
                     end
 
                 end
-                curDet=max(ltmp.detector);
-                curSrc=max(ltmp.source);
+                %curDet=max(ltmp.detector);
+                %curSrc=max(ltmp.source);
 
                 optodes=[optodes; opttmp];
             end
@@ -244,18 +265,47 @@ classdef ProbeHyperscan
 
 
         function link =get.link(obj)
-            link=table;
-            curSrc=0;
-            curDet=0;
-            for i=1:length(obj.originalprobe)
-                ltmp=obj.originalprobe(i).link;
-                ltmp.source=ltmp.source+curSrc;
-                ltmp.detector=ltmp.detector+curDet;
-                ltmp.SubjectLabel=repmat(cellstr(obj.SubjectLabels{i}),height(ltmp),1);
-                curDet=max(ltmp.detector);
-                curSrc=max(ltmp.source);
-                link=[link; ltmp];
-            end
+           
+            
+             link=[]; cnt=1;
+             for i=1:height(obj.connections)
+                 pIdx=obj.connections.start(i,1);
+                 link.sourceA(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.start(i,2));
+                 link.detectorA(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.start(i,2));
+                 if(iscell(obj.originalprobe(pIdx).link.type))
+                     link.typeA{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.start(i,2)};
+                 else
+                     link.typeA(cnt,1)=obj.originalprobe(pIdx).link.type(obj.connections.start(i,2));
+                 end
+                link.SubjectLabelA{cnt,1}=obj.SubjectLabels{pIdx};
+
+                pIdx=obj.connections.end(i,1);
+                 link.sourceB(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.end(i,2));
+                 link.detectorB(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.end(i,2));
+                 if(iscell(obj.originalprobe(pIdx).link.type))
+                     link.typeB{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.end(i,2)};
+                 else
+                     link.typeB(cnt,1)=obj.originalprobe(pIdx).link.type(obj.connections.end(i,2));
+                 end
+                link.SubjectLabelB{cnt,1}=obj.SubjectLabels{pIdx};
+                link.type{cnt,1}=obj.connections.type{i};
+                cnt=cnt+1; 
+
+             end
+               
+            % 
+            % link=table;
+            % curSrc=0;
+            % curDet=0;
+            % for i=1:length(obj.originalprobe)
+            %     ltmp=obj.originalprobe(i).link;
+            %     ltmp.source=ltmp.source+curSrc;
+            %     ltmp.detector=ltmp.detector+curDet;
+            %     ltmp.SubjectLabel=repmat(cellstr(obj.SubjectLabels{i}),height(ltmp),1);
+            %     curDet=max(ltmp.detector);
+            %     bcurSrc=max(ltmp.source);
+            %     link=[link; ltmp];
+            % end
 
         end
 

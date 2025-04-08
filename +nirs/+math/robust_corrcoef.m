@@ -16,7 +16,7 @@ mask = mask & ~isnan(d);
 d(isnan(d)) = 0;
 
 d=bsxfun(@minus,d,median(d,1));
-d=bsxfun(@rdivide,d,1.4826*mad(d,1,1));
+d=bsxfun(@rdivide,d,1.4826*mad(real(d),1,1));
 
 
 W=ones(size(d,1),1);

@@ -68,10 +68,17 @@ classdef KeepStims < nirs.modules.AbstractModule
                             bad_subjects(i)=true;
                         end
                     end
-                    data(i).R=data(i).R(:,:,isgoodcond);
-                    data(i).dfe=data(i).dfe(isgoodcond);
-                    data(i).conditions={data(i).conditions{isgoodcond}};
-                    
+                    tbl=data(i).probe.connections;
+                    lst=find(ismember(tbl.type,{conds{isgoodcond}}));
+                    data(i).R=data(i).R(lst);
+                     if(length(data(i).dfe)==length(data(i).conditions))
+                        data(i).dfe=data(i).dfe(isgoodcond);
+                     end
+                    data(i).probe.connections=data(i).probe.connections(lst,:);
+                    if(isempty(data(i).ZstdErr))
+                        data(i).ZstdErr=data(i).ZstdErr(:,isgoodcond,isgoodcond);
+                    end
+
                 elseif(isa(data(i),'nirs.core.ChannelStats'))
                     conds=data(i).variables.cond;
                     isgoodcond=false(size(conds));
