@@ -195,59 +195,71 @@ classdef sFCStats
                 return;
             end
 
-            link=obj.probe.link_probe;
-            
-            if(~iscellstr(link.type))
-                link.type=arrayfun(@(x){num2str(x)},link.type);
-            end
-            
-            %[i,j]=meshgrid(1:height(link),1:height(link));
-            i = obj.probe.connections.start;
-            j = obj.probe.connections.end;
-            
-
-            if(isa(obj.probe,'nirs.core.ProbeROI'))
-                ROIFrom=link.ROI(i);
-                typeFrom=link.type(i);
-                
-                ROITo=link.ROI(j);
-                typeTo=link.type(j);
-                out=table;
-                for i=1:length(obj.conditions)
-                    cond=repmat({obj.conditions{i}},length(ROIFrom(:)),1);
-                    out = [out; table(cond,[ROIFrom(:)],{typeFrom{:}}',...
-                        [ROITo(:)],{typeTo{:}}',...
-                        reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
-                        reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
-                        'VariableNames',{'condition','ROIOrigin','TypeOrigin',...
-                        'ROIDest','TypeDest','R','Z','t','pvalue','qvalue'})];
-                end
+            if(isa(obj.probe,'nirs.core.ProbeHyperscan') | isa(obj.probe,'nirs.core.ProbeHyperscan1020'))
+                link=obj.probe.link;
+                link.R=obj.R;
+                link.Z=obj.Z;
+                link.t=obj.t;
+                link.pvalue=obj.p;
+                link.qvalue=obj.q;
+                out=link;
+                return;
             else
-                sourceFrom=link.source(i);
-                detectorFrom=link.detector(i);
-                typeFrom=link.type(i);
-                
-                sourceTo=link.source(j);
-                detectorTo=link.detector(j);
-                typeTo=link.type(j);
-                cond = obj.probe.connections.type;
-                out=table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+
+                link=obj.probe.link_probe;
+
+                if(~iscellstr(link.type))
+                    link.type=arrayfun(@(x){num2str(x)},link.type);
+                end
+
+                %[i,j]=meshgrid(1:height(link),1:height(link));
+                i = obj.probe.connections.start;
+                j = obj.probe.connections.end;
+
+
+                if(isa(obj.probe,'nirs.core.ProbeROI'))
+                    ROIFrom=link.ROI(i);
+                    typeFrom=link.type(i);
+
+                    ROITo=link.ROI(j);
+                    typeTo=link.type(j);
+                    out=table;
+                    for i=1:length(obj.conditions)
+                        cond=repmat({obj.conditions{i}},length(ROIFrom(:)),1);
+                        out = [out; table(cond,[ROIFrom(:)],{typeFrom{:}}',...
+                            [ROITo(:)],{typeTo{:}}',...
+                            reshape(obj.R(:,:,i),size(cond)),reshape(obj.Z(:,:,i),size(cond)),...
+                            reshape(obj.t(:,:,i),size(cond)),reshape(obj.p(:,:,i),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
+                            'VariableNames',{'condition','ROIOrigin','TypeOrigin',...
+                            'ROIDest','TypeDest','R','Z','t','pvalue','qvalue'})];
+                    end
+                else
+                    sourceFrom=link.source(i);
+                    detectorFrom=link.detector(i);
+                    typeFrom=link.type(i);
+
+                    sourceTo=link.source(j);
+                    detectorTo=link.detector(j);
+                    typeTo=link.type(j);
+                    cond = obj.probe.connections.type;
+                    out=table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
                         [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
                         obj.R(:),obj.Z(:),...
                         obj.t(:),obj.p(:),obj.q(:),...
                         'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
                         'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'});
 
-                % out=table;
-                % for i=1:length(obj.conditions)
-                %     cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
-                %     out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
-                %         [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
-                %         reshape(obj.R(lst),size(cond)),reshape(obj.Z(lst),size(cond)),...
-                %         reshape(obj.t(lst),size(cond)),reshape(obj.p(lst),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
-                %         'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
-                %         'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
-                % end
+                    % out=table;
+                    % for i=1:length(obj.conditions)
+                    %     cond=repmat({obj.conditions{i}},length(sourceFrom(:)),1);
+                    %     out = [out; table(cond,[sourceFrom(:)],[detectorFrom(:)],{typeFrom{:}}',...
+                    %         [sourceTo(:)],[detectorTo(:)],{typeTo{:}}',...
+                    %         reshape(obj.R(lst),size(cond)),reshape(obj.Z(lst),size(cond)),...
+                    %         reshape(obj.t(lst),size(cond)),reshape(obj.p(lst),size(cond)),reshape(obj.q(:,:,i),size(cond)),...
+                    %         'VariableNames',{'condition','SourceOrigin','DetectorOrigin','TypeOrigin',...
+                    %         'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
+                    % end
+                end
             end
         end
         

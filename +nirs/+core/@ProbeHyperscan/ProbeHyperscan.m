@@ -83,7 +83,9 @@ classdef ProbeHyperscan
             end
             obj.connections=[];
             obj.connections.start(1)=1;
+            obj.connections.startprobe(1)=1;
             obj.connections.end(1)=1;
+            obj.connections.endprobe(1)=1;
             obj.connections.type(1)=1;
             obj.connections=struct2table(obj.connections);
             obj.connections(1,:)=[];
@@ -269,26 +271,26 @@ classdef ProbeHyperscan
             
              link=[]; cnt=1;
              for i=1:height(obj.connections)
-                 pIdx=obj.connections.start(i,1);
-                 link.sourceA(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.start(i,2));
-                 link.detectorA(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.start(i,2));
+                 pIdx=obj.connections.startprobe(i);
+                 link.sourceOrigin(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.start(i));
+                 link.detectorOrigin(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.start(i));
                  if(iscell(obj.originalprobe(pIdx).link.type))
-                     link.typeA{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.start(i,2)};
+                     link.TypeOrigin{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.start(i)};
                  else
-                     link.typeA(cnt,1)=obj.originalprobe(pIdx).link.type(obj.connections.start(i,2));
+                     link.TypeOrigin(cnt,1)=obj.originalprobe(pIdx).link.type(obj.connections.start(i));
                  end
-                link.SubjectLabelA{cnt,1}=obj.SubjectLabels{pIdx};
+                link.SubjectLabelOrigin{cnt,1}=obj.SubjectLabels{pIdx};
 
-                pIdx=obj.connections.end(i,1);
-                 link.sourceB(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.end(i,2));
-                 link.detectorB(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.end(i,2));
+                pIdx=obj.connections.endprobe(i);
+                 link.sourceDest(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.end(i));
+                 link.detectorDest(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.end(i));
                  if(iscell(obj.originalprobe(pIdx).link.type))
-                     link.typeB{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.end(i,2)};
+                     link.TypeDest{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.end(i)};
                  else
-                     link.typeB(cnt,1)=obj.originalprobe(pIdx).link.type(obj.connections.end(i,2));
+                     link.TypeDest(cnt,1)=obj.originalprobe(pIdx).link.type(obj.connections.end(i));
                  end
-                link.SubjectLabelB{cnt,1}=obj.SubjectLabels{pIdx};
-                link.type{cnt,1}=obj.connections.type{i};
+                link.SubjectLabelDest{cnt,1}=obj.SubjectLabels{pIdx};
+                link.condition{cnt,1}=obj.connections.type{i};
                 cnt=cnt+1; 
 
              end
@@ -306,24 +308,92 @@ classdef ProbeHyperscan
             %     bcurSrc=max(ltmp.source);
             %     link=[link; ltmp];
             % end
-
+            link=struct2table(link);
         end
 
         function varargout=draw( obj, varargin)
-            if(nargout>0)
-                varargout{1}=[];
-            end
-
-            pp=nirs.core.Probe;
-            pp.link=obj.link;
-            pp.optodes=obj.optodes;
-
-            if(nargout==0)
-                pp.draw(varargin{:});
-            elseif(nargout>0)
-                varargout{1}=pp.draw(varargin{:});
-            end
+           
             
+           if(length(varargin)>2 && ~isempty(varargin{3}))
+                axis_handle=varargin{3};
+            else
+                axis_handle=gca;
+            end
+            optodes= obj.optodes;
+            h={};
+            for i=1:length(obj.SubjectLabels)
+                pp=nirs.core.Probe;
+                pp.link=obj.originalprobe(i).link;
+                pp.optodes=optodes(ismember(optodes.SubjectLabel,obj.SubjectLabels{i}),:);
+                h{i}=pp.draw([],[],axis_handle,true);
+                ll{i}=pp.link(ismember(pp.link.type,pp.link.type(1)),:);
+                x=zeros(length(h{i}),1);
+                y=zeros(length(h{i}),1);
+                z=zeros(length(h{i}),1);
+                
+                for j=1:length(h{i})
+                    x(j)=mean(get(h{i}(j),'Xdata'));
+                    y(j)=mean(get(h{i}(j),'Ydata'));
+                    if(~isempty(get(h{i}(j),'Zdata')))
+                        z(j)=mean(get(h{i}(j),'Zdata'));
+                    else
+                        z(j)=NaN;
+                    end
+                end
+                pos{i}=[x y z];
+            end
+
+            link=obj.link;
+            link=link(ismember(link.TypeOrigin,link.TypeOrigin(1)) & ismember(link.TypeDest,link.TypeOrigin(1)),:);
+
+            hold(axis_handle,'on');
+            for i=1:height(link)
+                p1=find(ismember(obj.SubjectLabels,link.SubjectLabelOrigin{i}));
+                p2=find(ismember(obj.SubjectLabels,link.SubjectLabelDest{i}));
+                l1=find(ll{p1}.source==link.sourceOrigin(i) & ...
+                    ll{p1}.detector==link.detectorOrigin(i)); 
+                l2=find(ll{p2}.source==link.sourceDest(i) & ...
+                    ll{p2}.detector==link.detectorDest(i));
+                xyz1=pos{p1}(l1,:);
+                xyz2=pos{p2}(l2,:);
+                if(isnan(xyz1(3)))
+                    hl(i,1)=line([xyz1(1) xyz2(1)],[xyz1(2) xyz2(2)]);
+                else
+                    hl(i,1)=line([xyz1(1) xyz2(1)],[xyz1(2) xyz2(2)],[xyz1(3) xyz2(3)]);
+                end
+            end
+            set(hl,'linewidth',1,'color',[.7 .7 .7]);
+           
+            if(nargout>0)
+                varargout{1}=hl;
+            end
+            axis(axis_handle,'equal');
+
+            p = [optodes.X optodes.Y optodes.Z];
+
+            xmin = min(p(:,1));
+            xmax = max(p(:,1));
+
+            ymin = min(p(:,2));
+            ymax = max(p(:,2));
+
+            xl = [xmin xmax];
+            yl = [ymin ymax];
+
+            if ~all( [diff(xl) diff(yl)] > 0 )
+                xl = xlim;
+                yl = ylim;
+            end
+
+            xl = 1.2*diff(xl)/2*[-1 1]+mean(xl);
+            yl = 1.2*diff(yl)/2*[-1 1]+mean(yl);
+
+            axis(axis_handle,[xl yl]);
+
+            axis(axis_handle,'off')
+
+
+
         end
 
 

@@ -172,6 +172,7 @@ for cIdx=1:length(obj.conditions)
     utypesDest = unique(typesDest, 'stable');
     
     
+    
     % colormap
     
     z = linspace(vrange(1), vrange(2), size(cmap,1))';
@@ -182,11 +183,10 @@ for cIdx=1:length(obj.conditions)
         for ii=1:length(utypesOrigin)
             for jj=1:length(utypesDest)
                 if(strcmp(utypesOrigin(ii),utypesDest(jj)))
-                    
+                   
                     lst=find(ismember(tbl.TypeOrigin,utypesOrigin(ii)) &...
                         ismember(tbl.TypeDest,utypesDest(jj)));
-                    lstN=find(~(ismember(tbl.TypeOrigin,utypesOrigin(ii)) &...
-                        ismember(tbl.TypeDest,utypesDest(jj))));
+                   
                     
                     vals = values(lst);
                     m=mask(lst);
@@ -198,8 +198,6 @@ for cIdx=1:length(obj.conditions)
                     figure(f(cIdx));
                     sp=subplot(length(utypesOrigin),1,cnt);
                     h=obj.probe.draw([],[],sp);
-                    delete(h(lstN))
-                    h(lstN)=[];
                     
                     delete(h(find(~m)));
                     vals=vals(find(m));

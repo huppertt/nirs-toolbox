@@ -218,20 +218,16 @@ classdef ProbeHyperscan1020 < nirs.core.ProbeHyperscan
                 obj.originalprobe(i).defaultdrawfcn=obj.defaultdrawfcn;
              end
             
-             if(nargout>0)
-                varargout{1}=[];
-            end
+             
 
             if(strcmp(lower(obj.defaultdrawfcn),'2d'))
-
-                pp=nirs.core.Probe;
-                pp.link=obj.link;
-                pp.optodes=obj.optodes;
-
-                if(nargout==0)
-                    pp.draw(varargin{:});
-                elseif(nargout>0)
-                    varargout{1}=pp.draw(varargin{:});
+                optodes= obj.optodes;
+                h={};
+                for i=1:length(obj.SubjectLabels)
+                    pp=nirs.core.Probe;
+                    pp.link=obj.originalprobe(i).link;
+                    pp.optodes=optodes(ismember(optodes.SubjectLabel,obj.SubjectLabels{i}),:);
+                    h{i}=pp.draw([],[],axis_handle,true);
                 end
                 
                 c=get(gca,'children');
@@ -245,11 +241,8 @@ classdef ProbeHyperscan1020 < nirs.core.ProbeHyperscan
                     varargin{3}=gca;
                 end
                 for i=1:length(obj.originalprobe)
-                    if(nargout==0)
-                        obj.originalprobe(i).draw(varargin{:});
-                    elseif(nargout>0)
-                        varargout{i}=obj.originalprobe(i).draw(varargin{:});
-                    end
+                    hl{i}=obj.originalprobe(i).draw(varargin{:});
+                    
                     if(obj.show_labels)
                         % make sure text is always above the object
                         ang=atan2(norm(cross([1 0 0],[0 1 0]*obj.RotateMatrix{i}(1:3,1:3))),dot([1 0 0],[0 1 0]*obj.RotateMatrix{1}(1:3,1:3)));
@@ -397,7 +390,52 @@ classdef ProbeHyperscan1020 < nirs.core.ProbeHyperscan
 
 
             end
+            
+            for i=1:length(obj.SubjectLabels)
+                pp.link=obj.originalprobe(i).link;
+                ll{i}=pp.link(ismember(pp.link.type,pp.link.type(1)),:);
+                x=zeros(length(hl{i}),1);
+                y=zeros(length(hl{i}),1);
+                z=zeros(length(hl{i}),1);
 
+                for j=1:length(hl{i})
+                    x(j)=mean(get(hl{i}(j),'Xdata'));
+                    y(j)=mean(get(hl{i}(j),'Ydata'));
+                    if(~isempty(get(hl{i}(j),'Zdata')))
+                        z(j)=mean(get(hl{i}(j),'Zdata'));
+                    else
+                        z(j)=NaN;
+                    end
+                end
+                pos{i}=[x y z];
+            end
+
+            link=obj.link;
+            link=link(ismember(link.TypeOrigin,link.TypeOrigin(1)) & ismember(link.TypeDest,link.TypeOrigin(1)),:);
+
+            hold(varargin{3},'on');
+            hh=[];
+            for i=1:height(link)
+                p1=find(ismember(obj.SubjectLabels,link.SubjectLabelOrigin{i}));
+                p2=find(ismember(obj.SubjectLabels,link.SubjectLabelDest{i}));
+                l1=find(ll{p1}.source==link.sourceOrigin(i) & ...
+                    ll{p1}.detector==link.detectorOrigin(i)); 
+                l2=find(ll{p2}.source==link.sourceDest(i) & ...
+                    ll{p2}.detector==link.detectorDest(i));
+                xyz1=pos{p1}(l1,:);
+                xyz2=pos{p2}(l2,:);
+                if(isnan(xyz1(3)))
+                    hh(i,1)=line([xyz1(1) xyz2(1)],[xyz1(2) xyz2(2)]);
+                else
+                    hh(i,1)=line([xyz1(1) xyz2(1)],[xyz1(2) xyz2(2)],[xyz1(3) xyz2(3)]);
+                end
+            end
+            set(hh,'linewidth',1,'color',[.7 .7 .7]);
+            hold(varargin{3},'off');
+            
+            if(nargout>0)
+                varargout{1}=hh;
+            end
         end
     end
 

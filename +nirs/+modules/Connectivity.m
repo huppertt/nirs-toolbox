@@ -37,8 +37,12 @@ classdef Connectivity < nirs.modules.AbstractModule
                 connStats(i)=nirs.core.sFCStats();
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= ['Connectivity model of ' data(i).description];
-                connStats(i).probe=nirs.core.ProbeConnections(...
-                    data(i).probe.srcPos,data(i).probe.detPos,data(i).probe.link);
+                
+                if(isa(data(i).probe,'nirs.core.Probe1020'))
+                    connStats(i).probe=nirs.core.Probe1020Connections(data(i).probe);
+                elseif(isa(data(i).probe,'nirs.core.Probe'))
+                    connStats(i).probe=nirs.core.ProbeConnections(data(i).probe);
+                end
                 connStats(i).demographics=data(i).demographics;
 
                 connections.start=reshape(repmat(1:height(data(i).probe.link),height(data(i).probe.link),1),[],1);

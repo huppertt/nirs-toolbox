@@ -60,7 +60,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             for i=1:length(S)
                 connections=[connections; S(i).probe.connections];
             end
+            connections=connections(ismember(connections.type,connections.type(1)),:);
             connections=unique(connections);
+            
             n=height(connections);
             
             if(isa(S(1),'nirs.core.sFCStats'))
@@ -74,7 +76,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             cnt=1;
             demoall=demo(1,:);
             for i=1:length(S)
-                [~,idA]=ismember(S(i).probe.connections,connections);
+                cc=S(i).probe.connections;
+                cc=cc(ismember(cc.type,cc.type(1)),:);
+                [~,idA]=ismember(cc,connections);
                 tbl=S(i).table;
                 for cIdx=1:length(S(i).conditions)
                     lst=find(ismember(tbl.condition,S(i).conditions{cIdx}));

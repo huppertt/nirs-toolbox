@@ -23,9 +23,9 @@ keys=unique(keys);
 for j=1:length(keys)
     for i=1:length(data)
         if(iscell(data(i).demographics))
-            for j=1:length(data(i).demographics)
-                if(ismember(keys(j),data(i).demographics{j}.keys))
-                    a=data(i).demographics{j}(keys(j));
+            for j2=1:length(data(i).demographics)
+                if(ismember(keys(j),data(i).demographics{j2}.keys))
+                    a=data(i).demographics{j2}(keys(j));
                 end
             end
         else
@@ -40,9 +40,9 @@ for j=1:length(keys)
     if(ischar(a)); a=''; end;
     for i=1:length(data)
         if(iscell(data(i).demographics))
-            for j=1:length(data(i).demographics)
-                if(~ismember(keys(j),data(i).demographics{j}.keys))
-                    data(i).demographics{j}(keys(j))=a;
+            for j2=1:length(data(i).demographics)
+                if(~ismember(keys(j),data(i).demographics{j2}.keys))
+                    data(i).demographics{j2}(keys(j))=a;
                 end
             end
         else

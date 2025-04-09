@@ -1,4 +1,4 @@
-function varargout=draw( obj, colors, lineStyles, axis_handle)
+function varargout=draw( obj, colors, lineStyles, axis_handle,norescale)
     %% draw - Plots the probe geometry.
     % 
     % Args:
@@ -9,6 +9,10 @@ function varargout=draw( obj, colors, lineStyles, axis_handle)
         
     % sd pairs
 
+
+    if(nargin<5)
+        norescale=false;
+    end
     [~,unique_pairs_idx]=unique(obj.link(:,[1,2]),'rows');
     link=obj.link(sort(unique_pairs_idx),1:2);
 
@@ -38,8 +42,9 @@ function varargout=draw( obj, colors, lineStyles, axis_handle)
     
     labelOptodes( axis_handle, s, d );
     
-    rescaleAxes( axis_handle, s, d );
-    
+    if(~norescale)
+        rescaleAxes( axis_handle, s, d );
+    end
     if(nargout==1)
         varargout{1}=h;
     end

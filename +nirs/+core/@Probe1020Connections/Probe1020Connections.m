@@ -1,4 +1,4 @@
-classdef ProbeConnections < nirs.core.Probe
+classdef Probe1020Connections < nirs.core.Probe1020
     %% PROBE - This object hold nirs probe geometries.
     % 
     % Properties:
@@ -56,25 +56,49 @@ classdef ProbeConnections < nirs.core.Probe
         end
     end
     methods
-        function obj = ProbeConnections(template)
+        function obj = Probe1020Connections(template)
             %% Probe - Creates a probe object.
-            % 
-            % Args:
-            %     srcPos - (optional) nsrc x 3 array of source positions (mm)
-            %     detPos - (optional) ndet x 3 array of detector positions (mm)
-            %     link   - (optional) a table containing the columns 'source', 'detector', 
-            %              and 'type' describing the the connections between sources 
-            %              and detectors
             
-            obj.optodes=template.optodes;
-            obj.fixeddistances=template.fixeddistances;
             
-            obj.link_probe=template.link;
+            obj.optodes_registered=template.optodes_registered;   % Registered version of optodes
+            obj.braindepth=template.braindepth;  % depth of brain for modeling
+            obj.opticalproperties=template.opticalproperties;  % optical properties for modeling
 
+            obj.defaultdrawfcn=template.defaultdrawfcn;
+
+
+            obj.AP_distance=template.AP_distance;  % Distance from Oz to Fpz
+            obj.LR_distance=template.LR_distance;  % Distance from LPA to RPA
+            obj.IS_distance=template.IS_distance;  % Distance from center to Cz
+            obj.labels=template.labels;  % labels of 10-20 points
+            obj.pts1020=template.pts1020;  % 10-20 points
+            obj.mesh=template.mesh;
+            obj.fixeddistances=template.fixeddistances;
+            obj.link_probe=template.link;
+            obj.optodes=template.optodes;
             
         end
     
-      
+        function p = convertProbe1020(obj)
+            
+            p=nirs.core.Probe1020;
+            p.optodes_registered=obj.optodes_registered;   % Registered version of optodes
+            p.braindepth=obj.braindepth;  % depth of brain for modeling
+            p.opticalproperties=obj.opticalproperties;  % optical properties for modeling
+
+            p.defaultdrawfcn=obj.defaultdrawfcn;
+
+
+            p.AP_distance=obj.AP_distance;  % Distance from Oz to Fpz
+            p.LR_distance=obj.LR_distance;  % Distance from LPA to RPA
+            p.IS_distance=obj.IS_distance;  % Distance from center to Cz
+            p.labels=obj.labels;  % labels of 10-20 points
+            p.pts1020=obj.pts1020;  % 10-20 points
+            p.mesh=obj.mesh;
+            p.fixeddistances=obj.fixeddistances;
+            p.link_probe=obj.link_probe;
+            p.optodes=obj.optodes;
+        end
         
     end
 end

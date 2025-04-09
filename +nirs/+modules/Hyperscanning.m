@@ -170,6 +170,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     end
                     
                     cnt=1;
+                    conditions={};
                     for idx=1:length(stim.keys)
                         s=stim(stim.keys{idx});
                         lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
@@ -210,7 +211,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                                 
                             connStats(i).dfe(cnt)=sum(dfe);
                             connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
-                            connStats(i).conditions{cnt}=stim.keys{idx};
+                            conditions{cnt}=stim.keys{idx};
                             
                             cnt=cnt+1;
                             
@@ -251,52 +252,68 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     
                     connStats(i).dfe=dfe;
                     connStats(i).R=r;
-                    connStats(i).conditions=cellstr('rest');
+                    conditions=cellstr('rest');
                                         
                 end
                 
                 connections=[];
                 cnt=1;
-                for ii=1:length(connStats(i).conditions)
+                for ii=1:length(conditions)
                     for id=1:height(connStats(i).probe.originalprobe(1).link);
                         for jd=1:height(connStats(i).probe.originalprobe(1).link);
-                            connections.start(cnt,1)=1;
-                            connections.start(cnt,2)=id;
-                            connections.end(cnt,1)=1;
-                            connections.end(cnt,2)=jd;
-                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            connections.startprobe(cnt,1)=1;
+                            connections.start(cnt,1)=id;
+                            connections.endprobe(cnt,1)=1;
+                            connections.end(cnt,1)=jd;
+                            connections.type{cnt,1}=conditions{ii};
                             cnt=cnt+1;
                         end
                         for jd=1:height(connStats(i).probe.originalprobe(2).link);
-                            connections.start(cnt,1)=1;
-                            connections.start(cnt,2)=id;
-                            connections.end(cnt,1)=2;
-                            connections.end(cnt,2)=jd;
-                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            connections.startprobe(cnt,1)=1;
+                            connections.start(cnt,1)=id;
+                            connections.endprobe(cnt,1)=2;
+                            connections.end(cnt,1)=jd;
+                            connections.type{cnt,1}=conditions{ii};
                             cnt=cnt+1;
                         end
                     end
                     for id=1:height(connStats(i).probe.originalprobe(2).link);
                         for jd=1:height(connStats(i).probe.originalprobe(1).link);
-                            connections.start(cnt,1)=2;
-                            connections.start(cnt,2)=id;
-                            connections.end(cnt,1)=1;
-                            connections.end(cnt,2)=jd;
-                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            connections.startprobe(cnt,1)=2;
+                            connections.start(cnt,1)=id;
+                            connections.endprobe(cnt,1)=1;
+                            connections.end(cnt,1)=jd;
+                            connections.type{cnt,1}=conditions{ii};
                             cnt=cnt+1;
                         end
                         for jd=1:height(connStats(i).probe.originalprobe(2).link);
-                            connections.start(cnt,1)=2;
-                            connections.start(cnt,2)=id;
-                            connections.end(cnt,1)=2;
-                            connections.end(cnt,2)=jd;
-                            connections.type{cnt,1}=connStats(i).conditions{ii};
+                            connections.startprobe(cnt,1)=2;
+                            connections.start(cnt,1)=id;
+                            connections.endprobe(cnt,1)=2;
+                            connections.end(cnt,1)=jd;
+                            connections.type{cnt,1}=conditions{ii};
                             cnt=cnt+1;
                         end
                     end
                 end
                 connStats(i).probe.connections=struct2table(connections);
                 connStats(i).R=connStats(i).R(:);
+
+                link=connStats(i).probe.link;
+                if(iscell(link.TypeDest))
+                lst=find(link.sourceDest==link.sourceOrigin &...
+                    link.detectorDest==link.detectorOrigin &...
+                    strcmp(link.TypeOrigin,link.TypeDest) &...
+                    strcmp(link.SubjectLabelOrigin,link.SubjectLabelDest));
+                else
+                     lst=find(link.sourceDest==link.sourceOrigin &...
+                    link.detectorDest==link.detectorOrigin &...
+                    link.TypeOrigin==link.TypeDest &...
+                    strcmp(link.SubjectLabelOrigin,link.SubjectLabelDest));
+                end
+                connStats(i).probe.connections(lst,:)=[];
+                connStats(i).R(lst)=[];
+
                 fprintf('Finished processing dyad %i of %i (%5.4g%%)\n',i,height(obj.link),100*i/height(obj.link));
                 
             end

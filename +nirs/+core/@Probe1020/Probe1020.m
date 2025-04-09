@@ -19,7 +19,7 @@ classdef Probe1020 < nirs.core.Probe
         detPos3D      % ndet x 3 array of detector positions (mm)
     end
 
-    properties (Access = private)
+    properties (Access = {?nirs.core.Probe1020,?nirs.core.Probe1020Connections})
         zoom; % Flag to zoom in or show full 10-20 probe
 
         AP_distance;  % Distance from Oz to Fpz
