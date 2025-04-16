@@ -59,14 +59,18 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                     uniquefiles=unique(hyperscanfiles);
                     [ia,ib]=ismember(hyperscanfiles,uniquefiles);
                     
+                    cnt=1;
                     for i=1:length(uniquefiles)
                         lst=find(ib==i);
-                        ScanA(i,1)=lst(1);
-                        ScanB(i,1)=lst(2);
-                        if(length(obj.linkVariable)>1)
-                            relationship{i,1}=tbl(lst,:).(obj.linkVariable{2});
-                        else
-                            relationship{i,1}=[];
+                        if(length(lst)==2)
+                            ScanA(cnt,1)=lst(1);
+                            ScanB(cnt,1)=lst(2);
+                            if(length(obj.linkVariable)>1)
+                                relationship{cnt,1}=tbl(lst,:).(obj.linkVariable{2});
+                            else
+                                relationship{cnt,1}=[];
+                            end
+                            cnt=cnt+1;
                         end
                     end
                     

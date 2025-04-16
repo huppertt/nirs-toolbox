@@ -497,7 +497,7 @@ classdef ChannelStats
             out = obj;
             if nargin < 2
                 if( isa(obj(1).probe,'nirs.core.ProbeROI'))
-                    colsToSortBy = {'ROI', 'type', 'cond'};
+                    colsToSortBy = {'type','ROI', 'cond'};
                 else
                     colsToSortBy = {'source', 'detector', 'type', 'cond'};
                 end

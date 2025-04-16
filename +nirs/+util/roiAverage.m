@@ -538,11 +538,11 @@ else
     q   = nirs.math.fdr( tbl.p );
     [~,power] = nirs.math.MDC(tbl,.8,.05);
     tbl = [tbl table(q) table(power)];
-    
+    tbl=sortrows(tbl,{'Contrast','ROI','type'});
     
     ROIstats=nirs.core.ChannelStats;
     ROIstats.description='region of interest stats';
-    ROIstats.beta=tbl.Beta;
+    ROIstats.beta=cc'*beta;
     ROIstats.dfe=tbl.DF;
     ROIstats.covb=cc'*covb*cc; %----- Ted: need to check this line for compatability with NaNs
     ROIstats.demographics=data.demographics;
@@ -557,11 +557,12 @@ else
         ROIstats.categoricalvariableInfo=data.categoricalvariableInfo;
         vvs=[vvs table(tbl.model,'VariableName',{'model'})];
     end
-    
+    vvs=sortrows(vvs,{'cond','ROI','type'});
     ROIstats.variables=vvs;
     
     ROIstats.probe=nirs.core.ProbeROI(names);
-    tbl(isnan(tbl.power),:)=[];    
+    tbl(isnan(tbl.power),:)=[];  
+    tbl=sortrows(tbl,{'Contrast','ROI','type'});
 end
 
 
