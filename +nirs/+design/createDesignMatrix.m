@@ -32,140 +32,172 @@ stim_keys=matlab.lang.makeValidName(stim_keys);
 
 X = []; names = {};
 for iKey = 1:length(stim_keys)
-    
+
     if(~isempty(stim_vals{iKey}))
-    % get stim vector
-    stimVector = stim_vals{iKey}.getStimVector( t );
-    
-    if(isa( stim_vals{iKey},'nirs.design.StimulusVector'))
-        if isempty(type)
-            if basis.iskey( stim_keys{iKey}  );
-                basisObj = basis( stim_keys{iKey} );
-            elseif basis.iskey( 'StimulusVector' );
-                basisObj = basis( 'StimulusVector' );
+        % get stim vector
+        stimVector = stim_vals{iKey}.getStimVector( t );
+
+        if(isa( stim_vals{iKey},'nirs.design.StimulusVector'))
+            if isempty(type)
+                if basis.iskey( stim_keys{iKey}  );
+                    basisObj = basis( stim_keys{iKey} );
+                elseif basis.iskey( 'StimulusVector' );
+                    basisObj = basis( 'StimulusVector' );
+                else
+                    if(stim_vals{iKey}.convolve_by_default)
+                        basisObj = basis( 'default' );
+                        x=stimVector;
+                    else
+                        x=stimVector;
+                        basisObj=[];
+                    end
+                end
             else
-                x=stimVector;
-                basisObj=[];
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {{stim_keys{iKey},type}} );
+                elseif basis.iskey({'StimulusVector',type})
+                    basisObj = basis( {{'StimulusVector',type}} );
+                else
+                    if(stim_vals{iKey}.convolve_by_default)
+                        basisObj = basis( 'default' );
+                        x=stimVector;
+                    else
+                        x=stimVector;
+                        basisObj=[];
+                    end
+                end
+            end
+        elseif((isa( stim_vals{iKey},'nirs.design.OrdinalVector')))
+            if isempty(type)
+                if basis.iskey( stim_keys{iKey}  );
+                    basisObj = basis( stim_keys{iKey} );
+                elseif basis.iskey( 'StimulusVector' );
+                    basisObj = basis( 'StimulusVector' );
+                else
+                    if(stim_vals{iKey}.convolve_by_default)
+                        basisObj = basis( 'default' );
+                        x=stimVector;
+                    else
+                        x=stimVector;
+                        basisObj=[];
+                    end
+                end
+            else
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {{stim_keys{iKey},type}} );
+                elseif basis.iskey({'StimulusVector',type})
+                    basisObj = basis( {{'StimulusVector',type}} );
+                else
+                    if(stim_vals{iKey}.convolve_by_default)
+                        basisObj = basis( 'default' );
+                        x=stimVector;
+                    else
+                        x=stimVector;
+                        basisObj=[];
+                    end
+                end
+            end
+        elseif((isa( stim_vals{iKey},'nirs.design.CategoricalVector')))
+            if isempty(type)
+                if basis.iskey( stim_keys{iKey}  );
+                    basisObj = basis( stim_keys{iKey} );
+                elseif basis.iskey( 'StimulusVector' );
+                    basisObj = basis( 'StimulusVector' );
+                else
+                    if(stim_vals{iKey}.convolve_by_default)
+                        basisObj = basis( 'default' );
+                        x=stimVector;
+                    else
+                        x=stimVector;
+                        basisObj=[];
+                    end
+                end
+            else
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {{stim_keys{iKey},type}} );
+                elseif basis.iskey({'StimulusVector',type})
+                    basisObj = basis( {{'StimulusVector',type}} );
+                else
+                    if(stim_vals{iKey}.convolve_by_default)
+                        basisObj = basis( 'default' );
+                        x=stimVector;
+                    else
+                        x=stimVector;
+                        basisObj=[];
+                    end
+                end
             end
         else
-            if basis.iskey( {stim_keys{iKey},type} );
-                basisObj = basis( {{stim_keys{iKey},type}} );
-            elseif basis.iskey({'StimulusVector',type})
-                basisObj = basis( {{'StimulusVector',type}} );
+            % get basis object
+            if isempty(type)
+                if basis.iskey( stim_keys{iKey} );
+                    basisObj = basis( stim_keys{iKey} );
+                else
+                    basisObj = basis( 'default' );
+                end
             else
-                x=stimVector;
-                basisObj=[];
+                if basis.iskey( {stim_keys{iKey},type} );
+                    basisObj = basis( {stim_keys{iKey},type} );
+                elseif basis.iskey({'default',type})
+                    basisObj = basis( {'default',type} );
+                else
+                    basisObj = basis( 'default' );
+                end
+            end
+
+            if(isstr(basisObj))
+                f=dir(fullfile(fileparts(which('nirs.design.change_stimulus_duration')),'+basis'));
+                for ii=1:length(f);
+                    [~,ff{ii}]=fileparts(f(ii).name);
+                    ff2{ii}=lower(ff{ii});
+                end
+                basisObj=ff{ismember(ff2,lower(basisObj))};
+
+                basisObj=['basisObj=nirs.design.basis.' basisObj ';'];
+                try
+                    eval(basisObj);
+                catch
+                    warning(['Basis type: ' basisObj ' not found']);
+                    disp(['Options are:']);
+
+                    disp(strvcat(ff));
+                    error('Exiting: bad basis');
+                end
+            end
+
+
+
+
+           
+        end
+        if(~isempty(basisObj))
+            % apply basis to stim vector
+            if(isa(basisObj,'nirs.design.basis.FIR'))
+                [x,basisObj.nbins] = basisObj.convert( stimVector, t );
+            else
+                [x] = basisObj.convert( stimVector, t );
             end
         end
-    elseif((isa( stim_vals{iKey},'nirs.design.OrdinalVector')))
-        if isempty(type)
-            if basis.iskey( stim_keys{iKey}  );
-                basisObj = basis( stim_keys{iKey} );
-            elseif basis.iskey( 'StimulusVector' );
-                basisObj = basis( 'StimulusVector' );
+
+        % append to variable names & design matrix
+        if size(x,2) > 1
+            if(isa(basisObj,'nirs.design.basis.FIR') && basisObj.nbins(1)<0)
+                bin=[basisObj.nbins(1):basisObj.nbins(2)];
+                offset=-basisObj.nbins(1)*basisObj.binwidth;
             else
-                x=stimVector;
-                basisObj=[];
+                bin=1:size(x,2);
+                offset=0;
+            end
+
+
+            for k = 1:size(x,2)
+                names{end+1} = [stim_keys{iKey} ':' sprintf('%02i',bin(k))];
             end
         else
-            if basis.iskey( {stim_keys{iKey},type} );
-                basisObj = basis( {{stim_keys{iKey},type}} );
-            elseif basis.iskey({'StimulusVector',type})
-                basisObj = basis( {{'StimulusVector',type}} );
-            else
-                x=stimVector;
-                basisObj=[];
-            end
+            names{end+1} = stim_keys{iKey};
         end
-    elseif((isa( stim_vals{iKey},'nirs.design.CategoricalVector')))
-        if isempty(type)
-            if basis.iskey( stim_keys{iKey}  );
-                basisObj = basis( stim_keys{iKey} );
-            elseif basis.iskey( 'StimulusVector' );
-                basisObj = basis( 'StimulusVector' );
-            else
-                x=stimVector;
-                basisObj=[];
-            end
-        else
-            if basis.iskey( {stim_keys{iKey},type} );
-                basisObj = basis( {{stim_keys{iKey},type}} );
-            elseif basis.iskey({'StimulusVector',type})
-                basisObj = basis( {{'StimulusVector',type}} );
-            else
-                x=stimVector;
-                basisObj=[];
-            end
-        end
-    else
-        % get basis object
-        if isempty(type)
-            if basis.iskey( stim_keys{iKey} );
-                basisObj = basis( stim_keys{iKey} );
-            else
-                basisObj = basis( 'default' );
-            end
-        else
-            if basis.iskey( {stim_keys{iKey},type} );
-                basisObj = basis( {stim_keys{iKey},type} );
-            elseif basis.iskey({'default',type})
-                basisObj = basis( {'default',type} );
-            else
-                basisObj = basis( 'default' );
-            end
-        end
-        
-        if(isstr(basisObj))
-            f=dir(fullfile(fileparts(which('nirs.design.change_stimulus_duration')),'+basis'));
-            for ii=1:length(f);
-                [~,ff{ii}]=fileparts(f(ii).name);
-                ff2{ii}=lower(ff{ii});
-            end
-            basisObj=ff{ismember(ff2,lower(basisObj))};
-            
-            basisObj=['basisObj=nirs.design.basis.' basisObj ';'];
-            try
-                eval(basisObj);
-            catch
-                warning(['Basis type: ' basisObj ' not found']);
-                disp(['Options are:']);
-                
-                disp(strvcat(ff));
-                error('Exiting: bad basis');
-            end
-        end
-        
-        
-        
-        
-        % apply basis to stim vector
-        if(isa(basisObj,'nirs.design.basis.FIR'))
-            [x,basisObj.nbins] = basisObj.convert( stimVector, t );
-        else
-            [x] = basisObj.convert( stimVector, t );
-        end
-    end
-    
-    
-    % append to variable names & design matrix
-    if size(x,2) > 1
-        if(isa(basisObj,'nirs.design.basis.FIR') && basisObj.nbins(1)<0)
-            bin=[basisObj.nbins(1):basisObj.nbins(2)];
-            offset=-basisObj.nbins(1)*basisObj.binwidth;
-        else
-            bin=1:size(x,2);
-            offset=0;
-        end
-        
-        
-        for k = 1:size(x,2)
-            names{end+1} = [stim_keys{iKey} ':' sprintf('%02i',bin(k))];
-        end
-    else
-        names{end+1} = stim_keys{iKey};
-    end
-    X=setfield(X,stim_keys{iKey},x);
-    %X = [X x];
+        X=setfield(X,stim_keys{iKey},x);
+        %X = [X x];
     end
 end
 

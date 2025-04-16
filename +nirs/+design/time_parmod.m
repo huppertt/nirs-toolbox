@@ -42,3 +42,4 @@ end
 
 st.time=t;
 st.vector=s;
+st.convolve_by_default=true;

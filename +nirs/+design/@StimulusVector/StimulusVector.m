@@ -7,6 +7,7 @@ classdef StimulusVector
         vector
         time
         regressor_no_interest=false;
+        convolve_by_default=false;
     end
     
     methods
