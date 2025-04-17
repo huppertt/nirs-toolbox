@@ -59,12 +59,20 @@ if ~isempty(callers)
     end
 end
 
-% meas types
-if(length(obj)>1)
-    types=vertcat(obj.variables);
-    types=types.type;
+if(isa(obj.probe,'nirs.core.ProbeHyperscan'))
+    tmp.types=strcat(obj(1).variables.TypeOrigin,'_',obj(1).variables.TypeDest);
+    for id=2:length(obj)
+        tmp(id).types=strcat(obj(id).variables.TypeOrigin,'_',obj(id).variables.TypeDest);  
+    end
+    types=vertcat(tmp.types);
 else
-    types = obj.variables.type;
+    % meas types
+    if(length(obj)>1)
+        types=vertcat(obj.variables);
+        types=types.type;
+    else
+        types = obj.variables.type;
+    end
 end
 % convert to strings for consistency in loop below
 if any(isnumeric(types))
@@ -147,13 +155,22 @@ for iType = 1:length(utypes)
             
             colors = cmap(idx, :);
             
+            if(isa(obj.probe,'nirs.core.ProbeHyperscan') || ...
+                    isa(obj.probe,'nirs.core.ProbeConnections'))
+                % The lines need to be alot thinner for connectivity
+                % drawing
+                ms=[2 1];
+            else
+                ms=[8 4];
+            end
+
             % line styles
             lineStyles = {};
             for i = 1:length(idx)
                 if m(i)
-                    lineStyles(i,:) = {'LineStyle', '-', 'LineWidth', 8};
+                    lineStyles(i,:) = {'LineStyle', '-', 'LineWidth', ms(1)};
                 else
-                    lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', 4};
+                    lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', ms(2)};
                 end
             end
             
@@ -207,7 +224,11 @@ for iType = 1:length(utypes)
                     a = get(f(hind),'CurrentAxes');
                 end
                 
-                types = obj(ii).variables.type;
+                if(isa(obj(ii).probe,'nirs.core.ProbeHyperscan'))
+                    types=strcat(obj(ii).variables.TypeOrigin,'_',obj(ii).variables.TypeDest);
+                else
+                    types = obj(ii).variables.type;
+                end
                 if any(isnumeric(types))
                     types = cellfun(@(x) {num2str(x)}, num2cell(types));
                 end
@@ -228,14 +249,23 @@ for iType = 1:length(utypes)
                 [~, idx] = min(abs(idx), [], 1);
                 
                 colors = cmap(idx, :);
+
+                if(isa(obj.probe,'nirs.core.ProbeHyperscan') || ...
+                        isa(obj.probe,'nirs.core.ProbeConnections'))
+                    % The lines need to be alot thinner for connectivity
+                    % drawing
+                    ms=[2 1];
+                else
+                    ms=[8 4];
+                end
                 
                 % line styles
                 lineStyles = {};
                 for i = 1:length(idx)
                     if m(i)
-                        lineStyles(i,:) = {'LineStyle', '-', 'LineWidth', 8};
+                        lineStyles(i,:) = {'LineStyle', '-', 'LineWidth', ms(1)};
                     else
-                        lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', 4};
+                        lineStyles(i,:) = {'LineStyle', '--', 'LineWidth', ms(2)};
                     end
                 end
                 
@@ -245,7 +275,8 @@ for iType = 1:length(utypes)
                     a=axes;
                 end
                 hh=obj(ii).probe.draw(colors, lineStyles,a);
-                
+                [~,ord]=sort(abs(vals),'descend');
+                uistack(hh(ord),'top');
                 set(hh(isnan(vals)),'visible','off');
                 
                 c = colorbar; colormap(cmap); caxis(vrange);

@@ -36,7 +36,11 @@ classdef ProbeConnections < nirs.core.Probe
             for i=1:height(link)
                 st=link.source{i};
                 en=link.detector{i};
-                typ=link.type{i}(1:strfind(link.type{i},'_')-1);
+                if(~isempty(strfind(link.type{i},'_')))
+                    typ=link.type{i}(1:strfind(link.type{i},'_')-1);
+                else
+                    typ=link.type{i};
+                end
                 sIdxA=str2num(st(min(strfind(st,'S-')+2:st(strfind(st,':'))-1)));
                 dIdxA=str2num(st(strfind(st,':')+3:end));
                 sIdxB=str2num(en(min(strfind(en,'S-')+2:st(strfind(en,':'))-1)));

@@ -55,6 +55,14 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
                 end
             end
             
+            
+            for i=1:length(S)
+                cnt(i)=height(S(i).probe.connections);
+            end
+            if(length(unique(cnt))>1)
+                warning('Mismatched probe sizes are experimental');
+            end
+
             % Let's do this per channel for now
             connections=[];
             for i=1:length(S)

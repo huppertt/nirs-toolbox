@@ -210,6 +210,8 @@ for cIdx=1:length(obj.conditions)
                            
                      end
                      [~,ord]=sort(abs(vals),'descend');
+                      
+                    uistack(h(ord),'top');
                      cnt=cnt+1;
                 end
             end

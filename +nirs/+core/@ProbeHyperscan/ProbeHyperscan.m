@@ -22,6 +22,7 @@ classdef ProbeHyperscan
         SubjectLabels;
         show_labels=false;
         connections;
+        issymettric=false;
     end
 
     properties( Dependent = true )
@@ -185,6 +186,23 @@ classdef ProbeHyperscan
 
 
         end
+        
+        function [mask,varargout] = connectionsmask(obj)
+            n=0;
+            for i=1:length(obj.originalprobe)
+                n(i)=height(obj.originalprobe(i).link);
+            end
+            mask=zeros(sum(n),sum(n));
+            for id=1:height(obj.connections); 
+                i(id,1)=obj.connections.start(id)+sum(n(1:obj.connections.startprobe(id)-1));
+                j(id,1)=obj.connections.end(id)+sum(n(1:obj.connections.endprobe(id)-1)); 
+                mask(i(id),j(id))=1; 
+            end;
+            if(nargout==2)
+                varargout{1}=[i j];
+            end
+
+        end
 
         function srcPos = get.srcPos(obj)
             %% This function returns the src pos (in mm)
@@ -272,8 +290,8 @@ classdef ProbeHyperscan
              link=[]; cnt=1;
              for i=1:height(obj.connections)
                  pIdx=obj.connections.startprobe(i);
-                 link.sourceOrigin(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.start(i));
-                 link.detectorOrigin(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.start(i));
+                 link.SourceOrigin(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.start(i));
+                 link.DetectorOrigin(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.start(i));
                  if(iscell(obj.originalprobe(pIdx).link.type))
                      link.TypeOrigin{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.start(i)};
                  else
@@ -282,8 +300,8 @@ classdef ProbeHyperscan
                 link.SubjectLabelOrigin{cnt,1}=obj.SubjectLabels{pIdx};
 
                 pIdx=obj.connections.endprobe(i);
-                 link.sourceDest(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.end(i));
-                 link.detectorDest(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.end(i));
+                 link.SourceDest(cnt,1)=obj.originalprobe(pIdx).link.source(obj.connections.end(i));
+                 link.DetectorDest(cnt,1)=obj.originalprobe(pIdx).link.detector(obj.connections.end(i));
                  if(iscell(obj.originalprobe(pIdx).link.type))
                      link.TypeDest{cnt,1}=obj.originalprobe(pIdx).link.type{obj.connections.end(i)};
                  else
@@ -350,10 +368,10 @@ classdef ProbeHyperscan
             for i=1:height(link)
                 p1=find(ismember(obj.SubjectLabels,link.SubjectLabelOrigin{i}));
                 p2=find(ismember(obj.SubjectLabels,link.SubjectLabelDest{i}));
-                l1=find(ll{p1}.source==link.sourceOrigin(i) & ...
-                    ll{p1}.detector==link.detectorOrigin(i)); 
-                l2=find(ll{p2}.source==link.sourceDest(i) & ...
-                    ll{p2}.detector==link.detectorDest(i));
+                l1=find(ll{p1}.source==link.SourceOrigin(i) & ...
+                    ll{p1}.detector==link.DetectorOrigin(i)); 
+                l2=find(ll{p2}.source==link.SourceDest(i) & ...
+                    ll{p2}.detector==link.DetectorDest(i));
                 xyz1=pos{p1}(l1,:);
                 xyz2=pos{p2}(l2,:);
                 if(isnan(xyz1(3)))
@@ -362,8 +380,33 @@ classdef ProbeHyperscan
                     hl(i,1)=line([xyz1(1) xyz2(1)],[xyz1(2) xyz2(2)],[xyz1(3) xyz2(3)]);
                 end
             end
-            set(hl,'linewidth',1,'color',[.7 .7 .7]);
-           
+
+            if(nargin>1)
+                colors=varargin{1};
+            else
+                colors=[];
+            end
+            if isempty(colors)
+                colors = repmat([0.7 0.7 .7], [length(hl) 1]);
+            elseif size(colors,1) == 1
+                colors = repmat(colors, [length(hl) 1]);
+            end
+            if(nargin>2)
+                lineStyles=varargin{2};
+            else
+                lineStyles=[];
+            end
+            if isempty(lineStyles)
+                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 1}, [length(hl) 1]);
+            elseif size(lineStyles, 1) == 1
+                lineStyles = repmat({'LineStyle', '-', 'LineWidth', 1}, [length(hl) 1]);
+            end
+            
+            for i=1:length(hl); 
+                set(hl(i),'Color',colors(i,:)); 
+                set(hl(i),lineStyles{i,:})
+            end;
+            
             if(nargout>0)
                 varargout{1}=hl;
             end

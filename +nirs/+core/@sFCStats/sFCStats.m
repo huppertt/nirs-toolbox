@@ -51,7 +51,8 @@ classdef sFCStats
             conditions=unique(obj.probe.connections.type);
         end
          function ishyperscan = get.ishyperscan(obj)
-             ishyperscan = any(strcmpi(obj.probe.link.Properties.VariableNames,'hyperscan'));
+             ishyperscan = (isa(obj.probe,'nirs.core.ProbeHyperscan') || isa(obj.probe,'nirs.core.ProbeHyperscan1020'));
+             %any(strcmpi(obj.probe.link.Properties.VariableNames,'hyperscan'));
          end
         
          function Z = get.Z( obj )
@@ -90,8 +91,7 @@ classdef sFCStats
          
          function ishypersymm = get.ishypersymm(obj)
             if obj.ishyperscan
-                hyper = obj.Z(1:end/2,end/2+1:end,:); % select the between-subject portion of matrix
-                ishypersymm = (norm(reshape(hyper,size(hyper,1),[])-reshape(permute(hyper,[2 1 3]),size(hyper,1),[]))<eps(1)*10);
+                ishypersymm = obj.probe.issymettric;
             else
                 ishypersymm = false;
             end

@@ -45,7 +45,7 @@ classdef DiscardTypes < nirs.modules.AbstractModule
                             lst=[lst; find(~strcmp(tbl.TypeOrigin,tbl.TypeDest))];
 
 
-                            lsta=[lsta; find(~strcmp(tbl(lsta,:).TypeOrigin,tbl(lsta,:).TypeDest))];
+                            lsta=[lsta; find(~strcmp(tbl(lstc,:).TypeOrigin,tbl(lstc,:).TypeDest))];
                         else
                             lst=[lst; find(tbl.TypeOrigin~=tbl.TypeDest)];
 
@@ -59,8 +59,7 @@ classdef DiscardTypes < nirs.modules.AbstractModule
                     if(~isempty(data(i).ZstdErr))
                         data(i).ZstdErr(lsta,:,:)=[];
                     end
-
-
+               
                 else
                     switch class(data)
                         case {'nirs.core.Data'}

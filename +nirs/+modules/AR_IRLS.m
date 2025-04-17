@@ -67,7 +67,20 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                             ismember('ROI',probe.link.Properties.VariableNames))
                         [link, idx] = nirs.util.sortrows(probe.link, {'ROI','type'});
                     else
-                        [link, idx] = nirs.util.sortrows(probe.link, {'source', 'detector','type'});
+                        if(isa(probe,'nirs.core.ProbeHyperscan'))
+                            link=probe.link;
+                            tmp.source=strcat('S',num2str(link.SourceOrigin),'-',...
+                                'D',num2str(link.DetectorOrigin),...
+                                '-',link.SubjectLabelOrigin);
+                            tmp.detector=strcat('S',num2str(link.SourceDest),'-',...
+                                'D',num2str(link.DetectorDest),...
+                                '-',link.SubjectLabelDest);
+                            tmp.type=strcat(link.TypeOrigin,'-',link.TypeDest);
+                            [~, idx] = nirs.util.sortrows(struct2table(tmp),{'source', 'detector','type'});
+                            link=link(idx,:);
+                        else
+                            [link, idx] = nirs.util.sortrows(probe.link, {'source', 'detector','type'});
+                        end
                     end
                     
                 elseif(~isempty(strfind(class(probe),'eeg')))

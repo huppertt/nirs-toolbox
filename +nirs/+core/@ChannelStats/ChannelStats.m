@@ -495,6 +495,9 @@ classdef ChannelStats
         function out = sorted( obj, colsToSortBy )
             %% sorted - returns sorted stats by columns in variables
             out = obj;
+            if( isa(obj(1).probe,'nirs.core.ProbeHyperscan'))
+                return;
+            end
             if nargin < 2
                 if( isa(obj(1).probe,'nirs.core.ProbeROI'))
                     colsToSortBy = {'ROI', 'type', 'cond'};
