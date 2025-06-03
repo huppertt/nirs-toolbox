@@ -173,17 +173,31 @@ classdef MixedEffects < nirs.modules.AbstractModule
 
             obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
-            
+
             try
-                lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
+                data_tbl = [table(beta,'VariableNames',{respvar}) tmp];
+                varNames = data_tbl.Properties.VariableNames;
+
+                for i = 1:numel(varNames)
+                    var = data_tbl.(varNames{i});
+                    if ~isnumeric(var) && ~islogical(var)
+                        % Convert to categorical if not already
+                        if ~iscategorical(var)
+                            var = categorical(var);
+                        end
+                        % Reorder categories alphabetically
+                        data_tbl.(varNames{i}) = reordercats(var);
+                    end
+                end
+                lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
                     obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
-                
+
                 X = lm1.designMatrix('Fixed');
                 Z = lm1.designMatrix('Random');
-                 cnames = lm1.CoefficientNames(:);
+                cnames = lm1.CoefficientNames(:);
             catch
-                % This was added to handle the case where (e.g.) one subject group has tasks that are not in the other group. 
-                
+                % This was added to handle the case where (e.g.) one subject group has tasks that are not in the other group.
+
                 [a,err]=lasterr;
                 if(strcmp(err,'stats:classreg:regr:lmeutils:StandardLinearLikeMixedModel:MustBeFullRank_X'))
                     t=[table(beta,'VariableNames',{respvar}) tmp];
@@ -221,7 +235,22 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     if(length(lstrm)>0)
                         missing.(missing.Properties.VariableNames{5+[1:length(lstrm)]})=randn(height(missing),1);
                     end
-                    lm1 = fitlme([t; missing], obj.formula, 'dummyVarCoding',...
+
+                    data_tbl = [t; missing];
+                    varNames = data_tbl.Properties.VariableNames;
+
+                    for i = 1:numel(varNames)
+                        var = data_tbl.(varNames{i});
+                        if ~isnumeric(var) && ~islogical(var)
+                            % Convert to categorical if not already
+                            if ~iscategorical(var)
+                                var = categorical(var);
+                            end
+                            % Reorder categories alphabetically
+                            data_tbl.(varNames{i}) = reordercats(var);
+                        end
+                    end
+                    lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
                         obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
                     
                     X = lm1.designMatrix('Fixed');
