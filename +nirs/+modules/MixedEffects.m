@@ -68,8 +68,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
             LstV=[];
             vars = table();
             for i = 1:length(S)
-                
-               lstValid=~isnan(S(i).tstat);
+
+                lstValid=~isnan(S(i).tstat);
                 LstV=[LstV; lstValid];
                 % coefs
                 if ~isempty(strfind(obj.formula(1:strfind(obj.formula,'~')-1),'tstat'))
@@ -77,9 +77,9 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 else
                     b = [b; S(i).beta];
                 end
-                
+
                 % whitening transform
-                
+
                 if(obj.weighted)
                     if(obj.verbose)
                         nirs.util.flushstdout(1);
@@ -94,14 +94,14 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     iw(lstValid,lstValid)=u*sqrt(s);
                     iW = blkdiag(iW, iw );
                 end
-                
-                
+
+
                 %                L = chol(S(i).covb,'upper');
                 %                W = blkdiag(W,pinv(L));
-                
+
                 % table of variables
                 file_idx = repmat(i, [height(S(i).variables) 1]);
-                
+
                 if(~isempty(demo))
                     vars = [vars;
                         [table(file_idx) S(i).variables repmat(demo(i,:), [height(S(i).variables) 1])]
@@ -111,25 +111,25 @@ classdef MixedEffects < nirs.modules.AbstractModule
                         [table(file_idx) S(i).variables]];
                 end
             end
-            
+
             % sort
             if(~ismember('source',vars.Properties.VariableNames) & ...
                     ismember('ROI',vars.Properties.VariableNames))
                 [vars, idx] = nirs.util.sortrows(vars, {'ROI', 'type'});
-                
+
                 % list for first source
                 [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
                 sd.Properties.VariableNames = {'ROI', 'type'};
-                
-                
-                
+
+
+
             else
-                
-            [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
-            
-            % list for first source
-            [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
-            sd.Properties.VariableNames = {'source', 'detector', 'type'};
+
+                [vars, idx] = nirs.util.sortrows(vars, {'source', 'detector', 'type'});
+
+                % list for first source
+                [sd, ~,lst] = nirs.util.uniquerows(table(vars.source, vars.detector, vars.type));
+                sd.Properties.VariableNames = {'source', 'detector', 'type'};
             end
             
             
@@ -280,6 +280,29 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 iW = speye(size(X,1));
             end
             
+            if(size(X,1)~=height(vars))
+                % handle the case when one files have different
+                % probe/measurement sized
+                dd=[];
+                for i=1:height(sd);
+                    tmp=data_tbl;
+                    tmp.source(:)=sd(i,:).source;
+                    tmp.detector(:)=sd(i,:).detector;
+                    tmp.type(:)=sd(i,:).type;
+                    dd=[dd; tmp];
+                end;
+                if(iscellstr(vars.type))
+                    dd.type=cellstr(dd.type);
+                end
+                if(iscellstr(vars.cond))
+                    dd.cond=cellstr(dd.cond);
+                end
+                dd=dd(:,ismember(dd.Properties.VariableNames,{'file_idx','source','detector','type','cond'}));
+                lst=find(~ismember(dd,vars));
+                X(lst,:)=[];
+                Z(lst,:)=[];
+            end
+
             %% put them back in the original order
             vars(idx,:) = vars;
             X(idx, :)   = X;
