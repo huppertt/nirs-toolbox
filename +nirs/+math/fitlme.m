@@ -147,6 +147,8 @@ if robust_flag
         sigma = max( sigma , sqrt((sigma2 * xrank^2 + sigma_robust^2 * nT) / (xrank^2 + nT)) );
     end
     
+   
+
     % Calculate covariance betas
     Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
     Iq = spdiags(ones(nZ,1),0,nZ,nZ);
@@ -154,7 +156,16 @@ if robust_flag
     Q1 = ((X'*Z*Lambda)*S) / R;
     R1R1t = X'*X - Q1*Q1';
     R1 = cholSafe(R1R1t,'lower');
-    invR1 = R1(1:xrank,1:xrank) \ eye(xrank);
+    
+    if(xrank<size(X,2))
+        warning('low rank X.  Using psuedo-inverse');
+        invR1=pinv(R1);
+    else
+        invR1 = R1(1:xrank,1:xrank) \ eye(xrank);
+    
+    end
+
+    
     covb = sigma^2*(invR1'*invR1);
     w0 = diag(w);
     w = zeros(nT0,1);
