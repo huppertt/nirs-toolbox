@@ -121,7 +121,12 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 [sd, ~,lst] = nirs.util.uniquerows(table(vars.ROI, vars.type));
                 sd.Properties.VariableNames = {'ROI', 'type'};
 
-
+            % if(ismember('NameKernel',vars.Properties.VariableNames))
+            %   [vars, idx] = nirs.util.sortrows(vars, {'NameKernel', 'type'});
+            % 
+            %     % list for first source
+            %     [sd, ~,lst] = nirs.util.uniquerows(table(vars.NameKernel, vars.type));
+            %     sd.Properties.VariableNames = {'NameKernel', 'type'};
 
             else
 
@@ -298,7 +303,8 @@ classdef MixedEffects < nirs.modules.AbstractModule
                     dd.cond=cellstr(dd.cond);
                 end
                 dd=dd(:,ismember(dd.Properties.VariableNames,{'file_idx','source','detector','type','cond'}));
-                lst=find(~ismember(dd,vars));
+                vars2=vars(:,ismember(vars.Properties.VariableNames,{'file_idx','source','detector','type','cond'}));
+                lst=find(~ismember(dd,vars2));
                 X(lst,:)=[];
                 Z(lst,:)=[];
             end

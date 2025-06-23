@@ -92,11 +92,39 @@ optodes3D.Z = [   snirfdata.probe.sourcePos3D(:,3);...
     snirfdata.probe.detectorPos3D(:,3);...
     snirfdata.probe.landmarkPos3D(:,3)];
 
+
+
+for id=1:length(optodes.Type)
+    idx=str2num(optodes.Name{id}(strfind(optodes.Name{id},'-')+1:end));
+    if(strcmp(optodes.Type{id},'Source'))
+        optodes.NameKernel{id,1}=lower(snirfdata.probe.sourceLabels{idx});
+    elseif((strcmp(optodes.Type{id},'Detector')))
+        optodes.NameKernel{id,1}=lower(snirfdata.probe.detectorLabels{idx});
+    else
+        optodes.NameKernel{id,1}=optodes.Name{id};
+    end
+end
+for id=1:length(optodes3D.Type)
+    idx=str2num(optodes3D.Name{id}(strfind(optodes3D.Name{id},'-')+1:end));
+    if(strcmp(optodes3D.Type{id},'Source'))
+        optodes3D.NameKernel{id,1}=lower(snirfdata.probe.sourceLabels{idx});
+    elseif((strcmp(optodes3D.Type{id},'Detector')))
+        optodes3D.NameKernel{id,1}=lower(snirfdata.probe.detectorLabels{idx});
+    else
+        optodes3D.NameKernel{id,1}=optodes3D.Name{id};
+    end
+end
+
 probe1020.optodes_registered=struct2table(optodes3D);
 probe1020.optodes=struct2table(optodes);
 
 data.probe=probe1020;
 
+for idx=1:height(data.probe.link); 
+    NN{idx,1}=strcat(snirfdata.probe.sourceLabels{data.probe.link.source(idx)},...
+        '_',snirfdata.probe.detectorLabels{data.probe.link.detector(idx)}); 
+end;
+data.probe.link.NameKernel=lower(NN);
 
 function link=getML_link(snirfdata)
 

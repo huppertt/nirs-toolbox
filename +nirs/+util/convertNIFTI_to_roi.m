@@ -29,10 +29,10 @@ roi.type=[];
 roi.weight=weights;
 roi.Name=repmat({name},height(roi),1);
 
-figure;
-probe.draw3d;
-hold on;
-mesh.draw(BrainMap);
+% figure;
+% probe.draw3d;
+% hold on;
+% mesh.draw(BrainMap);
 
 
 return

@@ -103,8 +103,45 @@ if(~isempty(snirfdata.probe.detectorPos3D))
         snirfdata.probe.detectorPos3D(:,3);...
         snirfdata.probe.landmarkPos3D(:,3)];
 
+    if(contains(snirfdata.metaDataTags.tags.Model,'flow'))
+        % This is a Kernel flow system
+        disp('Kernel system detected');
+        for id=1:length(optodes.Type)
+            idx=str2num(optodes.Name{id}(strfind(optodes.Name{id},'-')+1:end));
+            if(strcmp(optodes.Type{id},'Source'))
+                optodes.NameKernel{id,1}=lower(snirfdata.probe.sourceLabels{idx});
+            elseif((strcmp(optodes.Type{id},'Detector')))
+                optodes.NameKernel{id,1}=lower(snirfdata.probe.detectorLabels{idx});
+            else
+                optodes.NameKernel{id,1}=optodes.Name{id};
+            end
+        end
+        for id=1:length(optodes3D.Type)
+            idx=str2num(optodes3D.Name{id}(strfind(optodes3D.Name{id},'-')+1:end));
+            if(strcmp(optodes3D.Type{id},'Source'))
+                optodes3D.NameKernel{id,1}=lower(snirfdata.probe.sourceLabels{idx});
+            elseif((strcmp(optodes3D.Type{id},'Detector')))
+                optodes3D.NameKernel{id,1}=lower(snirfdata.probe.detectorLabels{idx});
+            else
+                optodes3D.NameKernel{id,1}=optodes3D.Name{id};
+            end
+        end
+    end
+
+
+
     probe1020.optodes_registered=struct2table(optodes3D);
     probe1020.optodes=struct2table(optodes);
+
+    if(contains(snirfdata.metaDataTags.tags.Model,'flow'))
+        % This is a Kernel flow system
+
+        for idx=1:height(probe1020.link);
+            NN{idx,1}=strcat(snirfdata.probe.sourceLabels{probe1020.link.source(idx)},...
+                '_',snirfdata.probe.detectorLabels{probe1020.link.detector(idx)});
+        end;
+        probe1020.link.NameKernel=lower(NN);
+     end
 
     data.probe=probe1020;
 else

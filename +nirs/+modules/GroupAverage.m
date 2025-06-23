@@ -128,7 +128,8 @@ classdef GroupAverage < nirs.modules.AbstractModule
             obj.formula=nirs.util.verify_formula([table(beta) tmp], obj.formula,true);
             respvar = obj.formula(1:strfind(obj.formula,'~')-1);
             
-            lm1 = fitlme([table(beta,'VariableNames',{respvar}) tmp], obj.formula, 'dummyVarCoding',...
+            data_tbl=[table(beta,'VariableNames',{respvar}) tmp];
+            lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
                 'full', 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
             
             X = lm1.designMatrix('Fixed');
@@ -138,6 +139,34 @@ classdef GroupAverage < nirs.modules.AbstractModule
             
             X = kron(speye(nchan), X);
             
+            if ~obj.weighted
+                W = speye(size(X,1));
+                iW = speye(size(X,1));
+            end
+            
+            if(size(X,1)~=height(vars))
+                % handle the case when one files have different
+                % probe/measurement sized
+                dd=[];
+                for i=1:height(sd);
+                    tmp=data_tbl;
+                    tmp.source(:)=sd(i,:).source;
+                    tmp.detector(:)=sd(i,:).detector;
+                    tmp.type(:)=sd(i,:).type;
+                    dd=[dd; tmp];
+                end;
+                if(iscellstr(vars.type))
+                    dd.type=cellstr(dd.type);
+                end
+                if(iscellstr(vars.cond))
+                    dd.cond=cellstr(dd.cond);
+                end
+                dd=dd(:,ismember(dd.Properties.VariableNames,{'file_idx','source','detector','type','cond'}));
+                vars2=vars(:,ismember(vars.Properties.VariableNames,{'file_idx','source','detector','type','cond'}));
+                lst=find(~ismember(dd,vars2));
+                X(lst,:)=[];
+                % Z(lst,:)=[];
+            end
             
             %% put them back in the original order
             vars(idx,:) = vars;

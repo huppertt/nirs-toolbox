@@ -11,7 +11,7 @@ classdef LabeltooLongDistance < nirs.modules.AbstractModule
     
     methods
         function obj = LabeltooLongSeperation( prevJob )
-            obj.name = 'LabeltooLongSeperation';
+            obj.name = 'LabeltooLongDistance';
             
             if nargin > 0
                 obj.prevJob = prevJob;
