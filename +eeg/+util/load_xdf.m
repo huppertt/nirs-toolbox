@@ -1,35 +1,9 @@
+
 function [streams,fileheader] = load_xdf(filename,varargin)
-% BSD 2-Clause License
-% 
-% Copyright (c) 2015, Alejandro Ojeda and Christian Kothe
-% All rights reserved.
-% 
-% Redistribution and use in source and binary forms, with or without
-% modification, are permitted provided that the following conditions are met:
-% 
-% * Redistributions of source code must retain the above copyright notice, this
-%   list of conditions and the following disclaimer.
-% 
-% * Redistributions in binary form must reproduce the above copyright notice,
-%   this list of conditions and the following disclaimer in the documentation
-%   and/or other materials provided with the distribution.
-% 
-% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-% DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-% FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-% DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-% SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-% CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-% OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-% OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-% 
-% 
-% % Import an XDF file.
+% Import an XDF file.
 % [Streams,FileHeader] = load_xdf(Filename, Options...)
 %
-% This is a MATLAB importer for mult-stream XDF (Extensible Data Format) recordings. All
+% This is a MATLAB importer for multi-stream XDF (Extensible Data Format) recordings. All
 % information covered by the XDF 1.0 specification is imported, plus any additional meta-data
 % associated with streams or with the container file itself.
 %
@@ -98,6 +72,10 @@ function [streams,fileheader] = load_xdf(filename,varargin)
 %                'ClockResetThresholdOffsetSeconds' : A clock reset must be accompanied by a
 %                                                     ClockOffset difference that is at least this
 %                                                     many seconds away from the median. (default: 1)
+%
+%                'WinsorThreshold' : Error threshold beyond which clock offset deviations are considered
+%                                    outliers, and therefore penalized less severely (linear instead of quadratic).
+%                                    (default: 0.0001)
 %
 %                'ClockResetMaxJitter' : Maximum tolerable jitter (in seconds of error) for clock
 %                                        reset handling. (default: 5)
@@ -196,7 +174,7 @@ function [streams,fileheader] = load_xdf(filename,varargin)
 %                                Matthew Grivich.
 %
 %                                version 1.13
-LIBVERSION = '1.13';
+LIBVERSION = '1.14';
 % check inputs
 opts = cell2struct(varargin(2:2:end),varargin(1:2:end),2);
 if ~isfield(opts,'OnChunk')
@@ -257,42 +235,65 @@ fileheader = struct();                          % the file header
 f = fopen(filename,'r','ieee-le.l64');          % file handle
 closer = onCleanup(@()close_file(f,filename));  % object that closes the file when the function exits
 
+filesize = getfield(dir(filename),'bytes');
+
 
 % there is a fast C mex file for the inner loop, but it's 
 % not necessarily available for every platform
-have_mex = exist('load_xdf_innerloop','file');
-if ~have_mex
+[this_path, ~, ~] = fileparts(mfilename('fullpath'));
+mex_fname = ['load_xdf_innerloop.' mexext];
+
+    function have_mex = assert_working_innerloop
+        have_mex = exist('load_xdf_innerloop', 'file');
+        if have_mex
+            try
+                [~, ~] = load_xdf_innerloop(NaN, NaN, 'incorrect', 0, 0);
+            catch ME
+                err_msg = split(ME.message);
+                if ~strcmpi(err_msg{2}, 'FormatString')
+                    disp('load_xdf_innerloop mex file found but not functional.');
+                    delete(fullfile(this_path, mex_fname));
+                    have_mex = false;
+                end
+            end
+        end
+    end
+
+have_mex = assert_working_innerloop();
+if ~assert_working_innerloop()
     if opts.Verbose
-        disp(['NOTE: apparently you are missing a compiled binary version of the inner loop code.',...
+        disp(['NOTE: Compiled binary load_xdf_innerloop missing or non-functional.',...
             ' Attempting to download...']);
     end
-    
-    fname = ['load_xdf_innerloop.' mexext];
     mex_url = ['https://github.com/xdf-modules/xdf-Matlab/releases/download/v',...
-        LIBVERSION, '/', fname];
-    [this_path, this_name, this_ext] = fileparts(mfilename('fullpath'));
+        LIBVERSION, '/', mex_fname];
     try
-        websave(fullfile(this_path, fname), mex_url);
-        have_mex = true;
+        websave(fullfile(this_path, mex_fname), mex_url);
     catch ME
         if opts.Verbose
-            disp(['Unable to download the compiled binary version for your platform.',...
-                ' Attempting to compile...']);
-            try
-                mex(fullfile(this_path, 'load_xdf_innerloop.c'), '-outdir', this_path);
-                have_mex = true;
-            catch ME
-                disp('Unable to compile, falling back to slower uncompiled code.');
-            end
+            disp('Unable to download compiled load_xdf_innerloop for your platform.');
         end
         %rethrow(ME);
     end
 end
 
+if ~assert_working_innerloop()
+    if opts.Verbose
+        disp(['NOTE: Download failed or non-functional.',...
+            ' Attempting to compile...']);
+    end
+    try
+        mex(fullfile(this_path, 'load_xdf_innerloop.c'), '-outdir', this_path);
+        have_mex = true;
+    catch ME
+        disp('Unable to compile, falling back to slower uncompiled code.');
+    end
+end
 
-% ======================
-% === parse the file ===
-% ======================
+
+% ======================================================
+% === parse the file ([SomeText] refers to XDF Spec) ===
+% ======================================================
 
 % read [MagicCode]
 if ~strcmp(fread(f,4,'*char')','XDF:')
@@ -300,14 +301,26 @@ if ~strcmp(fread(f,4,'*char')','XDF:')
 
 % for each chunk...
 
-if opts.Verbose; fprintf('Now reading from %s ...', filename); end;
+if opts.Verbose; fprintf('Now reading from %s ...', filename); end
 while 1
     % read [NumLengthBytes], [Length]
     len = double(read_varlen_int(f));
     if ~len
-        break; end
+        if ftell(f) < filesize-1024
+            fprintf('  got zero-length chunk, scanning forward to next boundary chunk.\n');
+            scan_forward(f);
+            continue;
+        else
+            if opts.Verbose
+                fprintf('  reached end of file.\n'); end
+            break;
+        end
+    end
     % read [Tag]
-    switch fread(f,1,'uint16')
+    tag = fread(f,1,'uint16');
+    if opts.Verbose
+        fprintf('  read tag: %i at %d bytes, length=%d\n',tag,ftell(f),len); end
+    switch tag
         case 3 % read [Samples] chunk
             try
                 % read [StreamId]
@@ -354,17 +367,20 @@ while 1
                 temp(id).time_stamps{end+1} = timestamps;
             catch e
                 % an error occurred (perhaps a chopped-off file): emit a warning
-                % and return the file up to this point
-                warning(e.identifier,e.message);
-                break;
+                % and scan forward to the next recognized chunk.
+                fprintf('  got error "%s" (%s), scanning forward to next boundary chunk.\n',e.identifier,e.message);
+                scan_forward(f);
             end
         case 2 % read [StreamHeader] chunk
             % read [StreamId]
             streamid = fread(f,1,'uint32');
             id = length(streams)+1;
-            idmap(streamid) = id; %#ok<SPRIX>
+            idmap(streamid) = id; 
             % read [Content]
-            header = parse_xml_struct(fread(f,len-6,'*char')');
+            data_uint = fread(f,len-6,'*uint8');
+            data = native2unicode(data_uint, 'UTF-8');
+            header = parse_xml_struct(data);
+
             if ~isfield(header.info, 'desc')
                 header.info.desc = [];
             end
@@ -378,11 +394,11 @@ while 1
             temp(id).time_series = {};
             temp(id).time_stamps = {};
             temp(id).clock_times = [];
-            temp(id).clock_values = [];
+            temp(id).offset_values = [];
             if temp(id).srate > 0
                 temp(id).sampling_interval = 1/temp(id).srate;
             else
-                temp(id).sampling_interval = 0;
+			    temp(id).sampling_interval = 0;
             end
             % fread parsing format for data values
             temp(id).readfmt = ['*' header.info.channel_format];
@@ -392,19 +408,32 @@ while 1
             % read [StreamId]
             id = idmap(fread(f,1,'uint32'));
             % read [Content]
-            footer = parse_xml_struct(fread(f,len-6,'*char')');
-            streams{id} = hlp_superimposedata(footer,streams{id});
+            try
+                footer = parse_xml_struct(fread(f,len-6,'*char')');
+                streams{id} = hlp_superimposedata(footer,streams{id});
+            catch e
+                fprintf('  got error "%s" (%s), ignoring truncated XML structure.\n',e.identifier,e.message);
+            end
         case 1 % read [FileHeader] chunk
             fileheader = parse_xml_struct(fread(f,len-2,'*char')');
         case 4 % read [ClockOffset] chunk
-            % read [StreamId]
-            id = idmap(fread(f,1,'uint32'));
-            % read [CollectionTime]
-            temp(id).clock_times(end+1) = fread(f,1,'double');
-            % read [OffsetValue]
-            temp(id).clock_values(end+1) = fread(f,1,'double');
+            try
+                % read [StreamId]
+                id = idmap(fread(f,1,'uint32'));
+                % read [CollectionTime]
+                temp(id).clock_times(end+1) = fread(f,1,'double');
+                % read [OffsetValue]
+                temp(id).offset_values(end+1) = fread(f,1,'double');
+            catch e
+                % an error occurred (perhaps a chopped-off file): emit a
+                % warning and scan forward to the next recognized chunk
+                fprintf('  got error "%s" (%s), scanning forward to next boundary chunk.\n',e.identifier,e.message);
+                scan_forward(f);
+            end
+        case 5 % read [Boundary] chunk
+            fread(f, len-2, '*uint8');
         otherwise
-            % skip other chunk types (Boundary, ...)
+            % skip other chunk types
             fread(f,len-2,'*uint8');
     end
 end
@@ -434,7 +463,7 @@ if opts.HandleClockSynchronization
         if ~isempty(temp(k).time_stamps)
             try
                 clock_times = temp(k).clock_times;
-                clock_values = temp(k).clock_values;
+                offset_values = temp(k).offset_values;
                 if isempty(clock_times)
                     error('No clock offset values present.'); end
             catch
@@ -450,7 +479,7 @@ if opts.HandleClockSynchronization
                 % importer should be able to deal with recordings where the computer that served a stream
                 % was restarted or hot-swapped during an ongoing recording, or the clock was reset otherwise
                 time_diff = diff(clock_times);
-                value_diff = abs(diff(clock_values));
+                value_diff = abs(diff(offset_values));
                 % points where a glitch in the timing of successive clock measurements happened
                 time_glitch = (time_diff < 0 | (((time_diff - median(time_diff)) ./ median(abs(time_diff-median(time_diff)))) > opts.ClockResetThresholdStds & ...
                     ((time_diff - median(time_diff)) > opts.ClockResetThresholdSeconds)));
@@ -475,15 +504,18 @@ if opts.HandleClockSynchronization
                 ranges = {[1,length(clock_times)]};
             end
             
-            % calculate clock offset mappings for each data range
+            % Calculate clock offset mappings for each data range
             mappings = {};
             for r=1:length(ranges)
                 idx = ranges{r};
                 if idx(1) ~= idx(2)
-                    % to accomodate the Winsorizing threshold (in seconds) we rescale the data (robust_fit sets it to 1 unit)
-                    mappings{r} = robust_fit([ones(idx(2)-idx(1)+1,1) clock_times(idx(1):idx(2))']/opts.WinsorThreshold, clock_values(idx(1):idx(2))'/opts.WinsorThreshold);
+                    Ax = clock_times(idx(1):idx(2))' / opts.WinsorThreshold;
+                    y = offset_values(idx(1):idx(2))'  / opts.WinsorThreshold;
+                    fit_params = robust_fit([ones(size(Ax)) Ax], y);
+                    fit_params(1) = fit_params(1)*opts.WinsorThreshold;
+                    mappings{r} = fit_params;
                 else
-                    mappings{r} = [clock_values(idx(1)) 0]; % just one measurement
+                    mappings{r} = [offset_values(idx(1)) 0]; % just one measurement
                 end
             end
             
@@ -538,13 +570,9 @@ if opts.HandleJitterRemoval
     % delays)
     if opts.Verbose
         disp('  performing jitter removal...'); end
-    
-              
     for k=1:length(temp)
-        
         if ~isempty(temp(k).time_stamps) && temp(k).srate
             
-   
             if isfield(streams{k}.info.desc, 'synchronization') && ... 
                 isfield(streams{k}.info.desc.synchronization, 'can_drop_samples') && ...
                 strcmp(streams{k}.info.desc.synchronization.can_drop_samples, 'true')        
@@ -553,7 +581,7 @@ if opts.HandleJitterRemoval
             
                 % identify breaks in the data
                 diffs = diff(temp(k).time_stamps);
-                breaks_at = diffs > max(opts.JitterBreakThresholdSeconds,opts.JitterBreakThresholdSamples*temp(k).sampling_interval);
+                breaks_at = abs(diffs) > max(opts.JitterBreakThresholdSeconds,opts.JitterBreakThresholdSamples*temp(k).sampling_interval);
                 if any(breaks_at)
                     % turn the break mask into a cell array of [begin,end] index ranges
                     tmp = find(breaks_at)';
@@ -597,7 +625,14 @@ if opts.HandleJitterRemoval
 else
     % calculate effective sampling rate
     for k=1:length(temp)
-        temp(k).effective_srate = (length(temp(k).time_stamps) - 1) / (temp(k).time_stamps(end) - temp(k).time_stamps(1)); end
+        if ~isempty(temp(k).time_stamps)
+            temp(k).effective_srate = (length(temp(k).time_stamps) - 1) / (temp(k).time_stamps(end) - temp(k).time_stamps(1));
+        else
+            temp(k).effective_srate = 0;  % BCILAB sets this to NaN
+        end
+		% transfer the information into the output structs
+		streams{k}.info.effective_srate = temp(k).effective_srate;
+    end
 end
 
 % copy the information into the output
@@ -628,8 +663,16 @@ if ~any(strcmp('all',opts.DisableVendorSpecifics))
 
             if strcmp(streams{k}.info.name,targetName) % Is a BrainVision RDA stream?
                 mkChan = [];
+                if ~iscell(streams{ k }.info.desc.channels.channel)
+                    warning('Channel structure not a cell array (likely a g.tek writer compatibility issue; Using hack to import channel info)');
+                end
                 for iChan = 1:length( streams{ k }.info.desc.channels.channel ) % Find marker index channel (any channel, not necessary last)
-                    if strcmp( streams{ k }.info.desc.channels.channel{ iChan }.label, 'MkIdx' ) && strcmp( streams{ k }.info.desc.channels.channel{ iChan }.type, 'Marker' ) && strcmp( streams{ k }.info.desc.channels.channel{ iChan }.unit, 'Counts (decimal)' )
+                    if iscell(streams{ k }.info.desc.channels.channel)
+                        chanStruct = streams{ k }.info.desc.channels.channel{ iChan };
+                    else
+                        chanStruct = streams{ k }.info.desc.channels.channel( iChan );
+                    end
+                    if strcmp( chanStruct.label, 'MkIdx' ) && strcmp( chanStruct.type, 'Marker' ) && strcmp( chanStruct.unit, 'Counts (decimal)' )
                         mkChan = iChan;
                         break % Only one marker channel expected
                     end
@@ -669,6 +712,26 @@ end
 % === helper functions ===
 % ========================
 
+% scan forward through the file until we find the boundary signature
+function scan_forward(f)
+    block_len = 2^20;
+    signature = uint8([67 165 70 220 203 245 65 15 179 14 213 70 115 131 203 228]);
+    while 1
+        curpos = ftell(f);        
+        block = fread(f,block_len,'*uint8');
+        matchpos = strfind(block',signature);
+        if ~isempty(matchpos)
+            fseek(f,curpos+matchpos+15,'bof');
+            fprintf('  scan forward found a boundary chunk.\n');
+            break;
+        end
+        if length(block) < block_len
+            fprintf('  scan forward reached end of file with no match.\n');
+            break;
+        end
+    end
+end
+
 % read a variable-length integer
 function num = read_varlen_int(f)
 try
@@ -691,8 +754,9 @@ end
 % close the file and delete temporary data
 function close_file(f,filename)
 fclose(f);
-if strfind(filename,'_temp_uncompressed.xdf')
-    delete(filename); end
+if contains(filename, '_temp_uncompressed.xdf')
+    delete(filename);
+end
 end
 
 
@@ -780,7 +844,7 @@ function x = robust_fit(A,y,rho,iters)
 %     minimize 1/2*sum(huber(A*x - y))
 %
 % Based on the ADMM Matlab codes also found at:
-%   http://www.stanford.edu/~boyd/papers/distr_opt_stat_learning_admm.html
+%   https://web.stanford.edu/~boyd/papers/admm_distr_stats.html
 %
 %                                Christian Kothe, Swartz Center for Computational Neuroscience, UCSD
 %                                2013-03-04
@@ -789,8 +853,13 @@ if ~exist('rho','var')
     rho = 1; end
 if ~exist('iters','var')
     iters = 1000; end
+
+x_offset = min(A(:, 2));
+A(:, 2) = A(:, 2) - x_offset;
 Aty = A'*y;
-L = sparse(chol(A'*A,'lower')); U = L';
+L = chol( A'*A, 'lower' );
+L = sparse(L);
+U = sparse(L');
 z = zeros(size(y)); u = z;
 for k = 1:iters
     x = U \ (L \ (Aty + A'*(z - u)));
@@ -798,6 +867,7 @@ for k = 1:iters
     z = rho/(1+rho)*d + 1/(1+rho)*max(0,(1-(1+1/rho)./abs(d))).*d;
     u = d - z;
 end
+x(1) = x(1) - x(2)*x_offset;
 end
 
 
@@ -1084,7 +1154,7 @@ for iMrk = 1:length( streams{ mkStream }.time_series )
             streams{ mkStream }.time_series{ iMrk } = MrkInfo.str;
         else
             warning( 'No corresponding sample found in marker channel for indexed marker %s. Removing...', MrkInfo.idx )
-            clearMarkers = [ clearMarkers iMrk ]; %#ok<AGROW>
+            clearMarkers = [ clearMarkers iMrk ]; 
         end
 
     end
