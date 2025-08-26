@@ -1,4 +1,4 @@
-classdef MixedEffects < nirs.modules.AbstractModule
+    classdef MixedEffects < nirs.modules.AbstractModule
     %% MixedEffect - Performs group level mixed effects analysis.
     %
     % Options:
@@ -462,13 +462,56 @@ classdef MixedEffects < nirs.modules.AbstractModule
                 sd = nirs.util.sortrows(sd, {'ROI', 'type'});
 
             elseif(ismember('NameKernel',vars.Properties.VariableNames))
-                 sd = repmat(sd, [length(unique(cnames)) 1]);
+                sd = repmat(sd, [length(unique(cnames)) 1]);
+                  
+                alloptdes=[];
+                alloptdes_registered=[];
+                for i=1:length(S);
+                    alloptdes=[alloptdes; S(i).probe.optodes];
+                    alloptdes_registered=[alloptdes_registered; S(i).probe.optodes_registered];
+                end
+                %Name=alloptdes.Name;
+                alloptdes.Name=[];
+                alloptdes_registered.Name=[];
+                alloptdes=unique(alloptdes);
+                alloptdes_registered=unique(alloptdes_registered);
 
+                lst=find(ismember(alloptdes.Type,'Detector'));
+                for i=1:length(lst)
+                    s=['0000' num2str(i)];
+                    Name{lst(i),1}=['Detector-' s(end-3:end)];
+                end
+                lst=find(ismember(alloptdes.Type,'Source'));
+                for i=1:length(lst)
+                    s=['0000' num2str(i)];
+                    Name{lst(i),1}=['Source-' s(end-3:end)];
+                end
+                alloptdes=[table(Name) alloptdes];
+                alloptdes_registered(ismember(alloptdes_registered.Type,'FID-anchor'),:)=[];
+                alloptdes_registered=[table(Name) alloptdes_registered];
+
+                for i=1:height(sd)
+                    pair=strsplit(sd.NameKernel{i},'_');
+                    src=alloptdes.Name{find(ismember(alloptdes.NameKernel,pair{1}))};
+                    det=alloptdes.Name{find(ismember(alloptdes.NameKernel,pair{2}))};
+                    source(i,1)=str2num(src(8:end));
+                    detector(i,1)=str2num(det(10:end));
+                end
+                    sd=[table(source,detector) sd];
+                    sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
             else
                 
                 sd = repmat(sd, [length(unique(cnames)) 1]);
                 sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
             end
+
+            if(ismember('NameKernel',vars.Properties.VariableNames))
+                G.probe.optodes=alloptdes;
+                G.probe.optodes_registered=alloptdes_registered;
+            end
+
+            G.probe.link=sd;
+
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{end} = 'cond';
             G.description = ['Mixed Effects Model: ' obj.formula];

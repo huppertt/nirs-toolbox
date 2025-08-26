@@ -164,7 +164,7 @@ for iType = 1:length(utypes)
             end
             
            
-            obj(ii).probe.draw(colors, lineStyles,a,obj(ii).variables.cond(lst),vals);
+            hh=obj(ii).probe.draw(colors, lineStyles,a,obj(ii).variables.cond(lst),vals);
             
             if(~strcmp(lower(obj(ii).probe.defaultdrawfcn),'bar') & ...
                     ~(isempty(obj(ii).probe.defaultdrawfcn) & ...
@@ -246,7 +246,7 @@ for iType = 1:length(utypes)
                 end
                 hh=obj(ii).probe.draw(colors, lineStyles,a);
                 
-                set(hh(isnan(vals)),'visible','off');
+                % set(hh(isnan(vals)),'visible','off');
                 
                 c = colorbar; colormap(cmap); caxis(vrange);
                 
