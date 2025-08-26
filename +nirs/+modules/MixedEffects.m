@@ -462,7 +462,7 @@
                 sd = nirs.util.sortrows(sd, {'ROI', 'type'});
 
             elseif(ismember('NameKernel',vars.Properties.VariableNames))
-                sd = repmat(sd, [length(unique(cnames)) 1]);
+                % sd = repmat(sd, [length(unique(cnames)) 1]);
                   
                 alloptdes=[];
                 alloptdes_registered=[];
@@ -499,18 +499,21 @@
                 end
                     sd=[table(source,detector) sd];
                     sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
+                    
+                    G.probe.link=sd;
+                    G.probe.optodes=alloptdes;
+                    G.probe.optodes_registered=alloptdes_registered;
+
+                    sd = repmat(sd, [length(unique(cnames)) 1]);
+                    sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
             else
                 
                 sd = repmat(sd, [length(unique(cnames)) 1]);
                 sd = nirs.util.sortrows(sd, {'source', 'detector', 'type'});
             end
 
-            if(ismember('NameKernel',vars.Properties.VariableNames))
-                G.probe.optodes=alloptdes;
-                G.probe.optodes_registered=alloptdes_registered;
-            end
 
-            G.probe.link=sd;
+            
 
             G.variables = [sd table(cnames)];
             G.variables.Properties.VariableNames{end} = 'cond';
