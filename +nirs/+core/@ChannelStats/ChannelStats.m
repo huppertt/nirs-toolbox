@@ -236,7 +236,8 @@ classdef ChannelStats
                 end
                 for i=2:length(lst)
                     if(categoricalvariableInfo.IsCategorical(lst(i)))
-                        n2=categoricalvariableInfo.Range{lst(i)}';
+                        % n2=categoricalvariableInfo.Range{lst(i)}';
+                        n2=string(categoricalvariableInfo.Range{lst(i)})';
                         if(~strcmp(categoricalvariableInfo.Row{i},'cond'))
                             for ii=1:length(n2)
                                 n2{ii}=[categoricalvariableInfo.Row{i} '_' n2{ii}];
@@ -250,7 +251,8 @@ classdef ChannelStats
                     else
                         name2=cellstr(categoricalvariableInfo.Row{lst(i)});
                     end
-                    name=horzcat(name,name2);
+                    % name=horzcat(name,name2);
+                    name = strcat(string(name), string(name2));
 
                 end
             end
@@ -339,10 +341,10 @@ classdef ChannelStats
                 
                 
             end
-            set(gca,'xlim',[.5 cnt-.5]);
+            % set(gca,'xlim',[.5 cnt-.5]);
             r=(a-b)*.05;
             
-            set(gca,'ylim',[ b-r a+r]);
+            % set(gca,'ylim',[ b-r a+r]);
             ylabel(model.ResponseName)
             set(gca,'XTick',[1:cnt-1])
             set(gca,'XTickLabelRotation',45)
