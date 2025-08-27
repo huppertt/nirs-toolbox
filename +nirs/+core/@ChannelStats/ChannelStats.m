@@ -404,9 +404,9 @@ classdef ChannelStats
                 L4(1)=plot(x,min(XX,[],2));
                 L4(2)=plot(x,max(XX,[],2));
                 
-                set(s,'SizeData',150,'MarkerFaceColor','k','MarkerEdgeColor','k')
+                set(s,'SizeData',50,'MarkerFaceColor','k','MarkerEdgeColor','k')
                 set(l3,'LineWidth',4,'Color','r','LineStyle','-');
-                set(L4,'LineWidth',3,'Color','k','LineStyle','--');
+                set(L4,'LineWidth',3,'Color','b','LineStyle','--');
                 
                 
                 a=min(modelvals.(name)(lst2));
