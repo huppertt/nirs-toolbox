@@ -225,12 +225,12 @@ classdef ChannelStats
             if(~isempty(lst))
                 if(categoricalvariableInfo.IsCategorical(lst(1)))
 
-                    name=categoricalvariableInfo.Range{lst(1)}';
-                    if(~strcmp(categoricalvariableInfo.Row{1},'cond'))
+                    name=string(categoricalvariableInfo.Range{lst(1)})';
+                    % if(~strcmp(categoricalvariableInfo.Row{1},'cond'))
                         for ii=1:length(name)
                             name{ii}=[categoricalvariableInfo.Row{1} '_' name{ii}];
                         end
-                    end
+                    % end
                 else
                     name=cellstr(categoricalvariableInfo.Row{lst(1)});
                 end
@@ -238,11 +238,11 @@ classdef ChannelStats
                     if(categoricalvariableInfo.IsCategorical(lst(i)))
                         % n2=categoricalvariableInfo.Range{lst(i)}';
                         n2=string(categoricalvariableInfo.Range{lst(i)})';
-                        if(~strcmp(categoricalvariableInfo.Row{i},'cond'))
+                        % if(~strcmp(categoricalvariableInfo.Row{i},'cond'))
                             for ii=1:length(n2)
                                 n2{ii}=[categoricalvariableInfo.Row{i} '_' n2{ii}];
                             end
-                        end
+                        % end
                     
                     name2=repmat(n2,length(name),1);
 
@@ -251,8 +251,8 @@ classdef ChannelStats
                     else
                         name2=cellstr(categoricalvariableInfo.Row{lst(i)});
                     end
-                    % name=horzcat(name,name2);
-                    name = strcat(string(name), string(name2));
+                    name=horzcat(name,name2);
+                    % name = strcat(string(name), string(name2));
 
                 end
             end
@@ -341,10 +341,10 @@ classdef ChannelStats
                 
                 
             end
-            % set(gca,'xlim',[.5 cnt-.5]);
+            set(gca,'xlim',[.5 cnt-.5]);
             r=(a-b)*.05;
             
-            % set(gca,'ylim',[ b-r a+r]);
+            set(gca,'ylim',[ b-r a+r]);
             ylabel(model.ResponseName)
             set(gca,'XTick',[1:cnt-1])
             set(gca,'XTickLabelRotation',45)
