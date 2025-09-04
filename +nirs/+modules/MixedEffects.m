@@ -678,7 +678,6 @@ function [T, newFormula] = makeFullDummies(T, formula, varname, prefix)
 %         varname:Z   -> (REDUCED(varname)) : Z      % K-1 columns on varname leg
 %         varname*Z   -> FULL(varname) + Z + (REDUCED(varname)):Z
 %   - Protects random-effects groupings ( ... | varname )
-%   - Forces '-1' (no intercept) so FULL dummies are identifiable
 %
 % RETURNS
 %   T          : table with new dummy columns added and varname removed
@@ -692,68 +691,166 @@ function [T, newFormula] = makeFullDummies(T, formula, varname, prefix)
 
     varname = char(varname); prefix = char(prefix);
 
-    % Ensure varname is categorical
-    if ~iscategorical(T.(varname))
-        T.(varname) = categorical(T.(varname));
-    end
-
-    % Build FULL dummy columns for varname
-    cats = categories(T.(varname));
-    K = numel(cats);
-    dummyNames = cell(K,1);
+    %------------------ Build FULL dummy columns for varname ------------------
+    if ~iscategorical(T.(varname)), T.(varname) = categorical(T.(varname)); end
+    cats = categories(T.(varname));  K = numel(cats);
+    fullNames = cell(K,1);
     for i = 1:K
         nm = matlab.lang.makeValidName([prefix, char(cats{i})]);
         T.(nm) = double(T.(varname) == cats{i});
-        dummyNames{i} = nm;
+        fullNames{i} = nm;
     end
+    T.(varname) = [];                   % remove original
+    fullGroup = ['(' strjoin(fullNames,' + ') ')'];
+    redNames  = fullNames; redNames(1)=[];            % drop first as interaction ref
+    redGroup  = ['(' strjoin(redNames ,' + ') ')'];   % may be empty if K=1
 
+    %------------------ Protect random-effects blocks (…|…) -------------------
+    [fixedPart, rndMap] = protectRandomBlocks(formula);  % returns RHS incl '~'
+    % split on '~' once
+    tildePos = find(fixedPart=='~',1,'first');
+    if isempty(tildePos), error('Formula must contain "~".'); end
+    lhs = strtrim(fixedPart(1:tildePos-1));
+    rhs = strtrim(fixedPart(tildePos+1:end));
 
+    %------------------ 1) Expand all '*' into '+' and ':' --------------------
+    rhsExpanded = expandStarsWilkinson(rhs);
 
-    % Strings for FULL (main) and REDUCED (interaction) sets
-    groupMain = ['(' strjoin(dummyNames, ' + ') ')'];   % K columns
-    refIdx    = 1;                                      % choose first level as interaction reference
-    redNames  = dummyNames; redNames(refIdx) = [];      % K-1 columns
-    groupInt  = ['(' strjoin(redNames, ' + ') ')'];
+    %------------------ 2) Swap 'cond' by context (main vs interaction) -------
+    % Tokenize top-level '+' terms
+    terms = splitTopLevel(rhsExpanded, '+');
+    for i = 1:numel(terms)
+        ti = strtrim(terms{i});
+        if isempty(ti), continue; end
+        if contains(ti, ':')    % interaction term
+            terms{i} = replaceWholeWord(ti, varname, redGroup);
+        else                    % main effect term
+            terms{i} = replaceWholeWord(ti, varname, fullGroup);
+        end
+    end
+    % Deduplicate and rebuild RHS
+    terms = uniqueStandardize(terms);
+    rhsFinal = strjoin(terms, ' + ');
 
-    % Protect random-effects grouping: ( ... | varname ) -> sentinel
-    sentinel = ['__SENTINEL__' varname '__'];
-    patGroup = ['\|\s*(?<![A-Za-z0-9_])', regexptranslate('escape', varname), '(?![A-Za-z0-9_])'];
-    protected = regexprep(formula, patGroup, ['|' sentinel]);
+    %------------------ 3) Reassemble, restore randoms ----
+    newFormula = sprintf('%s ~ %s', lhs, rhsFinal);
+    
+    newFormula = restoreRandomBlocks(newFormula, rndMap);
+end
 
-    % Whole-word replace of varname with FULL group in all fixed-effect places
-    patWhole = ['(?<![A-Za-z0-9_])', regexptranslate('escape', varname), '(?![A-Za-z0-9_])'];
-    replaced = regexprep(protected, patWhole, groupMain);
+%=========================== Helpers =========================================%
+function out = expandStarsWilkinson(rhs)
+% Expand every top-level term containing '*' into '+' and ':' combinations.
+    top = splitTopLevel(rhs, '+');
+    outTerms = {};
+    for k = 1:numel(top)
+        tk = strtrim(top{k});
+        if isempty(tk), continue; end
+        if containsOutsideParens(tk, '*')
+            facs = splitTopLevel(tk, '*');  % factors at top level
+            facs = cellfun(@strtrim, facs, 'uni',0);
+            facs = facs(~cellfun('isempty',facs));
+            % Build all nonempty combinations (Wilkinson)
+            combos = allNonEmptyCombos(numel(facs));
+            for c = 1:size(combos,1)
+                sel = facs(logical(combos(c,:)));
+                if numel(sel)==1
+                    outTerms{end+1} = sel{1}; %#ok<AGROW>
+                else
+                    outTerms{end+1} = strjoin(sel, ':'); %#ok<AGROW>
+                end
+            end
+        else
+            outTerms{end+1} = tk; %#ok<AGROW>
+        end
+    end
+    out = strjoin(uniqueStandardize(outTerms), ' + ');
+end
 
-    % Prepare escaped patterns for later regex
-    gMainEsc = regexptranslate('escape', groupMain);
-    gInt     = groupInt;          % as text to insert
-    gIntEsc  = regexptranslate('escape', groupInt);
+function M = allNonEmptyCombos(n)
+% Return logical matrix of all nonempty subsets of 1..n
+    idx = 1:(2^n - 1);
+    M = false(numel(idx), n);
+    for i = 1:numel(idx)
+        b = bitget(idx(i), 1:n);
+        M(i,:) = logical(b);
+    end
+end
 
-    % -------- Handle explicit ':' interactions with groupMain --------
-    % (groupMain):Partner  -> (groupInt):Partner
-    patColonLeft  = [gMainEsc '\s*:\s*([A-Za-z_]\w*)'];
-    replColonLeft = [gInt ':' '$1'];
-    replaced = regexprep(replaced, patColonLeft, replColonLeft);
+function parts = splitTopLevel(s, delim)
+% Split by delimiter at parentheses depth 0.
+    if ischar(delim), delim = delim(1); end
+    parts = {};
+    buf = '';
+    depth = 0;
+    i = 1;
+    while i <= numel(s)
+        ch = s(i);
+        if ch=='('
+            depth = depth + 1;
+        elseif ch==')'
+            depth = max(0, depth - 1);
+        end
+        if depth==0 && ch==delim
+            parts{end+1} = buf; %#ok<AGROW>
+            buf = '';
+        else
+            buf(end+1) = ch; %#ok<AGROW>
+        end
+        i = i + 1;
+    end
+    parts{end+1} = buf;
+end
 
-    % Partner:(groupMain)  -> Partner:(groupInt)
-    patColonRight  = ['([A-Za-z_]\w*)\s*:\s*' gMainEsc];
-    replColonRight = ['$1' ':' gInt];
-    replaced = regexprep(replaced, patColonRight, replColonRight);
+function tf = containsOutsideParens(s, ch)
+% True if character ch appears at depth 0.
+    tf = false; depth = 0;
+    for i=1:numel(s)
+        if s(i)=='(', depth=depth+1; elseif s(i)==')', depth=max(0,depth-1); end
+        if depth==0 && s(i)==ch, tf=true; return; end
+    end
+end
 
-    % -------- Handle '*' expansions rank-safely --------
-    % (groupMain)*Partner  -> (groupMain) + Partner + (groupInt):Partner
-    patStarLeft  = [gMainEsc '\s*\*\s*([A-Za-z_]\w*)'];
-    replStarLeft = [groupMain ' + ' '$1' ' + ' gInt ':' '$1'];
-    replaced = regexprep(replaced, patStarLeft, replStarLeft);
+function t = replaceWholeWord(t, word, repl)
+% Replace whole-word occurrences of 'word' with 'repl' using regex.
+    pat = ['(?<![A-Za-z0-9_])', regexptranslate('escape',word), '(?![A-Za-z0-9_])'];
+    t = regexprep(t, pat, repl);
+end
 
-    % Partner*(groupMain)  -> (groupMain) + Partner + (groupInt):Partner
-    patStarRight  = ['([A-Za-z_]\w*)\s*\*\s*' gMainEsc];
-    replStarRight = [groupMain ' + ' '$1' ' + ' gInt ':' '$1'];
-    replaced = regexprep(replaced, patStarRight, replStarRight);
+function U = uniqueStandardize(terms)
+% Trim, collapse spaces around ':', and unique
+    for i=1:numel(terms)
+        ti = regexprep(strtrim(terms{i}), '\s+', ' ');
+        ti = regexprep(ti, '\s*:\s*', ':');
+        terms{i} = ti;
+    end
+    U = unique(terms, 'stable');
+    % Remove accidental empties
+    U = U(~cellfun('isempty',U));
+end
 
-    % Restore grouping sentinel
-    newFormula = strrep(replaced, sentinel, varname);
+function [out, map] = protectRandomBlocks(formula)
+% Replace each '( ... | ... )' with a sentinel token __RNDk__
+    out = formula; map = {};
+    pat = '\([^()]*\|[^()]*\)';
+    k = 0;
+    while true
+        [s,e] = regexp(out, pat, 'start','end','once');
+        if isempty(s), break; end
+        k = k + 1;
+        token = sprintf('__RND%d__', k);
+        map{end+1,1} = token; %#ok<AGROW>
+        map{end,  2} = out(s:e);
+        out = [out(1:s-1) token out(e+1:end)];
+    end
+end
 
+function out = restoreRandomBlocks(s, map)
+% Put back the random-effect blocks
+    out = s;
+    for i=1:size(map,1)
+        out = strrep(out, map{i,1}, map{i,2});
+    end
 end
 
 
