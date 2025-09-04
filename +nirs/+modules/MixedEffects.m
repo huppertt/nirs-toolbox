@@ -194,8 +194,14 @@
                         data_tbl.(varNames{i}) = reordercats(var);
                     end
                 end
-                lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
-                    obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                if strcmp(obj.dummyCoding, 'full')
+                    lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
+                        obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                else
+                    [data_tbl, newFormula] = makeFullDummies(data_tbl, obj.formula, 'cond', 'cond_');                    
+                    lm1 = fitlme(data_tbl, newFormula, 'dummyVarCoding',...
+                        obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                end
 
                 X = lm1.designMatrix('Fixed');
                 Z = lm1.designMatrix('Random');
@@ -255,8 +261,14 @@
                             data_tbl.(varNames{i}) = reordercats(var);
                         end
                     end
-                    lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
-                        obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                    if strcmp(obj.dummyCoding, 'full')
+                        lm1 = fitlme(data_tbl, obj.formula, 'dummyVarCoding',...
+                            obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                    else
+                        [data_tbl, newFormula] = makeFullDummies(data_tbl, obj.formula, 'cond', 'cond_');
+                        lm1 = fitlme(data_tbl, newFormula, 'dummyVarCoding',...
+                            obj.dummyCoding, 'FitMethod', 'ML', 'CovariancePattern', repmat({'Isotropic'},nRE,1));
+                    end
                     
                     X = lm1.designMatrix('Fixed');
                     Z = lm1.designMatrix('Random');
@@ -650,5 +662,98 @@
     
 end
 
+
+function [T, newFormula] = makeFullDummies(T, formula, varname, prefix)
+%MAKEFULLDUMMIES  Expand a special factor (e.g., 'cond') into full dummies
+%and rewrite the formula to be rank-safe with interactions.
+%
+% USAGE
+%   [T2, f2, info] = makeFullDummies(T, 'beta ~ cond*RiskStatus + (1|ChildAgeMoBELT)', 'cond', 'cond_');
+%   lme = fitlme(T2, f2, 'DummyVarCoding','reference');  % keep others ref/effects coded
+%
+% WHAT IT DOES
+%   - Main effect of varname (e.g., 'cond'): FULL dummies (K columns)
+%   - Other categoricals: let MATLAB code them (reference/effects)
+%   - Interactions with varname:
+%         varname:Z   -> (REDUCED(varname)) : Z      % K-1 columns on varname leg
+%         varname*Z   -> FULL(varname) + Z + (REDUCED(varname)):Z
+%   - Protects random-effects groupings ( ... | varname )
+%   - Forces '-1' (no intercept) so FULL dummies are identifiable
+%
+% RETURNS
+%   T          : table with new dummy columns added and varname removed
+%   newFormula : rewritten Wilkinson formula
+%
+% NOTES
+%   - Interaction reference level for varname = its first category by default.
+%   - Works for ':' and '*' with either categorical or continuous partners.
+%   - If you explicitly also add '+ cond' or '+ RiskStatus' elsewhere, you may
+%     create duplicate additive terms; avoid redundancy in the user's formula.
+
+    varname = char(varname); prefix = char(prefix);
+
+    % Ensure varname is categorical
+    if ~iscategorical(T.(varname))
+        T.(varname) = categorical(T.(varname));
+    end
+
+    % Build FULL dummy columns for varname
+    cats = categories(T.(varname));
+    K = numel(cats);
+    dummyNames = cell(K,1);
+    for i = 1:K
+        nm = matlab.lang.makeValidName([prefix, char(cats{i})]);
+        T.(nm) = double(T.(varname) == cats{i});
+        dummyNames{i} = nm;
+    end
+
+
+
+    % Strings for FULL (main) and REDUCED (interaction) sets
+    groupMain = ['(' strjoin(dummyNames, ' + ') ')'];   % K columns
+    refIdx    = 1;                                      % choose first level as interaction reference
+    redNames  = dummyNames; redNames(refIdx) = [];      % K-1 columns
+    groupInt  = ['(' strjoin(redNames, ' + ') ')'];
+
+    % Protect random-effects grouping: ( ... | varname ) -> sentinel
+    sentinel = ['__SENTINEL__' varname '__'];
+    patGroup = ['\|\s*(?<![A-Za-z0-9_])', regexptranslate('escape', varname), '(?![A-Za-z0-9_])'];
+    protected = regexprep(formula, patGroup, ['|' sentinel]);
+
+    % Whole-word replace of varname with FULL group in all fixed-effect places
+    patWhole = ['(?<![A-Za-z0-9_])', regexptranslate('escape', varname), '(?![A-Za-z0-9_])'];
+    replaced = regexprep(protected, patWhole, groupMain);
+
+    % Prepare escaped patterns for later regex
+    gMainEsc = regexptranslate('escape', groupMain);
+    gInt     = groupInt;          % as text to insert
+    gIntEsc  = regexptranslate('escape', groupInt);
+
+    % -------- Handle explicit ':' interactions with groupMain --------
+    % (groupMain):Partner  -> (groupInt):Partner
+    patColonLeft  = [gMainEsc '\s*:\s*([A-Za-z_]\w*)'];
+    replColonLeft = [gInt ':' '$1'];
+    replaced = regexprep(replaced, patColonLeft, replColonLeft);
+
+    % Partner:(groupMain)  -> Partner:(groupInt)
+    patColonRight  = ['([A-Za-z_]\w*)\s*:\s*' gMainEsc];
+    replColonRight = ['$1' ':' gInt];
+    replaced = regexprep(replaced, patColonRight, replColonRight);
+
+    % -------- Handle '*' expansions rank-safely --------
+    % (groupMain)*Partner  -> (groupMain) + Partner + (groupInt):Partner
+    patStarLeft  = [gMainEsc '\s*\*\s*([A-Za-z_]\w*)'];
+    replStarLeft = [groupMain ' + ' '$1' ' + ' gInt ':' '$1'];
+    replaced = regexprep(replaced, patStarLeft, replStarLeft);
+
+    % Partner*(groupMain)  -> (groupMain) + Partner + (groupInt):Partner
+    patStarRight  = ['([A-Za-z_]\w*)\s*\*\s*' gMainEsc];
+    replStarRight = [groupMain ' + ' '$1' ' + ' gInt ':' '$1'];
+    replaced = regexprep(replaced, patStarRight, replStarRight);
+
+    % Restore grouping sentinel
+    newFormula = strrep(replaced, sentinel, varname);
+
+end
 
 
