@@ -31,6 +31,7 @@ classdef sFCStats
         
    properties ( Hidden = true )     
         ZstdErr            %holds error covariance    
+        pvalue_fixed;
     end
     
     properties ( Dependent = true )       
@@ -73,6 +74,12 @@ classdef sFCStats
          end
          
          function p = get.p(obj)
+
+             if(~isempty(obj.pvalue_fixed))
+                p=obj.pvalue_fixed;  % hack to allow reuse in the Conn Seed model
+                return
+             end
+             
              for idx=1:length(obj.conditions)
                  
                  p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe));
@@ -155,6 +162,10 @@ classdef sFCStats
             if(~isempty(obj.ZstdErr))
                 out.ZstdErr = obj.ZstdErr(idx, idx,:,:);
             end
+
+            if(~isempty(out.pvalue_fixed))
+                out.pvalue_fixed=out.pvalue_fixed(idx);
+            end
             
             % Sort conditions
             [~,idx] = sort( out.conditions );
@@ -166,6 +177,9 @@ classdef sFCStats
             if length(out.dfe)==length(out.conditions)
                 out.dfe = out.dfe(idx);
             end
+
+            
+
         end
          
          

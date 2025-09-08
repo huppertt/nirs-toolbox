@@ -163,9 +163,9 @@ classdef MixedEffectsConnectivity < nirs.modules.AbstractModule
             G.ZstdErr = StdErr;
             G.dfe=lm.DFE;
 
-            
-            %G.variables.model=models;
-
+             if(obj.include_diagnostics)
+                G.variables.model=models;
+             end
              %Remove variables of no interest
             if(~isempty(NoInter))
                 
