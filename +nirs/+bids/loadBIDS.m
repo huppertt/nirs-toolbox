@@ -88,7 +88,16 @@ for i=1:length(json_files);
     elseif(contains(json_files(i).name,'event'))
          for id=1:length(snirf_files)
             if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_event'))))
-
+                if(~ismember('name',tbl.Properties.VariableNames) &...
+                        ismember('trial_type',tbl.Properties.VariableNames))
+                    tbl.name=tbl.trial_type;
+                    tbl.trial_type=[];
+                end
+                if(~ismember('amplitude',tbl.Properties.VariableNames) &...
+                        ismember('value',tbl.Properties.VariableNames))
+                    tbl.amplitude=tbl.value;
+                    tbl.value=[];
+                end
                 if(~iscellstr(tbl.name))
                     if(isnumeric(tbl.name))
                         tbl.name=cellstr(num2str(tbl.name));
