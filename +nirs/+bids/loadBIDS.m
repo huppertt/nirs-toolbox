@@ -16,7 +16,7 @@ for i=1:length(snirf_files)
         disp(['Loading ' snirf_files(i).name]);
     end
     try
-        data(i,1)=nirs.io.loadSNIRF(snirf_files(i).name);
+        data(i,1)=nirs.io.loadSNIRF(snirf_files(i).name,verbose,false);
     catch
         warning(['failed to load: ' snirf_files(i).name]);
     end
