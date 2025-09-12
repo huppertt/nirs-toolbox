@@ -17,6 +17,24 @@ for i=1:length(snirf_files)
     end
     try
         data(i,1)=nirs.io.loadSNIRF(snirf_files(i).name,verbose,false);
+        try
+            name=strrep(snirf_files(i).name,folder,'');
+            parts=strsplit(name,filesep);
+            subj=parts{min(find(contains(parts,'sub-')))};
+            sess=parts{min(find(contains(parts,'ses-')))};
+
+            subjNamesAlias={'subject','subjid','id','subjectid','subjid','participant_id'};
+            sfound=find(ismember(lower(data(i).demographics.keys),lower(subjNamesAlias)));
+            if(~isempty(sfound))
+                nameAlias=data(i).demographics.keys{min(sfound)};
+            else
+                nameAlias='subjid';
+            end
+            data(i,1).demographics(nameAlias)=subj;
+            data(i,1).demographics('session')=sess;
+            data(i,1).demographics('filename')=name;
+        end
+
     catch
         warning(['failed to load: ' snirf_files(i).name]);
     end

@@ -23,6 +23,7 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
     properties
         PCA_reduction = 0;
         randomeffectsmodel=false;
+        AddShortSepRegressors = false;
     end
     methods
         function obj = SingleTrialModel( prevJob )
@@ -35,6 +36,12 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
         end
         
         function S = runThis( obj, data )
+            if (obj.AddShortSepRegressors)
+                j=nirs.modules.AddShortSeperationRegressors();
+                j=nirs.modules.RemoveShortSeperations(j);
+                data=j.run(data);
+            end
+
             vec = @(x) x(:);
             
             for i = 1:numel(data)
