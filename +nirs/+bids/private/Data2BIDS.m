@@ -29,7 +29,11 @@ for i=1:length(data)
     elseif(length(data)>1)
         run=[runs num2str(i)];
     else
-        run=runs;
+        if(iscellstr(runs))
+            run=runs{1};
+        else
+            run=runs;
+        end
     end
     
     if(isa(data(i),'nirs.core.Data'))    

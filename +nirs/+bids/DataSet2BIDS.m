@@ -44,7 +44,9 @@ if(isempty(demo))
     demo = nirs.createDemographicsTable(data);
 end
 
-lst=find(ismember(lower(demo.Properties.VariableNames),{'task','tasks','scans'}));
+
+
+lst=find(ismember(lower(demo.Properties.VariableNames),{'task','tasks','cond'}));
 if(~isempty(lst))
     for i=1:height(demo)
         Task{i,1}=[];
@@ -61,7 +63,7 @@ else
         Task{i,1}=[];
     end
 end
-lst=find(ismember(lower(demo.Properties.VariableNames),{'session','sessions','study'}));
+lst=find(ismember(lower(demo.Properties.VariableNames),{'session','sessions','study','visit','timepoint'}));
 if(~isempty(lst))
     for i=1:height(demo)
         Session{i,1}=[];
@@ -84,8 +86,38 @@ end
 % demo.MeasurementTime=[];
 % demo.MeasurementDate=[];
 
+lst=find(ismember(lower(demo.Properties.VariableNames),{'subject','subjid','id','subjectid'}));
 
-[demo2,~,lst]=unique(demo);
+if(~isempty(lst))
+    for i=1:height(demo)
+        participant_id{i,1}=['sub-' demo.(demo.Properties.VariableNames{lst(1)}){i}];
+    end
+else
+    for i=1:height(demo)
+        str=['000' num2str(i)];
+        participant_id{i,1}=['sub-' str(end-4:end)];
+    end
+end
+demo=[table(participant_id) demo];
+
+upI=unique(demo.participant_id);
+stable=true(length(demo.Properties.VariableNames),1);
+for i=1:length(stable)
+    for j=1:length(upI);
+        lst=find(ismember(demo.participant_id,upI{j}));
+        try
+        if(~all(isnan(table2array(demo(lst,i)))))
+            stable(i)=stable(i) & (height(unique(demo(lst,i)))==1);
+        end
+        catch
+            stable(i)=stable(i) & (height(unique(demo(lst,i)))==1);
+        end
+    end
+end
+
+[demo2,~,lstL]=unique(demo(:,stable));
+
+
 fid=fopen(fullfile(folder,'participants.json'),'w');
 fprintf(fid,'{\n');
 for i=1:length(demo2.Properties.VariableNames)
@@ -106,12 +138,6 @@ end
 fprintf(fid,'\n}');
 fclose(fid);
 
-for i=1:height(demo2)
-    str=['000' num2str(i)];
-    participant_id{i,1} =['Sub-' str(end-3:end)];
-end
-demo2= [table(participant_id) demo2];
-
 writetable(demo2,fullfile(folder,'participants.tsv'),'FileType','text','Delimiter','\t');
 
 for i=1:height(demo2)
@@ -128,18 +154,71 @@ for i=1:height(demo2)
         mkdir(fullfile(folder,demo2.participant_id{i}));
         mkdir(folder2);
     end
-    lst2=find(lst==i);
+    lst2=find(lstL==i);   
+
     for j=1:length(lst2)
         
-        
-        if(length(lst2)>1)
-            run=num2str(j);
+        lst=find(ismember(lower(demo.Properties.VariableNames),{'scans','scan','run'}));
+        if(~isempty(lst))
+            run=strtrim(demo.(demo.Properties.VariableNames{lst(1)})(lst2(j)));
         else
-            run=[];
+            if(length(lst2)>1)
+                run=num2str(j);
+            else
+                run=[];
+            end
+        end   
+
+        folder3=folder2;
+        if(length(unique({Session{lst2}}))>1)
+            folder3=fullfile(folder3,['ses-' Session{lst2(j)}]);
+            lst3=find(ismember({Session{lst2}},Session{lst2(j)}));
+        else
+            lst3=1:length(lst3);
         end
-               
-        
-        Data2BIDS(data(lst2(j)),folder2,demo2.participant_id{i},Session{lst2(j)},Task{lst2(j)},run);
+        if(length(unique({Task{lst2(lst3)}}))>1)
+            folder3=fullfile(folder3,['task-' Task{lst2(j)}]);
+        end
+        system(['mkdir -p ' folder3]);
+
+        Data2BIDS(data(lst2(j)),folder3,demo2.participant_id{i},Session{lst2(j)},Task{lst2(j)},run);
+    end
+    demo3=demo(lst2,:);
+    stable=true(length(demo3.Properties.VariableNames),1);
+    for i=1:length(stable)
+
+        try
+            if(~all(isnan(table2array(demo3(:,i)))))
+                stable(i)=stable(i) & (height(unique(demo3(:,i)))==1);
+            end
+        catch
+            stable(i)=stable(i) & (height(unique(demo3(:,i)))==1);
+        end
+    end
+    if(~all(stable))
+        demo3=demo3(:,~stable);
+
+        fid=fopen(fullfile(folder2,'scans.json'),'w');
+        fprintf(fid,'{\n');
+        for i=1:length(demo3.Properties.VariableNames)
+            if(i>1)
+                fprintf(fid,',\n');
+            end
+            if(isempty(demo3.Properties.VariableDescriptions))
+                demo3.Properties.VariableDescriptions=repmat({' '},length(demo3.Properties.VariableNames),1);
+            end
+            if(isempty(demo3.Properties.VariableUnits))
+                demo3.Properties.VariableUnits=repmat({' '},length(demo3.Properties.VariableNames),1);
+            end
+            fprintf(fid,'\t"%s": {\n\t\t"Description": "%s",\n\t\t"Units": "%s"}\n\t',...
+                demo3.Properties.VariableNames{i},...
+                demo3.Properties.VariableDescriptions{i},...
+                demo3.Properties.VariableUnits{i});
+        end
+        fprintf(fid,'\n}');
+        fclose(fid);
+
+        writetable(demo3,fullfile(folder2,'scans.tsv'),'FileType','text','Delimiter','\t');
     end
 end
 
