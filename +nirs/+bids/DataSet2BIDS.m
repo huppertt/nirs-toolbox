@@ -81,8 +81,8 @@ end
 % 
  demo.UUID=[];
 % demo.SubjID=[];
- demo.MeasurementTime=[];
- demo.MeasurementDate=[];
+% demo.MeasurementTime=[];
+% demo.MeasurementDate=[];
 
 
 [demo2,~,lst]=unique(demo);
