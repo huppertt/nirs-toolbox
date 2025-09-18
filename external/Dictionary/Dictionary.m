@@ -143,7 +143,7 @@ classdef Dictionary
             tmp=struct;
             if(obj.count>0)
                for i=1:obj.count
-                    tmp=setfield(tmp,obj.keys{i},obj.values{i});
+                    tmp=setfield(tmp,matlab.lang.makeValidName(obj.keys{i}),obj.values{i});
                 end
             end
         end

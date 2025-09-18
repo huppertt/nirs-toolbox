@@ -9,7 +9,9 @@ snirfdata=SnirfLoad(filename);
 
 data = nirs.core.Data;
 data.description=filename;
-data.demographics=Dictionary(snirfdata.metaDataTags.tags);
+if(~isempty(fields(snirfdata.metaDataTags.tags)))
+    data.demographics=Dictionary(snirfdata.metaDataTags.tags);
+end
 data.demographics('SNIRF Format')=snirfdata.formatVersion;
 
 

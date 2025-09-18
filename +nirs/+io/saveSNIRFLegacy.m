@@ -13,12 +13,8 @@ end
 [p,filename,e]=fileparts(filename);
 filename=fullfile(p,[filename '.snirf']);
 
-snirf=nirs.util.NirsCoreData2SNIRF(data);
-snirf.Save(filename);
 
-if(verbose)
-    disp(['Data saved as: ' filename]);
-end
+
 
 
 return
