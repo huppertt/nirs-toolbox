@@ -1,18 +1,18 @@
 function data2JSON(data,filename,task)
 
 fid=fopen(filename,'w');
-fprintf(fid,'{\n');
 
-snirf=nirs.util.validateSNIRF(data);
+info.TaskName=task;
+info.Version='1.0';
+info2=data.demographics.toStruct;
+flds=fields(info2);
+for f=1:length(flds);
+    info=setfield(info,flds{f},info2.(flds{f}));
+end
 
-fprintf(fid,'\t"TaskName": "%s",\n',task);
-fprintf(fid,'\t"Version": "%s",\n',snirf.formatVersion);
-fprintf(fid,'\t"MeasurementDate": "%s",\n',snirf.nirs.metaDataTags.MeasurementDate);
-fprintf(fid,'\t"MeasurementTime": "%s",\n',snirf.nirs.metaDataTags.MeasurementTime);
-fprintf(fid,'\t"SNIRF_createDate": "%s",\n',snirf.nirs.metaDataTags.SNIRF_createDate);
-fprintf(fid,'\t"SNIRF_createTime": "%s",\n',snirf.nirs.metaDataTags.SNIRF_createTime);
-fprintf(fid,'\t"filedescription": "%s"\n',snirf.nirs.metaDataTags.filedescription);
-fprintf(fid,'}');
+str=jsonencode(info,"PrettyPrint",true,"ConvertInfAndNaN",true);
+str=strrep(str,'null','"null"');
+fprintf(fid,'%s',str);
 fclose(fid);
 
 return

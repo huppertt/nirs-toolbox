@@ -1,5 +1,25 @@
-function DataSet2BIDS(data,folder,name,deID)
-BIDSver='pre-release 0.1';
+function DataSet2BIDS(data,folder,name,LocalBIDSinfo,deID)
+
+if(nargin<4 || isempty(LocalBIDSinfo))
+    LocalBIDSinfo=struct;
+end
+
+LocalBIDSinfo.BIDSVersion='1.8.0';
+LocalBIDSinfo.License='CC0';
+LocalBIDSinfo.Authors={'Judith Morgan, PhD',...
+                        'Hendrik Santosa, PhD',...
+                        'Theodore Huppert, PhD'};
+LocalBIDSinfo.Keywords={'fNIRS','hyperscanning','parent-child interation'};
+LocalBIDSinfo.DatasetType='raw';
+LocalBIDSinfo.GeneratedBy.Name='nirs-toolbox';
+LocalBIDSinfo.GeneratedBy.Version='2.0.0';
+LocalBIDSinfo.SourceDatasets.URL='none';
+LocalBIDSinfo.SourceDatasets.Version='none';
+
+ 
+ReadME='Raw data for BRITE project';
+
+
 
 if(~exist(folder,'dir'))
     mkdir(folder);
@@ -9,7 +29,7 @@ if(nargin<3)
     name=folder;
 end
 
-if(nargin<4)
+if(nargin<5)
     deID=false;
 end
 
@@ -20,18 +40,65 @@ if(deID)
 end
 
 
+
 %% Make the dataset_description.json file
 fid=fopen(fullfile(folder,'dataset_description.json'),'w');
 fprintf(fid,'{\n');
-fprintf(fid,'\t"Name": "%s",\n',name);
-fprintf(fid,'\t"DataserDOI": "%s",\n',datestr(now));
-fprintf(fid,'\t"BIDSVersion": "%s"\n',BIDSver);
+fprintf(fid,'  "Name": "%s",\n',name);
+fprintf(fid,'  "DatasetDOI": "%s",\n',datestr(now));
+flds=fields(LocalBIDSinfo);
+for f=1:length(flds);
+    if(iscellstr(LocalBIDSinfo.(flds{f})))
+            fprintf(fid,'  "%s": [\n',flds{f});
+            for j=1:length(LocalBIDSinfo.(flds{f}))
+                 fprintf(fid,'  \t "%s"',LocalBIDSinfo.(flds{f}){j});
+                if(j~=length(LocalBIDSinfo.(flds{f})))
+                    fprintf(fid,',\n');
+                end
+            end
+            if(f~=length(flds))
+                fprintf(fid,'\n  ],\n');
+            else
+                fprintf(fid,'\n  ]\n');
+            end
+    elseif(isstruct(LocalBIDSinfo.(flds{f})))
+        fprintf(fid,' "%s": [\n',flds{f});
+        stct=LocalBIDSinfo.(flds{f});
+        flds2=fields(stct);
+        fprintf(fid,' \t\t{\n');
+        for f2=1:length(flds2)
+            if(f2~=length(flds2))
+                fprintf(fid,'  \t\t\t"%s": "%s",\n',flds2{f2},stct.(flds2{f2}));
+            else
+                fprintf(fid,'  \t\t\t"%s": "%s"\n',flds2{f2},stct.(flds2{f2}));
+            end
+        end
+        fprintf(fid,' \t\t}\n');
+         if(f~=length(flds))
+            fprintf(fid,'  \t],\n');
+         else
+            fprintf(fid,'  \t]\n');
+         end
+    else
+        if(f~=length(flds))
+            fprintf(fid,'  "%s": "%s",\n',flds{f},LocalBIDSinfo.(flds{f}));
+        else
+            fprintf(fid,'  "%s": "%s"\n',flds{f},LocalBIDSinfo.(flds{f}));
+        end
+    end
+end
 fprintf(fid,'}');
+fclose(fid);
+
+fid=fopen(fullfile(folder,'README.md'),'w');
+fprintf(fid,'%s',ReadME);
 fclose(fid);
 
 
 %% Make the participants files
 demo = nirs.createDemographicsTable(data);
+
+data = nirs.bids.add_missing_BIDS_info(data);
 
 
 if(isempty(demo))
@@ -58,6 +125,7 @@ if(~isempty(lst))
         
     end
     demo(:,lst)=[];
+    Task=lower(Task);
 else
     for i=1:height(demo)
         Task{i,1}=[];
@@ -74,6 +142,7 @@ if(~isempty(lst))
         end
         
     end
+    Session=lower(Session);
     demo(:,lst)=[];
 else
     for i=1:height(demo)
@@ -115,7 +184,8 @@ for i=1:length(stable)
     end
 end
 
-[demo2,~,lstL]=unique(demo(:,stable));
+[~,lstI,lstL]=unique(demo.participant_id);
+demo2=demo(lstI,stable);
 
 
 fid=fopen(fullfile(folder,'participants.json'),'w');
@@ -141,21 +211,14 @@ fclose(fid);
 writetable(demo2,fullfile(folder,'participants.tsv'),'FileType','text','Delimiter','\t');
 
 for i=1:height(demo2)
-
-    if(isa(data,'nirs.core.Data'))
-        folder2=fullfile(folder,demo2.participant_id{i},'nirs');
-    elseif(isa(data,'eeg.core.Data'))
-        folder2=fullfile(folder,demo2.participant_id{i},'eeg');
-    else
-        error('unknown BIDS type');
-    end
+    folder2=fullfile(folder,demo2.participant_id{i});
     
     if(~exist(folder2,'dir'))
-        mkdir(fullfile(folder,demo2.participant_id{i}));
-        mkdir(folder2);
+       system(['mkdir -p ' folder2]);
     end
     lst2=find(lstL==i);   
-
+    
+    filenamesAll={};
     for j=1:length(lst2)
         
         lst=find(ismember(lower(demo.Properties.VariableNames),{'scans','scan','run'}));
@@ -167,41 +230,51 @@ for i=1:height(demo2)
             else
                 run=[];
             end
-        end   
-
+        end
+        if(iscellstr(run))
+            run=run{1};
+        end
+        run=['0' run];
+        run=run(end-1:end);
+        run={run};
+        
         folder3=folder2;
         if(length(unique({Session{lst2}}))>1)
             folder3=fullfile(folder3,['ses-' Session{lst2(j)}]);
             lst3=find(ismember({Session{lst2}},Session{lst2(j)}));
+            this_sess=Session{lst2(j)};
         else
-            lst3=1:length(lst3);
+            this_sess=[];
         end
-        if(length(unique({Task{lst2(lst3)}}))>1)
-            folder3=fullfile(folder3,['task-' Task{lst2(j)}]);
-        end
+        
         system(['mkdir -p ' folder3]);
 
-        Data2BIDS(data(lst2(j)),folder3,demo2.participant_id{i},Session{lst2(j)},Task{lst2(j)},run);
+        filenamestmp=Data2BIDS(data(lst2(j)),folder3,demo2.participant_id{i},lower(this_sess),lower(Task{lst2(j)}),run);
+        filenamesAll{j,1}=filenamestmp{1};
     end
     demo3=demo(lst2,:);
+    filenamesAll=strrep(filenamesAll,[folder filesep],'');
+    filenamesAll=strrep(filenamesAll,[demo2.participant_id{i} filesep],'');
+    
+    demo3=[table(filenamesAll,'VariableNames',{'filename'}) demo3];
     stable=true(length(demo3.Properties.VariableNames),1);
-    for i=1:length(stable)
+    for ii=1:length(stable)
 
         try
-            if(~all(isnan(table2array(demo3(:,i)))))
-                stable(i)=stable(i) & (height(unique(demo3(:,i)))==1);
+            if(~all(isnan(table2array(demo3(:,ii)))))
+                stable(ii)=stable(ii) & (height(unique(demo3(:,ii)))==1);
             end
         catch
-            stable(i)=stable(i) & (height(unique(demo3(:,i)))==1);
+            stable(ii)=stable(ii) & (height(unique(demo3(:,ii)))==1);
         end
     end
     if(~all(stable))
         demo3=demo3(:,~stable);
 
-        fid=fopen(fullfile(folder2,'scans.json'),'w');
+        fid=fopen(fullfile(folder2,[demo2.participant_id{i} '_scans.json']),'w');
         fprintf(fid,'{\n');
-        for i=1:length(demo3.Properties.VariableNames)
-            if(i>1)
+        for ii=1:length(demo3.Properties.VariableNames)
+            if(ii>1)
                 fprintf(fid,',\n');
             end
             if(isempty(demo3.Properties.VariableDescriptions))
@@ -211,14 +284,14 @@ for i=1:height(demo2)
                 demo3.Properties.VariableUnits=repmat({' '},length(demo3.Properties.VariableNames),1);
             end
             fprintf(fid,'\t"%s": {\n\t\t"Description": "%s",\n\t\t"Units": "%s"}\n\t',...
-                demo3.Properties.VariableNames{i},...
-                demo3.Properties.VariableDescriptions{i},...
-                demo3.Properties.VariableUnits{i});
+                demo3.Properties.VariableNames{ii},...
+                demo3.Properties.VariableDescriptions{ii},...
+                demo3.Properties.VariableUnits{ii});
         end
         fprintf(fid,'\n}');
         fclose(fid);
 
-        writetable(demo3,fullfile(folder2,'scans.tsv'),'FileType','text','Delimiter','\t');
+        writetable(demo3,fullfile(folder2,[demo2.participant_id{i} '_scans.tsv']),'FileType','text','Delimiter','\t');
     end
 end
 
