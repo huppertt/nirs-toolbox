@@ -51,14 +51,14 @@ json_files=json_files(id);
 
 
 for i=1:length(json_files);
-    
+
     if(verbose)
         disp(['applying JSON file: ' json_files(i).name]);
     end
-    
+
     [info,tbl]=nirs.bids.load_BIDS_JSON(json_files(i).name);
-    
-    
+
+
     if(contains(json_files(i).name,'dataset_description'))
         for id=1:length(snirf_files)
             if(contains(snirf_files(id).folder,json_files(i).folder))
@@ -69,42 +69,54 @@ for i=1:length(json_files);
             end
         end
     elseif(contains(json_files(i).name,'participants'))
+        for id=1:length(snirf_files)
+            for j=1:height(tbl)
+                if(contains(snirf_files(id).folder,fullfile(json_files(i).folder,tbl.participant_id{j})))
+                    flds=fields(info);
+                    for fIdx=1:length(flds)
+                        data(id).demographics(flds{fIdx})=tbl(j,:).(flds{fIdx});
+                    end
+                end
+            end
+        end
+
+
         % Deal with the issue of poor consitecy in the BIDS vs SNIRF
         % definitions for SubjectID vs UUID vs participant_id
         % The SNIRF standard actually defines is as UUID, so that is what I
         % will use
-        currect_demo=nirs.createDemographicsTable(data);
-
-        subjNamesAlias={'subject','subjid','id','subjectid','subjid','participant_id'};
-
-        idx=min(find(ismember(lower(tbl.Properties.VariableNames),subjNamesAlias)));
-        OldName=tbl.Properties.VariableNames{idx};
-
-
-        idx=min(find(ismember(lower(currect_demo.Properties.VariableNames),subjNamesAlias)));
-        NewName=currect_demo.Properties.VariableNames{idx};
-        if(~strcmp(NewName,OldName))
-            tbl.(NewName)=tbl.(OldName);
-            tbl.(OldName)=[];
-        end
-        lst=find(~ismember(tbl.(NewName),currect_demo.(NewName)));
-        % If the name doesn't match the participants_id info
-        for idx=1:length(lst)
-            file=strrep(snirf_files(lst(idx)).name,[folder filesep],'');
-            subjid=file(1:min(strfind(file,filesep))-1);
-            data(lst(idx)).demographics(NewName)=subjid;
-        end
-
-
-        for id=1:length(snirf_files)
-            if(contains(snirf_files(id).folder,json_files(i).folder))
-                job=nirs.modules.AddDemographics;
-                job.demoTable=tbl; job.allowMissing=true; job.varToMatch=NewName;
-                data(id)=job.run(data(id));
-            end
-        end
+        % currect_demo=nirs.createDemographicsTable(data);
+        %
+        % subjNamesAlias={'subject','subjid','id','subjectid','subjid','participant_id'};
+        %
+        % idx=min(find(ismember(lower(tbl.Properties.VariableNames),subjNamesAlias)));
+        % OldName=tbl.Properties.VariableNames{idx};
+        %
+        %
+        % idx=min(find(ismember(lower(currect_demo.Properties.VariableNames),subjNamesAlias)));
+        % NewName=currect_demo.Properties.VariableNames{idx};
+        % if(~strcmp(NewName,OldName))
+        %     tbl.(NewName)=tbl.(OldName);
+        %     tbl.(OldName)=[];
+        % end
+        % lst=find(~ismember(tbl.(NewName),currect_demo.(NewName)));
+        % % If the name doesn't match the participants_id info
+        % for idx=1:length(lst)
+        %     file=strrep(snirf_files(lst(idx)).name,[folder filesep],'');
+        %     subjid=file(1:min(strfind(file,filesep))-1);
+        %     data(lst(idx)).demographics(NewName)=subjid;
+        % end
+        %
+        %
+        % for id=1:length(snirf_files)
+        %     if(contains(snirf_files(id).folder,json_files(i).folder))
+        %         job=nirs.modules.AddDemographics;
+        %         job.demoTable=tbl; job.allowMissing=true; job.varToMatch=NewName;
+        %         data(id)=job.run(data(id));
+        %     end
+        % end
     elseif(contains(json_files(i).name,'event'))
-         for id=1:length(snirf_files)
+        for id=1:length(snirf_files)
             if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_event'))))
                 if(~ismember('name',tbl.Properties.VariableNames) &...
                         ismember('trial_type',tbl.Properties.VariableNames))
@@ -137,42 +149,54 @@ for i=1:length(json_files);
                     stim.metadata.duration=[];
                     stim.metadata.amplitude=[];
                     data(id).stimulus(names{nI})=stim;
-                end  
-                    
-            
+                end
+
+
             end
-         end
+        end
     elseif(contains(json_files(i).name,'fnirs'))
-         for id=1:length(snirf_files)
+        for id=1:length(snirf_files)
             if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_fnirs'))))
-                 flds=fields(info);
+                flds=fields(info);
                 for fIdx=1:length(flds)
                     data(id).demographics(flds{fIdx})=info.(flds{fIdx});
                 end
             end
-         end
+        end
     elseif(contains(json_files(i).name,'nirs'))
-         for id=1:length(snirf_files)
+        for id=1:length(snirf_files)
             if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_nirs'))))
-                 flds=fields(info);
+                flds=fields(info);
                 for fIdx=1:length(flds)
                     data(id).demographics(flds{fIdx})=info.(flds{fIdx});
                 end
             end
-         end
+        end
     elseif(contains(json_files(i).name,'coordsystem'))
-         for id=1:length(snirf_files)
+        for id=1:length(snirf_files)
             if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_coordsystem'))))
                 flds=fields(info);
                 for fIdx=1:length(flds)
                     data(id).demographics(flds{fIdx})=info.(flds{fIdx});
                 end
             end
-         end
+        end
+    elseif(contains(json_files(i).name,'scan'))
+        [info,tbl]=nirs.bids.load_BIDS_JSON(json_files(i).name);
+        for id=1:length(snirf_files)
+            if(contains(snirf_files(id).name,json_files(i).name(1:strfind(json_files(i).name,'_scans'))))
+                flds=fields(info);
+                for fIdx=1:length(flds)
+                    data(id).demographics(flds{fIdx})=info.(flds{fIdx});
+                end
+            end
+        end
     else
-         warning('Unable to parse %s, this json format may not be specifically supported by NIRS toolbox at this time',json_files(i).name);
+        warning('Unable to parse %s, this json format may not be specifically supported by NIRS toolbox at this time',json_files(i).name);
     end
 
-    
-    
+
+
 end;
+
+data=nirs.util.clean_up_demographics(data);
