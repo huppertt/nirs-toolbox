@@ -540,11 +540,15 @@ else
     tbl = [tbl table(q) table(power)];
     tbl=sortrows(tbl,{'Contrast','ROI','type'});
     
+    lst2=find(~isnan(beta));
+    s=sum(cc(lst2,:),1);
+    cc(lst2,:)=cc(lst2,:)*1./(ones(length(lst2),1)*s);
+
     ROIstats=nirs.core.ChannelStats;
     ROIstats.description='region of interest stats';
-    ROIstats.beta=cc'*beta;
+    ROIstats.beta=cc(lst2,:)'*beta(lst2);
     ROIstats.dfe=tbl.DF;
-    ROIstats.covb=cc'*covb*cc; %----- Ted: need to check this line for compatability with NaNs
+    ROIstats.covb=cc(lst2,:)'*covb(lst2,lst2)*cc(lst2,:); %----- Ted: need to check this line for compatability with NaNs
     ROIstats.demographics=data.demographics;
     ROIstats.basis=data.basis;
     

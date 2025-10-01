@@ -110,7 +110,11 @@ classdef ChannelStats
         function p = get.p( obj )
             
             if(~isempty(obj.pvalue_fixed))
-                p=obj.pvalue_fixed;  % hack to allow reuse in the Conn Seed model
+                if(isa(obj.pvalue_fixed,'nirs.bootstrapping.bootstrap_result'))
+                    p=obj.pvalue_fixed.pvalue;
+                else
+                    p=obj.pvalue_fixed;  % hack to allow reuse in the Conn Seed model
+                end
                 return
             end
             
@@ -517,7 +521,15 @@ classdef ChannelStats
             out.covb = obj.covb(idx, idx);
             
             if(~isempty(out.pvalue_fixed))
-                out.pvalue_fixed=out.pvalue_fixed(idx);
+                 if(isa(obj.pvalue_fixed,'nirs.bootstrapping.bootstrap_result'))
+                    out.pvalue_fixed.pcdf_estimate(:,idx,:)=out.pvalue_fixed.pcdf_estimate(:,idx,:);
+                    out.pvalue_fixed.pcdf_lower_bounds(:,idx,:)=out.pvalue_fixed.pcdf_lower_bounds(:,idx,:);
+                    out.pvalue_fixed.pcdf_upper_bounds(:,idx,:)=out.pvalue_fixed.pcdf_upper_bounds(:,idx,:);
+                    out.pvalue_fixed.value_bins(:,idx,:)=out.pvalue_fixed.value_bins(:,idx,:);
+                else
+                    out.pvalue_fixed=out.pvalue_fixed(idx);;  % hack to allow reuse in the Conn Seed model
+                end
+                
             end
             
         end
