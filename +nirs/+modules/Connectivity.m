@@ -1,6 +1,6 @@
 classdef Connectivity < nirs.modules.AbstractModule
-%% CONNECTIVITY - Computes all-to-all connectivity model.
-% Outputs nirs.core.ConnStats object
+    %% CONNECTIVITY - Computes all-to-all connectivity model.
+    % Outputs nirs.core.ConnStats object
 
     properties
         corrfcn;  % function to use to compute correlation (see +nirs/+sFC for options)
@@ -8,41 +8,44 @@ classdef Connectivity < nirs.modules.AbstractModule
         min_event_duration;  % minimum duration of events
         ignore;  % time at transitions (on/off) to ignore (only valid if dividing events)
         AddShortSepRegressors = false;
+        verbose=true;
     end
     methods
         function obj = Connectivity( prevJob )
-           obj.name = 'Connectivity';
-           obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'4xFs',true);  %default to use AR-whitened robust correlation
-           obj.divide_events=false;
-           obj.min_event_duration=30;
-           obj.ignore=10;
-           if nargin > 0
-               obj.prevJob = prevJob;
-           end
-           obj.citation{1}='Santosa, H., Aarabi, A., Perlman, S. B., & Huppert, T. J. (2017). Characterization and correction of the false-discovery rates in resting state connectivity using functional near-infrared spectroscopy. Journal of Biomedical Optics, 22(5), 055002-055002.';
-           obj.citation{2}='Lanka, Pradyumna, Heather Bortfeld, and Theodore J. Huppert. "Correction of global physiology in resting-state functional near-infrared spectroscopy." Neurophotonics 9.3 (2022): 035003-035003.';
+            obj.name = 'Connectivity';
+            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'4xFs',true);  %default to use AR-whitened robust correlation
+            obj.divide_events=false;
+            obj.min_event_duration=30;
+            obj.ignore=10;
+            if nargin > 0
+                obj.prevJob = prevJob;
+            end
+            obj.citation{1}='Santosa, H., Aarabi, A., Perlman, S. B., & Huppert, T. J. (2017). Characterization and correction of the false-discovery rates in resting state connectivity using functional near-infrared spectroscopy. Journal of Biomedical Optics, 22(5), 055002-055002.';
+            obj.citation{2}='Lanka, Pradyumna, Heather Bortfeld, and Theodore J. Huppert. "Correction of global physiology in resting-state functional near-infrared spectroscopy." Neurophotonics 9.3 (2022): 035003-035003.';
         end
-        
+
         function connStats = runThis( obj, data )
             if(obj.AddShortSepRegressors)
-                disp('removing short-seperation noise');
+                if(obj.verbose)
+                    disp('removing short-seperation noise');
+                end
                 job=advanced.nirs.modules.ShortDistanceFilter;
                 data=job.run(data);
             end
 
 
             for i = 1:numel(data)
-                
-               
+
+
                 connStats(i)=nirs.core.sFCStats();
                 connStats(i).type = obj.corrfcn;
                 connStats(i).description= ['Connectivity model of ' data(i).description];
                 connStats(i).probe=data(i).probe;
                 connStats(i).demographics=data(i).demographics;
-     
+
                 mask={}; cond={};
                 if(obj.divide_events)
-                    
+
                     stim=data(i).stimulus;
                     cnt=1;
                     for idx=1:length(stim.keys)
@@ -51,7 +54,7 @@ classdef Connectivity < nirs.modules.AbstractModule
                         if(length(lst)>0)
                             s.onset=s.onset(lst);
                             s.dur=s.dur(lst);
-                            
+
                             disp(['Spliting condition: ' stim.keys{idx}]);
                             r=zeros(size(data(i).data,2),size(data(i).data,2),length(s.onset));
                             dfe=zeros(length(s.onset),1);
@@ -64,16 +67,18 @@ classdef Connectivity < nirs.modules.AbstractModule
                                 tmp.time=data(i).time(lstpts);
                                 [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
                             end
-                            
+
                             connStats(i).dfe(cnt)=sum(dfe);
                             connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
                             connStats(i).conditions{cnt}=stim.keys{idx};
                             cnt=cnt+1;
                         else
-                            disp(['Skipping condition: ' stim.keys{idx} ...
-                                ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
+                            if(obj.verbose)
+                                disp(['Skipping condition: ' stim.keys{idx} ...
+                                    ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
+                            end
                         end
-                        
+
                     end
 
                 else
@@ -82,17 +87,18 @@ classdef Connectivity < nirs.modules.AbstractModule
                     tmp.data(lst,:)=[];
                     tmp.time(lst)=[];
                     [r,p,dfe]=obj.corrfcn(tmp);
-                    
+
                     connStats(i).dfe=dfe;
                     connStats(i).R=r;
                     connStats(i).conditions=cellstr('rest');
                 end
-                
-                
-                disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
+
+                if(obj.verbose)
+                    disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
+                end
             end
         end
-        
+
     end
-    
+
 end
