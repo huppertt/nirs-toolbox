@@ -83,16 +83,17 @@ classdef bootstrap_jobmanager
                 end
 
                 for i=1:size(R,1)
+                    
                     if(all(isnan(R(i,:))))
-                        ResultBS.pcdf_estimate(:,i,j)=nan(size(R,2)+1,1);
                         ResultBS.value_bins(:,i,j)=nan(size(R,2)+1,1);
-                        ResultBS.pcdf_lower_bounds(:,i,j)=nan(size(R,2)+1,1);
-                        ResultBS.pcdf_upper_bounds(:,i,j)=nan(size(R,2)+1,1);
+                        ResultBS.ecdf(:,i,j)=nan(size(R,2)+1,1);
                     else
-                        [ResultBS.pcdf_estimate(:,i,j),...
-                            ResultBS.value_bins(:,i,j),...
-                            ResultBS.pcdf_lower_bounds(:,i,j),...
-                            ResultBS.pcdf_upper_bounds(:,i,j)]=ecdf(R(i,:));
+                        [ResultBS.ecdf(:,i,j),...
+                            ResultBS.value_bins(:,i,j)]=ecdf(R(i,:));
+                        lst=find(ResultBS.value_bins(:,i,j)>mean(R(i,:)));
+                        ResultBS.ecdf(lst,i,j)=1-ResultBS.ecdf(lst,i,j);
+                       
+
                     end
                 end
 

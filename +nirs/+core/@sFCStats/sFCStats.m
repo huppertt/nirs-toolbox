@@ -76,7 +76,12 @@ classdef sFCStats
          function p = get.p(obj)
 
              if(~isempty(obj.pvalue_fixed))
-                p=obj.pvalue_fixed;  % hack to allow reuse in the Conn Seed model
+                if(isa(obj.pvalue_fixed,'nirs.bootstrapping.bootstrap_result'))
+                    p=obj.pvalue_fixed.pvalue;
+                    p=reshape(p,size(obj.t));
+                else
+                    p=obj.pvalue_fixed;  % hack to allow reuse in the Conn Seed model
+                end
                 return
              end
              

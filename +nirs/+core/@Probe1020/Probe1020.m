@@ -524,7 +524,7 @@ classdef Probe1020 < nirs.core.Probe
 
             if(~isempty(idx))
                 obj.defaultdrawfcn=allowed{idx,1};
-            elseif(isempty(str) || strcmp(str,'?'))
+            elseif(strcmp(str,'?'))
                 disp('Here are the options for drawing configurations');
                 disp(allowed);
             end
