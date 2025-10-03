@@ -9,6 +9,10 @@ for i=1:length(data)
         result(:,i)=data(i).beta;
     elseif(strcmp(type,'tvalue'))
         result(:,i)=data(i).tvalue;
+    elseif(strcmp(type,'R'))
+        result(:,i)=data(i).R(:);
+    elseif(strcmp(type,'Z'))
+        result(:,i)=data(i).Z(:);
     else
         result(:,i)=data(i).(type);
     end

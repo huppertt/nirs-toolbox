@@ -23,6 +23,7 @@ classdef bootstrap_result
             
             for i=1:size(obj.truth,1)
                 for j=1:size(obj.truth,2)
+                    if(~isnan(obj.truth(i,j)))
                     idx1=min(find(obj.value_bins(:,i,j)>=obj.truth(i,j)));
                     idx2=max(find(obj.value_bins(:,i,j)<=obj.truth(i,j)));
                     lst=[idx1 idx2];
@@ -34,6 +35,10 @@ classdef bootstrap_result
                         UB(i,j)=1-UB(i,j);
                         LB(i,j)=1-LB(i,j);
                     end
+                    else
+                        UB(i,j)=NaN;
+                        LB(i,j)=NaN;
+                    end
                 end
             end
                 
@@ -44,8 +49,10 @@ classdef bootstrap_result
             LB = zeros(size(obj.truth));
             UB = zeros(size(obj.truth));
             
+            
             for i=1:size(obj.truth,1)
                 for j=1:size(obj.truth,2)
+                    if(~isnan(obj.truth(i,j)))
                     idx1=min(find(obj.value_bins(:,i,j)>=obj.truth(i,j)));
                     idx2=max(find(obj.value_bins(:,i,j)<=obj.truth(i,j)));
                     lst=[idx1 idx2];
@@ -56,6 +63,10 @@ classdef bootstrap_result
                     if(obj.truth(i,j)>0)
                         UB(i,j)=1-UB(i,j);
                         LB(i,j)=1-LB(i,j);
+                    end
+                    else
+                        UB(i,j)=NaN;
+                        LB(i,j)=NaN;
                     end
                 end
             end

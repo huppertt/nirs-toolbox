@@ -28,6 +28,6 @@ end
 
 for i=1:length(data)
     for j=1:length(flds)
-        data(i).demographics(flds{j})=tbl(j,:).(flds{j});
+        data(i).demographics(flds{j})=tbl(i,:).(flds{j});
     end
 end
