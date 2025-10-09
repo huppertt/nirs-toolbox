@@ -44,6 +44,20 @@ if(nargin<5 || isempty(flip))
     flip=[1 1];
 end
 
+if(~isempty(obj.custom_draw_function))
+    if(iscell(obj.custom_draw_function))
+        f=[];
+        for i=1:length(obj.custom_draw_function)
+            f=[f; feval(obj.custom_draw_function{i},obj,vtype, vrange, thresh ,flip)];
+        end
+    else
+        f=feval(obj.custom_draw_function,obj,vtype, vrange, thresh ,flip);
+    end
+
+    return
+end
+
+
 
 
 

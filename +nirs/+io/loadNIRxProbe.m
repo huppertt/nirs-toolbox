@@ -146,10 +146,33 @@ end
 
 if(registerprobe)
     BEM = nirs.registration.Colin27.mesh_V2;
+    if(strcmp(probeInfo.headmodel,'ICBM152'))
+        % My code wants to be in MNI space, so we need to slightly adjust
+        % the positions from the default NIRx ICBM space
+        Tr=[0.9983   -0.0215   -0.0536         0;...
+            0.0174    0.9970   -0.0756         0;...
+            0.0551    0.0746    0.9957         0;...
+            0.3873    2.4107   -5.8694    1.0000];
+        optodes3D=nirs.registration.applytform(optodes3D,inv(Tr));
+    
+    end
+
 else
     %'Infant_00_02'
-    
     BEM = nirs.registration.NIRxGeom.Colin.mesh;
+    
+    
+
+    if(strcmp(probeInfo.headmodel,'ICBM152'))
+        % My code wants to be in MNI space, so we need to slightly adjust
+        % the positions from the default NIRx ICBM space
+        Tr=[0.9983   -0.0215   -0.0536         0;...
+            0.0174    0.9970   -0.0756         0;...
+            0.0551    0.0746    0.9957         0;...
+            0.3873    2.4107   -5.8694    1.0000];
+        BEM=nirs.registration.applytform(BEM,Tr);
+    end
+
 end
 
 

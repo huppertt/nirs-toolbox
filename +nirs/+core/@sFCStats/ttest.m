@@ -88,4 +88,25 @@ function S = ttest(obj, c, b, names)
     S.dfe=dfe;
     
     S.description = 'T-test';
+
+    if(~isempty(obj.pvalue_fixed))
+        if(all(ismember(names,obj.conditions)))
+            % the conditions are directly a subset of the originals and we
+            % can keep the fixed pvalues
+            mask=zeros(size(obj.t));
+            mask(:,:,ismember(obj.conditions,names))=1;
+            if(isa(obj.pvalue_fixed,'nirs.bootstrapping.bootstrap_result'))
+                lst=find(~mask);
+                S.pvalue_fixed.truth(lst)=[];
+                S.pvalue_fixed.ecdf(:,lst)=[];
+                S.pvalue_fixed.value_bins(:,lst)=[];
+            else
+                S.pvalue_fixed=obj.pvalue_fixed(find(mask));
+            end
+        else
+            warning('New conditions invalidates permutation p-values');
+            S.pvalue_fixed=[];
+        end
+
+
 end

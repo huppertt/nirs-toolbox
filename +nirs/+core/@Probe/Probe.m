@@ -20,6 +20,7 @@ classdef Probe
         
         optodes    % table describing the src/det and any additional probe points
         link        % table describing the connections of source/detector pairs
+       
 	end
     
     properties( Dependent = true )

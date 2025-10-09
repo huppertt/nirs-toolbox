@@ -9,7 +9,8 @@ classdef sFCStats
     %     Z            - Fisher Z-transform
     %     p            - p-values f
     %     dfe          - degrees of freedom
-    %
+    %     custom_draw_function - function handle that when specified
+    %                   changes the drawing 
     %     
     %  Methods:
     %     
@@ -27,6 +28,7 @@ classdef sFCStats
         % Results storage
         R               % correlation value (depends on model)
         dfe          	% degrees of freedom
+        custom_draw_function=[];
     end
         
    properties ( Hidden = true )     
