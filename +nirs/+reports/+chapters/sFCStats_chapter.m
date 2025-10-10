@@ -1,7 +1,16 @@
-function rpt_cpt = sFCStats_chapter(data)
+function rpt_cpt = sFCStats_chapter(data,datatoshow)
 
 import mlreportgen.report.*
 import mlreportgen.dom.*
+
+if(nargin<2)
+    datatoshow={'R:conditions(p<0.05)'};
+end
+
+if(isstr(data))
+    data=evalin('base',data);
+end
+
 
 results_table=data.table;
 
@@ -22,7 +31,7 @@ results_table.Channel=Name;
 results_table(find(isnan(results_table.pvalue)),:)=[];
 
 [~,idx]=unique(results_table(:,~ismember(results_table.Properties.VariableNames,...
-    {'SourceOrigin','DetectorOrigin','SourceDest','DetectorDest'})))
+    {'SourceOrigin','DetectorOrigin','SourceDest','DetectorDest'})));
 
 results_table=results_table(idx,:);
 results_table.Channel=[];
@@ -31,40 +40,55 @@ results_table.qvalue=nirs.math.fdr(results_table.pvalue);
 
 
 
-
-cond=unique(results_table.condition);
-
 rpt_cpt=Chapter('Functional Connectivity Stats');
 rpt_cpt.add(TableOfContents);
-rpt_cpt.add(PageBreak);
 
-for i=1:length(cond)
-    sect(i)=mlreportgen.report.Section(cond{i});
 
-    tt=results_table(ismember(results_table.condition,cond{i}),:);
-    tt.qvalue=nirs.math.BenjaminiHochberg(tt.pvalue);
-    tt=tt(tt.pvalue<0.05,:);
-    tbl=Table(tt);
-    tbl.Style = [tbl.Style
-        {NumberFormat("%1.3f"),...
-        Width("100%"),...
-        Border("solid"),...
-        ColSep("solid"),...
-        RowSep("solid")}];
+for cIdx=1:length(datatoshow)
+    rpt_cpt.add(PageBreak);
+    dataType=datatoshow{cIdx}(1:min(strfind(datatoshow{cIdx},':')-1));
+    conds={datatoshow{cIdx}(strfind(datatoshow{cIdx},':')+1:strfind(datatoshow{cIdx},'(')-1)};
+    if(ismember(lower(conds{1}),{'conditions','condition','cond','conds'}))
+        conds=unique(results_table.condition);
+    end
+    thres=datatoshow{cIdx}(strfind(datatoshow{cIdx},'(')+1:strfind(datatoshow{cIdx},')')-1);
 
-     lst=find(tt.qvalue<0.05);
-     for j=1:length(lst)
-         sigfRow(j) = tbl.row(lst(j));
-         sigfRow(j).Style = {BackgroundColor('red')};
-     end
+    sect(cIdx)=mlreportgen.report.Section(datatoshow{cIdx});
 
-    h=data.ttest(cond{i}).draw('R',[],'p<0.05');
-    fig=mlreportgen.report.Figure(h);
-    sect(i).add(fig);
-    close(h);
+    for i=1:length(conds)
+        if(length(conds)>1)
+            sect2=mlreportgen.report.Section(conds{i});
+            sect(cIdx).add(sect2);
+        else
+            sect2=sect(cIdx);
+        end
 
-    rpt_tbl=BaseTable(tbl);
-    sect(i).add(rpt_tbl);
-    rpt_cpt.add(sect(i));
-    rpt_cpt.add(mlreportgen.dom.PageBreak);
+        tt=results_table(ismember(results_table.condition,conds{i}),:);
+        tt.qvalue=nirs.math.BenjaminiHochberg(tt.pvalue);
+        tt=tt(tt.pvalue<0.05,:);
+        tbl=Table(tt);
+        tbl.Style = [tbl.Style
+            {NumberFormat("%1.3f"),...
+            Width("100%"),...
+            Border("solid"),...
+            ColSep("solid"),...
+            RowSep("solid")}];
+
+        lst=find(tt.qvalue<0.05);
+        for j=1:length(lst)
+            sigfRow(j) = tbl.row(lst(j));
+            sigfRow(j).Style = {BackgroundColor('red')};
+        end
+
+        h=data.ttest(conds{i}).draw(dataType,[],thres);
+        fig=mlreportgen.report.Figure(h);
+        sect2.add(fig);
+        close(h);
+
+        rpt_tbl=BaseTable(tbl);
+        sect2.add(rpt_tbl);
+
+        rpt_cpt.add(PageBreak);
+    end
+    rpt_cpt.add(sect(cIdx));
 end

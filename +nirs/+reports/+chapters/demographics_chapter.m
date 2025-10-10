@@ -5,11 +5,16 @@ function rpt_cpt = demographics_chapter(data)
 import mlreportgen.report.*
 import mlreportgen.dom.*
 
+if(isstr(data))
+    data=evalin('base',data);
+end
+
+
 demographics = nirs.createDemographicsTable(data);
+ids = nirs.reports.helper.get_subjectID(data);
 
 summary_text = [mlreportgen.dom.Text(sprintf('\t Number of scans: %d',length(data)))...
-                mlreportgen.dom.Text(sprintf('\t Number of total subjects: %d',length(unique(demographics.("ID")))))...
-                mlreportgen.dom.Text(sprintf('\t Number of groups: %d',length(unique(demographics.("Group")))))];
+                mlreportgen.dom.Text(sprintf('\t Number of total subjects: %d',length(unique(ids))))];
 
 
 flds=demographics.Properties.VariableNames;
@@ -19,10 +24,10 @@ for j=1:length(flds);
     end; 
 end;
 
-demographics.UUID=[];
-demographics.filename=[];
-demographics.runUID=[];
-demographics.ID=[];
+try; demographics.UUID=[]; end;
+try; demographics.filename=[]; end;
+try; demographics.runUID=[]; end;
+    try; demographics.ID=[]; end;
 
 tbl=Table(demographics);
 

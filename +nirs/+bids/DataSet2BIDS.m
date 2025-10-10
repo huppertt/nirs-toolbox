@@ -1,23 +1,20 @@
-function DataSet2BIDS(data,folder,name,LocalBIDSinfo,deID)
+function DataSet2BIDS(data,folder,name,LocalBIDSinfo,ReadMe,deID)
 
 if(nargin<4 || isempty(LocalBIDSinfo))
     LocalBIDSinfo=struct;
 end
 
+if(nargin<5 || isempty(ReadMe))
+    ReadME='Raw data from NIRS toolbox';
+end
+
 LocalBIDSinfo.BIDSVersion='1.8.0';
 LocalBIDSinfo.License='CC0';
-LocalBIDSinfo.Authors={'Judith Morgan, PhD',...
-                        'Hendrik Santosa, PhD',...
-                        'Theodore Huppert, PhD'};
-LocalBIDSinfo.Keywords={'fNIRS','hyperscanning','parent-child interation'};
 LocalBIDSinfo.DatasetType='raw';
 LocalBIDSinfo.GeneratedBy.Name='nirs-toolbox';
 LocalBIDSinfo.GeneratedBy.Version='2.0.0';
-LocalBIDSinfo.SourceDatasets.URL='none';
-LocalBIDSinfo.SourceDatasets.Version='none';
 
  
-ReadME='Raw data for BRITE project';
 
 
 
