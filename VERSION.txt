@@ -1,0 +1,8 @@
+Version Information:
+--------------------
+Latest Tag: v2022.4.26
+Commit Hash (short): 0b021222
+Commit Hash (full): 
+Commit Message: added report code and git versioning info
+Commit Author: huppertt
+Commit Date: 2025-10-10T14:27:20-04:00
