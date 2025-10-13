@@ -1,4 +1,4 @@
-function f=draw( obj, vtype, vrange, thresh ,flip,...
+function f=draw2( obj, vtype, vrange, thresh ,flip,...
     figH,ConditionsShown,TypesShown)
 %% draw - Draws channelwise values on a probe.
 % Args:
@@ -12,7 +12,7 @@ function f=draw( obj, vtype, vrange, thresh ,flip,...
 %     stats.draw( 'Grangers', 5, 3 )
 
 % type is either beta or tstat
-if nargin < 2
+if nargin < 2;
     vtype='R';
     
     %         if(strcmp(obj.type,'Grangers'));
@@ -22,15 +22,15 @@ if nargin < 2
     %
     %         end
 end
-if(contains(vtype,'matrix'))
-    vtype(strfind(vtype,'matrix')-1+(1:length('matrix')))=[];
+if(~isempty(strfind(vtype,'matrix')))
+    vtype(strfind(vtype,'matrix')-1+[1:length('matrix')])=[];
     drawtype='matrix';
 else
     drawtype='line';
 end
 
-if(contains(vtype,'line'))
-    vtype(strfind(vtype,'line')-1+(1:length('line')))=[];
+if(~isempty(strfind(vtype,'line')))
+    vtype(strfind(vtype,'line')-1+[1:length('line')])=[];
 end
 
 if nargin < 3
@@ -266,9 +266,12 @@ for cIdx=1:length(uconds)
                     colors = cmap(idx, :);
                     
                     if(strcmp(drawtype,'line'))
-                        figure(f(cIdx));
-                        sp=subplot(length(utypesOrigin),1,cnt);
-                        
+                        if(isa(f(cIdx),'matlab.ui.control.UIAxes'))
+                            sp=f(cIdx);
+                        else
+                            figure(f(cIdx));
+                            sp=subplot(length(utypesOrigin),1,cnt);
+                        end
                         h=obj.probe.draw([],[],sp);
                         set(h,'Color', [.7 .7 .7]);
                         axes(sp);
@@ -345,8 +348,9 @@ for cIdx=1:length(uconds)
             end
             
         end
-    
+    try
     set(f(cIdx),'Name',obj.conditions{cIdx},'NumberTitle','off')
     %supertitle(f(cIdx),obj.conditions{cIdx});
+    end
 end
 

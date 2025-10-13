@@ -1,4 +1,4 @@
-function rpt_cpt = demographics_chapter(data)
+function varargout = demographics_chapter(data)
 % This function will create a matlab report object (later converted to PDF
 % OR HTML) showing the demographics info for the data
 
@@ -29,6 +29,11 @@ try; demographics.filename=[]; end;
 try; demographics.runUID=[]; end;
     try; demographics.ID=[]; end;
 
+savedOutputs=struct;
+tbls_out.name='Demographics';
+tbls_out.table=demographics;
+savedOutputs.tables(1)=tbls_out;
+
 tbl=Table(demographics);
 
 tbl.Style = [tbl.Style 
@@ -53,3 +58,8 @@ rpt_tbl=BaseTable(tbl);
 rpt_cpt.add(rpt_prg);
 rpt_cpt.add(rpt_tbl);
 
+varargout{1}=rpt_cpt;
+
+if(nargout>1)
+    varargout{2}=savedOutputs;
+end

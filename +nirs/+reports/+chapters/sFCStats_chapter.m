@@ -1,4 +1,4 @@
-function rpt_cpt = sFCStats_chapter(data,datatoshow)
+function varargout = sFCStats_chapter(data,datatoshow)
 
 import mlreportgen.report.*
 import mlreportgen.dom.*
@@ -41,8 +41,9 @@ results_table.qvalue=nirs.math.fdr(results_table.pvalue);
 
 
 rpt_cpt=Chapter('Functional Connectivity Stats');
-rpt_cpt.add(TableOfContents);
 
+cnt=1;
+savedOutputs=struct;
 
 for cIdx=1:length(datatoshow)
     rpt_cpt.add(PageBreak);
@@ -66,6 +67,12 @@ for cIdx=1:length(datatoshow)
         tt=results_table(ismember(results_table.condition,conds{i}),:);
         tt.qvalue=nirs.math.BenjaminiHochberg(tt.pvalue);
         tt=tt(tt.pvalue<0.05,:);
+
+
+        tbls_out.name=[datatoshow{cIdx} '_' conds{i}];
+        tbls_out.table=tt;
+        savedOutputs.tables(cnt)=tbls_out;
+
         tbl=Table(tt);
         tbl.Style = [tbl.Style
             {NumberFormat("%1.3f"),...
@@ -82,6 +89,16 @@ for cIdx=1:length(datatoshow)
 
         h=data.ttest(conds{i}).draw(dataType,[],thres);
         fig=mlreportgen.report.Figure(h);
+
+        if(nargout>1)
+            saveas(h,[datatoshow{cIdx} '_' conds{i} '.fig']);
+            saveas(h,[datatoshow{cIdx} '_' conds{i} '.png']);
+            savedimages.name=[datatoshow{cIdx} '_' conds{i}];
+            savedimages.files=[dir([datatoshow{cIdx} '_' conds{i} '.png']);...
+                dir([datatoshow{cIdx} '_' conds{i} '.fig'])];
+            savedOutputs.images(cnt)=savedimages;
+        end
+
         sect2.add(fig);
         close(h);
 
@@ -89,6 +106,13 @@ for cIdx=1:length(datatoshow)
         sect2.add(rpt_tbl);
 
         rpt_cpt.add(PageBreak);
+        cnt=cnt+1;
     end
     rpt_cpt.add(sect(cIdx));
+end
+
+varargout{1}=rpt_cpt;
+
+if(nargout>1)
+    varargout{2}=savedOutputs;
 end

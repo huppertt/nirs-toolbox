@@ -3,8 +3,6 @@ import mlreportgen.report.*
 import mlreportgen.dom.*
 
 rpt_cpt=Chapter('Data Quality Summary');
-rpt_cpt.add(TableOfContents);
-rpt_cpt.add(PageBreak);
 
 if(isstr(data))
     data=evalin('base',data);
@@ -45,9 +43,15 @@ for i=1:length(data)
     end
 end
 
+savedOutputs=struct;
 
 sect(1)=mlreportgen.report.Section('File Information');
 results=struct2table(results);
+
+tbls_out.name='File Information';
+tbls_out.table=results;
+savedOutputs.tables(1)=tbls_out;
+
 
 tbl=Table(results);
 tbl.Style = [tbl.Style
@@ -102,6 +106,11 @@ for i=1:length(summary)
 
     results=struct2table(results);
     
+    tbls_out.name=summary{i};
+    tbls_out.table=results;
+    savedOutputs.tables(1+i)=tbls_out;
+
+
     sect(1+i)=mlreportgen.report.Section(summary{i});
 
     tbl=Table(results);
@@ -118,12 +127,24 @@ for i=1:length(summary)
     h=figure; hist(val');
     fig=mlreportgen.report.Figure(h);
     sect(1+i).add(fig);
+
+    if(nargout>1)
+        saveas(h,[summary{i} '.fig']);
+        saveas(h,[summary{i} '.png']);
+        savedimages.name=summary{i};
+        savedimages.files=[dir([summary{i} '.png']); dir([summary{i} '.fig'])];
+        savedOutputs.images(i)=savedimages;
+    end
+        
+
     close(h);
 
     rpt_cpt.add(sect(1+i));
-
-     rpt_cpt.add(PageBreak);
+    rpt_cpt.add(PageBreak);
 end
 
-
 varargout{1}=rpt_cpt;
+
+if(nargout>1)
+    varargout{2}=savedOutputs;
+end

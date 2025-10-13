@@ -50,8 +50,8 @@ function h=drawProbe(link, s, d, colors, lineStyles, axis_handle)
 %    axes(axis_handle);
     hold(axis_handle,'on');
     h = [];
-    ss=scatter(s(:,1),s(:,2),'filled','MarkerFaceColor','r');
-    sd=scatter(d(:,1),d(:,2),'filled','MarkerFaceColor','b');
+    ss=scatter(axis_handle,s(:,1),s(:,2),'filled','MarkerFaceColor','r');
+    sd=scatter(axis_handle,d(:,1),d(:,2),'filled','MarkerFaceColor','b');
     set(ss,'Tag','SourceOptodes');
     set(sd,'Tag','DetectorOptodes');
             
