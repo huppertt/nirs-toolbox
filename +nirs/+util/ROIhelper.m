@@ -1,7 +1,10 @@
 function [ContVect,R,names,namesOld,types]=ROIhelper(data,R,names)
 
 
-if(~iscell(R)); R={R}; end;
+if(~iscell(R)); 
+    
+    R={R}; 
+end;
 
 if(nargin<3 && ~exist('names'))
     for i=1:length(R)

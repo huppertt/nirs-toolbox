@@ -78,7 +78,7 @@ end
 tmp=struct;
 if(length(options.save_variables)>0)
     for i=1:length(options.save_variables)
-        tmp=setfield(tmp,options.save_variables{i},evalin('base',options.save_variables));
+        tmp=setfield(tmp,options.save_variables{i},evalin('base',options.save_variables{i}));
     end
-    save(fullfile(folder,'save_variables.mat'),'-STRUCT',tmp);
+    save(fullfile(folder,'save_variables.mat'),'-STRUCT','tmp');
 end

@@ -1,6 +1,16 @@
 function [tbl,ROIstats] = roiAverage( data, R, names ,splitrois,weighted)
 
-if(~iscell(R)); R={R}; end;
+if(~iscell(R)); 
+    if(istable(R) && ismember({'Name'},R.Properties.VariableNames))
+        names=unique(R.Name);
+        for i=1:length(names)
+            R2{i}=R(ismember(R.Name,names{i}),:);
+        end
+        R=R2;
+    else
+        R={R}; 
+    end
+end;
 
 if(nargin<3 || isempty(names))
     for i=1:length(R)

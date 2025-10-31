@@ -100,7 +100,7 @@ for cIdx=1:length(datatoshow)
         end
 
         sect2.add(fig);
-        close(h);
+        try; close(h); end;
 
         rpt_tbl=BaseTable(tbl);
         sect2.add(rpt_tbl);

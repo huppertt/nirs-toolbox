@@ -15,6 +15,7 @@ if(exist(gitinfo,'file')==2)
     while(line~=-1)
         line=fgetl(fid);
         if(line~=1)
+            warning('off','MATLAB:strrep:InvalidInputType')
             [a,b]=strtok(line,':');
             a=strrep(a,' ','_');
             a=strrep(a,')','');

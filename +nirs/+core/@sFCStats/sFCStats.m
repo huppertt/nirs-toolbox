@@ -252,6 +252,8 @@ classdef sFCStats
                         'SourceDest','DetectorDest','TypeDest','R','Z','t','pvalue','qvalue'})];
                 end
             end
+            out=out(obj.uniqueinds,:);
+            out.qvalue=nirs.math.BenjaminiHochberg(out.pvalue);
         end
         
         function seedGUI(obj)
