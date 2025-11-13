@@ -10,7 +10,6 @@ if(nargin<2)
     options=nirs.reports.getResultsReportOptions;
 end
 
-outputs={};
 
 for i=1:length(options.chapters)
     if(~iscell(options.chapters(i).inputs))
@@ -22,7 +21,27 @@ for i=1:length(options.chapters)
     else
         [chp(i),outputs{i}]=feval(options.chapters(i).function,options.chapters(i).inputs{1},options.chapters(i).inputs{2});
     end
-    chp(i).Title=options.chapters(i).name;
+    if(isfield(outputs{i},'tables'))
+        for j=1:length(outputs{i}.tables)
+            outputs{i}.tables(j).name=[outputs{i}.tables(j).name options.chapters(i).post_str];
+        end
+    end
+    if(isfield(outputs{i},'images'))
+        for j=1:length(outputs{i}.images)
+            for k=1:length(outputs{i}.images(j).files)
+                oldname=outputs{i}.images(j).files(k).name;
+                newname=strrep(oldname,'.',[options.chapters(i).post_str '.']);
+                if(~strcmp(oldname,newname))
+                    movefile(fullfile(outputs{i}.images(j).files(k).folder,oldname), ...
+                        fullfile(outputs{i}.images(j).files(k).folder,newname));
+                    outputs{i}.images(j).files(k).name=newname;
+                end
+            end
+
+        end
+    end
+
+    chp(i).Title=[options.chapters(i).name options.chapters(i).post_str];
     
 end
 
@@ -42,8 +61,10 @@ if(ismember('figures',options.format))
         if(isfield(outputs{i},'images'))
             for j=1:length(outputs{i}.images)
                 for k=1:length(outputs{i}.images(j).files)
+                    outname=outputs{i}.images(j).files(k).name;
+                    %outname=strrep(outname,'.',[options.chapters(i).post_str '.'])
                     movefile(fullfile(outputs{i}.images(j).files(k).folder,outputs{i}.images(j).files(k).name),...
-                        fullfile(folder,outputs{i}.images(j).files(k).name));
+                        fullfile(folder,outname));
                 end
             end
         end
@@ -63,12 +84,17 @@ end
 if(ismember('figures',options.format))
     system(['mkdir -p ' folder]);
     for i=1:length(outputs)
-        filename=fullfile(folder,[options.chapters(i).name '.xlsx']);
+        filename=fullfile(folder,[chp(i).Title '.xlsx']);
         filename=strrep(filename,' ','_');
         if(isfield(outputs{i},'tables'))
             for j=1:length(outputs{i}.tables)
                 sheetname=outputs{i}.tables(j).name;
+                sheetname=[sheetname options.chapters(i).post_str];
                 sheetname=strrep(sheetname,':','_');
+                
+                if(length(sheetname)>31)
+                    sheetname=sheetname(end-30:end);
+                end
                 writetable(outputs{i}.tables(j).table,filename,'Sheet',sheetname);
             end
         end
@@ -80,5 +106,5 @@ if(length(options.save_variables)>0)
     for i=1:length(options.save_variables)
         tmp=setfield(tmp,options.save_variables{i},evalin('base',options.save_variables{i}));
     end
-    save(fullfile(folder,'save_variables.mat'),'-STRUCT','tmp');
+    save(fullfile(folder,'save_variables.mat'),'-STRUCT','tmp','-v7.3');
 end

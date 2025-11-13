@@ -7,6 +7,23 @@ if(nargin<2)
     datatoshow={'R:conditions(p<0.05)'};
 end
 
+if(iscell(data))
+    for i=1:length(data)
+        if(nargout==2)
+            [rpt(i),outputs{i}]=nirs.reports.chapters.sFCStats_chapter(data{i},datatoshow);
+        else
+            rpt(i)=nirs.reports.chapters.sFCStats_chapter(data{i});
+        end
+    end
+    if(nargout==2)
+        varargout{1}=rpt;
+        varargout{2}=outputs;
+    else
+        varargout{1}=rpt;
+    end
+    return
+end
+
 if(isstr(data))
     data=evalin('base',data);
 end
@@ -91,11 +108,13 @@ for cIdx=1:length(datatoshow)
         fig=mlreportgen.report.Figure(h);
 
         if(nargout>1)
-            saveas(h,[datatoshow{cIdx} '_' conds{i} '.fig']);
-            saveas(h,[datatoshow{cIdx} '_' conds{i} '.png']);
-            savedimages.name=[datatoshow{cIdx} '_' conds{i}];
-            savedimages.files=[dir([datatoshow{cIdx} '_' conds{i} '.png']);...
-                dir([datatoshow{cIdx} '_' conds{i} '.fig'])];
+            d2s=datatoshow{cIdx};
+            d2s=strrep(d2s,'.','p');
+            saveas(h,[d2s '_' conds{i} '.fig']);
+            saveas(h,[d2s '_' conds{i} '.png']);
+            savedimages.name=[d2s '_' conds{i}];
+            savedimages.files=[dir([d2s '_' conds{i} '.png']);...
+                dir([d2s '_' conds{i} '.fig'])];
             savedOutputs.images(cnt)=savedimages;
         end
 
