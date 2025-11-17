@@ -171,7 +171,14 @@ classdef sFCStats
             end
 
             if(~isempty(out.pvalue_fixed))
-                out.pvalue_fixed=out.pvalue_fixed(idx);
+                 if(isa(obj.pvalue_fixed,'nirs.bootstrapping.bootstrap_result'))
+                  out.pvalue_fixed.truth=out.pvalue_fixed.truth(idx);
+                  out.pvalue_fixed.ecdf=out.pvalue_fixed.ecdf(:,idx);
+                  out.pvalue_fixed.value_bins=out.pvalue_fixed.value_bins(:,idx,:);
+                else
+                    out.pvalue_fixed=out.pvalue_fixed(idx);  % hack to allow reuse in the Conn Seed model
+                end
+                
             end
             
             % Sort conditions
