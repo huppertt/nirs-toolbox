@@ -3,6 +3,8 @@ function data=shuffle_demographics(data)
     if(length(data)==1)
         return
     end
+    
+
     while(true)
         lst=randperm(length(data));
         if(~any(lst-lstB==0))

@@ -31,7 +31,11 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 t  = data(i).time;
                 Fs = data(i).Fs;
                 
-                probe = data(i).probe;
+                if(isa(data,'nirs.core.GenericData'))
+                    probe=[];
+                else
+                    probe = data(i).probe;
+                end
 %                 
 %                 basis=obj.basis;
 %                 if(isa(basis,'nirs.design.basis.FIR'))
@@ -76,9 +80,18 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 
                 % put stats
                 ncond = length(names);
-                nchan = size(data(i).probe.link, 1);
-                
-                electrodes = repmat( probe.link, [ncond 1] );
+                if(~isempty(probe))
+                    nchan = size(data(i).probe.link, 1);
+                    electrodes = repmat( probe.link, [ncond 1] );
+                else
+                    nchan=size(data(i).data,2);
+                    electrode=[1:nchan]';
+                    type=repmat({'unknown'},nchan,1);
+                    
+                    link=table(electrode,type);
+                    probe=struct('link',link);
+                    electrodes = repmat(link, [ncond 1] );
+                end
                 cond = repmat(names(:)', [nchan 1]);
                 cond = cond(:);
                 
@@ -110,8 +123,10 @@ classdef AverageERP < eeg.modules.AbstractGLM
                 
                 S(i).description = data(i).description;
                 
-                S(i).demographics   = data(i).demographics;
-                S(i).probe          = data(i).probe;
+                if(~isa(data,'nirs.core.GenericData'))
+                    S(i).demographics   = data(i).demographics;
+                end
+                S(i).probe          = probe;
                 
                 stim=Dictionary;
                 for j=1:data(i).stimulus.count;

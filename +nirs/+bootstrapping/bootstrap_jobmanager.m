@@ -83,7 +83,6 @@ classdef bootstrap_jobmanager
             end
 
            
-
             % Collapse the results
             for j=1:length(result{1})
                  ResultBS{j}=nirs.bootstrapping.bootstrap_result;
