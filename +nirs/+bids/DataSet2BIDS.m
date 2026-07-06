@@ -1,4 +1,4 @@
-function DataSet2BIDS(data,folder,name,LocalBIDSinfo,ReadMe,deID)
+function DataSet2BIDS(data,folder,name,LocalBIDSinfo,ReadMe,deID,overwrite)
 
 if(nargin<4 || isempty(LocalBIDSinfo))
     LocalBIDSinfo=struct;
@@ -6,6 +6,10 @@ end
 
 if(nargin<5 || isempty(ReadMe))
     ReadME='Raw data from NIRS toolbox';
+end
+
+if(nargin<7)
+    overwrite = false;
 end
 
 LocalBIDSinfo.BIDSVersion='1.8.0';
@@ -228,12 +232,35 @@ for i=1:height(demo2)
                 run=[];
             end
         end
-        if(iscellstr(run))
-            run=run{1};
+
+        % if(iscellstr(run))
+        %     run=run{1};
+        % end
+        % run=['0' run];
+        % run=run(end-1:end);
+        % run={run};
+
+        if(iscell(run))
+            run = run{1};
         end
-        run=['0' run];
-        run=run(end-1:end);
-        run={run};
+
+        if(isstring(run))
+            run = char(run);
+        end
+
+        if(isnumeric(run))
+            run = num2str(run);
+        end
+
+        run = strtrim(run);
+
+        if(isempty(run))
+            run = {};
+        else
+            run = ['0' run];
+            run = run(max(1,end-1):end);
+            run = {run};
+        end
         
         folder3=folder2;
         if(length(unique({Session{lst2}}))>1)
@@ -246,7 +273,7 @@ for i=1:height(demo2)
         
         system(['mkdir -p ' folder3]);
 
-        filenamestmp=Data2BIDS(data(lst2(j)),folder3,demo2.participant_id{i},lower(this_sess),lower(Task{lst2(j)}),run);
+        filenamestmp=Data2BIDS(data(lst2(j)),folder3,demo2.participant_id{i},lower(this_sess),lower(Task{lst2(j)}),run,overwrite);
         filenamesAll{j,1}=filenamestmp{1};
     end
     demo3=demo(lst2,:);

@@ -59,11 +59,13 @@ classdef AddAuxRegressors < nirs.modules.AbstractModule
                         
                         j=nirs.modules.FixNaNs;
                         aux=j.run(aux);
+
+                        if size(aux.time,1) ~= size(aux.data,1)
+                                aux.data = aux.data';
+                        end
                         
                         for k=1:size(aux.data,2)
-                            
-                            
-                            
+                           
                             dd=[dd interp1(aux.time,aux.data(:,k),data(i).time,'linear','extrap')];
                         end
                     end

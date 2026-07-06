@@ -9,7 +9,7 @@ for i=1:height(data.probe.link)
     ML(i).sourceIndex=data.probe.link.source(i);
     ML(i).dataTypeLabel='raw';
     ML(i).dataType=1;
-    ML(i).dataUnit='nm';
+    % ML(i).dataUnit='nm';
     ML(i).wavelengthActual=data.probe.link.type(i);
     ML(i).wavelengthIndex=find(ismember(data.probe.types,data.probe.link.type(i)));
 end
@@ -55,9 +55,9 @@ for i=1:data.stimulus.count;
     stim=data.stimulus(data.stimulus.keys{i});
     snirf.stim(i)=StimClass();
     snirf.stim(i).name=data.stimulus.keys{i};
-    snirf.stim(i).data=[stim.onset stim.dur stim.amp];
+    snirf.stim(i).data=[stim.onset(:) stim.dur(:) stim.amp(:)];
     snirf.stim(i).dataLabels={'Onset','Duration','Amplitude'};
-    snirf.stim(i).states=[stim.onset stim.amp];
+    snirf.stim(i).states=[stim.onset(:) stim.amp(:)];
 end
 
 cnt=1;

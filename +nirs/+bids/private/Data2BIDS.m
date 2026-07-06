@@ -1,4 +1,4 @@
-function filenamesAll=Data2BIDS(data,folder,participant_id,session,task,runs)
+function filenamesAll=Data2BIDS(data,folder,participant_id,session,task,runs,overwrite)
 
 filenamesAll={};
 
@@ -20,6 +20,10 @@ end
 
 filename20=[filename '_task-' task];
 
+if (nargin<6)
+    overwrite = false;
+end
+
 if(~exist(folder,'dir'))
     system(['mkdir -p ' folder]);
 end
@@ -40,14 +44,16 @@ for i=1:length(data)
     
     if(isa(data(i),'nirs.core.Data'))
         folder2=fullfile(folder,'nirs');
-        system(['mkdir -p ' folder2]);
-        disp(['Saving ' filename2 '_nirs.snirf']);
-        if(exist(fullfile(folder2,[filename2 '_nirs.snirf']))==2)
-            delete(fullfile(folder2,[filename2 '_nirs.snirf']));
+        if (overwrite) || ~(exist(fullfile(folder2,[filename2 '_nirs.snirf']))==2)
+            system(['mkdir -p ' folder2]);
+            disp(['Saving ' filename2 '_nirs.snirf']);
+            if(exist(fullfile(folder2,[filename2 '_nirs.snirf']))==2)
+                delete(fullfile(folder2,[filename2 '_nirs.snirf']));
+            end
+            nirs.io.saveSNIRF(data(i),fullfile(folder2,[filename2 '_nirs.snirf']),false);
+            data2JSON(data(i),fullfile(folder2,[filename2 '_nirs.json']),task);
+            stim2JSON(data(i).stimulus,fullfile(folder2,[filename2 '_events.json']));
         end
-        nirs.io.saveSNIRF(data(i),fullfile(folder2,[filename2 '_nirs.snirf']),false);
-        data2JSON(data(i),fullfile(folder2,[filename2 '_nirs.json']),task);
-        stim2JSON(data(i).stimulus,fullfile(folder2,[filename2 '_events.json']));
         filenamesAll{end+1}=fullfile(folder2,[filename2 '_nirs.snirf']);
     elseif(isa(data(i),'eeg.core.Data'))
         folder2=fullfile(folder,'eeg');
