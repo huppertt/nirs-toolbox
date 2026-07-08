@@ -15,15 +15,17 @@ nZ = size(Z,2);
 %% Handle all-NaN variables
 bad_vars = (all(isnan(Y),1) | all(bsxfun(@eq,Y,Y(1,:)),1));
 if any(bad_vars)
-    
+
     beta = nan(nX,nY);
     bHat = nan(nZ,nY);
     covb = nan(nX,nX,nY);
     LL = nan(1,nY);
     w = nan(nT,nY);
-    
-    [beta(:,~bad_vars),bHat(:,~bad_vars),covb(:,:,~bad_vars),LL(~bad_vars),w(:,~bad_vars)] = nirs.math.fitlme(X,Y(:,~bad_vars),Z,robust_flag,zero_theta,verbose);
-    
+
+    [beta(:,~bad_vars),bHat(:,~bad_vars),covb(:,:,~bad_vars),LL(~bad_vars),w2] = nirs.math.fitlme(X,Y(:,~bad_vars),Z,robust_flag,zero_theta,verbose);
+    w = nan(size(w2,1),nY);
+    w(:,~bad_vars) = w2;
+
     return;
 end
 
