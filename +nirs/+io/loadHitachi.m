@@ -231,9 +231,9 @@ for i=1:dIdx
 
         info=setfield(info,headerField,vals);
         
-        if(~isempty(strfind(headerField,'Probe')) || ~isempty(strfind(headerField,'EXT_AD')))
-            break
-        end
+        % if(~isempty(strfind(headerField,'Probe')) || ~isempty(strfind(headerField,'EXT_AD')))
+        %     break
+        % end
         
     else
         continue;
@@ -277,7 +277,7 @@ end
 
 if(~isempty(f))
     data=textscan(fid,f,'delimiter',delim);
-    datetimeCol=data{(isNum==1)};
+    % datetimeCol=data{(isNum==1)};
     mrkData=data{mrkCol};
     data=horzcat(data{isNum});
 else
