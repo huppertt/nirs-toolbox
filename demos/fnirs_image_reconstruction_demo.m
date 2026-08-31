@@ -264,8 +264,8 @@ j.formula = 'beta ~ -1 + cond';  % Simple fixed effects model
 
 % Let's use the wavelet basis set
 j.basis=nirs.inverse.basis.freesurfer_wavelet(4);
+%j.basis=nirs.inverse.basis.gaussian(mesh,15);
 
-%j.basis=nirs.inverse.basis.gaussian(mesh,.01);
 % Now create the priors in the model
 prior.hbo=zeros(size(Jacobian.hbo,2),1);
 prior.hbr=zeros(size(Jacobian.hbr,2),1);

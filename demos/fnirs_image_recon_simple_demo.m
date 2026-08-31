@@ -162,7 +162,7 @@ job.formula='beta ~ -1 + cond';  % because we are just doing a single subject,
 % now, let's setup the jacobian/forward model
 ApproxSlab = nirs.forward.ApproxSlab;
 ApproxSlab.mesh=SubjStats.probe.getmesh;  % use the mesh from the probe because we shrank Colin to 43cm
-ApproxSlab.mesh(1:3)=[];  % Our mesh (stored on the probe) has 4 layers, but 
+ApproxSlab.mesh(1:end-1)=[];  % Our mesh (stored on the probe) has 4 layers, but 
                         %  we only care about the brain in this recon, so
                         %  let's get rid of the other two.  Note, the code
                         %  will let you include all the layers, but then

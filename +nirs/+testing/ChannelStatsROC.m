@@ -325,6 +325,14 @@ classdef ChannelStatsROC
              end
         end
         
+        function pval = fdr(obj,alpha)
+            for i=1:size(obj.truth,2)
+               [tp, fp, phat] = nirs.testing.roc(obj.truth(:, i), obj.pvals(:, i));
+               [~,lst]=min(abs(phat-alpha));
+               pval(i,1)=fp(lst);
+            end      
+        end
+
         function [tp, fp, phat] = roc( obj,flag)
             if(nargin<2)
                 flag=false;

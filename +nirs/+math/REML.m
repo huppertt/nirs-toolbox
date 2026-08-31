@@ -305,8 +305,8 @@ sst = normest(Y - ybar)^2;     % total sum of squares;
 Hat = X*XtXi*X'*iCn;
 nu = max(size(X,1) - trace(2*Hat - Hat*Hat'),1);
 %nu = size(X,1) - trace(Hat);
-%mse = sse./length(yhat);
-mse = sse./nu;
+mse = sse./length(yhat);
+%mse = sse./nu;
 
 Stats.tstat.mse=mse; %*s1/s2;
 
@@ -315,7 +315,7 @@ lambda=min(lambda,log(1/tolr));
 
 Stats.tstat.beta=Beta; %*s1/s2;
 Stats.tstat.covb=XtXi*Stats.tstat.mse;
-%Stats.tstat.covb=Stats.tstat.mse*XtXi*(X'*iCn)*(iCn'*X)*XtXi;  % WHY???
+%Stats.tstat.covb=Stats.tstat.mse*(XtXi*(X'*iCn)*(iCn'*X)*XtXi');  % WHY???
 
 %Stats.tstat.dfe=size(X,2);
 Stats.tstat.dfe=size(X,1) - trace(Hat);

@@ -140,6 +140,7 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                                 stats = nirs.math.ar_irls_ftest( d, [X C], Pmax ,[],obj.useGPU, obj.precisionSingle);
                             else
                                 stats = nirs.math.ar_irls( d, [X C], Pmax ,[],false,obj.useGPU, obj.precisionSingle);
+                                
                             end
                         end
                     end

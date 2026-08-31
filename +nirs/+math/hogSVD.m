@@ -27,7 +27,8 @@ for i=2:size(L,1)
 end
 
 [~,~,V]=nirs.math.mysvd(Ls);
-
+% lst=find(sum(Ls,1)<max(sum(Ls,1))/1E4);
+% V(lst,:)=0;
 
 tol=sum(abs(V),2);
 V(find(tol<max(tol)*1E-6),:)=0;

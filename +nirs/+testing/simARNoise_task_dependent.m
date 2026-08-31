@@ -35,6 +35,11 @@ function data = simARNoise_task_dependent( probe, t, P, sigma, stimulus, noise, 
     % output
     tmp = nirs.core.Data();
     tmp.time   = t;
+
+    if(isa(stimulus,'function_handle'))
+        stimulus=stimulus(t);
+    end
+
     tmp.stimulus=stimulus;
     mask=tmp.getStimMatrix;
  
