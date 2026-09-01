@@ -6,7 +6,7 @@ info.amplitudes=calibinfo.amplitudes{1};
 info.coefficient_of_variation = calibinfo.coefficient_of_variation{1};
 info.signal_quality_level = vertcat(calibinfo.signal_quality{1}.level);
 info.signal_quality_issaturated=vertcat(calibinfo.signal_quality{1}.saturated);
-info.signal_quality_xtalk = vertcat(calibinfo.signal_quality{1}.xtalk);
+% info.signal_quality_xtalk = vertcat(calibinfo.signal_quality{1}.xtalk);
 
 chan=fields(calibinfo.dark_noise{1});
 DetectorDarkNoise = zeros(length(chan),4);

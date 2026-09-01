@@ -1,4 +1,15 @@
 function data = shuffle_half_demographics(data, relationshipVariable)
+%
+% Keeps signal data unchanged but shuffles the complete demographics of one
+% relationship group (e.g., Child) across its records. The shuffle is a
+% derangement, so no participant keeps their original demographics and no
+% true dyad remains paired by ID.
+%
+% Requires exactly two equally sized relationship groups and at least two
+% records per group.
+%
+% Example:
+%   nullData = shuffle_half_demographics(hb, 'relationship');
 
     data2 = data;
     tblDemo = nirs.createDemographicsTable(data);
