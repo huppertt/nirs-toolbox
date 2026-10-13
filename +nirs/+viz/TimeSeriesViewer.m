@@ -23,9 +23,6 @@ classdef TimeSeriesViewer < handle
         function obj = TimeSeriesViewer( data )
             obj.data = data;
            
-            % put together the tree structure
-            obj.root = obj.assembleRoot();
-            
             % draw gui
             obj.draw();
         end 
@@ -47,10 +44,10 @@ classdef TimeSeriesViewer < handle
         end
         
         %% gui selection functions
-        function treeSelectFun( obj, mtree , ~ )  
+        function treeSelectFun( obj, ~ , ~ )
             % get slected node
-            iData = mtree.getSelectedNodes();
-            iData = iData(1).getValue();
+            iData = obj.selectedData();
+            if isempty(iData), return; end
             
             % make sure it is a leaf
             if ~ischar( iData )
@@ -98,8 +95,7 @@ classdef TimeSeriesViewer < handle
             iSrc = i(1);
             iDet = i(2);
             
-            iData = obj.tree.getSelectedNodes();
-            iData = iData(1).getValue();
+            iData = obj.selectedData();
             
             % find the channel idx
             link = obj.data(iData).probe.link;
@@ -143,8 +139,7 @@ classdef TimeSeriesViewer < handle
             
             %%% TODO: Color & Style lines to match data plot %%%
             
-            iData = obj.tree.getSelectedNodes();
-            iData = iData(1).getValue();
+            iData = obj.selectedData();
             iChan = lst;
             
             obj.drawData(iData, iChan);
@@ -160,8 +155,7 @@ classdef TimeSeriesViewer < handle
             obj.dtype = lst{idx};
             
             % which data file
-            iData = obj.tree.getSelectedNodes();
-            iData = iData(1).getValue();
+            iData = obj.selectedData();
             
             % find channels matching type
             link = obj.data(iData).probe.link;
@@ -179,13 +173,33 @@ classdef TimeSeriesViewer < handle
         end
         
         %%
+        function iData = selectedData( obj )
+            if verLessThan('matlab', '25.1')
+                nodes = obj.tree.getSelectedNodes();
+                iData = [];
+                if ~isempty(nodes), iData = nodes(1).getValue(); end
+            else
+                nodes = obj.tree.SelectedNodes;
+                iData = [];
+                if ~isempty(nodes), iData = nodes(1).NodeData; end
+            end
+        end
+
         function root = assembleRoot( obj )
+            if verLessThan('matlab', '25.1')
+                root = uitreenode('v0', 'Data', 'Data', [], false);
+                for i = 1:length(obj.data)
+                    root.add(uitreenode('v0', i, [num2str(i) ':' obj.data(i).description], [], true));
+                end
+                return;
+            end
+
             % root node
-            root = uitreenode('v0', 'Data', 'Data', [], false);
+            root = uitreenode(obj.tree, 'Text', 'Data', 'NodeData', 'Data');
 
             % node for each file
             for i = 1:length(obj.data)
-                root.add( uitreenode('v0', i, [ num2str(i) ':' obj.data(i).description], [], true) );
+                uitreenode(root, 'Text', [ num2str(i) ':' obj.data(i).description], 'NodeData', i);
             end
         end
         
@@ -213,10 +227,21 @@ classdef TimeSeriesViewer < handle
             
             % show tree
             %Cannot get it to resize appropriate
-            obj.tree = uitree('v0', 'Root', obj.root, 'SelectionChangeFcn',...
-                @(t, v) obj.treeSelectFun(t, v),'Position',...
-                [res(1)*.0293 res(2)*.057 res(1)*.329 res(2)*.325]);
-            obj.tree.setMultipleSelectionEnabled(false)
+            % Modern trees support figure parents starting in R2025a.
+            if verLessThan('matlab', '25.1')
+                obj.root = obj.assembleRoot();
+                obj.tree = uitree('v0', 'Root', obj.root, 'SelectionChangeFcn',...
+                    @(t, v) obj.treeSelectFun(t, v), 'Position',...
+                    [res(1)*.0293 res(2)*.057 res(1)*.329 res(2)*.325]);
+                obj.tree.setMultipleSelectionEnabled(false);
+            else
+                obj.tree = uitree(f, 'SelectionChangedFcn',...
+                    @(t, v) obj.treeSelectFun(t, v),'Position',...
+                    [res(1)*.0293 res(2)*.057 res(1)*.329 res(2)*.325]);
+                obj.tree.Multiselect = 'off';
+                obj.root = obj.assembleRoot();
+                expand(obj.root);
+            end
                         
             % menu for selecting data type
             types = unique(probe.link.type);
