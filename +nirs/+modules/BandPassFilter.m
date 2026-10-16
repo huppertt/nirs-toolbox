@@ -45,7 +45,13 @@ classdef BandPassFilter < nirs.modules.AbstractModule
                     dc=zeros(1,size(d,2));
                 end
                 d=d-ones(size(d,1),1)*dc;
-                d=filtfilt(fa,fb,d);
+                % Handle NaN channels (e.g. from FixFlatChans)
+                finCols = all(isfinite(d), 1);
+                if any(finCols) && ~all(finCols)
+                    d(:, finCols) = filtfilt(fa, fb, d(:, finCols));
+                elseif all(finCols)
+                    d = filtfilt(fa, fb, d);
+                end
                 d=d+ones(size(d,1),1)*dc;
                
                 

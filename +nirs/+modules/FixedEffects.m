@@ -2,7 +2,7 @@ classdef FixedEffects < nirs.modules.AbstractModule
     %% FixedEffect - Performs group level fixed effects analysis.
     %
     % Options:
-    %     formula     - string specifiying regression formula (see Wilkinson notation)
+    %     formula     - string specifying regression formula (see Wilkinson notation)
     %     centerVars  - (true or false) flag for whether or not to center numerical variables
     %
     % Example Formula:

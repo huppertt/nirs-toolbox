@@ -21,51 +21,85 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
     %     trend_func must at least return a constant term unless all baseline periods are
     %     specified explicitly in the stimulus design with BoxCar basis functions
     
+    properties
+        useFast = true;         % Use parallelized fast AR-IRLS
+        maxBICSearch = 10;      % Max AR orders for BIC search (0=full)
+        Pmax = '4*Fs';          % AR model order (string evaluated per file, or numeric)
+    end
+
     methods
         function obj = AR_IRLS( prevJob )
             if nargin > 0, obj.prevJob = prevJob; end
-            
+
             obj.name = 'GLM via AR(P)-IRLS';
             obj.basis('default') = nirs.design.basis.Canonical();
         end
-        
+
         function S = runThis( obj, data )
             vec = @(x) x(:);
-            
+
+            % Pre-allocate output for parfor
+            S = repmat(nirs.core.ImageStats(), 1, length(data));
+
+            % Pre-compute Pmax per file (eval not allowed in parfor)
+            Pmax_per_file = zeros(1, length(data));
             for i = 1:length(data)
+                Pmax_i = obj.Pmax;
+                if(ischar(Pmax_i) || isstring(Pmax_i))
+                    Fs = data(i).Fs;
+                    eval(['Pmax_i=' char(Pmax_i) ';']);
+                end
+                Pmax_per_file(i) = ceil(Pmax_i);
+            end
+            useFast = obj.useFast;
+            maxBICSearch = obj.maxBICSearch;
+
+            parfor i = 1:length(data)
                 % get data
                 d  = data(i).data;
                 t  = data(i).time;
                 Fs = data(i).Fs;
-                
+                Pmax = Pmax_per_file(i);
+
                 W = chol(data(i).cov);
                 d=d*inv(W)';
-                
+
                 % get experiment design
                 [X, names] = obj.createX( data(i) );
                 C = obj.getTrendMatrix( t );
-                
+
                 X(find(isnan(X)))=0;
-                
+
                 % check model
                 obj.checkRank( [X C] )
                 obj.checkCondition( [X C] )
-                
+
                 if(rank([X C]) < size([X C],2) & obj.goforit)
                     disp('Using PCA regression model');
                     [U,s,V]=nirs.math.mysvd([X C]);
                     lst=find(diag(s)>eps(1)*10);
                     V=V(:,lst);
-                    stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), round(4*Fs) );
+                    if useFast
+                        stats = nirs.math.ar_irls_fast( d, U(:,lst)*s(lst,lst), Pmax, [], false, false, false, maxBICSearch );
+                    else
+                        stats = nirs.math.ar_irls( d, U(:,lst)*s(lst,lst), Pmax );
+                    end
                     stats.beta=V*stats.beta;
+                    c=[];
                     for j=1:size(stats.covb,3)
-                        c(:,:,j)=V*squeeze(stats.covb(:,:,j))*V';
+                        for j2=1:size(stats.covb,4)
+                            c(:,:,j,j2)=V*squeeze(stats.covb(:,:,j,j2))*V';
+                        end
                     end
                     stats.covb=c;
                 else
-                    
+
                     % run regression
-                    stats = nirs.math.ar_irls( d, [X C], round(4*Fs) );
+                    if useFast
+                        stats = nirs.math.ar_irls_fast( d, [X C], Pmax, [], false, false, false, maxBICSearch );
+                    else
+                        stats = nirs.math.ar_irls( d, [X C], Pmax );
+                    end
                 end
                 
                 S(i)=nirs.core.ImageStats;
@@ -91,7 +125,12 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 Vall=kron(speye(ncond,ncond),Vall);
                 for id=1:ncond
                     for id2=1:ncond
-                        covb((id-1)*nchan+[1:nchan],(id2-1)*nchan+[1:nchan])=sparse(W*diag(squeeze(stats.covb(id,id2,:)))*W');
+                        if ndims(stats.covb) == 4
+                            cv = diag(squeeze(stats.covb(id,id2,:,:)));
+                        else
+                            cv = squeeze(stats.covb(id,id2,:));
+                        end
+                        covb((id-1)*nchan+[1:nchan],(id2-1)*nchan+[1:nchan])=sparse(W*diag(cv)*W');
                     end
                 end
                 [Uu,Su,Vu]=nirs.math.mysvd(covb);
@@ -115,7 +154,9 @@ classdef AR_IRLS < nirs.modules.AbstractGLM
                 
      
                 % print progress
-                obj.printProgress( i, length(data) )
+                if(obj.verbose)
+                    obj.printProgress( i, length(data) )
+                end
             end
             
         end

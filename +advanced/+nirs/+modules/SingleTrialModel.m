@@ -218,7 +218,9 @@ classdef SingleTrialModel < nirs.modules.AbstractGLM
                 % Put the model back together
                 S(i)=S(i).ttest({ttests{:,1}},[],{ttests{:,2}});
                 % print progress
-                obj.printProgress( i, length(data) )
+                if(obj.verbose)
+                    obj.printProgress( i, length(data) )
+                end
             end
 
         end

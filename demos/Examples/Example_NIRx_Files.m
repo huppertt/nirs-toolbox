@@ -92,7 +92,7 @@ job = nirs.modules.Hyperscanning;
 %          divide_events: 0
 %     min_event_duration: 30
 %                   link: []
-%               symetric: 1
+%               symmetric: 1
 %                   name: 'Hypercanning'
 %                prevJob: []
 

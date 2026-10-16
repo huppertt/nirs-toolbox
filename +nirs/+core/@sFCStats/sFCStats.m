@@ -41,6 +41,7 @@ classdef sFCStats
         Z           % Fisher-Z transform
         q
         t               %holds t-statistic value
+        tstat           % alias for t (compatibility with MixedEffects)
         ishyperscan
         ishypersymm
         numunique
@@ -60,9 +61,11 @@ classdef sFCStats
          end
          
          function t = get.t(obj)
+             t = zeros(size(obj.R));
+             if isempty(obj.conditions), return; end
 
              dfe(1:length(obj.conditions)) = obj.dfe;
-             
+
              for idx=1:length(obj.conditions)
 
                  n = dfe(idx);
@@ -74,8 +77,13 @@ classdef sFCStats
                  end
              end
          end
-         
+
+         function tstat = get.tstat(obj)
+             tstat = obj.t;
+         end
+
          function p = get.p(obj)
+             p = ones(size(obj.R));
 
              if(~isempty(obj.pvalue_fixed))
                 if(isa(obj.pvalue_fixed,'nirs.bootstrapping.bootstrap_result'))
@@ -86,7 +94,9 @@ classdef sFCStats
                 end
                 return
              end
-             
+
+             if isempty(obj.conditions), return; end
+
              for idx=1:length(obj.conditions)
                  
                  p(:,:,idx) = 2*nirs.math.tpvalue(-abs(obj.t(:,:,idx)),max(obj.dfe));

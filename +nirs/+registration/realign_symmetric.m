@@ -1,5 +1,5 @@
-function probe1020=realign_symetric(probe1020)
-% This function realigns a 10-20 probe to be symetric 
+function probe1020=realign_symmetric(probe1020)
+% This function realigns a 10-20 probe to be symmetric 
 
 optodes=probe1020.optodes_registered;
 optodes2D=probe1020.optodes;
@@ -10,7 +10,7 @@ pos2D=[optodes2D.X optodes2D.Y optodes2D.Z];
 
 pos2D = pos2D-ones(size(pos2D,1),1)*mean(pos2D,1);
 
-% Find symetric pairs
+% Find symmetric pairs
 d=squareform(pdist(abs(pos2D)));
 [i,j]=find(d<5);
 lst=find(i~=j);

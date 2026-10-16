@@ -351,13 +351,13 @@ job = nirs.modules.Hyperscanning;
 %          divide_events: 0
 %     min_event_duration: 30
 %                   link: []
-%               symetric: 1
+%               symmetric: 1
 %                   name: 'Hypercanning'
 %                prevJob: []
 
 % Most of these are the same as the Connectivity module except:
 %  link -  a table of corresponding files (see below)
-%  symetric - impose that the result is invariate to the defintion of subject A and B
+%  symmetric - impose that the result is invariate to the defintion of subject A and B
 
 % Let's just do a simple example
 ScanA = [1 3 5 7]';  % The list of all the "A" files

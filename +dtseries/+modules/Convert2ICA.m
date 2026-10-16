@@ -54,7 +54,9 @@ classdef Convert2ICA < nirs.modules.AbstractModule
                 data(i).projectors=A;
                 
                 % print progress
-                obj.printProgress( i, length(data) )
+                if(obj.verbose)
+                    obj.printProgress( i, length(data) )
+                end
             end
             
         end

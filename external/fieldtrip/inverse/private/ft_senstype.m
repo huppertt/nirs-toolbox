@@ -69,7 +69,7 @@ function [type] = ft_senstype(input, desired)
 % If you specify the desired type, this function will return a boolean flag
 % indicating true/false depending on the input data.
 %
-% Besides specifiying a sensor definition (i.e. a grad or elec structure, see
+% Besides specifying a sensor definition (i.e. a grad or elec structure, see
 % FT_DATATYPE_SENS), it is also possible to give a data structure containing a grad
 % or elec field, or giving a list of channel names (as cell-arrray). So assuming that
 % you have a FieldTrip data structure, any of the following calls would also be fine.

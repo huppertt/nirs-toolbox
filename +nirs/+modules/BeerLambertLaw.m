@@ -225,9 +225,23 @@ if(isa(data,'nirs.core.Data'))
 
     % p.link needs to be redefined because there are only 2
     % observations per optode-pair, not n-many (for n Lambdas)
-    link=p.link;
+    %link=p.link;
     types=unique(link.type);
-    link=link(ismember(link.type,types(1:size(type_chr,1))),:);
+
+    % group remaining wavelengths by high or low values based on wavelength
+    % (805)
+
+    validWv = ~isnan(link.type)&link.type>0;
+
+    lowWv = validWv & link.type<805;
+    highWv = validWv & link.type>=805;
+
+    newTypes = ["Other","Low","High"];
+
+    link.type=newTypes(1 + lowWv + highWv*2)';
+
+    
+    link=link(ismember(link.type,newTypes(2:end)),:);
 
 
     p.link = link;
