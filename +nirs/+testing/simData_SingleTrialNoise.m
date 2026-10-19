@@ -1,4 +1,4 @@
-function [data, truth] = simData( noise, stim, beta, channels, basis,SCnoise )
+function [data, truth] = simData_SingleTrialNoise( noise, stim, beta, channels, basis,SCnoise )
 %SIMDATA Simulates NIRS data by adding a task to baseline noise.
 %
 % Args:
