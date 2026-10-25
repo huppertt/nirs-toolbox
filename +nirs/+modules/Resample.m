@@ -78,8 +78,13 @@ classdef Resample < nirs.modules.AbstractModule
                         
                         b = fir1(ord,Fc);
                         
-                        % zero phase filtering
-                        d = filtfilt(b,1,d);
+                        % zero phase filtering (skip NaN channels)
+                        finCols = all(isfinite(d), 1);
+                        if any(finCols) && ~all(finCols)
+                            d(:, finCols) = filtfilt(b, 1, d(:, finCols));
+                        elseif all(finCols)
+                            d = filtfilt(b, 1, d);
+                        end
                         
                         % interpolation
                         N = floor((t(end)-t(1)) * obj.Fs)+1;

@@ -1,10 +1,15 @@
-function stats = mv_ar_irls( X, Y, Pmax)
+function stats = mv_ar_irls( X, Y, Pmax, maxBICSearch)
+
+if nargin < 4 || isempty(maxBICSearch), maxBICSearch = 0; end
 
 if ndims(X) == 3
     [m, n, p] = size(X);
+    sameX = false;
 else
     [m, p] = size(Y);
     n = size(X,2);
+    sameX = true;
+    X0 = X;  % keep the original 2D design matrix for ar_irls_fast
     X=repmat(X,[1 1 p]);
 end
 
@@ -14,15 +19,22 @@ vec     = @(Y) Y(:);
 
 
 % initial fit
-b=[];
-for i=1:size(Y,2)
-    ss=nirs.math.ar_irls(Y(:,i),X(:,:,i),Pmax);
-    b=[b; ss.beta];
+if sameX
+    ss_init = nirs.math.ar_irls_fast(Y, X0, Pmax);
+    b = ss_init.beta(:);  % [nCond x nChan] -> column vector
+else
+    b = [];
+    for i = 1:size(Y,2)
+        ss_init_i = nirs.math.ar_irls_fast(Y(:,i), X(:,:,i), Pmax);
+        b = [b; ss_init_i.beta(:)];
+    end
 end
 
 b0 = b * 1e16; iter = 0;
 mdl=nirs.math.varm(p,2);
 EstMdl=[];
+nCh = size(Y,2);
+found_orders = zeros(nCh, 1);
 
 disp([' Starting model estimate']);
 %figure; hold on;
@@ -31,13 +43,23 @@ while norm(b-b0)/norm(b0) > .1 && iter < 10
     tic;
 
     b0 = b;
-    
+
 
     Xff=X; r=zeros(size(Y)); Yff=Y;
     bb=reshape(b,[size(X,2),size(Y,2)]);
-    for i=1:size(Y,2);
+    prev_orders = found_orders;
+    parfor i=1:nCh
             r(:,i)=Y(:,i)-squeeze(X(:,:,i))*bb(:,i);
-            a = nirs.math.ar_fit(r(:,i), Pmax);
+            if maxBICSearch > 0
+                if prev_orders(i) == 0
+                    a = nirs.math.ar_fit(r(:,i), min(Pmax, maxBICSearch), false);
+                    found_orders(i) = length(a) - 1;
+                else
+                    a = nirs.math.ar_fit(r(:,i), prev_orders(i), true);
+                end
+            else
+                a = nirs.math.ar_fit(r(:,i), Pmax);
+            end
             f = [1; -a(2:end)];
             Xff(:,:,i) = myFilter(f,X(:,:,i));
             Yff(:,i) = myFilter(f,Y(:,i));
@@ -62,10 +84,13 @@ while norm(b-b0)/norm(b0) > .1 && iter < 10
     %b = mySolve(stack(Xw), vec(Yw));
 
         
-    b=[]; r=[];
-    for i=1:size(Yf,2)
-        [ss,r(:,i)]=nirs.math.ar_irls(Yf(:,i),Xf(:,:,i),Pmax);
-        b=[b; ss.beta];
+    nCh2 = size(Yf,2);
+    b = zeros(n*p, 1);
+    r = zeros(size(Yf));
+    SS = cell(1, nCh2);
+    for i=1:nCh2
+        [ss,r(:,i)]=nirs.math.ar_irls_fast(Yf(:,i),Xf(:,:,i),Pmax);
+        b((i-1)*n+1:i*n) = ss.beta(:);
         SS{i}=ss;
     end
     %plot(b); drawnow;
@@ -86,10 +111,15 @@ end
 % r = vec(Yw) -stack(Xw)*b;
 % r = reshape(r, size(Yw));
 
-for i=1:size(Yf,2)
-    w(:,i)=SS{i}.w;
-    for j=1:size(Xf,2)
-        Xw(:,j,i)=(SS{i}.w).*Xf(:,j,i);
+nCh3 = size(Yf,2);
+nCol = size(Xf,2);
+w = zeros(size(Yf,1), nCh3);
+Xw = zeros(size(Xf));
+parfor i=1:nCh3
+    wi = SS{i}.w;
+    w(:,i) = wi;
+    for j=1:nCol
+        Xw(:,j,i) = wi .* Xf(:,j,i);
     end
 end
 

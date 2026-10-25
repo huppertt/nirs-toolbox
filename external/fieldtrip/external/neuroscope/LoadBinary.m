@@ -110,7 +110,7 @@ for i = 1:2:length(varargin),
 			end
 		case 'precision',
 			precision = varargin{i+1};
-			if ~isstring(precision),
+			if ~isstring_ns(precision),
 				error('Incorrect value for property ''precision'' (type ''help <a href="matlab:help LoadBinary">LoadBinary</a>'' for details).');
 			end
 		case 'skip',

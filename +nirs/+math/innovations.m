@@ -1,42 +1,44 @@
-function [yfilt,f] = innovations(Y,Pmax,verbose)
+function [yfilt,f] = innovations(Y,Pmax,verbose,maxBICSearch)
 % This removes auto-correlation and returns the innvations model;
 
 [m, n] = size(Y);
 Pmax = min(m,round(Pmax));
-X = []; lst = [];
 
 if(nargin<3)
     verbose=false;
 end
+if nargin < 4 || isempty(maxBICSearch), maxBICSearch = 0; end
 
-if(verbose)
-    h=waitbar(0,'Computing AR-model');
+% Cap effective Pmax for BIC search
+if maxBICSearch > 0
+    effectivePmax = min(Pmax, maxBICSearch);
+else
+    effectivePmax = Pmax;
 end
-
 
 % model selection
 yfilt = nan(size(Y));
-f = cell(1,size(Y,2));
-for i = 1:n
-    % fit AR model
-    
-    
-    if(verbose)
+f = cell(1,n);
+
+if verbose
+    h=waitbar(0,'Computing AR-model');
+    for i = 1:n
         h=waitbar(i/n,h);
+        y1 = mean(Y(:,i));
+        y = bsxfun(@minus,Y(:,i),y1);
+        a = nirs.math.ar_fit(y, effectivePmax);
+        f{i}=[1; -a(2:end)];
+        yfilt(:,i) = filter(f{i}, 1, y);
     end
-    
-    y1 = mean(Y(:,i));
-    y = bsxfun(@minus,Y(:,i),y1);
-    a = nirs.math.ar_fit(y, Pmax);
-    f{i}=[1; -a(2:end)];
-    
-    yfilt(:,i) = filter(f{i}, 1, y);
-    
-end
-
-
-if(verbose)
     try; close(h); end;
+else
+    parfor i = 1:n
+        y1 = mean(Y(:,i));
+        y = bsxfun(@minus,Y(:,i),y1);
+        a = nirs.math.ar_fit(y, effectivePmax);
+        f{i}=[1; -a(2:end)];
+        yfilt(:,i) = filter(f{i}, 1, y);
+    end
 end
 
 return

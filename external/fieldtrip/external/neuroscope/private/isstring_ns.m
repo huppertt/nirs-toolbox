@@ -1,8 +1,11 @@
-%isstring - Test if parameter is an (admissible) character string.
+%isstring_ns - Test if parameter is an (admissible) character string.
+%
+%  Renamed from isstring to isstring_ns to avoid shadowing MATLAB's
+%  built-in isstring (which tests for the string class, not char).
 %
 %  USAGE
 %
-%    test = isstring(x,string1,string2,...)
+%    test = isstring_ns(x,string1,string2,...)
 %
 %    x              item to test
 %    string1...     optional list of admissible strings
@@ -19,11 +22,11 @@
 % the Free Software Foundation; either version 3 of the License, or
 % (at your option) any later version.
 
-function test = isstring(x,varargin)
+function test = isstring_ns(x,varargin)
 
 % Check number of parameters
 if nargin < 1,
-  error('Incorrect number of parameters (type ''help <a href="matlab:help isstring">isstring</a>'' for details).');
+  error('Incorrect number of parameters (type ''help <a href="matlab:help isstring_ns">isstring_ns</a>'' for details).');
 end
 
 test = true;

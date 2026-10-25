@@ -200,28 +200,19 @@ function stats = AR_iWML(d,X,Pmax,tune)
         
     end   
    
-    covb=zeros(size(stats.beta,1),size(stats.beta,1),size(stats.beta,2),size(stats.beta,2));
-     
-    
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            a=resid(:,i)-nanmedian(resid(:,i));
-            b=resid(:,j)-nanmedian(resid(:,j));
-            
-            C(i,j)=1.4810*nanmedian(a.*b);  % var(x) = 1.4810 * MAD(x,1)
+    nChan_cc = size(stats.beta, 2);
+    C = zeros(nChan_cc);
+    for i = 1:nChan_cc
+        a = resid(:,i) - nanmedian(resid(:,i));
+        for j = i:nChan_cc
+            b = resid(:,j) - nanmedian(resid(:,j));
+            C(i,j) = 1.4810 * nanmedian(a .* b);
+            C(j,i) = C(i,j);
         end
     end
-    C=C*(nanmean(stats.sigma2'./diag(C)));   %fix the scaling due to the dof (which is a bit hard to track because it changes per channel, so use the average)
-    
+    C = C * (nanmean(stats.sigma2' ./ diag(C)));
 
-    for i=1:size(stats.beta,2)
-        for j=1:size(stats.beta,2)
-            lstV=~isnan(sum(Xfall{i},2)+sum(Xfall{j},2));
-            covb(:,:,i,j) =covb(:,:,i,j)+pinv(Xfall{i}(lstV,:)'*Xfall{j}(lstV,:))*C(i,j);
-            covb(:,:,j,i) =covb(:,:,j,i)+pinv(Xfall{j}(lstV,:)'*Xfall{i}(lstV,:))*C(j,i);  % done to ensure symmetry
-        end
-    end
-    covb=covb/2;
+    covb = nirs.math.build_covb_tensor(Xfall, C);
     
 %     figure(1); cla; d=[];
 %     for i=1:32; d(i)=squeeze(covb(2,2,i,i)); end;

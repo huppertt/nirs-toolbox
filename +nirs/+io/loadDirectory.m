@@ -1,14 +1,18 @@
-function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt,forceloadall )
+function data = loadDirectory( rootFolder, folderHierarchy, loadFunc, fileExt, forceloadall )
 % nirs.io.loadDirectory
     % Searches root folder using the provided hierarchy and optional import
     % functions and returns an array of Data objects
+    %
+    % By default, files with the same path and base name (ignoring extension)
+    % are loaded only once, to avoid duplicates when multiple extensions match
+    % the same data. Set forceloadall=true to override this behavior.
 
-if nargin<5
-    forceloadall=false;
+if nargin < 5
+    forceloadall = false;
 end
 
 if nargin < 4 || isempty(fileExt)
-    fileExt  = {'snirf','.wl1','.nirs','.oxy3','.oxy4','_MES_*.csv','_fnirs.csv','nir5','TXT','.nir'};
+    fileExt  = {'.snirf','.wl1','.nirs','.oxy3','.oxy4','_MES_*.csv','_fnirs.csv','.nir5','.TXT','.nir'};
 end
 if nargin < 3 || isempty(loadFunc)
     loadFunc = {@(file)nirs.io.loadSNIRF(file,true),@(file)nirs.io.loadNIRx(file,false),@nirs.io.loadDotNirs,@nirs.io.loadOxy3,@nirs.io.loadOxy3,@nirs.io.loadHitachi,@nirs.io.loadHitachiV2,@nirs.io.loadNIR5,@nirs.io.loadShimadzu,@nirs.io.loadBiopacNIR};
@@ -40,8 +44,7 @@ end
 % all files in subdirectory with correct extension
 data = nirs.core.Data.empty;
 
-
-filesLoaded={};
+filesLoaded = {};
 
 for i=1:length(fileExt)
     if(contains(rootFolder,'*')) % Wildcard to import all files in all subdirectories)
@@ -51,19 +54,17 @@ for i=1:length(fileExt)
     end
     
     for iFile = 1:length( files )
-         [p,f,e]=fileparts(files(iFile).name);
-
-        ufilenm=fullfile(p,f);
-        if(ismember(ufilenm,filesLoaded) & ~forceloadall)
+        [p,f,~] = fileparts(files(iFile).name);
+        ufilenm = fullfile(p,f);
+        if ismember(ufilenm, filesLoaded) && ~forceloadall
             continue;
         end
 
         % load using load function
         try
-           
-             disp(['loading: ' files(iFile).name]);
+            disp(['loading: ' files(iFile).name]);
             tmp = loadFunc{i}( files(iFile).name );
-            filesLoaded{end+1}= ufilenm;
+            filesLoaded{end+1} = ufilenm;
         catch
             if(~strcmp(fileExt{i},'TXT'))
                 warning(['error reading file: ' files(iFile).name]);

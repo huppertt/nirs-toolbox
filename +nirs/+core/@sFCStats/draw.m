@@ -123,7 +123,7 @@ for cIdx=1:length(uconds)
             values=tbl.Z;
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             clabel = 'Z';
-        case('t')
+        case({'t','tstat'})
             values=tbl.t;
             [~,cmap] = evalc('flipud( cbrewer(''div'',''RdBu'',2001) )');
             clabel = 't-statistic';

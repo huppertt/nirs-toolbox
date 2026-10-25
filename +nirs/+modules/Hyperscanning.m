@@ -8,7 +8,7 @@ classdef Hyperscanning < nirs.modules.AbstractModule
         min_event_duration;  % minimum duration of events
         link;
         linkVariable = 'hyperscan'; % hyperscan variable from nirx
-        symetric;
+        symmetric;
         verbose;
         ignore;  % seconds at start/end of each scan or block to ignore
         estimate_null; % flag to also estimate connectivity between all non-paired subjects 
@@ -18,10 +18,10 @@ classdef Hyperscanning < nirs.modules.AbstractModule
     methods
         function obj = Hyperscanning( prevJob )
             obj.name = 'Hyperscanning';
-            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'18xFs',true);  %default to use AR-whitened robust correlation
+            obj.corrfcn = @(data)nirs.sFC.ar_corr(data,'18xFs',true,10);  %default to use AR-whitened robust correlation (BIC capped at 10)
             obj.divide_events=false;
             obj.min_event_duration=30;
-            obj.symetric=true;
+            obj.symmetric=true;
             obj.ignore=10;
             obj.verbose=false;
             obj.estimate_null=false;
@@ -109,158 +109,154 @@ classdef Hyperscanning < nirs.modules.AbstractModule
                 
             end
             
-            connStats(1:height(obj.link))=nirs.core.sFCStats();
-            
-            for i=1:height(obj.link)
-                
-                idxA = obj.link.ScanA(i);
-                idxB = obj.link.ScanB(i);
-                
+            nDyads = height(obj.link);
+            connStats = repmat(nirs.core.sFCStats(), 1, nDyads);
+
+            % Cache loop-invariant values for parfor
+            hasRelationship = ismember('relationship', obj.link.Properties.VariableNames);
+            linkTbl = obj.link;
+            corrfcn_   = obj.corrfcn;
+            divide_    = obj.divide_events;
+            symmetric_ = obj.symmetric;
+            ignore_    = obj.ignore;
+            minDur_    = obj.min_event_duration;
+            estNull_   = obj.estimate_null;
+            verbose_   = obj.verbose;
+
+            parfor i = 1:nDyads
+
+                idxA = linkTbl.ScanA(i);
+                idxB = linkTbl.ScanB(i);
+
                 dataA = data(idxA).data;
-                timeA = data(idxA).time+obj.link.OffsetA(i);
+                timeA = data(idxA).time + linkTbl.OffsetA(i);
                 dataB = data(idxB).data;
-                timeB = data(idxB).time+obj.link.OffsetB(i);
-                
+                timeB = data(idxB).time + linkTbl.OffsetB(i);
+
                 % Make sure we are using the same time base
-                if isequal(timeA,timeB)
+                if isequal(timeA, timeB)
                     time = timeA;
                 else
-                    time=[max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end))]';
-                    for id=1:size(dataA,2)
-                        dataA(1:length(time),id)=interp1(timeA,dataA(:,id),time);
+                    time = (max(timeA(1),timeB(1)):1/data(idxA).Fs:min(timeA(end),timeB(end)))';
+                    for id = 1:size(dataA,2)
+                        dataA(1:length(time),id) = interp1(timeA, dataA(:,id), time);
                     end
-                     for id=1:size(dataB,2)
-                        dataB(1:length(time),id)=interp1(timeB,dataB(:,id),time);
+                    dataB_orig = dataB;
+                    for id = 1:size(dataB,2)
+                        dataB(1:length(time),id) = interp1(timeB, dataB_orig(:,id), time);
                     end
-                    dataA=dataA(1:length(time),:);
-                    dataB=dataB(1:length(time),:);
+                    dataA = dataA(1:length(time),:);
+                    dataB = dataB(1:length(time),:);
                 end
-                
-                connStats(i).type = obj.corrfcn;
-                connStats(i).description= data(idxA).description;
-                if(ismember('relationship',obj.link.Properties.VariableNames))
-                    relationship=obj.link(i,:).relationship{1};
-                    if(isa(data(idxA).probe,'nirs.core.Probe1020'))
-                        connStats(i).probe = nirs.core.ProbeHyperscan1020([data(idxA).probe,data(idxB).probe],relationship);
+
+                cs = nirs.core.sFCStats();
+                cs.type = corrfcn_;
+                cs.description = data(idxA).description;
+
+                if hasRelationship
+                    relationship = linkTbl(i,:).relationship{1};
+                    if isa(data(idxA).probe, 'nirs.core.Probe1020')
+                        cs.probe = nirs.core.ProbeHyperscan1020([data(idxA).probe, data(idxB).probe], relationship);
                     else
-                        connStats(i).probe = nirs.core.ProbeHyperscan([data(idxA).probe,data(idxB).probe],relationship);
+                        cs.probe = nirs.core.ProbeHyperscan([data(idxA).probe, data(idxB).probe], relationship);
+                    end
+                else
+                    if isa(data(idxA).probe, 'nirs.core.Probe1020')
+                        cs.probe = nirs.core.ProbeHyperscan1020([data(idxA).probe, data(idxB).probe]);
+                    else
+                        cs.probe = nirs.core.ProbeHyperscan([data(idxA).probe, data(idxB).probe]);
+                    end
+                end
+
+                demog = {data(idxA).demographics; data(idxB).demographics};
+                if estNull_
+                    if linkTbl.isNull(i)
+                        demog{1}('Pairing') = {'Null'};
+                        demog{2}('Pairing') = {'Null'};
+                    else
+                        demog{1}('Pairing') = {'Actual'};
+                        demog{2}('Pairing') = {'Actual'};
+                    end
+                end
+                cs.demographics = demog;
+                cs.R = [];
+
+                if divide_
+                    stim = data(idxA).stimulus;
+
+                    cnt = 1;
+                    for idx = 1:length(stim.keys)
+                        s = stim(stim.keys{idx});
+                        lst = find(s.dur - 2*ignore_ > minDur_);
+                        if ~isempty(lst)
+                            s.onset = s.onset(lst);
+                            s.dur = s.dur(lst);
+
+                            n1 = size(dataA,2) + size(dataB,2);
+                            r = zeros(n1, n1, length(s.onset));
+                            dfe = zeros(length(s.onset), 1);
+
+                            for j = 1:length(s.onset)
+                                tmp = nirs.core.Data;
+                                lstpts = find(time > s.onset(j)+ignore_ & ...
+                                    time < s.onset(j)+s.dur(j)-ignore_);
+                                tmp.data = [dataA(lstpts,:) dataB(lstpts,:)];
+                                tmp.time = time(lstpts);
+                                [r(:,:,j), ~, dfe(j)] = corrfcn_(tmp);
+                            end
+
+                            if symmetric_
+                                r = atanh(r);
+                                for j = 1:size(r,3)
+                                    aa = r(1:end/2, 1:end/2, j);
+                                    ab = r(1:end/2, end/2+1:end, j);
+                                    ba = r(end/2+1:end, 1:end/2, j);
+                                    bb = r(end/2+1:end, end/2+1:end, j);
+                                    r(:,:,j) = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
+                                end
+                                r = tanh(r);
+                            end
+
+                            cs.dfe(cnt) = sum(dfe);
+                            cs.R(:,:,cnt) = tanh(mean(atanh(r), 3));
+                            cs.conditions{cnt} = stim.keys{idx};
+                            cnt = cnt + 1;
+                        end
                     end
 
                 else
-                    if(isa(data(idxA).probe,'nirs.core.Probe1020'))
-                        connStats(i).probe = nirs.core.ProbeHyperscan1020([data(idxA).probe,data(idxB).probe]);
-                    else
-                        connStats(i).probe = nirs.core.ProbeHyperscan([data(idxA).probe,data(idxB).probe]);
-                    end
-                end
-                connStats(i).demographics={data(idxA).demographics; data(idxB).demographics};
-                connStats(i).R=[];
-                if obj.estimate_null
-                    if obj.link.isNull(i)
-                        connStats(i).demographics{1}('Pairing') = {'Null'};
-                        connStats(i).demographics{2}('Pairing') = {'Null'};
-                    else
-                        connStats(i).demographics{1}('Pairing') = {'Actual'};
-                        connStats(i).demographics{2}('Pairing') = {'Actual'};
-                    end
-                end
-                
-                if(obj.divide_events)
-                    stim=data(idxA).stimulus;
-                    stim2=data(idxB).stimulus;
-                    
-                    if ~isequal(stim,stim2)
-                        warning('Stimulus events differ between files. Link table may be incorrect.');
-                    end
-                    
-                    cnt=1;
-                    for idx=1:length(stim.keys)
-                        s=stim(stim.keys{idx});
-                        lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
-                        if(length(lst)>0)
-                            s.onset=s.onset(lst);
-                            s.dur=s.dur(lst);
-                            
-                            if(obj.verbose)
-                                disp(['Spliting condition: ' stim.keys{idx}]);
-                            end
-                            n1=size(dataA,2)+size(dataB,2);
-                            r=zeros(n1,n1,length(s.onset));
-                            dfe=zeros(length(s.onset),1);
-                            
-                            parfor j=1:length(s.onset)
-                                tmp=nirs.core.Data;
-                                if(obj.verbose)
-                                    disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
-                                end
-                                lstpts=find(time>s.onset(j)+obj.ignore &...
-                                    time<s.onset(j)+s.dur(j)-obj.ignore);
-                                tmp.data=[dataA(lstpts,:) dataB(lstpts,:)];
-                                tmp.time=time(lstpts);
-                                [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
-                            end
-                            
-                            if(obj.symetric)
-                                r = atanh(r); % r-to-Z
-                                for j = 1:size(r,3)
-                                    aa=r(1:end/2,1:end/2,j);            % within subject A
-                                    ab=r(1:end/2,end/2+1:end,j);        % from A to B
-                                    ba=r(end/2+1:end,1:end/2,j);        % from B to A
-                                    bb=r(end/2+1:end,end/2+1:end,j);    % within subject B
-                                    r(:,:,j) = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
-                                end
-                                r = tanh(r); % Z-to-r
-                            end
-                                
-                            connStats(i).dfe(cnt)=sum(dfe);
-                            connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
-                            connStats(i).conditions{cnt}=stim.keys{idx};
-                            
-                            cnt=cnt+1;
-                            
-                        else
-                            disp(['Skipping condition: ' stim.keys{idx} ...
-                                ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
-                            
+                    tmp = nirs.core.Data;
+                    tmp.data = [dataA dataB];
+                    tmp.time = time;
+
+                    lst = find(tmp.time < ignore_ | tmp.time > tmp.time(end) - ignore_);
+                    tmp.data(lst,:) = [];
+                    tmp.time(lst) = [];
+                    [r, ~, dfe] = corrfcn_(tmp);
+
+                    if symmetric_
+                        r = atanh(r);
+                        if ~isempty(strfind(func2str(corrfcn_), 'nirs.sFC.grangers'))
+                            r = exp(2*r);
                         end
-                        
-                    end
-                    
-                    
-                else
-                    tmp=nirs.core.Data;
-                    tmp.data=[dataA dataB];
-                    tmp.time=time;
-                    
-                    lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
-                    tmp.data(lst,:)=[];
-                    tmp.time(lst)=[];
-                    [r,p,dfe]=obj.corrfcn(tmp);
-                    
-                    if(obj.symetric)
-                        r = atanh(r); % r-to-Z
-                        if ~isempty(strfind(func2str(obj.corrfcn),'nirs.sFC.grangers'))
-                            r = exp(2*r); % Z-to-F
-                        end
-                        aa=r(1:end/2,1:end/2);            % within subject A
-                        ab=r(1:end/2,end/2+1:end);        % from A to B
-                        ba=r(end/2+1:end,1:end/2);        % from B to A
-                        bb=r(end/2+1:end,end/2+1:end);    % within subject B
+                        aa = r(1:end/2, 1:end/2);
+                        ab = r(1:end/2, end/2+1:end);
+                        ba = r(end/2+1:end, 1:end/2);
+                        bb = r(end/2+1:end, end/2+1:end);
                         r = ([aa ab; ba bb] + [bb ba; ab aa]) ./ 2;
-                        if ~isempty(strfind(func2str(obj.corrfcn),'nirs.sFC.grangers'))
-                            r = log(r)/2; % F-to-Z
+                        if ~isempty(strfind(func2str(corrfcn_), 'nirs.sFC.grangers'))
+                            r = log(r)/2;
                         end
-                        r = tanh(r); % Z-to-r
+                        r = tanh(r);
                     end
-                    
-                    connStats(i).dfe=dfe;
-                    connStats(i).R=r;
-                    connStats(i).conditions=cellstr('rest');
-                                        
+
+                    cs.dfe = dfe;
+                    cs.R = r;
+                    cs.conditions = cellstr('rest');
                 end
-                
-                fprintf('Finished processing dyad %i of %i (%5.4g%%)\n',i,height(obj.link),100*i/height(obj.link));
-                
+
+                connStats(i) = cs;
+
             end
             
         end

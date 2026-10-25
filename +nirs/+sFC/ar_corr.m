@@ -1,4 +1,4 @@
-function [R,p,dfe]=ar_corr(data,modelorder,robust_flag)
+function [R,p,dfe]=ar_corr(data,modelorder,robust_flag,maxBICSearch)
 
 if(nargin<3)
     robust_flag=true;
@@ -7,6 +7,8 @@ end
 if(nargin<2 || isempty(modelorder))
     modelorder=20;
 end
+
+if nargin < 4 || isempty(maxBICSearch), maxBICSearch = 0; end
 
 if(~isempty(strfind(class(data),'.core.Data')))
     Fs=data.Fs;
@@ -28,7 +30,7 @@ else
     mask=ones(size(data));
 end
 
-[yfilt,f] = nirs.math.innovations(real(data),p);
+[yfilt,f] = nirs.math.innovations(real(data),p,false,maxBICSearch);
 
 % Mask out boundary values
 for ch = 1:size(yfilt,2)

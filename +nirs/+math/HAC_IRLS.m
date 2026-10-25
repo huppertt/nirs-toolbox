@@ -14,47 +14,53 @@ nparam=size(X,2);
 beta=zeros(nparam,nchan);
 
 resid=zeros(size(Y));
-whac=zeros(size(Y));
 
 tic;
-for chanIdx=1:nchan
-    
-    st=nirs.math.ar_irls(Y(:,chanIdx),X,p);
-    fX=filter(st.filter{1},1,X);
-    fY=filter(st.filter{1},1,Y(:,chanIdx));
-    resid(:,chanIdx)=fY-fX*st.beta;
-    
-    H = fX*pinv(fX'*fX)*fX';
-    h=diag(H);
-    whac=computeweights(resid(:,chanIdx),type,h,nobs,nobs-nparam);
-    PhiHat=fX'*diag(whac)*fX;
-    iXtX=pinv(fX'*fX);
-    EstCov=iXtX*PhiHat*iXtX;
-    
+% Single parallelized call for all channels
+st_all = nirs.math.ar_irls_fast(Y, X, p);
+
+% Pre-allocate outputs for parfor
+B = cell(1, nchan);
+dfe = zeros(nchan, size(X,2));
+
+parfor chanIdx=1:nchan
+    fX = filter(st_all.filter{chanIdx}, 1, X);
+    fY = filter(st_all.filter{chanIdx}, 1, Y(:,chanIdx));
+    r = fY - fX * st_all.beta(:,chanIdx);
+    resid(:,chanIdx) = r;
+
+    % QR-based leverage (avoids n×n hat matrix)
+    [Q, ~] = qr(fX, 0);
+    h = sum(Q.^2, 2);
+
+    whac = computeweights(r, type, h, nobs, nobs-nparam);
+    PhiHat = fX' * diag(whac) * fX;
+    iXtX = pinv(fX' * fX);
+    EstCov = iXtX * PhiHat * iXtX;
+
     % ensure it is pos-definite
-    [U,S,V]=svd(EstCov);  
-    EstCov=(U*S*U'+V*S*V')/2;
+    [U,S,V] = svd(EstCov);
+    EstCov = (U*S*U' + V*S*V') / 2;
     B{chanIdx} = chol(EstCov);
 
-    beta(:,chanIdx)=st.beta;
-    dfe(chanIdx,:)=st.dfe*ones(1,size(X,2)); 
-    
+    beta(:,chanIdx) = st_all.beta(:,chanIdx);
+    dfe(chanIdx,:) = st_all.dfe(chanIdx) * ones(1, size(X,2));
 end
 
 
 fprintf( '  Finished.  Time Elapsed %f seconds\n',toc);
 
-Cov = [];
-for chanIdx=1:nchan
-    C1=[];
-    for chanIdx2=1:nchan
-        cc = corrcoef(resid(:,[chanIdx chanIdx2]));
-        C1 = [C1 B{chanIdx}'*B{chanIdx2}*cc(1,2)];
+% Vectorized cross-channel covariance
+R = corrcoef(resid);
+Cov = zeros(nparam*nchan);
+for i=1:nchan
+    for j=1:nchan
+        rows = (i-1)*nparam + (1:nparam);
+        cols = (j-1)*nparam + (1:nparam);
+        Cov(rows,cols) = B{i}' * B{j} * R(i,j);
     end
-    Cov=[Cov; C1];
 end
-
-Cov=(Cov+Cov')/2;
+Cov = (Cov + Cov') / 2;
 
 dfe=reshape(dfe,[],1);
 

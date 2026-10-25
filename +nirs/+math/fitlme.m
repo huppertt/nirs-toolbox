@@ -1,11 +1,20 @@
-function [beta,bHat,covb,LL,w] = fitlme(X,Y,Z,robust_flag,zero_theta,verbose)
+function [beta,bHat,covb,LL,w,theta_out,sigma2_out] = fitlme(X,Y,Z,robust_flag,zero_theta,verbose,fixed_theta)
 % Robust linear mixed-effects model fiting
-% [beta,bHat,covb,LL,w] = nirs.math.fitlme( X, Y, Z, robust_flag, zero_theta_flag, verbose_flag )
+% [beta,bHat,covb,LL,w,theta,sigma2] = nirs.math.fitlme( X, Y, Z, robust_flag, zero_theta_flag, verbose_flag, fixed_theta )
+%
+% fixed_theta: when provided and finite, skip theta optimization and use
+%              this value. Useful for Kronecker decomposition where theta
+%              is estimated jointly across channels.
+%
+% sigma2: error variance estimate (ML or robust). Useful for sigma²
+%         pooling in Kronecker decomposition.
 %
 % TODO: Add support for covariance patterns other than isotropic
 if nargin<4, robust_flag = false; end
 if nargin<5, zero_theta = false; end
 if nargin<6, verbose = false; end
+if nargin<7, fixed_theta = NaN; end
+sigma2_out = NaN;
 
 nT = size(Y,1);
 nY = size(Y,2);
@@ -67,16 +76,12 @@ if nY > 1
     return;
 end
 
-%% Ensure no sparse matrices
-X = full(X);
-Y = full(Y);
-Z = full(Z);
-
 %% Compute theta
-if zero_theta
+if isfinite(fixed_theta)
+    theta = fixed_theta;
+elseif zero_theta
     theta = 0;
 else
-   
     theta = solveForTheta(X,Y,Z);
 end
 
@@ -103,7 +108,7 @@ if robust_flag
     end
     
     adj = 1 ./ sqrt(1-min(.9999,lev));
-    xrank = rank(X);
+    xrank = nirs.math.sparseRank(X);
     num_params = max(1,xrank);
     
     while iter<10
@@ -124,8 +129,8 @@ if robust_flag
             return;
         end
         
-        % Re-estimate using new weights
-        if ~zero_theta
+        % Re-estimate using new weights (skip if theta is fixed externally)
+        if ~zero_theta && ~isfinite(fixed_theta)
             theta = solveForTheta(w*X,w*Y,w*Z,theta); % Get optimal theta
         end
         [~,beta,bHat] = solveLME(w*X,w*Y,w*Z,theta); % Solve model
@@ -169,11 +174,19 @@ if robust_flag
 
     
     covb = sigma^2*(invR1'*invR1);
+    sigma2 = sigma^2;
     w0 = diag(w);
     w = zeros(nT0,1);
     w(~bad_times) = w0;
 else
     w = ones(nT0,1);
+end
+
+if nargout >= 6
+    theta_out = theta;
+end
+if nargout >= 7
+    sigma2_out = sigma2;
 end
 
 end
@@ -271,7 +284,7 @@ if(nargout>1)
     else
         sigma2 = r2/nT;
     end
-    xr = rank(X);
+    xr = nirs.math.sparseRank(X);
     if(xr<size(R1,1))
          invR1 = pinv(R1);
     else
@@ -297,7 +310,11 @@ end
 function [R,p] = cholSafe(d,varargin)
 
 delta = eps(class(d));
-I = eye(size(d));
+if issparse(d)
+    I = speye(size(d));
+else
+    I = eye(size(d));
+end
 
 p=1; iter=1; max_iter=1000;
 while p~=0
@@ -368,6 +385,6 @@ Lambda = sqrt(exp(theta)) * speye(nZ); % Isotropic covariance pattern
  %            % Lambda has size q by q where q = size(Z,2).
  %            Lambda = getLowerTriangularCholeskyFactor(Psi);
 
-            
+
 end
 

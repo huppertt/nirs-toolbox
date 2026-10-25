@@ -99,7 +99,7 @@ probe1020.optodes_registered.X(lst)=detPos3D(:,1);
 probe1020.optodes_registered.Y(lst)=detPos3D(:,2);
 probe1020.optodes_registered.Z(lst)=detPos3D(:,3);
     
-probe1020 = nirs.registration.realign_symetric(probe1020);
+probe1020 = nirs.registration.realign_symmetric(probe1020);
 
 
 return

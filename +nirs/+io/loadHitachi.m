@@ -300,25 +300,23 @@ function probe=getprobefrominfo(info)
 % figure out what probe this is
 
 modeParts=strsplit(info.Mode,'x');
-m=str2num(modeParts{1});
-n=str2num(modeParts{2});
+m=int16(str2num(modeParts{1}));
+n=int16(str2num(modeParts{2}));
 
+% figure out what probe this is
 switch(info.Mode)
     case('3x5')
-       m=3;
-       n=5;
+       
     case('3x3')
-        m=3;
-        n=3;
+        
     case('4x4')
-        m=4;
-        n=4;
+        
     case('3x11')
-        m=3;
-        n=11;    
+        m=int16(11);
+        n=int16(3);
     otherwise
         % I don't want to just assume I can do this based on the mode
-        error('This is a different probe design');
+        warning('This is a different possibly unsupported probe design');
 end
 
 offset=15;
@@ -362,4 +360,13 @@ link=sortrows(link,{'detector','source','type'});
 probe=nirs.core.Probe(SrcPos,DetPos,link);
 probe.link=probe.link(probe.distances==30,:);
 
+end
+
+
+function result = iseven(x)
+    if(mod(x,2)==0)
+        result=true;
+    else
+        result=false;
+    end
 end

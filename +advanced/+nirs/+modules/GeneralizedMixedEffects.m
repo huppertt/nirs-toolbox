@@ -2,7 +2,7 @@ classdef GeneralizedMixedEffects < nirs.modules.AbstractModule
     %% MixedEffect - Performs group level mixed effects analysis.
     %
     % Options:
-    %     formula     - string specifiying regression formula (see Wilkinson notation)
+    %     formula     - string specifying regression formula (see Wilkinson notation)
     %     dummyCoding - dummyCoding format for categorical variables (full, reference, effects)
     %     centerVars  - (true or false) flag for whether or not to center numerical variables
     %

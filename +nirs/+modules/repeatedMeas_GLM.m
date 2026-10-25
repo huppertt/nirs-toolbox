@@ -40,7 +40,9 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
         function S = runThis( obj, data )
             vec = @(x) x(:);
             
-            for i = 1:numel(data)
+            S = repmat(nirs.core.ChannelFStats(), 1, numel(data));
+
+            parfor i = 1:numel(data)
                 % get data
                 d  = data(i).data;
                 t  = data(i).time;
@@ -127,7 +129,6 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
                 
                     var=[];
 
-                    S(i)=nirs.core.ChannelFStats;
                     S(i).description=['Repeated ANOVA: ' obj.formula];
                     S(i).probe=data(i).probe;
                     S(i).demographics=data(i).demographics;
@@ -161,7 +162,7 @@ classdef repeatedMeas_GLM < nirs.modules.AbstractGLM
                 
                 % print progress
                 if(obj.verbose)
-                 obj.printProgress( i, length(data) )
+                    obj.printProgress( i, numel(data) )
                 end
             end
 
