@@ -26,7 +26,7 @@ ProbePos=[probe.optodes.X probe.optodes.Y probe.optodes.Z];
 lstCM=find(ismember(probe.optodes.Units,{'cm'}));
 ProbePos(lstCM,:)=ProbePos(lstCM,:)*10;
 
-% Find symetric pairs;
+% Find symmetric pairs;
 sym=zeros(size(ProbePos,1));
 for i=1:size(ProbePos,1)
     for j=i:size(ProbePos,1)
@@ -61,7 +61,7 @@ Anchors=find(ismember(probe.optodes.Type(lstCommonInProbe),'FID-anchor'));
 T = ProbePosSphere(lstCommonInProbe,:)\AnchorPos;
 ProbePosSphere=ProbePosSphere*T;
 
-ProbePosSphere=makesymetric(ProbePosSphere,sym);
+ProbePosSphere=makesymmetric(ProbePosSphere,sym);
 ProbePosSphere = projectsurface(ProbePosSphere(:,1:3),mesh.nodes);
 
 if(dispflag)
@@ -96,11 +96,11 @@ for iter=1:1
     Tform =P1\P2;
      
     ProbePosSphere=ProbePosSphere*Tform;
-    ProbePosSphere=makesymetric(ProbePosSphere,sym);
+    ProbePosSphere=makesymmetric(ProbePosSphere,sym);
 
     ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
     ProbePosSphere = pushdistances(ProbePosSphere,squareform(pdist(ProbePos)));
-    ProbePosSphere=makesymetric(ProbePosSphere,sym);
+    ProbePosSphere=makesymmetric(ProbePosSphere,sym);
 
     ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);
     
@@ -131,11 +131,11 @@ end
 Tform =P1\P2;
 
 ProbePosSphere=ProbePosSphere*Tform;
-ProbePosSphere=makesymetric(ProbePosSphere,sym);
+ProbePosSphere=makesymmetric(ProbePosSphere,sym);
  
 ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);    
     
-ProbePosSphere=makesymetric(ProbePosSphere,sym);
+ProbePosSphere=makesymmetric(ProbePosSphere,sym);
  
 ProbePosSphere = projectsurface(ProbePosSphere,mesh.nodes);  
 
@@ -204,7 +204,7 @@ end
 return
 
 
-function ProbePosSphere=makesymetric(ProbePosSphere,sym);
+function ProbePosSphere=makesymmetric(ProbePosSphere,sym);
 
 for i=1:length(sym)
     lst=find(sym(i,:));

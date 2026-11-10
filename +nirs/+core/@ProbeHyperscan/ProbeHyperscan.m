@@ -26,10 +26,13 @@ classdef ProbeHyperscan
     properties( Dependent = true )
         optodes    % table describing the src/det and any additional probe points
         link        % table describing the connections of source/detector pairs
+        types       % unique measurement types (e.g. wavelengths or hbo/hbr)
 
         distances   % (dependent) returns measurement distances
         srcPos      % nsrc x 3 array of source positions (mm)
         detPos      % ndet x 3 array of detector positions (mm)
+        srcPos_drawing  % drawing positions (same as srcPos for non-1020)
+        detPos_drawing  % drawing positions (same as detPos for non-1020)
     end
 
     properties(Hidden = true)
@@ -44,7 +47,10 @@ classdef ProbeHyperscan
         function obj = ProbeHyperscan(probe,SubjectLabels,RotateMatrix)
 
 
-            if(nargin>1)
+            if(nargin>1 && ~isempty(SubjectLabels))
+                if ~iscell(SubjectLabels)
+                    SubjectLabels = cellstr(SubjectLabels);
+                end
                 obj.SubjectLabels=SubjectLabels;
             else
                 for i=1:length(probe)
@@ -57,7 +63,7 @@ classdef ProbeHyperscan
             obj.originalprobe=probe;
 
             if(nargin>2)
-                obj.RotateMatrix=RotateMartix;
+                obj.RotateMatrix=RotateMatrix;
             else
                 obj.RotateMatrix=cell(length(unique(obj.SubjectLabels)),1);
                 maxY=-inf;
@@ -163,6 +169,10 @@ classdef ProbeHyperscan
 
         end
 
+        function types = get.types(obj)
+            types = unique(obj.link.type);
+        end
+
         function srcPos = get.srcPos(obj)
             %% This function returns the src pos (in mm)
             [tbl,l]=sortrows(obj.optodes,{'Type','Name'});
@@ -185,7 +195,13 @@ classdef ProbeHyperscan
             detPos(lstCM,:)=detPos(lstCM,:)*10;
         end
 
+        function pos = get.srcPos_drawing(obj)
+            pos = obj.srcPos;
+        end
 
+        function pos = get.detPos_drawing(obj)
+            pos = obj.detPos;
+        end
 
 
         function optodes = get.optodes(obj)

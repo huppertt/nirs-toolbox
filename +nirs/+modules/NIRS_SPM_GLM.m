@@ -229,7 +229,9 @@ classdef NIRS_SPM_GLM < nirs.modules.AbstractGLM
                 
                 
                 % print progress
-                obj.printProgress( i, length(data) )
+                if(obj.verbose)
+                    obj.printProgress( i, length(data) )
+                end
                 
             end
             delete('temp.mat');

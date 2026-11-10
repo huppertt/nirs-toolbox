@@ -30,5 +30,5 @@ probe1020=probe1020.set_mesh(MESH.mesh);
 % probe1020.optodes_registered=fidtbl;
 
 if(sym)
-    probe1020=nirs.registration.realign_symetric(probe1020);
+    probe1020=nirs.registration.realign_symmetric(probe1020);
 end

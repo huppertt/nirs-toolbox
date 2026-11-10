@@ -39,7 +39,15 @@ classdef AR_IRLS_MixedEffects < nirs.modules.AbstractGLM
         function S = runThis( obj, data )
             vec = @(x) x(:);
             
-            for i = 1:numel(data)
+            if(~isempty(strfind(class(data(1).probe),'nirs')))
+                S = repmat(nirs.core.ChannelStats(), 1, numel(data));
+            elseif(~isempty(strfind(class(data(1).probe),'eeg')))
+                S = repmat(eeg.core.ChannelStats(), 1, numel(data));
+            else
+                S = repmat(nirs.core.ChannelStats(), 1, numel(data));
+            end
+
+            parfor i = 1:numel(data)
                 % get data
                 d  = data(i).data;
                 t  = data(i).time;
@@ -107,14 +115,6 @@ classdef AR_IRLS_MixedEffects < nirs.modules.AbstractGLM
                 cond = repmat(names(:)', [nchan 1]);
                 cond = cond(:);
                
-                if(~isempty(strfind(class(probe),'nirs')))
-                    S(i) = nirs.core.ChannelStats();
-                elseif(~isempty(strfind(class(probe),'eeg')))
-                    S(i) = eeg.core.ChannelStats();
-                else
-                    warning('unsupported data type');
-                    S(i) = nirs.core.ChannelStats();
-                end
                 S(i).variables = [link table(cond)];
                 S(i).beta = vec( stats.beta(1:ncond,:)' );
                 
@@ -150,7 +150,7 @@ classdef AR_IRLS_MixedEffects < nirs.modules.AbstractGLM
                 
                 % print progress
                 if(obj.verbose)
-                 obj.printProgress( i, length(data) )
+                    obj.printProgress( i, numel(data) )
                 end
             end
 

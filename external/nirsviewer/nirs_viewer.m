@@ -100,72 +100,117 @@ end
 delete(findobj('tag','uitree_cont'));
 delete(findobj('tag','uitree_obj'));
 
-import javax.swing.*
-import javax.swing.tree.*;
-root = uitreenode('v0','Subjects', 'Subjects', [], false);
-
-groups=unique(table.group);
-
-
-
-for gIdx=1:length(groups)
-    g = uitreenode('v0', groups{gIdx},  groups{gIdx}, [], false);
-    lst=find(ismember(table.group, groups{gIdx}));
-    subj=table.subject;
-    if(~iscellstr(subj)); subj=cellstr(subj); table.subject=subj;  end;
-    subj=unique({subj{lst}});
-    for sIdx=1:length(subj)
-
-        s = uitreenode('v0', subj{sIdx},  subj{sIdx}, [], false);
-        lstfiles=find(ismember(table.group, groups{gIdx}) & ismember(table.subject, subj{sIdx}));
-        for cf=1:length(lstfiles)
-            if(~isempty(data(lstfiles(cf)).description))
-            [~,file,ext]=fileparts(data(lstfiles(cf)).description);
-            f = uitreenode('v0', num2str(lstfiles(cf)),[file ext],[],true);
-            else
-                f = uitreenode('v0', num2str(lstfiles(cf)),['file' num2str(lstfiles(cf))],[],true);
-            end
-            s.add(f);
-        end
-        g.add(s);
-    end
-    root.add(g);
+% Detect whether legacy Java-based uitreenode is available
+is_legacy = true;
+try
+    uitreenode('v0','test','test',[],true);
+catch
+    is_legacy = false;
 end
 
-[mtree,container] = uitree('v0', 'Root', root);
-set(container,'units',get(handles.uipanel1,'units'));
-set(container,'tag','uitree_cont');
+groups = unique(table.group);
 
-set(container,'position',get(handles.uipanel1,'position'));
-set(container,'visible','on');
-set(container,'userdata',mtree);
+if is_legacy
+    %% Legacy uitree (Java Swing, pre-R2023)
+    import javax.swing.*
+    import javax.swing.tree.*;
 
-mtree.expand(mtree.getRoot);
-mtree.expand(s);
-mtree.setSelectedNode(f);
-set(mtree,'NodeSelectedCallback',@updatewindow);
+    root = uitreenode('v0', 'Subjects', 'Subjects', [], false);
+    for gIdx = 1:length(groups)
+        g = uitreenode('v0', groups{gIdx}, groups{gIdx}, [], false);
+        lst = find(ismember(table.group, groups{gIdx}));
+        subj = table.subject;
+        if ~iscellstr(subj); subj = cellstr(subj); table.subject = subj; end
+        subj = unique({subj{lst}});
+        for sIdx = 1:length(subj)
+            s = uitreenode('v0', subj{sIdx}, subj{sIdx}, [], false);
+            lstfiles = find(ismember(table.group, groups{gIdx}) & ismember(table.subject, subj{sIdx}));
+            for cf = 1:length(lstfiles)
+                lbl = get_file_label(data, lstfiles(cf));
+                f = uitreenode('v0', num2str(lstfiles(cf)), lbl, [], true);
+                s.add(f);
+            end
+            g.add(s);
+        end
+        root.add(g);
+    end
 
-updatewindow;
+    [mtree, container] = uitree('v0', 'Root', root);
+    set(container, 'units', get(handles.uipanel1, 'units'));
+    set(container, 'tag', 'uitree_cont');
+    set(container, 'position', get(handles.uipanel1, 'position'));
+    set(container, 'visible', 'on');
+    set(container, 'userdata', mtree);
+    mtree.expand(mtree.getRoot);
+    mtree.expand(s);
+    mtree.setSelectedNode(f);
+    set(mtree, 'NodeSelectedCallback', @updatewindow);
+
+else
+    %% Modern uitree (R2023+)
+    tree = uitree(handles.uipanel1, 'Tag', 'uitree_cont', ...
+        'Position', [0 0 1 1]);
+    root = uitreenode(tree, 'Text', 'Subjects');
+    last_file_node = [];
+
+    for gIdx = 1:length(groups)
+        g = uitreenode(root, 'Text', groups{gIdx});
+        lst = find(ismember(table.group, groups{gIdx}));
+        subj = table.subject;
+        if ~iscellstr(subj); subj = cellstr(subj); table.subject = subj; end
+        subj = unique({subj{lst}});
+        for sIdx = 1:length(subj)
+            s = uitreenode(g, 'Text', subj{sIdx});
+            lstfiles = find(ismember(table.group, groups{gIdx}) & ismember(table.subject, subj{sIdx}));
+            for cf = 1:length(lstfiles)
+                lbl = get_file_label(data, lstfiles(cf));
+                f = uitreenode(s, 'Text', lbl);
+                f.NodeData = num2str(lstfiles(cf));
+                last_file_node = f;
+            end
+        end
+    end
+
+    tree.SelectionChangedFcn = @updatewindow;
+
+    % Expand all nodes
+    expand(tree, 'all');
+    if ~isempty(last_file_node)
+        tree.SelectedNodes = last_file_node;
+    end
+end
+
 return
 
-% This function does the drawing 
+% This function does the drawing
 function updatewindow(varargin)
 
 handles=guihandles(findobj('tag','figure_nirsview'));
 name=get(handles.listbox_data,'String');
-name=name{get(handles.listbox_data,'value')};
+if iscell(name)
+    name=name{get(handles.listbox_data,'value')};
+end
 subtype={strtrim(name(strfind(name,':')+1:end))};
 name=strtrim(name(1:strfind(name,':')-1));
 data=evalin('base',name);
 
+container = findobj('tag','uitree_cont');
+if isempty(container); return; end
 
-a=findobj('tag','uitree_cont');
-a=get(a,'Userdata');
-node=get(a.Tree,'LastSelectedPathComponent');
+if isa(container, 'matlab.ui.container.Tree')
+    % Modern uitree
+    nodes = container.SelectedNodes;
+    if isempty(nodes); return; end
+    val = str2double(nodes(1).NodeData);
+else
+    % Legacy uitree
+    mtree = get(container, 'Userdata');
+    node = get(mtree, 'LastSelectedPathComponent');
+    if isempty(node); return; end
+    val = str2num(char(node.getValue));
+end
 
-filename=node.getName;
-val=str2num(node.getValue);
-if(isempty(val))
+if isempty(val) || isnan(val)
     return
 end
 
@@ -191,8 +236,7 @@ set(handles.axes_SDG,'Ycolor',get(handles.figure_nirsview,'color'))
 
 set(handles.axes_SDG,'Xtick',[],'Ytick',[])
 
-%See if there is anything already drawn and keep the visibility (if
-%possible)
+%See if there is anything already drawn and keep the visibility (if possible)
 lines=findobj('type','line','parent',handles.axes_maindata,'tag','dataline');
 isvis={};
 for idx=1:length(lines)
@@ -631,3 +675,13 @@ function roi_analysis_Callback(hObject, eventdata, handles)
 % hObject    handle to roi_analysis (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+return
+
+% --- Local helper: build display label for a file node
+function lbl = get_file_label(data, idx)
+if ~isempty(data(idx).description)
+    [~, file, ext] = fileparts(data(idx).description);
+    lbl = [file ext];
+else
+    lbl = ['file' num2str(idx)];
+end

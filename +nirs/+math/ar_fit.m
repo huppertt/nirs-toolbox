@@ -24,11 +24,14 @@ if(nosearch)
     [Q,R] = qr(X(lstValid,:),0); % note that the zero is very important for performance
     invR = pinv(R);
     coef = invR * Q'*yy(lstValid);
-    res = yy(lstValid) - X(lstValid,:)*coef;
+    res_valid = yy(lstValid) - X(lstValid,:)*coef;
 else
-    [coef, res] = nirs.math.stepwise(X(lstValid,:), yy(lstValid));
+    [coef, res_valid] = nirs.math.stepwise(X(lstValid,:), yy(lstValid));
 end
-res = res(1:n);
+% Reconstruct full-length residual (NaN where invalid)
+res_full = nan(2*n, 1);
+res_full(lstValid) = res_valid;
+res = res_full(1:n);
 yhat = y - res;
 
 end

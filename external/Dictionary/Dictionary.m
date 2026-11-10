@@ -97,6 +97,11 @@ classdef Dictionary
             
             obj = obj.rehash();
         end
+
+        function result = isKey(obj,key_string)
+
+            result= any(ismember(obj.keys,key_string));
+        end
         
                   
         

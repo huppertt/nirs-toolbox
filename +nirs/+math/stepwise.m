@@ -7,8 +7,9 @@ function [b, r, crit] = stepwise(X, y, criterion)
     invR = pinv(R);
     
     n = size(y,1);
-    LL = nan(size(X,2),1);
-    for i = 1:length(LL)
+    maxOrder = min(size(X));  % cannot fit more params than observations
+    LL = nan(maxOrder,1);
+    for i = 1:maxOrder
         % get residual for each fit
         b = invR(1:i,1:i) * Q(:,1:i)' * y;
         r = y - X(:,1:i)*b;

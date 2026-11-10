@@ -34,68 +34,70 @@ classdef Connectivity < nirs.modules.AbstractModule
             end
 
 
-            for i = 1:numel(data)
+            nFiles = numel(data);
+            connStats = repmat(nirs.core.sFCStats(), 1, nFiles);
 
+            % Cache loop-invariant values for parfor
+            corrfcn_  = obj.corrfcn;
+            divide_   = obj.divide_events;
+            ignore_   = obj.ignore;
+            minDur_   = obj.min_event_duration;
+            verbose_  = obj.verbose;
 
-                connStats(i)=nirs.core.sFCStats();
-                connStats(i).type = obj.corrfcn;
-                connStats(i).description= ['Connectivity model of ' data(i).description];
-                connStats(i).probe=data(i).probe;
-                connStats(i).demographics=data(i).demographics;
+            parfor i = 1:nFiles
 
-                mask={}; cond={};
-                if(obj.divide_events)
+                cs = nirs.core.sFCStats();
+                cs.type = corrfcn_;
+                cs.description = ['Connectivity model of ' data(i).description];
+                cs.probe = data(i).probe;
+                cs.demographics = data(i).demographics;
 
-                    stim=data(i).stimulus;
-                    cnt=1;
-                    for idx=1:length(stim.keys)
-                        s=stim(stim.keys{idx});
-                        lst=find(s.dur-2*obj.ignore>obj.min_event_duration);
-                        if(length(lst)>0)
-                            s.onset=s.onset(lst);
-                            s.dur=s.dur(lst);
+                if divide_
+                    stim = data(i).stimulus;
+                    cnt = 1;
+                    for idx = 1:length(stim.keys)
+                        s = stim(stim.keys{idx});
+                        lst = find(s.dur - 2*ignore_ > minDur_);
+                        if ~isempty(lst)
+                            s.onset = s.onset(lst);
+                            s.dur = s.dur(lst);
 
-                            disp(['Spliting condition: ' stim.keys{idx}]);
-                            r=zeros(size(data(i).data,2),size(data(i).data,2),length(s.onset));
-                            dfe=zeros(length(s.onset),1);
-                            for j=1:length(s.onset)
-                                disp(['   ' num2str(j) ' of ' num2str(length(s.onset))]);
-                                lstpts=find(data(i).time>s.onset(j)+obj.ignore &...
-                                    data(i).time<s.onset(j)+s.dur(j)-obj.ignore);
-                                tmp=data(i);
-                                tmp.data=data(i).data(lstpts,:);
-                                tmp.time=data(i).time(lstpts);
-                                [r(:,:,j),p,dfe(j)]=obj.corrfcn(tmp);
+                            nCh = size(data(i).data, 2);
+                            r = zeros(nCh, nCh, length(s.onset));
+                            dfe = zeros(length(s.onset), 1);
+
+                            itime = data(i).time;
+                            idata = data(i).data;
+                            for j = 1:length(s.onset)
+                                tmp = nirs.core.Data;
+                                lstpts = find(itime > s.onset(j)+ignore_ & ...
+                                    itime < s.onset(j)+s.dur(j)-ignore_);
+                                tmp.data = idata(lstpts,:);
+                                tmp.time = itime(lstpts);
+                                [r(:,:,j), ~, dfe(j)] = corrfcn_(tmp);
                             end
 
-                            connStats(i).dfe(cnt)=sum(dfe);
-                            connStats(i).R(:,:,cnt)=tanh(mean(atanh(r),3));
-                            connStats(i).conditions{cnt}=stim.keys{idx};
-                            cnt=cnt+1;
-                        else
-                            if(obj.verbose)
-                                disp(['Skipping condition: ' stim.keys{idx} ...
-                                    ': No events > ' num2str(2*obj.ignore+obj.min_event_duration) 's']);
-                            end
+                            cs.dfe(cnt) = sum(dfe);
+                            cs.R(:,:,cnt) = tanh(mean(atanh(r), 3));
+                            cs.conditions{cnt} = stim.keys{idx};
+                            cnt = cnt + 1;
                         end
-
                     end
 
                 else
-                    tmp=data(i);
-                    lst=find(tmp.time<obj.ignore | tmp.time>tmp.time(end)-obj.ignore);
-                    tmp.data(lst,:)=[];
-                    tmp.time(lst)=[];
-                    [r,p,dfe]=obj.corrfcn(tmp);
+                    tmp = data(i);
+                    lst = find(tmp.time < ignore_ | tmp.time > tmp.time(end) - ignore_);
+                    tmp.data(lst,:) = [];
+                    tmp.time(lst) = [];
+                    [r, ~, dfe] = corrfcn_(tmp);
 
-                    connStats(i).dfe=dfe;
-                    connStats(i).R=r;
-                    connStats(i).conditions=cellstr('rest');
+                    cs.dfe = dfe;
+                    cs.R = r;
+                    cs.conditions = cellstr('rest');
                 end
 
-                if(obj.verbose)
-                    disp(['Finished ' num2str(i) ' of ' num2str(length(data))]);
-                end
+                connStats(i) = cs;
+
             end
         end
 
