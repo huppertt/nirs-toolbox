@@ -13,16 +13,12 @@ if(verbose)
     disp(['Loading SNIRF file: ' filename]);
 end
 
-if(~legacy)
+if(~legacy && exist('SnirfLoad', 'file') == 2)
     data = nirs.io.readSNIRFnew(filename);
     return
 end
 
-
-
 info=hdf5info(filename);
-
-
 names=nirs.util.hdf5getnames(filename);
 
 array=cell(length(names),2);
