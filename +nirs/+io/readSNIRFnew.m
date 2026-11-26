@@ -1,4 +1,4 @@
-function data=readKernelMomentsSNIRF(filename)
+function data=readSNIRFnew(filename)
 % This function converts data read in using the Homer-3 SnirfClass to the
 % nirs-toolbox nirs.core.Data structure
 
